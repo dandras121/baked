@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Linda Cake Shop | Coming Soon</title>
+
+<!-- Elegáns kézírásos és klasszikus betűk -->
+<link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Lora:wght@400;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Pinyon+Script&display=swap" rel="stylesheet">
+<style>
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    height: 100vh;
+    overflow: hidden;
+    font-family: 'Lora', serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+}
+
+/* Háttérkép */
+.background {
+    position: absolute;
+    inset: 0;
+    background-image: url("backgrnd.jpeg");
+    background-size: cover;
+    background-position: center;
+    filter: brightness(70%);
+    z-index: -2;
+}
+
+/* Fehér áttetsző réteg a kép fölé */
+.background::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: rgba(255,255,255,0.45);
+}
+
+/* Tartalom */
+.container {
+
+    background: rgba(255,255,255,0.75);
+    padding: clamp(25px, 5vw, 60px);
+    border-radius: 20px;
+    max-width: 90%;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+}
+
+h1 {
+
+    font-family: 'Pinyon Script', cursive;
+    font-size: clamp(55px, 9vw, 110px);
+    font-weight: normal;
+    margin: 0;
+    color: #8b5e3c;
+}
+
+h2 {
+
+    font-size: clamp(18px, 3vw, 28px);
+    color: #5c4033;
+    margin-top: 10px;
+    letter-spacing: 2px;
+}
+
+p {
+
+    font-size: clamp(15px, 2vw, 20px);
+    color: #6b5545;
+    margin-top: 25px;
+}
+
+
+@media(max-width:600px){
+
+.container {
+    padding: 25px 20px;
+}
+
+h1 {
+    font-size: 55px;
+}
+
+}
+
+</style>
+
+</head>
+
+
+<body>
+
+<div class="background"></div>
+
+
+<div class="container">
+
+<h1>Coming Soon</h1>
+
+<h2>Baked By Linda</h2>
+
+<p>
+Handmade cakes baked with love<br>
+Our new website is under construction
+</p>
+
+</div>
+
+
+</body>
+</html>
