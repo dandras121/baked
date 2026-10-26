@@ -10,7 +10,7 @@ Branch per phase (`phase-00-foundations`, …), one commit per accepted slice, t
 | 0.1 | Repository, tooling, logs | ☑ | 03beb53 | 2026-10-26 |
 | 0.2 | Design tokens, fonts, base styles | ☑ | d76830a | 2026-10-26 |
 | 0.3 | Layout, breakpoints, page shell skeleton | ☑ | 8f2d8ef | 2026-10-26 |
-| 0.4 | Interaction and motion core | ◐ | | |
+| 0.4 | Interaction and motion core | ☑ | fa41ed7 | 2026-10-26 |
 | 0.5 | Base components | ☐ | | |
 | 0.6 | Data layer, money, time, settings | ☐ | | |
 
