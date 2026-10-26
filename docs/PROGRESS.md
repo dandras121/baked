@@ -8,7 +8,7 @@ Branch per phase (`phase-00-foundations`, …), one commit per accepted slice, t
 | Slice | Title | Status | Commit | Accepted by Bohoka |
 |---|---|---|---|---|
 | 0.1 | Repository, tooling, logs | ☑ | 03beb53 | 2026-10-26 |
-| 0.2 | Design tokens, fonts, base styles | ☐ | | |
+| 0.2 | Design tokens, fonts, base styles | ◐ | | |
 | 0.3 | Layout, breakpoints, page shell skeleton | ☐ | | |
 | 0.4 | Interaction and motion core | ☐ | | |
 | 0.5 | Base components | ☐ | | |
@@ -135,10 +135,10 @@ Branch per phase (`phase-00-foundations`, …), one commit per accepted slice, t
 
 ## Current slice
 
-- Slice: 0.2 Design tokens, fonts, base styles (starting)
-- Files: `package.json`, `pnpm-lock.yaml`, `pnpm-workspace.yaml`, `tsconfig.json`, `next.config.ts`, `eslint.config.mjs`, `.prettierrc.json`, `.prettierignore`, `vitest.config.mts`, `playwright.config.ts`, `.github/workflows/ci.yml`, `.env.example`, `README.md`, `src/app/layout.tsx`, `src/app/globals.css`, `src/app/page.tsx`, `src/app/dev/layout.tsx`, `src/app/dev/page.tsx`, `e2e/smoke.spec.ts`, `docs/PROGRESS.md`, `docs/PROPOSALS.md`, `docs/DEVIATIONS.md`
-- Tests planned: Playwright smoke test (`/` and `/dev` render with status 200 at 402 × 902, 1024 × 1366, 1280 × 800; axe finds no violations); Vitest runs (no unit rules in this slice); lint, format check and typecheck clean; CI green.
-- Proposals involved: none.
+- Slice: 0.2 Design tokens, fonts, base styles
+- Files: `src/styles/tokens.css` (the one token source), `src/styles/fonts.css`, `src/styles/typography.css`, `src/styles/base.css`, `public/fonts/*` (+ OFL licences), `src/lib/design-tokens.ts`, `src/lib/contrast.ts`, `src/app/dev/tokens/*`, `src/app/layout.tsx`, `src/app/globals.css`, `src/app/dev/page.tsx`, `.prettierignore`
+- Tests: `src/styles/tokens.test.ts` (contrast of every text pair ≥ 4.5 : 1 and non-text ≥ 3 : 1, the §10.13 colours, every type token has its class, no hard-coded colour or font size outside the token file); `e2e/tokens.spec.ts` (fonts self-hosted and loaded, every token shown, Quicksand body / Fraunces headings); smoke + axe on `/dev/tokens` at three widths.
+- Proposals involved: spacing scale; Manrope (see PROPOSALS.md).
 
 ## Later (noticed, belongs to another slice)
 
@@ -146,4 +146,6 @@ Branch per phase (`phase-00-foundations`, …), one commit per accepted slice, t
 - `/dev/*` pages must not be reachable on the live site (404 in production, or behind admin sign-in) → slice 10.2 (or 11.1 at the latest).
 - Real titles “Page — Baked by Linda”, `robots.txt`, sitemap → slice 1.6.
 - The legacy “Coming soon” files on `main` (`index.html`, `backgrnd.jpg`, `CNAME`, the GitHub Pages workflow and the stray copies in `.github/workflows/`) stay untouched until launch → slice 11.1–11.3 decides how the domain moves to the app.
+- Six Figma borders (field, pill, checkbox, wallet button, focused field, field in error) are below 3 : 1 → waiting for Bohoka’s decision (0.2 report); applied in 0.5 when the components are built.
+- Tablet type formula and phone sizes of the type tokens → slice 0.3.
 - A cloud-session start hook that installs dependencies and starts Postgres → slice 0.6 (when the database arrives).

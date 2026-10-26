@@ -1,0 +1,132 @@
+.group {
+  margin-top: var(--space-48);
+}
+
+.list {
+  list-style: none;
+  margin: var(--space-16) 0 0;
+  padding: 0;
+  display: grid;
+  gap: var(--space-12);
+}
+
+.colours {
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 180px), 1fr));
+}
+
+.colour {
+  display: grid;
+  gap: var(--space-8);
+  align-content: start;
+  padding: var(--space-12);
+  background: var(--colour-white);
+  border-radius: var(--radius-field);
+}
+
+.colour .swatch {
+  width: 100%;
+  height: 90px;
+}
+
+.colour .ratios {
+  grid-column: auto;
+}
+
+.shape {
+  display: grid;
+  grid-template-columns: 64px 1fr;
+  gap: var(--space-12) var(--space-16);
+  align-items: center;
+  padding: var(--space-12);
+  background: var(--colour-white);
+  border-radius: var(--radius-field);
+}
+
+.swatch {
+  width: 64px;
+  height: 64px;
+  border-radius: var(--radius-frame);
+  box-shadow: inset 0 0 0 1px var(--colour-line-rule);
+}
+
+.ratios {
+  grid-column: 2;
+  font: var(--type-meta);
+  color: var(--colour-body);
+}
+
+.meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4) var(--space-12);
+  font: var(--type-body-sm);
+  min-width: 0;
+}
+
+.name {
+  font-weight: 600;
+  color: var(--colour-ink);
+}
+
+.value {
+  color: var(--colour-body);
+  overflow-wrap: anywhere;
+}
+
+.source {
+  color: var(--colour-meta);
+}
+
+.type {
+  padding: var(--space-16);
+  background: var(--colour-white);
+  border-radius: var(--radius-field);
+  overflow-x: clip;
+}
+
+/* Room for glyphs of styles whose drawn line height is smaller than the letters (0.26, 0.4, 0.73). */
+.sample {
+  padding-block: 0.45em;
+  color: var(--colour-display);
+  white-space: nowrap;
+  overflow-x: clip;
+}
+
+.radius {
+  width: 64px;
+  height: 64px;
+  background: var(--colour-lilac);
+}
+
+.shadow {
+  width: 64px;
+  height: 64px;
+  border-radius: var(--radius-field);
+  background: var(--colour-white);
+}
+
+.space {
+  height: var(--space-16);
+  background: var(--colour-accent);
+}
+
+.other {
+  display: none;
+}
+
+.curve {
+  width: 64px;
+  height: 64px;
+}
+
+.axis {
+  fill: none;
+  stroke: var(--colour-line-rule);
+  stroke-width: 2;
+}
+
+.line {
+  fill: none;
+  stroke: var(--colour-accent);
+  stroke-width: 4;
+}

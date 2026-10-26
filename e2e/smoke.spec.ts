@@ -5,6 +5,7 @@ import { expect, test } from "@playwright/test";
 const pages = [
   { path: "/", heading: "Baked by Linda" },
   { path: "/dev", heading: "Developer pages" },
+  { path: "/dev/tokens", heading: "Design tokens" },
 ];
 
 for (const { path, heading } of pages) {

@@ -1,0 +1,160 @@
+/*
+ * Baked by Linda — design tokens. The ONE place for colours, type, radii, shadows, spacing and motion.
+ * Sources: Figma variables (get_variable_defs), the style guide “V2 — Arculattár · v4” (1490:8656),
+ * the drawn components, SITE-FLOWS §10.13 (contrast fixes of 2026-10-23) and ANIMATIONS §2 / §7J.
+ * Format (read by /dev/tokens and the contrast test): one token per line, then a comment “description · source”.
+ * “@group” comments start a group on the /dev/tokens page.
+ */
+
+:root {
+  /* @group Colours — text and surfaces */
+  --colour-display: #563b83; /* large headings, card titles · Figma colour/display-violet */
+  --colour-accent: #7a57c2; /* lead text, underline fill, “by”, card description · Figma colour/accent */
+  --colour-ink: #241b33; /* buttons, body, labels · Figma colour/ink */
+  --colour-ink-deep: #16043b; /* footer small print · Figma colour/ink-deep */
+  --colour-plum: #4e3872; /* “Real cake” block, highlighted line · style guide plum */
+  --colour-body: #6f6579; /* body copy, field labels, active slider dash · Figma colour/body = colour/text-muted */
+  --colour-meta: #756c82; /* meta, hints, placeholders, faint text · Figma colour/meta (SITE-FLOWS §10.13, was #7C7389) */
+  --colour-helper: #8957b8; /* lilac helper text on white · SITE-FLOWS §10.13 */
+  --colour-error: #a05064; /* error label and message (bordó) · Figma colour/error, payment states 983:9087 */
+  --colour-graphite: #444444; /* neutral dark grey · Figma colour/graphite */
+  --colour-paper: #f7f4fa; /* page background, text on dark buttons · Figma colour/paper = colour/ink-inverse */
+  --colour-ink-inverse: #f7f4fa; /* text on dark buttons · Figma colour/ink-inverse */
+  --colour-white: #ffffff; /* cards, navigation · Figma colour/white = colour/surface */
+  --colour-surface: #ffffff; /* card and panel surface · Figma colour/surface */
+
+  /* @group Colours — decoration and states */
+  --colour-lilac: #c9a7e8; /* underline glow, focused field stroke · Figma colour/lilac (ANIMATIONS --bbl-glow) */
+  --colour-pink: #fbacbf; /* decorative shapes only, never text · style guide pink */
+  --colour-placeholder: #d9d9d9; /* empty photo slot · Figma colour/placeholder (SITE-FLOWS §0.6) */
+  --colour-dash-active: #6f6579; /* slider dash, active · ANIM-10 */
+  --colour-dash-neighbour: #847c90; /* slider dash, ±1 from active · ANIM-10 */
+  --colour-dash-rest: #8f889d; /* slider dash, rest · ANIM-10 (darkened 2026-10-23 for 3 : 1) */
+  --colour-error-border: rgb(160 80 100 / 0.45); /* field and notice border in error · payment states 983:9151 */
+  --colour-error-wash: rgb(160 80 100 / 0.08); /* error notice background · payment states 983:9184 */
+  --colour-focus-stroke: rgb(201 167 232 / 0.7); /* focused field stroke, 1.5 px · payment states 983:9121 */
+  --colour-focus-ring: #7a57c2; /* keyboard focus ring, 2 px at 3 px offset · SITE-FLOWS §10.13 */
+
+  /* @group Colours — lines and scrims */
+  --colour-line-field: rgb(36 27 51 / 0.2); /* text field border at rest · input 630:3004 */
+  --colour-line-pill: rgb(36 27 51 / 0.22); /* pill border · style guide borders */
+  --colour-line-checkbox: rgb(36 27 51 / 0.3); /* empty checkbox · 630:3012 */
+  --colour-line-button: rgb(36 27 51 / 0.16); /* light wallet button border · 983:9193 */
+  --colour-line-rule: rgb(36 27 51 / 0.12); /* divider rules, state card border · 983:9196 */
+  --colour-line-glass: rgb(255 255 255 / 0.8); /* testimonial card edge · 701:4792 */
+  --colour-scrim: rgb(36 27 51 / 0.35); /* dialog and bottom-sheet scrim · SITE-FLOWS §0.6 */
+  --colour-scrim-lightbox: rgb(36 27 51 / 0.88); /* lightbox scrim · SITE-FLOWS §0.6 */
+  --colour-disabled: rgb(36 27 51 / 0.25); /* disabled solid button fill · 983:9174 */
+
+  /* @group Font families */
+  --font-display: "Fraunces", Georgia, "Times New Roman", serif; /* headings, card titles, quotes, field values · style guide 02 */
+  --font-ui: "Quicksand", -apple-system, "Segoe UI", Roboto, Arial, sans-serif; /* body, buttons, navigation, labels · style guide 03 */
+  --font-quote: "Manrope", -apple-system, "Segoe UI", Roboto, Arial, sans-serif; /* card description, review author and meta · style guide 04 */
+  --font-display-axes: "SOFT" 0, "WONK" 1; /* Fraunces variation settings as drawn · Figma */
+
+  /* @group Type — Fraunces (desktop sizes; tablet and phone rules arrive in slice 0.3) */
+  --type-hero: 300 180px/0.73 var(--font-display); /* hero giant title · style guide Fraunces Light 180 */
+  --type-giant: 300 270px/1 var(--font-display); /* page giant title · Figma V2/Serif/Light 270 */
+  --type-emphasis: 600 160px/0.26 var(--font-display); /* “Order” emphasis · style guide Fraunces SemiBold 160 */
+  --type-section: 300 155px/normal var(--font-display); /* section title · Figma V2/Serif/Light 155 */
+  --type-section-sm: 300 128px/normal var(--font-display); /* smaller section title · style guide Fraunces Light 128 */
+  --type-flourish: 300 96px/normal var(--font-display); /* handwritten-style highlight, accent · style guide Fraunces Light 96 */
+  --type-wordmark: 300 64px/normal var(--font-display); /* wordmark, “Thoughts on my work.” · style guide Fraunces Light 64 */
+  --type-wordmark-by: italic 300 64px/normal var(--font-display); /* wordmark “by”, accent · style guide Fraunces Light Italic 64 */
+  --type-block: 600 48px/0.4 var(--font-display); /* block title · style guide Fraunces SemiBold 48 */
+  --type-wordmark-by-sm: italic 300 32px/normal var(--font-display); /* small wordmark “by” · style guide Fraunces Light Italic 32 */
+  --type-card-title: 300 27px/1.18 var(--font-display); /* cake card title · style guide Fraunces Light 27 */
+  --type-heading-sm: 300 26px/normal var(--font-display); /* small heading · Figma V2/Serif/Light 26 */
+  --type-highlight: 700 24px/normal var(--font-display); /* highlighted line, plum · style guide Fraunces Bold 24 */
+  --type-quote: italic 300 21px/1.52 var(--font-display); /* review quote · Figma V2/Serif/Light Italic 21 */
+  --type-signature: 300 17px/normal var(--font-display); /* signature · style guide Fraunces Light 17 */
+  --type-signature-ls: 0.17px; /* signature letter spacing (1 %) · style guide */
+  --type-field: 400 16px/normal var(--font-display); /* typed value in a text field · input 630:3008 */
+  --type-field-lg: 400 17px/normal var(--font-display); /* inscription field value · 606:2895 */
+  --type-button-serif: 300 16px/normal var(--font-display); /* serif button label · Figma V2/Serif/Light 16 */
+  --type-button-serif-ls: 0.2px; /* serif button label letter spacing · Figma */
+  --type-button-serif-sm: 300 14px/normal var(--font-display); /* small serif button label · style guide Fraunces Light 14 */
+  --type-footer-link: 400 11px/normal var(--font-display); /* footer link · style guide Fraunces Regular 11 */
+  --type-footer-link-ls: 0.055px; /* footer link letter spacing (0.5 %) · style guide */
+
+  /* @group Type — Quicksand */
+  --type-intro: 500 24px/normal var(--font-ui); /* introduction body, plum · style guide Quicksand Medium 24 */
+  --type-lead: 300 24px/normal var(--font-ui); /* lead line, accent · style guide Quicksand Light 24 */
+  --type-hero-body: 700 18px/1.5 var(--font-ui); /* hero body, accent · style guide Quicksand Bold 18 */
+  --type-price: 400 17px/normal var(--font-ui); /* price · style guide Quicksand Regular 17 */
+  --type-body: 400 16px/1.69 var(--font-ui); /* body copy · style guide Quicksand Regular 16 */
+  --type-button: 500 15px/normal var(--font-ui); /* button label · Button / Pay 983:9210 */
+  --type-button-ls: 0.15px; /* button label letter spacing · 983:9211 */
+  --type-nav-active: 600 14px/normal var(--font-ui); /* active navigation item · style guide Quicksand SemiBold 14 */
+  --type-nav: 500 14px/normal var(--font-ui); /* navigation, filter pill, card button · style guide Quicksand Medium 14 */
+  --type-body-sm: 400 14px/1.5 var(--font-ui); /* checkbox label, small body · 630:3018 */
+  --type-footer-contact: 500 13px/1.69 var(--font-ui); /* footer contact · style guide Quicksand Medium 13 */
+  --type-meta: 400 13px/normal var(--font-ui); /* pager meta, hints · style guide Quicksand Regular 13 */
+  --type-note: 300 13px/normal var(--font-ui); /* small note · style guide Quicksand Light 13 */
+  --type-small: 400 12px/1.58 var(--font-ui); /* footer small print · style guide Quicksand Regular 12 */
+  --type-social: 500 12px/normal var(--font-ui); /* social link label, “menu” · style guide Quicksand Medium 12 */
+  --type-label: 500 11px/normal var(--font-ui); /* field label (caps) · input 630:3005 */
+  --type-label-ls: 1.98px; /* field label letter spacing (18 %) · input 630:3005 */
+  --type-footer-heading: 700 10px/normal var(--font-ui); /* footer column heading · style guide Quicksand Bold 10 */
+  --type-footer-heading-ls: 0.18px; /* footer heading letter spacing (1.8 %) · style guide */
+  --type-micro: 500 8px/normal var(--font-ui); /* micro label (card tiers line) · style guide Quicksand Medium 8 */
+  --type-micro-ls: 1.44px; /* micro label letter spacing (18 %) · style guide */
+
+  /* @group Type — Manrope */
+  --type-card-desc: 300 13px/1.6 var(--font-quote); /* cake card description, accent · style guide Manrope Light 13 */
+  --type-review-author: 600 14px/normal var(--font-quote); /* review author · Figma V2/Quote/SemiBold 14 */
+  --type-review-meta: 300 12px/normal var(--font-quote); /* review stars and date, rating line · Figma V2/Quote/Light 12 */
+
+  /* @group Radii */
+  --radius-pill: 100px; /* buttons, pills, pager · Figma radius/pill */
+  --radius-card: 27px; /* cake card, testimonial, panels · style guide r27 */
+  --radius-frame: 15px; /* hero frame, swatch · style guide r15 */
+  --radius-field: 10px; /* text fields, notices · input 630:3006 */
+  --radius-mark: 5px; /* small markers · style guide r5 */
+  --radius-checkbox: 4px; /* checkbox square · 630:3013 */
+  --radius-dash: 2.5px; /* slider dash · 1759:12635 */
+
+  /* @group Shadows */
+  --shadow-card: 0 14px 34px 0 rgb(46 27 69 / 0.12); /* testimonial drop shadow · 701:4792 */
+  --shadow-card-inner: inset 0 1px 1.5px 0 rgb(255 255 255 / 0.9); /* testimonial inner highlight · 701:4792 */
+  --shadow-cake-card: 0 0 9.6px 0 rgb(255 255 255 / 0.63); /* cake card glow · 1487:8534 */
+  --shadow-header: 0 4px 16px 0 rgb(36 27 51 / 0.1); /* sticky header when scrolled · ANIM-24 */
+  --shadow-underline: 0 0 5.7px var(--colour-lilac); /* navigation underline glow · ANIMATIONS §2 */
+  --blur-glass: 17px; /* testimonial backdrop blur · 701:4792 */
+
+  /* @group Spacing (the gaps and paddings drawn in Figma; no Figma spacing variables exist) */
+  --space-2: 2px; /* hairline gaps · Proposal */
+  --space-4: 4px; /* tight gap · Proposal */
+  --space-6: 6px; /* label to field, slider dash gap · 1493:8741, 1759:12772 */
+  --space-8: 8px; /* label to field (desktop), photo frame inset · 630:3004 */
+  --space-10: 10px; /* checkbox gap (phone) · 810:5855 */
+  --space-12: 12px; /* checkbox gap · 630:3012 */
+  --space-16: 16px; /* field padding (phone), page gutter (phone) · 1493:8744 */
+  --space-18: 18px; /* field padding, card stack gap · 630:3006, 701:4792 */
+  --space-24: 24px; /* phone side margin · 985:9088 */
+  --space-28: 28px; /* card padding, button padding · 701:4792, 1487:8532 */
+  --space-32: 32px; /* desktop navigation gap · RESPONSIVE §1 */
+  --space-48: 48px; /* section padding · Proposal */
+  --space-64: 64px; /* large section gap · Proposal */
+  --space-96: 96px; /* extra large section gap · Proposal */
+
+  /* @group Motion — easings (ANIMATIONS §7, §7J) */
+  --ease-out: cubic-bezier(0.33, 1, 0.68, 1); /* arrive: dialogs, hover, fades in · ANIM-05/07/12–25 */
+  --ease-in: cubic-bezier(0.32, 0, 0.67, 0); /* leave: closes, outs · ANIM-12/13/14/15/20/21 */
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1); /* move: sliders, FLIP, roll-open · ANIM-09/10/11/16/19/22 */
+  --ease-sheet: cubic-bezier(0.32, 0.72, 0, 1); /* bottom sheet open · ANIM-13 */
+  --ease-mascot: cubic-bezier(0.5, 1, 0.89, 1); /* mascot peeks · ANIM-04/06/25 */
+  --ease-soft: cubic-bezier(0.37, 0, 0.63, 1); /* cake card text fade and shrink · ANIM-11 */
+
+  /* @group Motion — durations (every animation stays under 1000 ms, ANIMATIONS §1.1) */
+  --duration-120: 120ms; /* press, error out · ANIM-05/07/19 */
+  --duration-160: 160ms; /* dialog close, field error in · ANIM-12/19 */
+  --duration-200: 200ms; /* hover out, cancel, notice, header shadow · ANIM-07/15/19/24 */
+  --duration-240: 240ms; /* hover in, dialog open, price, photo fade · ANIM-05/07/12/17/20/22/23 */
+  --duration-280: 280ms; /* lightbox close and next · ANIM-14 */
+  --duration-320: 320ms; /* sheet open, lightbox open, cookie bar, cards, calendar · ANIM-13/14/15/16/21 */
+  --duration-340: 340ms; /* release spring · ANIM-05/07 */
+  --duration-360: 360ms; /* drop-down rows, slider, checkout step · ANIM-09/10/18 */
+  --duration-450: 450ms; /* mascots · ANIM-04/06/25 */
+  --duration-500: 500ms; /* cake card open · ANIM-11 */
+}

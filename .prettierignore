@@ -13,3 +13,5 @@ pnpm-lock.yaml
 .next/
 playwright-report/
 test-results/
+# Token data file: one token per line, read by /dev/tokens and the tests
+src/styles/tokens.css

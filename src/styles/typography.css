@@ -1,0 +1,188 @@
+/* One class per type token: .type-<name>. Keep in step with tokens.css (a unit test checks every --type token has its class). */
+
+.type-hero {
+  font: var(--type-hero);
+  font-variation-settings: var(--font-display-axes);
+}
+
+.type-giant {
+  font: var(--type-giant);
+  font-variation-settings: var(--font-display-axes);
+}
+
+.type-emphasis {
+  font: var(--type-emphasis);
+  font-variation-settings: var(--font-display-axes);
+}
+
+.type-section {
+  font: var(--type-section);
+  font-variation-settings: var(--font-display-axes);
+}
+
+.type-section-sm {
+  font: var(--type-section-sm);
+  font-variation-settings: var(--font-display-axes);
+}
+
+.type-flourish {
+  font: var(--type-flourish);
+  font-variation-settings: var(--font-display-axes);
+}
+
+.type-wordmark {
+  font: var(--type-wordmark);
+  font-variation-settings: var(--font-display-axes);
+}
+
+.type-wordmark-by {
+  font: var(--type-wordmark-by);
+  font-variation-settings: var(--font-display-axes);
+}
+
+.type-block {
+  font: var(--type-block);
+  font-variation-settings: var(--font-display-axes);
+}
+
+.type-wordmark-by-sm {
+  font: var(--type-wordmark-by-sm);
+  font-variation-settings: var(--font-display-axes);
+}
+
+.type-card-title {
+  font: var(--type-card-title);
+  font-variation-settings: var(--font-display-axes);
+}
+
+.type-heading-sm {
+  font: var(--type-heading-sm);
+  font-variation-settings: var(--font-display-axes);
+}
+
+.type-highlight {
+  font: var(--type-highlight);
+  font-variation-settings: var(--font-display-axes);
+}
+
+.type-quote {
+  font: var(--type-quote);
+  font-variation-settings: var(--font-display-axes);
+}
+
+.type-signature {
+  font: var(--type-signature);
+  letter-spacing: var(--type-signature-ls);
+  font-variation-settings: var(--font-display-axes);
+}
+
+.type-field {
+  font: var(--type-field);
+  font-variation-settings: var(--font-display-axes);
+}
+
+.type-field-lg {
+  font: var(--type-field-lg);
+  font-variation-settings: var(--font-display-axes);
+}
+
+.type-button-serif {
+  font: var(--type-button-serif);
+  letter-spacing: var(--type-button-serif-ls);
+  font-variation-settings: var(--font-display-axes);
+}
+
+.type-button-serif-sm {
+  font: var(--type-button-serif-sm);
+  font-variation-settings: var(--font-display-axes);
+}
+
+.type-footer-link {
+  font: var(--type-footer-link);
+  letter-spacing: var(--type-footer-link-ls);
+  font-variation-settings: var(--font-display-axes);
+}
+
+.type-intro {
+  font: var(--type-intro);
+}
+
+.type-lead {
+  font: var(--type-lead);
+}
+
+.type-hero-body {
+  font: var(--type-hero-body);
+}
+
+.type-price {
+  font: var(--type-price);
+}
+
+.type-body {
+  font: var(--type-body);
+}
+
+.type-button {
+  font: var(--type-button);
+  letter-spacing: var(--type-button-ls);
+}
+
+.type-nav-active {
+  font: var(--type-nav-active);
+}
+
+.type-nav {
+  font: var(--type-nav);
+}
+
+.type-body-sm {
+  font: var(--type-body-sm);
+}
+
+.type-footer-contact {
+  font: var(--type-footer-contact);
+}
+
+.type-meta {
+  font: var(--type-meta);
+}
+
+.type-note {
+  font: var(--type-note);
+}
+
+.type-small {
+  font: var(--type-small);
+}
+
+.type-social {
+  font: var(--type-social);
+}
+
+.type-label {
+  font: var(--type-label);
+  letter-spacing: var(--type-label-ls);
+}
+
+.type-footer-heading {
+  font: var(--type-footer-heading);
+  letter-spacing: var(--type-footer-heading-ls);
+}
+
+.type-micro {
+  font: var(--type-micro);
+  letter-spacing: var(--type-micro-ls);
+}
+
+.type-card-desc {
+  font: var(--type-card-desc);
+}
+
+.type-review-author {
+  font: var(--type-review-author);
+}
+
+.type-review-meta {
+  font: var(--type-review-meta);
+}
