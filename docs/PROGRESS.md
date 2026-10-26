@@ -7,7 +7,7 @@ Branch per phase (`phase-00-foundations`, …), one commit per accepted slice, t
 
 | Slice | Title | Status | Commit | Accepted by Bohoka |
 |---|---|---|---|---|
-| 0.1 | Repository, tooling, logs | ◐ | | |
+| 0.1 | Repository, tooling, logs | ☑ | 03beb53 | 2026-10-26 |
 | 0.2 | Design tokens, fonts, base styles | ☐ | | |
 | 0.3 | Layout, breakpoints, page shell skeleton | ☐ | | |
 | 0.4 | Interaction and motion core | ☐ | | |
@@ -135,7 +135,7 @@ Branch per phase (`phase-00-foundations`, …), one commit per accepted slice, t
 
 ## Current slice
 
-- Slice: 0.1 Repository, tooling, logs
+- Slice: 0.2 Design tokens, fonts, base styles (starting)
 - Files: `package.json`, `pnpm-lock.yaml`, `pnpm-workspace.yaml`, `tsconfig.json`, `next.config.ts`, `eslint.config.mjs`, `.prettierrc.json`, `.prettierignore`, `vitest.config.mts`, `playwright.config.ts`, `.github/workflows/ci.yml`, `.env.example`, `README.md`, `src/app/layout.tsx`, `src/app/globals.css`, `src/app/page.tsx`, `src/app/dev/layout.tsx`, `src/app/dev/page.tsx`, `e2e/smoke.spec.ts`, `docs/PROGRESS.md`, `docs/PROPOSALS.md`, `docs/DEVIATIONS.md`
 - Tests planned: Playwright smoke test (`/` and `/dev` render with status 200 at 402 × 902, 1024 × 1366, 1280 × 800; axe finds no violations); Vitest runs (no unit rules in this slice); lint, format check and typecheck clean; CI green.
 - Proposals involved: none.
