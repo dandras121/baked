@@ -9,8 +9,8 @@ Branch per phase (`phase-00-foundations`, …), one commit per accepted slice, t
 |---|---|---|---|---|
 | 0.1 | Repository, tooling, logs | ☑ | 03beb53 | 2026-10-26 |
 | 0.2 | Design tokens, fonts, base styles | ☑ | d76830a | 2026-10-26 |
-| 0.3 | Layout, breakpoints, page shell skeleton | ◐ | | |
-| 0.4 | Interaction and motion core | ☐ | | |
+| 0.3 | Layout, breakpoints, page shell skeleton | ☑ | 8f2d8ef | 2026-10-26 |
+| 0.4 | Interaction and motion core | ◐ | | |
 | 0.5 | Base components | ☐ | | |
 | 0.6 | Data layer, money, time, settings | ☐ | | |
 
@@ -146,7 +146,6 @@ Branch per phase (`phase-00-foundations`, …), one commit per accepted slice, t
 - `/dev/*` pages must not be reachable on the live site (404 in production, or behind admin sign-in) → slice 10.2 (or 11.1 at the latest).
 - Real titles “Page — Baked by Linda”, `robots.txt`, sitemap → slice 1.6.
 - The legacy “Coming soon” files on `main` (`index.html`, `backgrnd.jpg`, `CNAME`, the GitHub Pages workflow and the stray copies in `.github/workflows/`) stay untouched until launch → slice 11.1–11.3 decides how the domain moves to the app.
-- Six Figma borders (field, pill, checkbox, wallet button, focused field, field in error) are below 3 : 1 → waiting for Bohoka’s decision (0.2 report); applied in 0.5 when the components are built.
 - Phone type sizes are set per component from the phone frames → each UI slice (1.x onwards).
 - The admin does not use the tablet rule (R§5): its layout must set `--type-scale: 1` on `:root` → slice 8.2.
 - Overlays (dialog, sheet, menu, lightbox) must be portalled outside `.shell`, because the shell is a size container → slices 0.5 and 1.2.

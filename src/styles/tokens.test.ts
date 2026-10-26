@@ -53,8 +53,8 @@ const UI_PAIRS: [part: string, background: string, where: string][] = [
   ["--colour-error-border", "--colour-white", "field border in error"],
 ];
 
-// Drawn in Figma below 3 : 1; waiting for Bohoka's decision (slice 0.2 report). Must match exactly.
-const UI_BELOW_3_AWAITING_OWNER = [
+// Drawn in Figma below 3 : 1 and kept as drawn: Bohoka's decision 2026-10-26 (DEVIATIONS.md). Must match exactly.
+const UI_BELOW_3_KEPT_AS_DRAWN = [
   "--colour-line-field",
   "--colour-line-pill",
   "--colour-line-checkbox",
@@ -80,11 +80,11 @@ describe("tokens (slice 0.2)", () => {
     expect(contrastRatio(t("--colour-ink"), wash)).toBeGreaterThanOrEqual(4.5);
   });
 
-  it("§10.13 non-text parts reach 3 : 1, except the drawn borders waiting for the owner", () => {
+  it("§10.13 non-text parts reach 3 : 1, except the drawn borders the owner kept", () => {
     const below = UI_PAIRS.filter(
       ([part, bg]) => contrastRatio(t(part), t(bg)) < 3,
     ).map(([part]) => part);
-    expect(below).toEqual(UI_BELOW_3_AWAITING_OWNER);
+    expect(below).toEqual(UI_BELOW_3_KEPT_AS_DRAWN);
   });
 
   it("§10.13 meta grey is #756C82 and lilac helper text is #8957B8", () => {
