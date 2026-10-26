@@ -1,0 +1,36 @@
+.shell {
+  container-type: inline-size;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+}
+
+.header {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  min-height: var(--header-height-compact);
+}
+
+@media (min-width: 1120px) {
+  .header {
+    min-height: var(--header-height);
+  }
+}
+
+.main {
+  flex: 1;
+}
+
+.pageWidth {
+  width: 100%;
+  max-width: var(--page-max);
+  margin-inline: auto;
+  padding-inline: calc(var(--gutter-phone) * var(--u));
+}
+
+@media (min-width: 768px) {
+  .pageWidth {
+    padding-inline: 0;
+  }
+}

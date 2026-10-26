@@ -94,9 +94,9 @@ describe("tokens (slice 0.2)", () => {
 
   it("every --type token has a .type class", () => {
     const typography = readFileSync(join(__dirname, "typography.css"), "utf8");
-    const styles = [...tokens.keys()].filter(
-      (n) => n.startsWith("--type-") && !n.endsWith("-ls"),
-    );
+    const styles = [...tokens.entries()]
+      .filter(([n, v]) => n.startsWith("--type-") && v.includes("var(--font-"))
+      .map(([n]) => n);
     for (const name of styles) {
       expect(typography).toContain(`.${name.slice(2)} {`);
     }

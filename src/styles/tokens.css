@@ -52,58 +52,61 @@
   --font-quote: "Manrope", -apple-system, "Segoe UI", Roboto, Arial, sans-serif; /* card description, review author and meta · style guide 04 */
   --font-display-axes: "SOFT" 0, "WONK" 1; /* Fraunces variation settings as drawn · Figma */
 
-  /* @group Type — Fraunces (desktop sizes; tablet and phone rules arrive in slice 0.3) */
-  --type-hero: 300 180px/0.73 var(--font-display); /* hero giant title · style guide Fraunces Light 180 */
-  --type-giant: 300 270px/1 var(--font-display); /* page giant title · Figma V2/Serif/Light 270 */
-  --type-emphasis: 600 160px/0.26 var(--font-display); /* “Order” emphasis · style guide Fraunces SemiBold 160 */
-  --type-section: 300 155px/normal var(--font-display); /* section title · Figma V2/Serif/Light 155 */
-  --type-section-sm: 300 128px/normal var(--font-display); /* smaller section title · style guide Fraunces Light 128 */
-  --type-flourish: 300 96px/normal var(--font-display); /* handwritten-style highlight, accent · style guide Fraunces Light 96 */
-  --type-wordmark: 300 64px/normal var(--font-display); /* wordmark, “Thoughts on my work.” · style guide Fraunces Light 64 */
-  --type-wordmark-by: italic 300 64px/normal var(--font-display); /* wordmark “by”, accent · style guide Fraunces Light Italic 64 */
-  --type-block: 600 48px/0.4 var(--font-display); /* block title · style guide Fraunces SemiBold 48 */
-  --type-wordmark-by-sm: italic 300 32px/normal var(--font-display); /* small wordmark “by” · style guide Fraunces Light Italic 32 */
-  --type-card-title: 300 27px/1.18 var(--font-display); /* cake card title · style guide Fraunces Light 27 */
-  --type-heading-sm: 300 26px/normal var(--font-display); /* small heading · Figma V2/Serif/Light 26 */
-  --type-highlight: 700 24px/normal var(--font-display); /* highlighted line, plum · style guide Fraunces Bold 24 */
-  --type-quote: italic 300 21px/1.52 var(--font-display); /* review quote · Figma V2/Serif/Light Italic 21 */
-  --type-signature: 300 17px/normal var(--font-display); /* signature · style guide Fraunces Light 17 */
-  --type-signature-ls: 0.17px; /* signature letter spacing (1 %) · style guide */
-  --type-field: 400 16px/normal var(--font-display); /* typed value in a text field · input 630:3008 */
-  --type-field-lg: 400 17px/normal var(--font-display); /* inscription field value · 606:2895 */
-  --type-button-serif: 300 16px/normal var(--font-display); /* serif button label · Figma V2/Serif/Light 16 */
-  --type-button-serif-ls: 0.2px; /* serif button label letter spacing · Figma */
-  --type-button-serif-sm: 300 14px/normal var(--font-display); /* small serif button label · style guide Fraunces Light 14 */
-  --type-footer-link: 400 11px/normal var(--font-display); /* footer link · style guide Fraunces Regular 11 */
-  --type-footer-link-ls: 0.055px; /* footer link letter spacing (0.5 %) · style guide */
+  /* @group Type — scale (RESPONSIVE §3.2) */
+  --type-scale: 1; /* 1 on phone and desktop, 0.8 on tablet (responsive.css); size = max(0.8 × desktop, min(desktop, 14 px)), letter spacing follows · RESPONSIVE §3.2 */
+
+  /* @group Type — Fraunces (desktop sizes; tablet by the formula; phone sizes are set per component) */
+  --type-hero: 300 max(calc(180px * var(--type-scale)), min(180px, 14px))/0.73 var(--font-display); /* hero giant title · style guide Fraunces Light 180 */
+  --type-giant: 300 max(calc(270px * var(--type-scale)), min(270px, 14px))/1 var(--font-display); /* page giant title · Figma V2/Serif/Light 270 */
+  --type-emphasis: 600 max(calc(160px * var(--type-scale)), min(160px, 14px))/0.26 var(--font-display); /* “Order” emphasis · style guide Fraunces SemiBold 160 */
+  --type-section: 300 max(calc(155px * var(--type-scale)), min(155px, 14px))/normal var(--font-display); /* section title · Figma V2/Serif/Light 155 */
+  --type-section-sm: 300 max(calc(128px * var(--type-scale)), min(128px, 14px))/normal var(--font-display); /* smaller section title · style guide Fraunces Light 128 */
+  --type-flourish: 300 max(calc(96px * var(--type-scale)), min(96px, 14px))/normal var(--font-display); /* handwritten-style highlight, accent · style guide Fraunces Light 96 */
+  --type-wordmark: 300 max(calc(64px * var(--type-scale)), min(64px, 14px))/normal var(--font-display); /* wordmark, “Thoughts on my work.” · style guide Fraunces Light 64 */
+  --type-wordmark-by: italic 300 max(calc(64px * var(--type-scale)), min(64px, 14px))/normal var(--font-display); /* wordmark “by”, accent · style guide Fraunces Light Italic 64 */
+  --type-block: 600 max(calc(48px * var(--type-scale)), min(48px, 14px))/0.4 var(--font-display); /* block title · style guide Fraunces SemiBold 48 */
+  --type-wordmark-by-sm: italic 300 max(calc(32px * var(--type-scale)), min(32px, 14px))/normal var(--font-display); /* small wordmark “by” · style guide Fraunces Light Italic 32 */
+  --type-card-title: 300 max(calc(27px * var(--type-scale)), min(27px, 14px))/1.18 var(--font-display); /* cake card title · style guide Fraunces Light 27 */
+  --type-heading-sm: 300 max(calc(26px * var(--type-scale)), min(26px, 14px))/normal var(--font-display); /* small heading · Figma V2/Serif/Light 26 */
+  --type-highlight: 700 max(calc(24px * var(--type-scale)), min(24px, 14px))/normal var(--font-display); /* highlighted line, plum · style guide Fraunces Bold 24 */
+  --type-quote: italic 300 max(calc(21px * var(--type-scale)), min(21px, 14px))/1.52 var(--font-display); /* review quote · Figma V2/Serif/Light Italic 21 */
+  --type-signature: 300 max(calc(17px * var(--type-scale)), min(17px, 14px))/normal var(--font-display); /* signature · style guide Fraunces Light 17 */
+  --type-signature-ls: calc(0.17px * max(var(--type-scale), min(1, calc(14 / 17)))); /* signature letter spacing (1 %) · style guide */
+  --type-field: 400 max(calc(16px * var(--type-scale)), min(16px, 14px))/normal var(--font-display); /* typed value in a text field · input 630:3008 */
+  --type-field-lg: 400 max(calc(17px * var(--type-scale)), min(17px, 14px))/normal var(--font-display); /* inscription field value · 606:2895 */
+  --type-button-serif: 300 max(calc(16px * var(--type-scale)), min(16px, 14px))/normal var(--font-display); /* serif button label · Figma V2/Serif/Light 16 */
+  --type-button-serif-ls: calc(0.2px * max(var(--type-scale), min(1, calc(14 / 16)))); /* serif button label letter spacing · Figma */
+  --type-button-serif-sm: 300 max(calc(14px * var(--type-scale)), min(14px, 14px))/normal var(--font-display); /* small serif button label · style guide Fraunces Light 14 */
+  --type-footer-link: 400 max(calc(11px * var(--type-scale)), min(11px, 14px))/normal var(--font-display); /* footer link · style guide Fraunces Regular 11 */
+  --type-footer-link-ls: calc(0.055px * max(var(--type-scale), min(1, calc(14 / 11)))); /* footer link letter spacing (0.5 %) · style guide */
 
   /* @group Type — Quicksand */
-  --type-intro: 500 24px/normal var(--font-ui); /* introduction body, plum · style guide Quicksand Medium 24 */
-  --type-lead: 300 24px/normal var(--font-ui); /* lead line, accent · style guide Quicksand Light 24 */
-  --type-hero-body: 700 18px/1.5 var(--font-ui); /* hero body, accent · style guide Quicksand Bold 18 */
-  --type-price: 400 17px/normal var(--font-ui); /* price · style guide Quicksand Regular 17 */
-  --type-body: 400 16px/1.69 var(--font-ui); /* body copy · style guide Quicksand Regular 16 */
-  --type-button: 500 15px/normal var(--font-ui); /* button label · Button / Pay 983:9210 */
-  --type-button-ls: 0.15px; /* button label letter spacing · 983:9211 */
-  --type-nav-active: 600 14px/normal var(--font-ui); /* active navigation item · style guide Quicksand SemiBold 14 */
-  --type-nav: 500 14px/normal var(--font-ui); /* navigation, filter pill, card button · style guide Quicksand Medium 14 */
-  --type-body-sm: 400 14px/1.5 var(--font-ui); /* checkbox label, small body · 630:3018 */
-  --type-footer-contact: 500 13px/1.69 var(--font-ui); /* footer contact · style guide Quicksand Medium 13 */
-  --type-meta: 400 13px/normal var(--font-ui); /* pager meta, hints · style guide Quicksand Regular 13 */
-  --type-note: 300 13px/normal var(--font-ui); /* small note · style guide Quicksand Light 13 */
-  --type-small: 400 12px/1.58 var(--font-ui); /* footer small print · style guide Quicksand Regular 12 */
-  --type-social: 500 12px/normal var(--font-ui); /* social link label, “menu” · style guide Quicksand Medium 12 */
-  --type-label: 500 11px/normal var(--font-ui); /* field label (caps) · input 630:3005 */
-  --type-label-ls: 1.98px; /* field label letter spacing (18 %) · input 630:3005 */
-  --type-footer-heading: 700 10px/normal var(--font-ui); /* footer column heading · style guide Quicksand Bold 10 */
-  --type-footer-heading-ls: 0.18px; /* footer heading letter spacing (1.8 %) · style guide */
-  --type-micro: 500 8px/normal var(--font-ui); /* micro label (card tiers line) · style guide Quicksand Medium 8 */
-  --type-micro-ls: 1.44px; /* micro label letter spacing (18 %) · style guide */
+  --type-intro: 500 max(calc(24px * var(--type-scale)), min(24px, 14px))/normal var(--font-ui); /* introduction body, plum · style guide Quicksand Medium 24 */
+  --type-lead: 300 max(calc(24px * var(--type-scale)), min(24px, 14px))/normal var(--font-ui); /* lead line, accent · style guide Quicksand Light 24 */
+  --type-hero-body: 700 max(calc(18px * var(--type-scale)), min(18px, 14px))/1.5 var(--font-ui); /* hero body, accent · style guide Quicksand Bold 18 */
+  --type-price: 400 max(calc(17px * var(--type-scale)), min(17px, 14px))/normal var(--font-ui); /* price · style guide Quicksand Regular 17 */
+  --type-body: 400 max(calc(16px * var(--type-scale)), min(16px, 14px))/1.69 var(--font-ui); /* body copy · style guide Quicksand Regular 16 */
+  --type-button: 500 max(calc(15px * var(--type-scale)), min(15px, 14px))/normal var(--font-ui); /* button label · Button / Pay 983:9210 */
+  --type-button-ls: calc(0.15px * max(var(--type-scale), min(1, calc(14 / 15)))); /* button label letter spacing · 983:9211 */
+  --type-nav-active: 600 max(calc(14px * var(--type-scale)), min(14px, 14px))/normal var(--font-ui); /* active navigation item · style guide Quicksand SemiBold 14 */
+  --type-nav: 500 max(calc(14px * var(--type-scale)), min(14px, 14px))/normal var(--font-ui); /* navigation, filter pill, card button · style guide Quicksand Medium 14 */
+  --type-body-sm: 400 max(calc(14px * var(--type-scale)), min(14px, 14px))/1.5 var(--font-ui); /* checkbox label, small body · 630:3018 */
+  --type-footer-contact: 500 max(calc(13px * var(--type-scale)), min(13px, 14px))/1.69 var(--font-ui); /* footer contact · style guide Quicksand Medium 13 */
+  --type-meta: 400 max(calc(13px * var(--type-scale)), min(13px, 14px))/normal var(--font-ui); /* pager meta, hints · style guide Quicksand Regular 13 */
+  --type-note: 300 max(calc(13px * var(--type-scale)), min(13px, 14px))/normal var(--font-ui); /* small note · style guide Quicksand Light 13 */
+  --type-small: 400 max(calc(12px * var(--type-scale)), min(12px, 14px))/1.58 var(--font-ui); /* footer small print · style guide Quicksand Regular 12 */
+  --type-social: 500 max(calc(12px * var(--type-scale)), min(12px, 14px))/normal var(--font-ui); /* social link label, “menu” · style guide Quicksand Medium 12 */
+  --type-label: 500 max(calc(11px * var(--type-scale)), min(11px, 14px))/normal var(--font-ui); /* field label (caps) · input 630:3005 */
+  --type-label-ls: calc(1.98px * max(var(--type-scale), min(1, calc(14 / 11)))); /* field label letter spacing (18 %) · input 630:3005 */
+  --type-footer-heading: 700 max(calc(10px * var(--type-scale)), min(10px, 14px))/normal var(--font-ui); /* footer column heading · style guide Quicksand Bold 10 */
+  --type-footer-heading-ls: calc(0.18px * max(var(--type-scale), min(1, calc(14 / 10)))); /* footer heading letter spacing (1.8 %) · style guide */
+  --type-micro: 500 max(calc(8px * var(--type-scale)), min(8px, 14px))/normal var(--font-ui); /* micro label (card tiers line) · style guide Quicksand Medium 8 */
+  --type-micro-ls: calc(1.44px * max(var(--type-scale), min(1, calc(14 / 8)))); /* micro label letter spacing (18 %) · style guide */
 
   /* @group Type — Manrope */
-  --type-card-desc: 300 13px/1.6 var(--font-quote); /* cake card description, accent · style guide Manrope Light 13 */
-  --type-review-author: 600 14px/normal var(--font-quote); /* review author · Figma V2/Quote/SemiBold 14 */
-  --type-review-meta: 300 12px/normal var(--font-quote); /* review stars and date, rating line · Figma V2/Quote/Light 12 */
+  --type-card-desc: 300 max(calc(13px * var(--type-scale)), min(13px, 14px))/1.6 var(--font-quote); /* cake card description, accent · style guide Manrope Light 13 */
+  --type-review-author: 600 max(calc(14px * var(--type-scale)), min(14px, 14px))/normal var(--font-quote); /* review author · Figma V2/Quote/SemiBold 14 */
+  --type-review-meta: 300 max(calc(12px * var(--type-scale)), min(12px, 14px))/normal var(--font-quote); /* review stars and date, rating line · Figma V2/Quote/Light 12 */
 
   /* @group Radii */
   --radius-pill: 100px; /* buttons, pills, pager · Figma radius/pill */
@@ -113,6 +116,12 @@
   --radius-mark: 5px; /* small markers · style guide r5 */
   --radius-checkbox: 4px; /* checkbox square · 630:3013 */
   --radius-dash: 2.5px; /* slider dash · 1759:12635 */
+
+  /* @group Layout (RESPONSIVE §1–4) */
+  --page-max: 1280px; /* content width cap; backgrounds still run edge to edge · RESPONSIVE §4 */
+  --gutter-phone: 24; /* phone side margin in phone design px (× --u) · drawn phone states, SITE-FLOWS §2.1 */
+  --header-height: 77px; /* desktop header bar · Nav / Header — v3 1421:9315 */
+  --header-height-compact: 55px; /* phone and tablet header bar · 1461:9222, 1549:10272 */
 
   /* @group Shadows */
   --shadow-card: 0 14px 34px 0 rgb(46 27 69 / 0.12); /* testimonial drop shadow · 701:4792 */

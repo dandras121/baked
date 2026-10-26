@@ -4,6 +4,7 @@ import "@/styles/fonts.css";
 import "@/styles/tokens.css";
 import "@/styles/typography.css";
 import "@/styles/base.css";
+import "@/styles/responsive.css";
 import "./globals.css";
 
 export const metadata: Metadata = {

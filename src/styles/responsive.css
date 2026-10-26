@@ -1,0 +1,54 @@
+/*
+ * Breakpoints (RESPONSIVE §1): phone < 768 px, tablet 768–1119 px, desktop ≥ 1120 px.
+ * Media queries cannot read custom properties, so the three numbers live here and in src/lib/breakpoints.ts.
+ *
+ * --u is one design pixel in CSS pixels. Use it for horizontal sizes: width: calc(355 * var(--u)).
+ *   phone:            design width 402, fluid with the viewport (RESPONSIVE §2)
+ *   tablet + desktop: desktop design px; 1024 → × 0.8 (§3.2), other widths fluid (§3.3, §4), capped at 1280
+ * Type sizes never use --u: they stay fixed per band (tablet formula in tokens.css).
+ * cqw needs a size container: .shell (src/components/page-shell). Do not give its descendants
+ * container-type: inline-size without naming the unit they should use.
+ */
+
+.shell {
+  --u: calc(100cqw / 402);
+  --band: phone;
+}
+
+@media (min-width: 768px) {
+  .shell {
+    --u: calc(min(100cqw, 1280px) / 1280);
+    --band: tablet;
+  }
+}
+
+@media (min-width: 768px) and (max-width: 1119.98px) {
+  :root {
+    --type-scale: 0.8;
+  }
+}
+
+@media (min-width: 1120px) {
+  .shell {
+    --band: desktop;
+  }
+}
+
+/* Helpers that show only in one band. */
+@media (min-width: 768px) {
+  .only-phone {
+    display: none !important;
+  }
+}
+
+@media not ((min-width: 768px) and (max-width: 1119.98px)) {
+  .only-tablet {
+    display: none !important;
+  }
+}
+
+@media (max-width: 1119.98px) {
+  .only-desktop {
+    display: none !important;
+  }
+}

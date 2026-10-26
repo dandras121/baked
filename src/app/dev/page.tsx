@@ -1,7 +1,11 @@
 import Link from "next/link";
 
 // The index of developer pages. Each slice of phase 0 adds its page here.
-const devPages: { href: "/dev/tokens"; title: string; slice: string }[] = [
+const devPages: {
+  href: "/dev/tokens" | "/dev/layout";
+  title: string;
+  slice: string;
+}[] = [
   {
     href: "/dev/tokens",
     title: "Design tokens — colours, type, radii, shadows, spacing, motion",

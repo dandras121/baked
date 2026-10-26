@@ -68,7 +68,13 @@ function Colour({
 }
 
 function Type({ token, tokens }: { token: Token; tokens: Token[] }) {
-  if (token.name.endsWith("-ls")) return null;
+  if (!token.value.includes("var(--font-")) {
+    return token.name.endsWith("-ls") ? null : (
+      <li className={styles.type}>
+        <Meta token={token} />
+      </li>
+    );
+  }
   const spacing = tokens.find((t) => t.name === `${token.name}-ls`);
   return (
     <li className={styles.type}>
