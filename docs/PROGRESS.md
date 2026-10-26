@@ -8,8 +8,8 @@ Branch per phase (`phase-00-foundations`, …), one commit per accepted slice, t
 | Slice | Title | Status | Commit | Accepted by Bohoka |
 |---|---|---|---|---|
 | 0.1 | Repository, tooling, logs | ☑ | 03beb53 | 2026-10-26 |
-| 0.2 | Design tokens, fonts, base styles | ◐ | | |
-| 0.3 | Layout, breakpoints, page shell skeleton | ☐ | | |
+| 0.2 | Design tokens, fonts, base styles | ☑ | d76830a | 2026-10-26 |
+| 0.3 | Layout, breakpoints, page shell skeleton | ◐ | | |
 | 0.4 | Interaction and motion core | ☐ | | |
 | 0.5 | Base components | ☐ | | |
 | 0.6 | Data layer, money, time, settings | ☐ | | |
@@ -135,10 +135,10 @@ Branch per phase (`phase-00-foundations`, …), one commit per accepted slice, t
 
 ## Current slice
 
-- Slice: 0.2 Design tokens, fonts, base styles
-- Files: `src/styles/tokens.css` (the one token source), `src/styles/fonts.css`, `src/styles/typography.css`, `src/styles/base.css`, `public/fonts/*` (+ OFL licences), `src/lib/design-tokens.ts`, `src/lib/contrast.ts`, `src/app/dev/tokens/*`, `src/app/layout.tsx`, `src/app/globals.css`, `src/app/dev/page.tsx`, `.prettierignore`
-- Tests: `src/styles/tokens.test.ts` (contrast of every text pair ≥ 4.5 : 1 and non-text ≥ 3 : 1, the §10.13 colours, every type token has its class, no hard-coded colour or font size outside the token file); `e2e/tokens.spec.ts` (fonts self-hosted and loaded, every token shown, Quicksand body / Fraunces headings); smoke + axe on `/dev/tokens` at three widths.
-- Proposals involved: spacing scale; Manrope (see PROPOSALS.md).
+- Slice: 0.3 Layout, breakpoints, page shell skeleton
+- Files: `src/styles/responsive.css` (breakpoints, design unit `--u`, tablet `--type-scale`), `src/styles/tokens.css` (type sizes by the tablet formula; Layout group), `src/lib/breakpoints.ts`, `src/components/page-shell/*`, `src/app/dev/layout/*`, `src/app/layout.tsx`, `src/app/dev/page.tsx`
+- Tests: `src/lib/breakpoints.test.ts` (bands, tablet formula, design unit); `e2e/layout.spec.ts` (band at 360–1600 incl. 767/768 and 1119/1120, no sideways scroll, tablet type sizes at 768/820/1024/1119, 355 design px at 768/1024/1200/1280/1600 and the phone card at 360/402, 1280 centred at 1600, sticky header slot, axe and screenshots at 402/768/1024/1119/1120/1280/1600).
+- Proposals involved: none new (§0.6 “flexible layout” is a listed Proposal: positions become the `--u` design unit).
 
 ## Later (noticed, belongs to another slice)
 
@@ -147,5 +147,8 @@ Branch per phase (`phase-00-foundations`, …), one commit per accepted slice, t
 - Real titles “Page — Baked by Linda”, `robots.txt`, sitemap → slice 1.6.
 - The legacy “Coming soon” files on `main` (`index.html`, `backgrnd.jpg`, `CNAME`, the GitHub Pages workflow and the stray copies in `.github/workflows/`) stay untouched until launch → slice 11.1–11.3 decides how the domain moves to the app.
 - Six Figma borders (field, pill, checkbox, wallet button, focused field, field in error) are below 3 : 1 → waiting for Bohoka’s decision (0.2 report); applied in 0.5 when the components are built.
-- Tablet type formula and phone sizes of the type tokens → slice 0.3.
+- Phone type sizes are set per component from the phone frames → each UI slice (1.x onwards).
+- The admin does not use the tablet rule (R§5): its layout must set `--type-scale: 1` on `:root` → slice 8.2.
+- Overlays (dialog, sheet, menu, lightbox) must be portalled outside `.shell`, because the shell is a size container → slices 0.5 and 1.2.
+- Skip link (“Skip to content”, §10.13) in the shell → slice 1.1.
 - A cloud-session start hook that installs dependencies and starts Postgres → slice 0.6 (when the database arrives).
