@@ -1,0 +1,15 @@
+# Read-only documents (CLAUDE.md §4.4) — never reformat
+CLAUDE.md
+INDITO-PROMPT.md
+OLVASS-EL.md
+docs/
+ellenorzes/
+# Legacy "Coming soon" site on main — not part of the app
+index.html
+.github/workflows/index.html
+.github/workflows/static.yml
+# Generated
+pnpm-lock.yaml
+.next/
+playwright-report/
+test-results/

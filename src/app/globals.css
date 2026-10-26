@@ -1,0 +1,24 @@
+/* Base reset. Design tokens, fonts and base element styles arrive in slice 0.2. */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: system-ui, sans-serif;
+  line-height: 1.5;
+}
+
+/* Temporary frame for the build placeholder and the /dev pages (restyled with tokens in 0.2). */
+.dev-page {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 48px 16px;
+}
