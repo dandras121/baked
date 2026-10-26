@@ -37,6 +37,7 @@
 
   /* @group Colours — lines and scrims */
   --colour-line-field: rgb(36 27 51 / 0.2); /* text field border at rest · input 630:3004 */
+  --colour-line-field-active: rgb(36 27 51 / 0.4); /* text field border while pressed or focused · ANIM-05 (A§7C) */
   --colour-line-pill: rgb(36 27 51 / 0.22); /* pill border · style guide borders */
   --colour-line-checkbox: rgb(36 27 51 / 0.3); /* empty checkbox · 630:3012 */
   --colour-line-button: rgb(36 27 51 / 0.16); /* light wallet button border · 983:9193 */

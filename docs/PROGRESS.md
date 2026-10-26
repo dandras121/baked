@@ -135,10 +135,10 @@ Branch per phase (`phase-00-foundations`, …), one commit per accepted slice, t
 
 ## Current slice
 
-- Slice: 0.3 Layout, breakpoints, page shell skeleton
-- Files: `src/styles/responsive.css` (breakpoints, design unit `--u`, tablet `--type-scale`), `src/styles/tokens.css` (type sizes by the tablet formula; Layout group), `src/lib/breakpoints.ts`, `src/components/page-shell/*`, `src/app/dev/layout/*`, `src/app/layout.tsx`, `src/app/dev/page.tsx`
-- Tests: `src/lib/breakpoints.test.ts` (bands, tablet formula, design unit); `e2e/layout.spec.ts` (band at 360–1600 incl. 767/768 and 1119/1120, no sideways scroll, tablet type sizes at 768/820/1024/1119, 355 design px at 768/1024/1200/1280/1600 and the phone card at 360/402, 1280 centred at 1600, sticky header slot, axe and screenshots at 402/768/1024/1119/1120/1280/1600).
-- Proposals involved: none new (§0.6 “flexible layout” is a listed Proposal: positions become the `--u` design unit).
+- Slice: 0.4 Interaction and motion core
+- Files: `src/motion/keyframes.json` (copied from ANIMATIONS §12 by `pnpm keyframes`), `scripts/extract-keyframes.mjs`, `src/motion/scale-rows.ts`, `src/motion/interactions.ts` (one delegated listener for `[data-pressable]` / `[data-writable]`), `src/motion/reduced-motion.ts`, `src/motion/input-lock.ts`, `src/motion/motion-root.tsx`, `src/styles/interaction.css`, `src/app/dev/motion/*`, `src/app/layout.tsx`
+- Tests: `src/motion/motion.test.ts` (JSON = the document, every timeline < 1 s, ANIM-07 / ANIM-05 tables, nav 15 %, start-from-current, input lock); `e2e/motion.spec.ts` (mouse hover / press / release / cancel, nav label only, row content only, field stays 1.00 while typing, keyboard focus, double click once, reduced motion; touch press 0.90 / release / 10 px cancel / field focus).
+- Proposals involved: none.
 
 ## Later (noticed, belongs to another slice)
 
@@ -149,5 +149,6 @@ Branch per phase (`phase-00-foundations`, …), one commit per accepted slice, t
 - Phone type sizes are set per component from the phone frames → each UI slice (1.x onwards).
 - The admin does not use the tablet rule (R§5): its layout must set `--type-scale: 1` on `:root` → slice 8.2.
 - Overlays (dialog, sheet, menu, lightbox) must be portalled outside `.shell`, because the shell is a size container → slices 0.5 and 1.2.
+- Real Button / Field components replace the /dev/motion stand-ins → slice 0.5.
 - Skip link (“Skip to content”, §10.13) in the shell → slice 1.1.
 - A cloud-session start hook that installs dependencies and starts Postgres → slice 0.6 (when the database arrives).

@@ -7,6 +7,7 @@ const pages = [
   { path: "/dev", heading: "Developer pages" },
   { path: "/dev/tokens", heading: "Design tokens" },
   { path: "/dev/layout", heading: "Layout and breakpoints" },
+  { path: "/dev/motion", heading: "Interaction and motion" },
 ];
 
 for (const { path, heading } of pages) {

@@ -46,6 +46,11 @@ const UI_PAIRS: [part: string, background: string, where: string][] = [
   ["--colour-focus-ring", "--colour-paper", "keyboard focus ring on the page"],
   ["--colour-ink", "--colour-white", "solid button, checked checkbox"],
   ["--colour-line-field", "--colour-white", "text field border"],
+  [
+    "--colour-line-field-active",
+    "--colour-white",
+    "text field border, pressed or focused",
+  ],
   ["--colour-line-pill", "--colour-white", "pill border"],
   ["--colour-line-checkbox", "--colour-white", "empty checkbox"],
   ["--colour-line-button", "--colour-white", "light wallet button border"],
@@ -56,6 +61,7 @@ const UI_PAIRS: [part: string, background: string, where: string][] = [
 // Drawn in Figma below 3 : 1 and kept as drawn: Bohoka's decision 2026-10-26 (DEVIATIONS.md). Must match exactly.
 const UI_BELOW_3_KEPT_AS_DRAWN = [
   "--colour-line-field",
+  "--colour-line-field-active",
   "--colour-line-pill",
   "--colour-line-checkbox",
   "--colour-line-button",

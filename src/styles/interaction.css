@@ -1,0 +1,22 @@
+/* ANIM-05 / ANIM-07 support (src/motion/interactions.ts). */
+[data-pressable],
+[data-writable] {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+[data-pressable]:not([data-pressable="nav"], [data-pressable="row"]),
+[data-writable],
+[data-pressable-content] {
+  transform-origin: 50% 50%;
+}
+
+[data-pressable-content] {
+  display: inline-block;
+}
+
+/* A grown element may overlap its neighbours (§7E). */
+[data-raised] {
+  position: relative;
+  z-index: 1;
+}
