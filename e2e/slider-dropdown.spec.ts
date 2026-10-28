@@ -156,9 +156,21 @@ test("ANIM-09: keyboard Enter opens and closes; 360 ms each way; reduced motion 
   ).toBe("0s");
 });
 
-test("ANIM-09: a #question link opens that row", async ({ page }) => {
+test("ANIM-09: a #question link opens that row (on the same page)", async ({
+  page,
+}) => {
   await page.goto("/dev/components#what-if-i-am-not-in");
   await expect(
     page.getByRole("button", { name: "What if I am not in?" }),
+  ).toHaveAttribute("aria-expanded", "true");
+});
+
+test("ANIM-09: a #question link opens that row (arriving from another page)", async ({
+  page,
+}) => {
+  await page.goto("/dev");
+  await page.goto("/dev/components#can-i-collect-instead");
+  await expect(
+    page.getByRole("button", { name: "Can I collect instead?" }),
   ).toHaveAttribute("aria-expanded", "true");
 });
