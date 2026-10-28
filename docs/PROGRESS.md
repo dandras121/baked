@@ -137,10 +137,7 @@ Branch per phase (`phase-00-foundations`, …), one commit per accepted slice, t
 
 ## Current slice
 
-- Slice: 0.6 Data layer, money, time, settings
-- Files: `src/db/schema.ts` (settings, closed_days), `src/db/client.ts`, `src/db/settings-repo.ts`, `src/db/seed.ts`, `drizzle/` (migration 0000), `drizzle.config.ts`, `src/lib/money.ts`, `london-time.ts`, `deadlines.ts`, `constants.ts`, `words.ts`, `placeholders.ts`, `settings.ts`, `order-number.ts`, `scripts/dev-db.sh`, `scripts/session-start.sh`, `.claude/settings.json`, CI Postgres service, `.env.example`, README
-- Tests: `src/lib/deadlines.test.ts`, `src/lib/money-time.test.ts`, `src/lib/placeholders.test.ts`, `src/db/settings.test.ts` (against Postgres).
-- Proposals involved: §10.1 week Mon–Sun, §10.7 money and dates, §11.8 constants (all Proposal rows of the docs, built as written).
+- Phase 0 review gate (CLAUDE.md §4.3): waiting for Bohoka (“mehet a következő szakasz” → tag `phase-00-done`).
 
 ## Later (noticed, belongs to another slice)
 
@@ -153,6 +150,9 @@ Branch per phase (`phase-00-foundations`, …), one commit per accepted slice, t
 - The mobile menu (1.2) and the lightbox (2.8) are overlays too: use the browser top layer (`<dialog>` / popover) or portal them outside `.shell`, because the shell is a size container.
 - The FAQ page uses DropDownGroup / DropDownRow with the stored answers → slice 2.5.
 - Skip link (“Skip to content”, §10.13) in the shell → slice 1.1.
+- Favicon and home-screen icons from the logo mark (Lighthouse: /favicon.ico 404) → slice 1.1 (logo SVG export) / 1.6.
+- Meta descriptions per page (Lighthouse SEO 90 on /) → slice 1.6 / 10.3.
+- ANIMATIONS §3.1 status column (designed → implemented) for ANIM-05, 07, 09, 10, 12, 13, 19 is Bohoka’s document → tell him in the phase summary.
 - The seed grows with each table: the Figma cakes → 3.1, sample orders (BBL-2026-0147 …) and customers (Mairi Sinclair …) → 4.6 / 8.4, FAQ → 2.5, reviews fixture → 2.2.
 - The kitchen sentence {kitchen_handles} needs customer wording per allergen (“wheat”, “egg” in Figma vs the 14 legal names) → decide in 3.1 with the allergen labels.
 - The Facebook page address is not known yet → Linda (§14.1); stored empty.
