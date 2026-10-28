@@ -10,9 +10,9 @@ import {
 } from "react";
 import styles from "./button.module.css";
 
-export type ButtonVariant = "solid" | "outline" | "text";
-/** md: 50 px (151–600 wide) · card: “View” 88 × 47 · sm: “Cookie preferences” 131 × 28 (style guide 06). */
-export type ButtonSize = "md" | "card" | "sm";
+export type ButtonVariant = "solid" | "outline" | "secondary" | "text";
+/** md: 50 px (151–600 wide) · card: “View” 88 × 47 · compact: dialog buttons 32 (phone 34) · sm: “Cookie preferences” 131 × 28. */
+export type ButtonSize = "md" | "card" | "compact" | "sm";
 
 type CommonProps = {
   variant?: ButtonVariant;

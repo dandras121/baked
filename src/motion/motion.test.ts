@@ -118,3 +118,18 @@ describe("A§1.5 input lock", () => {
     expect(runs).toBe(2);
   });
 });
+
+describe("RESPONSIVE §1 / ANIM-12–13: overlays follow the input", () => {
+  it("mouse, trackpad or keyboard → dialog at every width", async () => {
+    const { overlayKind } = await import("./input-type");
+    expect(overlayKind(402, "mouse")).toBe("dialog");
+    expect(overlayKind(1024, "mouse")).toBe("dialog");
+    expect(overlayKind(1280, "mouse")).toBe("dialog");
+  });
+  it("touch below 1120 → bottom sheet; touch from 1120 → dialog", async () => {
+    const { overlayKind } = await import("./input-type");
+    expect(overlayKind(402, "touch")).toBe("sheet");
+    expect(overlayKind(1119, "touch")).toBe("sheet");
+    expect(overlayKind(1120, "touch")).toBe("dialog");
+  });
+});

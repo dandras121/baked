@@ -137,10 +137,10 @@ Branch per phase (`phase-00-foundations`, …), one commit per accepted slice, t
 
 ## Current slice
 
-- Slice: 0.5a Base components — buttons, links, pills, fields, choices (0.5 split in three, Bohoka 2026-10-28)
-- Files: `src/components/ui/button.*` (solid / outline / text, md / card / sm, block, busy UI-03), `link.*`, `pill.*`, `text-field.*` (TextField and TextArea with counter, Select), `choice.*` (Checkbox, Radio), `field-error.*` (ANIM-19), `src/styles/interaction.css` (hit areas, reduced motion), tokens, `src/app/dev/components/*`
-- Tests: `src/components/ui/text-field.test.ts` (character count, counter from 80 %, busy minimum); `e2e/components.spec.ts` (pressable / writable everywhere, 44 × 44 hit area, pills, field error, counter, check box error, radio, busy ≥ 600 ms); smoke + axe at three widths.
-- Proposals involved: Radio and Select (not drawn), inline-link hover colour (see PROPOSALS.md).
+- Slice: 0.5b Base components — notices, dialog, bottom sheet
+- Files: `src/components/ui/notice.*` (ANIM-19), `src/components/ui/overlay.*` (ANIM-12 dialog / ANIM-13 sheet on a modal `<dialog>`), `src/motion/input-type.ts` (overlay follows the input), button `compact` size and `secondary` look, tokens, `/dev/components`
+- Tests: `src/motion/motion.test.ts` (dialog vs sheet by input and width); `e2e/overlay.spec.ts` (centred dialog, focus in, Tab stays inside, Esc and focus return, scroll position kept and page locked, 240 / 160 ms, reduced motion instant, notice as alert; touch: full-width sheet, short drag springs back, long drag closes).
+- Proposals involved: full-width sheet with a grabber, the flick speed, the notice signs (see PROPOSALS.md).
 
 ## Later (noticed, belongs to another slice)
 
@@ -150,7 +150,7 @@ Branch per phase (`phase-00-foundations`, …), one commit per accepted slice, t
 - The legacy “Coming soon” files on `main` (`index.html`, `backgrnd.jpg`, `CNAME`, the GitHub Pages workflow and the stray copies in `.github/workflows/`) stay untouched until launch → slice 11.1–11.3 decides how the domain moves to the app.
 - Phone type sizes are set per component from the phone frames → each UI slice (1.x onwards).
 - The admin does not use the tablet rule (R§5): its layout must set `--type-scale: 1` on `:root` → slice 8.2.
-- Overlays (dialog, sheet, menu, lightbox) must be portalled outside `.shell`, because the shell is a size container → slices 0.5 and 1.2.
+- The mobile menu (1.2) and the lightbox (2.8) are overlays too: use the browser top layer (`<dialog>` / popover) or portal them outside `.shell`, because the shell is a size container.
 - Real Button / Field components replace the /dev/motion stand-ins → slice 0.5.
 - Skip link (“Skip to content”, §10.13) in the shell → slice 1.1.
 - A cloud-session start hook that installs dependencies and starts Postgres → slice 0.6 (when the database arrives).

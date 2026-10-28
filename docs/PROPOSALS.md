@@ -11,3 +11,6 @@ Bohoka’s decision is added when he gives it (“jó” = keep, “ne legyen”
 | 0.5a | §0.7 (not drawn) | Select (drop-down list): the text field box with the browser’s own list and a small chevron | `src/components/ui/text-field.tsx` | |
 | 0.5a | A§7E (“Text link · colour only”, none drawn) | Links inside sentences: accent colour, underlined; on hover or keyboard focus they turn display violet | `src/components/ui/link.*` | |
 | 0.5a | §7.1 Counters | Counter “n / max” can show always or only from 80 % of the limit (the field decides) | `src/components/ui/text-field.tsx` | |
+| 0.5b | §0.6 (phone sheets full width) | The bottom sheet runs edge to edge (the storyboard draws it as a 362 px card); top corners 10 px; a 44 × 4 grabber so it reads as draggable (as the bank sheet 985:9156) | `src/components/ui/overlay.*` | |
+| 0.5b | ANIM-13 (“fast” swipe) | A flick faster than 0.5 px per ms closes the sheet even when shorter than a third | `src/components/ui/overlay.tsx` | |
+| 0.5b | §0.7 (notice sign) | Error notice sign: a bordó ring with “!”; calm notice sign: the drawn violet ring (975:9102) | `src/components/ui/notice.*` | |

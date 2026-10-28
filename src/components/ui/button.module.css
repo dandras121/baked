@@ -27,6 +27,13 @@
   letter-spacing: 0.01em;
 }
 
+/* Dialog buttons — 974:9142 / 974:9144: 32 high, Quicksand Medium 14. */
+.compact {
+  min-height: calc(32px * var(--type-scale));
+  padding: 0 calc(25px * var(--type-scale));
+  font: var(--type-nav);
+}
+
 .sm {
   min-height: 28px;
   padding: 0 var(--space-18);
@@ -44,6 +51,13 @@
   background: transparent;
   color: var(--colour-ink);
   letter-spacing: 0.005em;
+}
+
+/* Second choice in a dialog — 974:9144: white, display-violet border and label. */
+.secondary {
+  border-color: var(--colour-display);
+  background: var(--colour-white);
+  color: var(--colour-display);
 }
 
 .text {
@@ -95,6 +109,10 @@
 @media (max-width: 767.98px) {
   .md.block {
     min-height: 46px;
+  }
+
+  .compact {
+    min-height: 34px;
   }
 
   .card {

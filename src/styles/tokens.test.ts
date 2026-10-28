@@ -34,6 +34,7 @@ const TEXT_PAIRS: [text: string, background: string, where: string][] = [
   ["--colour-helper", "--colour-white", "lilac helper text"],
   ["--colour-error", "--colour-white", "error message"],
   ["--colour-ink-inverse", "--colour-ink", "solid button label"],
+  ["--colour-display", "--colour-white", "secondary dialog button label"],
 ];
 
 // Non-text parts that must stand out at 3 : 1 (WCAG 1.4.11).
@@ -77,6 +78,12 @@ describe("tokens (slice 0.2)", () => {
       expect(contrastRatio(t(text), t(background))).toBeGreaterThanOrEqual(4.5);
     },
   );
+
+  it("§10.13 text on the calm notice wash is at least 4.5 : 1", () => {
+    const wash = over("--colour-calm-wash", "--colour-white");
+    expect(contrastRatio(t("--colour-ink"), wash)).toBeGreaterThanOrEqual(4.5);
+    expect(contrastRatio(t("--colour-body"), wash)).toBeGreaterThanOrEqual(4.5);
+  });
 
   it("§10.13 text on the error notice wash is at least 4.5 : 1", () => {
     const wash = over("--colour-error-wash", "--colour-white");

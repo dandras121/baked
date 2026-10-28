@@ -4,6 +4,8 @@ import { useState, type ReactNode } from "react";
 import { Button, ButtonLink } from "@/components/ui/button";
 import { Checkbox, Radio } from "@/components/ui/choice";
 import { Link } from "@/components/ui/link";
+import { Notice } from "@/components/ui/notice";
+import { Overlay } from "@/components/ui/overlay";
 import { Pill } from "@/components/ui/pill";
 import {
   countCharacters,
@@ -43,6 +45,11 @@ export function ComponentsGallery() {
   const [terms, setTerms] = useState(false);
   const [termsError, setTermsError] = useState<string | null>(null);
   const [inscription, setInscription] = useState("");
+  const [overlay, setOverlay] = useState<null | "auto" | "dialog" | "sheet">(
+    null,
+  );
+  const [answer, setAnswer] = useState("");
+  const [declined, setDeclined] = useState(false);
 
   const pay = () => {
     setPaying(true);
@@ -231,6 +238,102 @@ export function ComponentsGallery() {
           <Radio name="handover" value="delivery" label="Delivered to you" />
           <Radio name="handover" value="collection" label="Collect from me" />
         </fieldset>
+      </Group>
+      <Group
+        title="Notices"
+        figma="975:9101 (calm) · 974:9106 / 983:9184 (error) · ANIM-19"
+      >
+        <div className={styles.fieldWide}>
+          <Notice title="Still checking with your bank" icon>
+            Your payment has gone through, but the confirmation has not reached
+            me yet. This page updates itself — there is nothing you need to do.
+          </Notice>
+        </div>
+        <div className={styles.fieldWide}>
+          <Notice tone="error" title="Saturday 12 September has just gone">
+            Someone booked it while you were filling this in. The nearest free
+            dates are below — nothing else you entered is lost.
+          </Notice>
+        </div>
+        <Button
+          variant="outline"
+          onClick={() => setDeclined((d) => !d)}
+          data-testid="toggle-notice"
+        >
+          {declined ? "Hide the declined notice" : "Show the declined notice"}
+        </Button>
+        <div className={styles.fieldWide} data-testid="declined">
+          <Notice
+            tone="error"
+            title="Your bank declined the payment"
+            icon
+            urgent
+            open={declined}
+          >
+            Nothing has been taken. Try another card, or use Apple Pay.
+          </Notice>
+        </div>
+      </Group>
+
+      <Group
+        title="Dialog and bottom sheet"
+        figma="974:9137 · 975:9168 · storyboard 1804:13056 (ANIM-12, ANIM-13)"
+      >
+        <Button
+          variant="outline"
+          onClick={() => setOverlay("auto")}
+          data-testid="open-auto"
+        >
+          Continue without a message
+        </Button>
+        <Button
+          variant="text"
+          onClick={() => setOverlay("dialog")}
+          data-testid="open-dialog"
+        >
+          Preview as dialog
+        </Button>
+        <Button
+          variant="text"
+          onClick={() => setOverlay("sheet")}
+          data-testid="open-sheet"
+        >
+          Preview as bottom sheet
+        </Button>
+        <p className={styles.sentence} aria-live="polite" data-testid="answer">
+          {answer
+            ? `You chose: ${answer}`
+            : "Opens as a dialog with a mouse or keyboard, as a sheet with touch."}
+        </p>
+        <Overlay
+          open={overlay !== null}
+          kind={
+            overlay === "dialog" || overlay === "sheet" ? overlay : undefined
+          }
+          onClose={() => setOverlay(null)}
+          title="Leave the cake plain?"
+          description="You have not written a message. That is completely fine — plenty of cakes go out plain."
+        >
+          <Button
+            size="compact"
+            onClick={() => {
+              setAnswer("Yes, keep it plain");
+              setOverlay(null);
+            }}
+          >
+            Yes, keep it plain
+          </Button>
+          <Button
+            size="compact"
+            variant="secondary"
+            onClick={() => {
+              setAnswer("Add a message");
+              setOverlay(null);
+            }}
+          >
+            Add a message
+          </Button>
+        </Overlay>
       </Group>
     </div>
   );
