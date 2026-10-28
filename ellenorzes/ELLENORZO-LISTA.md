@@ -198,7 +198,12 @@ Itt látod először a valódi oldalakat. Minden oldalnál: felülről lefelé, 
 **2.1 Home: hero és a fix szekciók**
 
 - [ ] A Home a három Figma-keret mellett (`518:2687` desktop, `1464:8417` telefon, `1562:12130` tablet), szekcióról szekcióra.
-- [ ] A hero az általad tervezett első dia, fixen (admin-diák még nincsenek — ez így jó).
+- [ ] A hero az 1. dia: a mostani terv, ami maga is placeholder (a végleges diákat később tervezed). Élesben (vagy az éles előnézetben) egyedül áll: nincs jelző, nincs időzítő.
+- [ ] Fejlesztés közben három dia forog (a mostani hero + a két placeholder: `Placeholder-hero slide 2|3-…`), a Figma `1817:13556` szekció szerint. Tedd mellé a „Hero — 3 dia áttűnés” flow-kat (desktop, tablet, telefon).
+- [ ] Váltás: az új dia 0,4 mp alatt tűnik elő a régi fölött, közben nem villan át a fehér háttér; a csíkok ugyanakkor váltanak.
+- [ ] 6 mp-enként vált; ha az egér rajta van, vagy Tab-bal benne vagy, megáll; a szünet/lejátszás gomb működik.
+- [ ] Egy csíkra kattintva arra a diára vált, és újraindul az időzítő; telefonon és tableten húzással is lapozható.
+- [ ] Csökkentett mozgással nem vált magától.
 - [ ] A „We got you.” résznél a `Placeholder-fast changing cakes-…` ellipszisek a helyükön, pontos méretben és színnel.
 - [ ] A közösségi sáv linkjei működnek.
 - [ ] Lassú neten (eszköznézetben „Slow 4G”) betöltéskor semmi nem ugrál.
@@ -280,6 +285,7 @@ A bolt szíve. Itt két dolgot nézz különösen alaposan: a tortakártya nyit�
 - [ ] 12 torta oldalanként; „Show the next …” hozza a többit (ANIM-17).
 - [ ] „Showing x of y” mindig a valós számot mutatja, szűréskor is.
 - [ ] Az üres állapotok a Figma szerint (`1108:9860`, `1108:9884`).
+- [ ] A rózsaszín háttér a kártyák mögött: „Show the next” után is folytonos — ahol a kép véget ér, nincs varrat, és a háttér nem ugrik vagy nyúlik meg sorok hozzáadásakor; szűrővel (kevés kártyánál) az alja egyszerűen rövidebb. Vesd össze a `1830:13667` példával.
 - [ ] Egy régi, szűrős link (a §4.2 szerint) is jó helyre visz.
 
 **3.3 Keresés és a találatok mozgása**

@@ -191,7 +191,7 @@ Never write a long technical explanation in the report. Put details in the commi
 - **Photos, videos and design-element slots** are not supplied yet. Use neutral placeholders of the exact drawn shape (the placeholder colour from Figma). Never use stock photos.
 - **Without a card video**, a cake card shows its main photo and has no corner button (ANIM-11). For testing ANIM-11, generate a synthetic 2160 × 2160, 5 s test clip that follows the video rules.
 - **Google reviews:** use a local fixture in the Business Profile API format (many reviews, all star ratings, some long texts, some without text). The live API needs Linda’s approval (§14.1).
-- **The hero:** only the fixed, designed first slide. Admin hero slides come later from Bohoka (§14.2): build the data model and the admin page stub only when the plan says so.
+- **The hero:** the current designed hero is slide 1 and is itself a placeholder design; the final slides come later from Bohoka (§14.2). Build the slider (UI-06) with the two placeholder slides from Figma section `1817:13556` (`Placeholder-hero slide 2|3-*`) behind a development-only flag, so the crossfade, timer, pause, dashes and swipe can be tested; production shows slide 1 alone. Build the admin data model and page stub only when the plan says so.
 - **External accounts** (Stripe, Postmark, Google, hosting) belong to Linda and arrive later. Build against test or sandbox modes and keep every integration behind a small adapter, so live keys are only configuration.
 
 ## 8. Git

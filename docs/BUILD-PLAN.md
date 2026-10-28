@@ -189,14 +189,16 @@ Goal: a running empty app with the design system, the motion core and the data l
 ## Phase 2 — Content pages
 
 ### 2.1 Home: hero and fixed sections
-- **Read:** §4.1 (all rows except testimonials and the cake row); UI-06; Home frames `518:2687`, `1464:8417`, `1562:12130`.
+- **Read:** §4.1 (all rows except testimonials and the cake row); UI-06; ANIM-10; Home frames `518:2687`, `1464:8417`, `1562:12130`; the hero placeholder section `1817:13556` (three slides per breakpoint and the crossfade storyboard).
 - **Build:**
-  - the designed hero as the fixed first slide (no admin slides yet; §14.2);
+  - the hero slider as a generic slide container: slide 1 = the current designed hero (itself a placeholder design, §4.1);
+  - the slider mechanics (UI-06): 6 s timer, 400 ms crossfade with the incoming slide above the outgoing one, pause on hover / focus and the pause button, the dashes (ANIM-10), swipe on phone and tablet, reduced motion = no autoplay;
+  - placeholder slides 2–3 (`Placeholder-hero slide 2|3-*`) behind a development-only flag, so the slider can be tested; production shows slide 1 alone, without dashes or timer (§4.1, §14.2);
   - the static sections;
   - the “We got you.” placeholder ellipse slots (`Placeholder-fast changing cakes-*`);
   - the social band.
-- **Tests:** screenshots against Figma at three widths.
-- **Bohoka checks:** the Home page next to Figma, top to bottom, at three widths.
+- **Tests:** screenshots against Figma at three widths; the crossfade timing samples vs. UI-06 (0 / 0.409 / 0.802 / 0.96 / 1); the timer pauses on hover and focus; with reduced motion nothing advances; a production build never contains the placeholder slides.
+- **Bohoka checks:** the Home page next to Figma, top to bottom, at three widths; in development the three slides loop next to the storyboard flows “Hero — 3 dia áttűnés”; the live-mode preview shows the hero alone.
 
 ### 2.2 Home testimonials = Google reviews
 - **Read:** §4.1 testimonials row and the Google rating row; §11.4; §9.12 (Google reviews); ANIM-10 (incl. “Testimonials = all Google reviews”); ANIM-07 (centre on click).
@@ -288,15 +290,16 @@ Goal: a running empty app with the design system, the motion core and the data l
 - **Bohoka checks:** a Hungarian table of the seeded cakes, compared with Figma.
 
 ### 3.2 The full range: grid, filters, pages
-- **Read:** §4.2; frames `599:2721`, `798:5566`, `1557:11293`; the header placeholders `Placeholder-cake from above 1–6-*`; empty states `1108:9860`, `1108:9884`.
+- **Read:** §4.2 (incl. the Texture band row); frames `599:2721`, `798:5566`, `1557:11293`; the longer-list example `1830:13667`; the header placeholders `Placeholder-cake from above 1–6-*`; empty states `1108:9860`, `1108:9884`.
 - **Build:**
   - the catalogue page: header band with placeholder slots;
+  - the pink texture band behind the grid: the image at its drawn height at the top, never stretched, its last pixel row repeated below for longer lists (§4.2);
   - filter pills (fixed four; hide empty);
   - 12 per page, Show the next N (ANIM-17);
   - “Showing x of y”;
   - the empty states.
-- **Tests:** counts and paging; a filter from an old link (§4.2 row); paging with filters.
-- **Bohoka checks:** filter and page on three widths.
+- **Tests:** counts and paging; a filter from an old link (§4.2 row); paging with filters; screenshots of the band with 1, 12 and 24+ cards at three widths (no seam where the image ends, no rescaling between them).
+- **Bohoka checks:** filter and page on three widths; press Show the next and compare the band with the example `1830:13667` — no seam, no jump.
 
 ### 3.3 Search field and the result motion
 - **Read:** §4.2 search rows; ANIM-05; ANIM-16; states `1687:11997`, `1687:12083`.
