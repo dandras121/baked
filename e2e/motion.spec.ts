@@ -227,3 +227,36 @@ test.describe("with touch (phone)", () => {
     await expect(page.locator("#demo-field")).toBeFocused();
   });
 });
+
+test.describe("tablet with a trackpad (e.g. iPad with Magic Keyboard)", () => {
+  // The device reports a touch screen (coarse pointer), but the trackpad sends mouse pointer events (A§1.9).
+  test.beforeEach(({}, testInfo) =>
+    test.skip(testInfo.project.name !== "tablet"),
+  );
+
+  test("ANIM-07: the trackpad cursor on a button grows it; pressing brings it back to 100 %", async ({
+    page,
+  }) => {
+    await page.goto("/dev/motion");
+    const coarse = await page.evaluate(
+      () => matchMedia("(pointer: fine)").matches,
+    );
+    test
+      .info()
+      .annotations.push({ type: "pointer-fine", description: String(coarse) });
+    const button = page.getByTestId("button");
+    const { x, y } = await centre(button);
+    await page.mouse.move(x, y);
+    await settle(page);
+    expect(await scaleOf(button)).toBeCloseTo(1.1, 2);
+    await page.mouse.down();
+    await settle(page, 250);
+    expect(await scaleOf(button)).toBeCloseTo(1.0, 2);
+    await page.mouse.up();
+    await settle(page);
+    expect(await scaleOf(button)).toBeCloseTo(1.1, 2);
+    await page.mouse.move(2, 2);
+    await settle(page);
+    expect(await scaleOf(button)).toBeCloseTo(1, 2);
+  });
+});

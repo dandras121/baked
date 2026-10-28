@@ -115,8 +115,10 @@ function cancel(el: HTMLElement, input: Input, pointerOn: boolean) {
   );
 }
 
-const canHover = () =>
-  window.matchMedia("(hover: hover) and (pointer: fine)").matches;
+// Hover follows the input of the event itself (A§1.9): a mouse, trackpad or pen sends pointerType "mouse" / "pen".
+// A media query is not used, because a tablet with a trackpad (iPad + Magic Keyboard) reports a coarse pointer.
+const isHoverInput = (e: PointerEvent) =>
+  e.pointerType === "mouse" || e.pointerType === "pen";
 const closest = (node: EventTarget | null) =>
   node instanceof Element
     ? (node.closest(SELECTOR) as HTMLElement | null)
@@ -128,8 +130,7 @@ export function installInteractions(doc: Document = document): () => void {
 
   const onPointerOver = (e: PointerEvent) => {
     const el = closest(e.target);
-    if (!el || e.pointerType === "touch" || !canHover() || isDisabled(el))
-      return;
+    if (!el || !isHoverInput(e) || isDisabled(el)) return;
     if (el.contains(e.relatedTarget as Node | null)) return;
     if (press?.el === el) return;
     if (kindOf(el) === "field" && el.matches(":focus-within")) return;
@@ -222,7 +223,7 @@ export function installInteractions(doc: Document = document): () => void {
       el.contains(e.relatedTarget as Node | null)
     )
       return;
-    if (el.matches(":hover") && canHover()) return;
+    if (el.matches(":hover")) return; // the cursor is still on it
     if (currentScale(targetOf(el)) !== 1) runPart(el, "hoverOut", "mouse");
   };
   const onPointerAny = () => {
