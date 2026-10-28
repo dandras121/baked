@@ -1,0 +1,60 @@
+/* ANIM-10 — dashes 5 px high, round ends, 6 px apart; the same size on every breakpoint (not scaled on tablet). */
+.row {
+  display: flex;
+  align-items: center;
+  height: 5px;
+}
+
+.centre {
+  justify-content: center;
+}
+
+/* Half gaps sit on both sides of each dash; pull the row back so its left edge stays put. */
+.left {
+  justify-content: flex-start;
+  margin-left: -3px;
+}
+
+.dash {
+  flex: none;
+  width: 19px;
+  height: 5px;
+  margin: 0 3px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-dash);
+  background: var(--dash-rest);
+  cursor: pointer;
+  transition-property: width, margin, background-color, opacity;
+  transition-duration: 360ms;
+  transition-timing-function: var(--ease-in-out);
+}
+
+.light {
+  --dash-active: var(--colour-dash-active);
+  --dash-neighbour: var(--colour-dash-neighbour);
+  --dash-rest: var(--colour-dash-rest);
+}
+
+.dark {
+  --dash-active: var(--colour-dash-dark-active);
+  --dash-neighbour: var(--colour-dash-dark-neighbour);
+  --dash-rest: var(--colour-dash-dark-rest);
+}
+
+.dash[data-state="active"] {
+  width: 37px;
+  background: var(--dash-active);
+}
+
+.dash[data-state="neighbour"] {
+  width: 25px;
+  background: var(--dash-neighbour);
+}
+
+.dash[data-state="hidden"] {
+  width: 0;
+  margin: 0;
+  opacity: 0;
+  pointer-events: none;
+}

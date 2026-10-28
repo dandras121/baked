@@ -1,0 +1,119 @@
+/* Drop-down rows — FAQ 1745:12850 (desktop), 1746:12848 (phone). ANIM-09: panel grid-template-rows 0fr → 1fr,
+   360 ms cubic-bezier(0.65, 0, 0.35, 1); chevron rotateX 0 → 180°, linear, no perspective. */
+.row {
+  display: grid;
+  grid-template-columns: calc(456 * var(--u)) 1fr;
+  align-items: start;
+  border-bottom: 1px solid var(--colour-line-rule);
+}
+
+.question {
+  grid-column: 1 / -1;
+  grid-row: 1;
+  display: block;
+  width: 100%;
+  min-height: 44px;
+  padding: calc(20px * var(--type-scale)) 0;
+  border: 0;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+}
+
+.content {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  width: 100%;
+  transform-origin: 0 50%;
+}
+
+.text {
+  width: calc(400 * var(--u));
+  font: var(--type-question);
+  font-variation-settings: var(--font-display-axes);
+  color: var(--colour-ink);
+}
+
+.chevron {
+  flex: none;
+  width: 12px;
+  height: 7px;
+  margin: calc(10px * var(--type-scale)) calc(18 * var(--u)) 0 0;
+  fill: none;
+  stroke: var(--colour-accent);
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  transition: transform 360ms linear;
+}
+
+.open .chevron {
+  transform: rotateX(180deg);
+}
+
+/* Desktop and tablet: the answer opens in the right column, level with its question (§4.4). */
+.panel {
+  grid-column: 2;
+  grid-row: 1;
+  display: grid;
+  grid-template-rows: 0fr;
+  width: calc(596 * var(--u));
+  padding-top: calc(20px * var(--type-scale));
+  transition: grid-template-rows 360ms var(--ease-in-out);
+  pointer-events: none;
+}
+
+.open .panel {
+  grid-template-rows: 1fr;
+}
+
+.clip {
+  min-height: 0;
+  overflow: hidden;
+}
+
+.answer {
+  padding-bottom: calc(20px * var(--type-scale));
+  font: var(--type-answer);
+  color: var(--colour-body);
+  pointer-events: auto;
+}
+
+.instant .panel,
+.instant .chevron {
+  transition: none;
+}
+
+/* Phone: the answer under the question. */
+@media (max-width: 767.98px) {
+  .row {
+    grid-template-columns: 1fr;
+  }
+
+  .question {
+    padding: var(--space-12) 0;
+  }
+
+  .text {
+    width: auto;
+    padding-right: var(--space-16);
+    font: var(--type-question-phone);
+  }
+
+  .chevron {
+    margin: var(--space-8) var(--space-4) 0 0;
+  }
+
+  .panel {
+    grid-column: 1;
+    grid-row: 2;
+    width: 100%;
+    padding-top: 0;
+  }
+
+  .answer {
+    padding-bottom: var(--space-12);
+    font: var(--type-answer-phone);
+  }
+}

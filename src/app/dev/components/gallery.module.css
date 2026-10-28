@@ -74,3 +74,33 @@
   text-transform: uppercase;
   color: var(--colour-meta);
 }
+
+.slider {
+  display: grid;
+  justify-items: center;
+  gap: var(--space-32);
+  min-width: 260px;
+  padding: var(--space-16);
+}
+
+.dark {
+  background: var(--colour-scrim-lightbox);
+  border-radius: var(--radius-field);
+}
+
+.onDark {
+  font: var(--type-body);
+  color: var(--colour-paper);
+}
+
+.faq {
+  width: 100%;
+}
+
+.faqHeading {
+  margin-bottom: var(--space-12);
+  font: var(--type-label);
+  font-weight: 600;
+  letter-spacing: var(--type-label-ls);
+  color: var(--colour-accent);
+}

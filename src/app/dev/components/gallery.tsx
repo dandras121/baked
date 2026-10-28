@@ -4,7 +4,9 @@ import { useState, type ReactNode } from "react";
 import { Button, ButtonLink } from "@/components/ui/button";
 import { Checkbox, Radio } from "@/components/ui/choice";
 import { Link } from "@/components/ui/link";
+import { DropDownGroup, DropDownRow } from "@/components/ui/drop-down";
 import { Notice } from "@/components/ui/notice";
+import { SliderIndicator } from "@/components/ui/slider-indicator";
 import { Overlay } from "@/components/ui/overlay";
 import { Pill } from "@/components/ui/pill";
 import {
@@ -50,6 +52,9 @@ export function ComponentsGallery() {
   );
   const [answer, setAnswer] = useState("");
   const [declined, setDeclined] = useState(false);
+  const [slide, setSlide] = useState(0);
+  const [few, setFew] = useState(0);
+  const [photo, setPhoto] = useState(13);
 
   const pay = () => {
     setPaying(true);
@@ -334,6 +339,91 @@ export function ComponentsGallery() {
             Add a message
           </Button>
         </Overlay>
+      </Group>
+
+      <Group
+        title="Slider indicator"
+        figma="V2 · Slider indicator 1759:12772 · storyboard 1762:12666 (ANIM-10)"
+      >
+        <div className={styles.slider} data-testid="slider-8">
+          <p className={styles.sentence} aria-live="polite">
+            Slide {slide + 1} of 8
+          </p>
+          <SliderIndicator
+            count={8}
+            active={slide}
+            onSelect={setSlide}
+            label={(i, n) => `Slide ${i + 1} of ${n}`}
+          />
+          <div className={styles.pills}>
+            <Button
+              variant="outline"
+              size="compact"
+              onClick={() => setSlide((s) => Math.max(0, s - 1))}
+              data-testid="prev"
+            >
+              ‹ Previous
+            </Button>
+            <Button
+              variant="outline"
+              size="compact"
+              onClick={() => setSlide((s) => Math.min(7, s + 1))}
+              data-testid="next"
+            >
+              Next ›
+            </Button>
+          </div>
+        </div>
+        <div className={styles.slider} data-testid="slider-3">
+          <p className={styles.sentence}>Three items</p>
+          <SliderIndicator
+            count={3}
+            active={few}
+            onSelect={setFew}
+            label={(i, n) => `Testimonial ${i + 1} of ${n}`}
+          />
+        </div>
+        <div
+          className={`${styles.slider} ${styles.dark}`}
+          data-testid="slider-dark"
+        >
+          <p className={styles.onDark}>Photo {photo + 1} of 30 (lightbox)</p>
+          <SliderIndicator
+            count={30}
+            active={photo}
+            onSelect={setPhoto}
+            surface="dark"
+            label={(i, n) => `Photo ${i + 1} of ${n}`}
+          />
+        </div>
+      </Group>
+
+      <Group title="Drop-down rows" figma="FAQ storyboard 1745:12629 (ANIM-09)">
+        <div className={styles.faq} data-testid="faq">
+          <p className={styles.faqHeading}>DELIVERY AND COLLECTION</p>
+          <DropDownGroup defaultOpen="where-do-you-deliver">
+            <DropDownRow
+              id="where-do-you-deliver"
+              question="Where do you deliver?"
+            >
+              (The answers come from the FAQ in slice 2.5.)
+            </DropDownRow>
+            <DropDownRow
+              id="can-i-collect-instead"
+              question="Can I collect instead?"
+            >
+              (The answers come from the FAQ in slice 2.5.)
+            </DropDownRow>
+            <DropDownRow
+              id="what-if-i-am-not-in"
+              question="What if I am not in?"
+            >
+              Someone needs to be in. I wait fifteen minutes, then take the cake
+              back to Winchburgh — you can collect it that day free, or I can
+              run it out again the next day for £15.
+            </DropDownRow>
+          </DropDownGroup>
+        </div>
       </Group>
     </div>
   );

@@ -137,10 +137,10 @@ Branch per phase (`phase-00-foundations`, …), one commit per accepted slice, t
 
 ## Current slice
 
-- Slice: 0.5b Base components — notices, dialog, bottom sheet
-- Files: `src/components/ui/notice.*` (ANIM-19), `src/components/ui/overlay.*` (ANIM-12 dialog / ANIM-13 sheet on a modal `<dialog>`), `src/motion/input-type.ts` (overlay follows the input), button `compact` size and `secondary` look, tokens, `/dev/components`
-- Tests: `src/motion/motion.test.ts` (dialog vs sheet by input and width); `e2e/overlay.spec.ts` (centred dialog, focus in, Tab stays inside, Esc and focus return, scroll position kept and page locked, 240 / 160 ms, reduced motion instant, notice as alert; touch: full-width sheet, short drag springs back, long drag closes).
-- Proposals involved: full-width sheet with a grabber, the flick speed, the notice signs (see PROPOSALS.md).
+- Slice: 0.5c Base components — slider indicator, drop-down row
+- Files: `src/components/ui/slider-window.ts` (window rule), `slider-indicator.*` (ANIM-10), `drop-down.*` (ANIM-09, one open per group, hidden="until-found", #anchor opens), FAQ type tokens, dark dash colours, `/dev/components`
+- Tests: `src/components/ui/slider-window.test.ts` (window rule with the ANIM-10 examples, states, never more than five); `e2e/slider-dropdown.spec.ts` (window walk 1–8, sizes 37 / 25 / 19, dash press, three items, arrow keys and one tab stop, dark surface, 44 × 44 hit area; first row open, one open at a time, chevron rotateX 180°, until-found, Enter, 360 ms, reduced motion, #anchor).
+- Proposals involved: arrow keys select the next item (see PROPOSALS.md).
 
 ## Later (noticed, belongs to another slice)
 
@@ -151,6 +151,6 @@ Branch per phase (`phase-00-foundations`, …), one commit per accepted slice, t
 - Phone type sizes are set per component from the phone frames → each UI slice (1.x onwards).
 - The admin does not use the tablet rule (R§5): its layout must set `--type-scale: 1` on `:root` → slice 8.2.
 - The mobile menu (1.2) and the lightbox (2.8) are overlays too: use the browser top layer (`<dialog>` / popover) or portal them outside `.shell`, because the shell is a size container.
-- Real Button / Field components replace the /dev/motion stand-ins → slice 0.5.
+- The FAQ page uses DropDownGroup / DropDownRow with the stored answers → slice 2.5.
 - Skip link (“Skip to content”, §10.13) in the shell → slice 1.1.
 - A cloud-session start hook that installs dependencies and starts Postgres → slice 0.6 (when the database arrives).

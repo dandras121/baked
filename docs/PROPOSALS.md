@@ -14,3 +14,4 @@ Bohoka’s decision is added when he gives it (“jó” = keep, “ne legyen”
 | 0.5b | §0.6 (phone sheets full width) | The bottom sheet runs edge to edge (the storyboard draws it as a 362 px card); top corners 10 px; a 44 × 4 grabber so it reads as draggable (as the bank sheet 985:9156) | `src/components/ui/overlay.*` | |
 | 0.5b | ANIM-13 (“fast” swipe) | A flick faster than 0.5 px per ms closes the sheet even when shorter than a third | `src/components/ui/overlay.tsx` | |
 | 0.5b | §0.7 (notice sign) | Error notice sign: a bordó ring with “!”; calm notice sign: the drawn violet ring (975:9102) | `src/components/ui/notice.*` | |
+| 0.5c | ANIM-10 (“Arrow keys move between dashes”) | Arrow keys (and Home / End) go straight to the next item, so the slide follows the focused dash | `src/components/ui/slider-indicator.tsx` | |

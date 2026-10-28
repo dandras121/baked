@@ -202,3 +202,21 @@
 .type-pill-phone {
   font: var(--type-pill-phone);
 }
+
+.type-question {
+  font: var(--type-question);
+  font-variation-settings: var(--font-display-axes);
+}
+
+.type-answer {
+  font: var(--type-answer);
+}
+
+.type-question-phone {
+  font: var(--type-question-phone);
+  font-variation-settings: var(--font-display-axes);
+}
+
+.type-answer-phone {
+  font: var(--type-answer-phone);
+}
