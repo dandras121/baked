@@ -13,8 +13,8 @@ Branch per phase (`phase-00-foundations`, …), one commit per accepted slice, t
 | 0.4 | Interaction and motion core | ☑ | fa41ed7 | 2026-10-26 |
 | 0.5a | Base components: buttons, links, pills, fields, choices (split 2026-10-28) | ☑ | d8eba03 | 2026-10-28 |
 | 0.5b | Base components: notices, dialog, bottom sheet | ☑ | c0813bc | 2026-10-28 |
-| 0.5c | Base components: slider indicator, drop-down row | ◐ | | |
-| 0.6 | Data layer, money, time, settings | ☐ | | |
+| 0.5c | Base components: slider indicator, drop-down row | ☑ | 378ca3a | 2026-10-28 |
+| 0.6 | Data layer, money, time, settings | ◐ | | |
 
 ## Phase 1 — The shell on every public page
 
