@@ -1,0 +1,107 @@
+.wrap {
+  display: grid;
+}
+
+.row {
+  display: inline-flex;
+  align-items: flex-start;
+  gap: calc(12px * var(--type-scale));
+  justify-self: start;
+  cursor: pointer;
+}
+
+.box {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  margin-top: 1px;
+  border: 1px solid var(--colour-line-checkbox);
+  background: var(--colour-white);
+  color: var(--colour-ink-inverse);
+}
+
+.checkbox {
+  border-radius: var(--radius-checkbox);
+}
+
+.radio {
+  border-radius: 50%;
+}
+
+.tick {
+  display: none;
+  font: var(--type-label);
+  font-weight: 600;
+}
+
+.dot {
+  display: none;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--colour-ink);
+}
+
+.input:checked + .checkbox {
+  border-color: var(--colour-ink);
+  background: var(--colour-ink);
+}
+
+.input:checked + .checkbox .tick {
+  display: block;
+}
+
+.input:checked + .radio {
+  border: 1.5px solid var(--colour-ink);
+}
+
+.input:checked + .radio .dot {
+  display: block;
+}
+
+.input:focus-visible + .box {
+  outline: 2px solid var(--colour-focus-ring);
+  outline-offset: 3px;
+}
+
+.input:disabled + .box,
+.input:disabled + .box + .label {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.boxError {
+  border: 1.5px solid var(--colour-error-strong);
+}
+
+.label {
+  font: var(--type-body-sm);
+  color: var(--colour-ink);
+}
+
+/* The message lines up with the label text (975:9111: 20 px box + 12 px gap). */
+.error {
+  padding-left: calc(20px + 12px * var(--type-scale));
+}
+
+/* Phone — Checkbox — mobil 810:5860: ink border, 10 px gap, 12 / 20 text. */
+@media (max-width: 767.98px) {
+  .row {
+    gap: var(--space-10);
+  }
+
+  .box {
+    border-color: var(--colour-ink);
+  }
+
+  .label {
+    font: var(--type-small);
+    line-height: 20px;
+  }
+
+  .error {
+    padding-left: 30px;
+  }
+}

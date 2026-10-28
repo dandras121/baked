@@ -1,0 +1,142 @@
+/* Text fields — V2 · Input 630:3004 / 630:3008 (desktop), Input — mobil 1493:8741, inscription 606:2895,
+   errors 974:9092 (ANIM-19). Motion: ANIM-05 via [data-writable]. Borders: ANIM-05 (rest 20 %, pressed/focused 40 %). */
+.frame {
+  display: grid;
+  justify-items: start;
+  width: 100%;
+}
+
+.label {
+  margin-bottom: calc(8px * var(--type-scale));
+  color: var(--colour-meta);
+}
+
+.caps {
+  font: var(--type-label);
+  letter-spacing: var(--type-label-ls);
+  text-transform: uppercase;
+}
+
+.plain {
+  font: var(--type-label);
+  color: var(--colour-body);
+}
+
+.labelError {
+  color: var(--colour-error);
+}
+
+.box {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--space-16);
+  width: 100%;
+  border: 1px solid var(--colour-line-field);
+  border-radius: var(--radius-field);
+  background: var(--colour-white);
+  cursor: text;
+}
+
+.box:active,
+.box:focus-within {
+  border-color: var(--colour-line-field-active);
+}
+
+.box:has(:focus-visible) {
+  outline: 2px solid var(--colour-focus-ring);
+  outline-offset: 3px;
+}
+
+.boxError,
+.boxError:focus-within {
+  border: 1.5px solid var(--colour-error-border);
+}
+
+.control {
+  flex: 1;
+  min-width: 0;
+  min-height: calc(48px * var(--type-scale));
+  padding: calc(15px * var(--type-scale)) calc(18px * var(--type-scale));
+  border: 0;
+  border-radius: inherit;
+  background: transparent;
+  color: var(--colour-ink);
+  font: var(--type-field);
+  font-variation-settings: var(--font-display-axes);
+}
+
+.control:focus-visible {
+  outline: none;
+}
+
+.area {
+  resize: vertical;
+  align-self: stretch;
+}
+
+.box:has(.area) .counter {
+  align-self: flex-start;
+  padding-top: calc(17px * var(--type-scale));
+}
+
+.select {
+  appearance: none;
+  padding-right: calc(44px * var(--type-scale));
+  cursor: pointer;
+}
+
+.chevron {
+  position: absolute;
+  right: calc(18px * var(--type-scale));
+  width: 12px;
+  height: 8px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.5;
+  pointer-events: none;
+}
+
+.counter {
+  padding-right: calc(18px * var(--type-scale));
+  font: var(--type-small);
+  color: var(--colour-meta);
+  white-space: nowrap;
+}
+
+.counterOver {
+  color: var(--colour-error);
+}
+
+.hint {
+  margin-top: calc(10px * var(--type-scale));
+  font: var(--type-meta);
+  color: var(--colour-body);
+}
+
+/* Phone — Input — mobil 1493:8741: caps label 10 px, 6 px gap, 46 px box with an ink border, Quicksand 13. */
+@media (max-width: 767.98px) {
+  .label {
+    margin-bottom: var(--space-6);
+  }
+
+  .caps,
+  .plain {
+    font: var(--type-label-sm);
+  }
+
+  .box {
+    border-color: var(--colour-ink);
+  }
+
+  .control {
+    min-height: 44px;
+    padding: var(--space-12) var(--space-16);
+    font: var(--type-field-phone);
+    font-variation-settings: normal;
+  }
+
+  .hint {
+    font: var(--type-small);
+  }
+}

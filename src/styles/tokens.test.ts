@@ -56,6 +56,7 @@ const UI_PAIRS: [part: string, background: string, where: string][] = [
   ["--colour-line-button", "--colour-white", "light wallet button border"],
   ["--colour-focus-stroke", "--colour-white", "focused field stroke"],
   ["--colour-error-border", "--colour-white", "field border in error"],
+  ["--colour-error-strong", "--colour-white", "checkbox border in error"],
 ];
 
 // Drawn in Figma below 3 : 1 and kept as drawn: Bohoka's decision 2026-10-26 (DEVIATIONS.md). Must match exactly.

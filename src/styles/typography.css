@@ -123,6 +123,10 @@
   font: var(--type-body);
 }
 
+.type-button-lg {
+  font: var(--type-button-lg);
+}
+
 .type-button {
   font: var(--type-button);
   letter-spacing: var(--type-button-ls);
@@ -185,4 +189,16 @@
 
 .type-review-meta {
   font: var(--type-review-meta);
+}
+
+.type-label-sm {
+  font: var(--type-label-sm);
+}
+
+.type-field-phone {
+  font: var(--type-field-phone);
+}
+
+.type-pill-phone {
+  font: var(--type-pill-phone);
 }

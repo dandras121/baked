@@ -2,7 +2,7 @@ import Link from "next/link";
 
 // The index of developer pages. Each slice of phase 0 adds its page here.
 const devPages: {
-  href: "/dev/tokens" | "/dev/layout" | "/dev/motion";
+  href: "/dev/tokens" | "/dev/layout" | "/dev/motion" | "/dev/components";
   title: string;
   slice: string;
 }[] = [

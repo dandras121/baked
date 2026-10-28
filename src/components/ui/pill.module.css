@@ -1,0 +1,25 @@
+.pill {
+  display: inline-flex;
+  align-items: center;
+  padding: calc(10px * var(--type-scale)) calc(20px * var(--type-scale));
+  border: 1px solid var(--colour-line-pill);
+  border-radius: var(--radius-pill);
+  background: transparent;
+  color: var(--colour-ink);
+  font: var(--type-nav);
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.pill[aria-pressed="true"] {
+  border-color: var(--colour-ink);
+  background: var(--colour-ink);
+  color: var(--colour-ink-inverse);
+}
+
+@media (max-width: 767.98px) {
+  .pill {
+    padding: var(--space-8) var(--space-16);
+    font: var(--type-pill-phone);
+  }
+}

@@ -20,3 +20,62 @@
   position: relative;
   z-index: 1;
 }
+
+/* Hit area at least 44 × 44 around a smaller drawn control (SITE-FLOWS §0.6, §10.13). */
+.hit-44 {
+  position: relative;
+  isolation: isolate;
+}
+
+.hit-44::after {
+  content: "";
+  position: absolute;
+  z-index: -1; /* behind the control's own content */
+  inset-block: min(0px, calc(50% - 22px));
+  inset-inline: min(0px, calc(50% - 22px));
+}
+
+/* Dense link lists: at least 24 × 24 (WCAG 2.5.8). */
+.hit-24 {
+  position: relative;
+  isolation: isolate;
+}
+
+.hit-24::after {
+  content: "";
+  position: absolute;
+  z-index: -1; /* behind the control's own content */
+  inset-block: min(0px, calc(50% - 12px));
+  inset-inline: min(0px, calc(50% - 12px));
+}
+
+/* A§1.4: reduced motion turns every CSS transition and animation into an instant change. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  ::before,
+  ::after {
+    transition-duration: 0s !important;
+    animation-duration: 0s !important;
+    animation-iteration-count: 1 !important;
+  }
+}
+
+html[data-motion="reduce"] *,
+html[data-motion="reduce"] ::before,
+html[data-motion="reduce"] ::after {
+  transition-duration: 0s !important;
+  animation-duration: 0s !important;
+  animation-iteration-count: 1 !important;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}

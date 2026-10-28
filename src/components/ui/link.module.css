@@ -1,0 +1,22 @@
+.link {
+  color: var(--colour-accent);
+}
+
+.standalone {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-4);
+  text-decoration: none;
+}
+
+/* Inline sentence links change colour only (A§7E; hover colour: Proposal). */
+.inline {
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
+  transition: color 120ms var(--ease-out);
+}
+
+.inline:hover,
+.inline:focus-visible {
+  color: var(--colour-display);
+}

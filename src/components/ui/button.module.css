@@ -1,0 +1,104 @@
+/* Buttons — style guide 06 (1491:8676), V2 · Button / Solid 532:2691, Outline 532:2695, card “View” 1491:8720,
+   text button “Show the next 9” 1494:9001, busy “Taking payment” 983:9240 (UI-03).
+   Tablet: the desktop design × 0.8 through --type-scale (RESPONSIVE §3.2). */
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: calc(10px * var(--type-scale));
+  border: 1px solid transparent;
+  border-radius: var(--radius-pill);
+  text-decoration: none;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.md {
+  min-height: calc(50px * var(--type-scale));
+  padding: calc(15px * var(--type-scale)) calc(28px * var(--type-scale));
+  font: var(--type-button-lg);
+  letter-spacing: 0.01em;
+}
+
+.card {
+  min-height: calc(47px * var(--type-scale));
+  padding: calc(15px * var(--type-scale)) calc(28px * var(--type-scale));
+  font: var(--type-nav);
+  letter-spacing: 0.01em;
+}
+
+.sm {
+  min-height: 28px;
+  padding: 0 var(--space-18);
+  font: var(--type-label);
+  letter-spacing: 0.005em;
+}
+
+.solid {
+  background: var(--colour-ink);
+  color: var(--colour-ink-inverse);
+}
+
+.outline {
+  border-color: var(--colour-ink);
+  background: transparent;
+  color: var(--colour-ink);
+  letter-spacing: 0.005em;
+}
+
+.text {
+  min-height: 0;
+  padding: var(--space-8) var(--space-4);
+  background: transparent;
+  color: var(--colour-ink);
+  font: var(--type-button-serif);
+  font-variation-settings: var(--font-display-axes);
+  letter-spacing: 0.005em;
+}
+
+.block {
+  display: flex;
+  width: 100%;
+}
+
+.button:disabled,
+.button[aria-disabled="true"]:not([aria-busy]) {
+  cursor: not-allowed;
+}
+
+.solid:disabled {
+  background: var(--colour-disabled);
+  color: var(--colour-meta);
+}
+
+.button[aria-busy] {
+  cursor: progress;
+}
+
+/* UI-03: 800 ms linear loop; reduced motion stops the sweep (interaction.css). */
+.spinner {
+  width: 18px;
+  height: 18px;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  animation: spin 800ms linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(1turn);
+  }
+}
+
+/* Phone (style guide “mobil”): 189 × 50, full width 354 × 46; card “View” 73 × 39. */
+@media (max-width: 767.98px) {
+  .md.block {
+    min-height: 46px;
+  }
+
+  .card {
+    min-height: 39px;
+    padding: var(--space-10) var(--space-18);
+  }
+}

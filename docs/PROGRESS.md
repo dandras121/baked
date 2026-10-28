@@ -11,7 +11,9 @@ Branch per phase (`phase-00-foundations`, …), one commit per accepted slice, t
 | 0.2 | Design tokens, fonts, base styles | ☑ | d76830a | 2026-10-26 |
 | 0.3 | Layout, breakpoints, page shell skeleton | ☑ | 8f2d8ef | 2026-10-26 |
 | 0.4 | Interaction and motion core | ☑ | fa41ed7 | 2026-10-26 |
-| 0.5 | Base components | ☐ | | |
+| 0.5a | Base components: buttons, links, pills, fields, choices (split 2026-10-28) | ◐ | | |
+| 0.5b | Base components: notices, dialog, bottom sheet | ☐ | | |
+| 0.5c | Base components: slider indicator, drop-down row | ☐ | | |
 | 0.6 | Data layer, money, time, settings | ☐ | | |
 
 ## Phase 1 — The shell on every public page
@@ -135,10 +137,10 @@ Branch per phase (`phase-00-foundations`, …), one commit per accepted slice, t
 
 ## Current slice
 
-- Slice: 0.4 Interaction and motion core
-- Files: `src/motion/keyframes.json` (copied from ANIMATIONS §12 by `pnpm keyframes`), `scripts/extract-keyframes.mjs`, `src/motion/scale-rows.ts`, `src/motion/interactions.ts` (one delegated listener for `[data-pressable]` / `[data-writable]`), `src/motion/reduced-motion.ts`, `src/motion/input-lock.ts`, `src/motion/motion-root.tsx`, `src/styles/interaction.css`, `src/app/dev/motion/*`, `src/app/layout.tsx`
-- Tests: `src/motion/motion.test.ts` (JSON = the document, every timeline < 1 s, ANIM-07 / ANIM-05 tables, nav 15 %, start-from-current, input lock); `e2e/motion.spec.ts` (mouse hover / press / release / cancel, nav label only, row content only, field stays 1.00 while typing, keyboard focus, double click once, reduced motion; touch press 0.90 / release / 10 px cancel / field focus).
-- Proposals involved: none.
+- Slice: 0.5a Base components — buttons, links, pills, fields, choices (0.5 split in three, Bohoka 2026-10-28)
+- Files: `src/components/ui/button.*` (solid / outline / text, md / card / sm, block, busy UI-03), `link.*`, `pill.*`, `text-field.*` (TextField and TextArea with counter, Select), `choice.*` (Checkbox, Radio), `field-error.*` (ANIM-19), `src/styles/interaction.css` (hit areas, reduced motion), tokens, `src/app/dev/components/*`
+- Tests: `src/components/ui/text-field.test.ts` (character count, counter from 80 %, busy minimum); `e2e/components.spec.ts` (pressable / writable everywhere, 44 × 44 hit area, pills, field error, counter, check box error, radio, busy ≥ 600 ms); smoke + axe at three widths.
+- Proposals involved: Radio and Select (not drawn), inline-link hover colour (see PROPOSALS.md).
 
 ## Later (noticed, belongs to another slice)
 

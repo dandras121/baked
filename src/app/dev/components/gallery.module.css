@@ -1,0 +1,76 @@
+.page {
+  padding-block: var(--space-48);
+}
+
+@media (min-width: 768px) {
+  .page {
+    padding-inline: var(--space-48);
+  }
+}
+
+.page > * + * {
+  margin-top: var(--space-32);
+}
+
+.group {
+  display: grid;
+  gap: var(--space-8);
+}
+
+.figma {
+  font: var(--type-meta);
+  color: var(--colour-meta);
+}
+
+.items {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-24);
+  padding: var(--space-24);
+  background: var(--colour-white);
+  border-radius: var(--radius-card);
+}
+
+.full {
+  width: min(354px, 100%);
+}
+
+.field {
+  width: min(400px, 100%);
+}
+
+.fieldWide {
+  width: min(600px, 100%);
+}
+
+.sentence {
+  font: var(--type-body);
+}
+
+.small {
+  font: var(--type-footer-link);
+  font-variation-settings: var(--font-display-axes);
+}
+
+.pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-12);
+}
+
+.fieldset {
+  display: grid;
+  gap: var(--space-12);
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.legend {
+  margin-bottom: var(--space-8);
+  font: var(--type-label);
+  letter-spacing: var(--type-label-ls);
+  text-transform: uppercase;
+  color: var(--colour-meta);
+}

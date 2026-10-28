@@ -1,0 +1,33 @@
+/* ANIM-19 field error: in 160 ms ease-out (slide 4 px, fade), out 120 ms; the height opens with a grid-rows wrapper. */
+.wrap {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 120ms var(--ease-in-out);
+}
+
+.wrap.open {
+  grid-template-rows: 1fr;
+  transition-duration: 160ms;
+  transition-timing-function: var(--ease-out);
+}
+
+.message {
+  min-height: 0;
+  overflow: hidden;
+  padding-top: var(--space-8);
+  font: var(--type-small);
+  line-height: 1.42;
+  color: var(--colour-error);
+  opacity: 0;
+  transform: translateY(-4px);
+  transition:
+    opacity 120ms var(--ease-in),
+    transform 120ms var(--ease-in);
+}
+
+.open .message {
+  opacity: 1;
+  transform: none;
+  transition-duration: 160ms;
+  transition-timing-function: var(--ease-out);
+}
