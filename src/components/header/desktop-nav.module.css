@@ -1,0 +1,48 @@
+/* Desktop navigation (≥ 1120 px): seven items 32 px apart, STYLE-01 underline (ANIMATIONS §8). */
+.nav {
+  position: relative;
+}
+
+.list {
+  display: flex;
+  gap: var(--space-32);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* Each box has the width of its widest state, so the weight switch never shifts the others. */
+.item {
+  display: flex;
+  justify-content: center;
+}
+
+.link {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  color: var(--colour-ink);
+  text-decoration: none;
+  font: var(--type-nav);
+  white-space: nowrap;
+  border-radius: 2px;
+}
+
+.link[data-bold] {
+  font: var(--type-nav-active);
+}
+
+.label {
+  display: inline-block;
+}
+
+/* One line for the whole group; ANIM-08 moves its left edge and width (never scaleX: the glow stays round). */
+.underline {
+  position: absolute;
+  top: 20px;
+  height: 2px;
+  border-radius: 100px;
+  background: var(--colour-accent);
+  box-shadow: var(--shadow-underline);
+  pointer-events: none;
+}

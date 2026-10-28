@@ -1,0 +1,102 @@
+/* Header bar (SITE-FLOWS §3.1). Geometry from Figma: desktop 1421:9315, phone 1461:9222, tablet 1549:10272.
+   Sizes of the emblem and wordmark stay as drawn; desktop positions follow the 1280 design (× --u). */
+.root {
+  position: relative;
+  isolation: isolate;
+}
+
+/* ANIM-24: the shadow fades in past scroll 0 (opacity only, 200 ms ease-out); reduced motion: at once. */
+.shadow {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  box-shadow: var(--shadow-header);
+  opacity: 0;
+  transition: opacity var(--duration-200) var(--ease-out);
+  pointer-events: none;
+}
+
+.root[data-scrolled] .shadow {
+  opacity: 1;
+}
+
+/* The bar cuts the emblem at its top and bottom edge; the texture covers the full width. */
+.bar {
+  height: var(--header-height-compact);
+  overflow: clip;
+  background: var(--colour-pink) url("/brand/header-texture.webp") center /
+    cover no-repeat;
+}
+
+.inner {
+  position: relative;
+  height: 100%;
+  max-width: var(--page-max);
+  margin-inline: auto;
+}
+
+/* Logo mark, tilted 15° (Figma −15°). Phone and tablet: 58.41 × 63.72 at the drawn place. */
+.mark {
+  position: absolute;
+  left: -9.24px;
+  top: 2.38px;
+  width: 58.41px;
+  height: 63.72px;
+  transform: rotate(15deg);
+  pointer-events: none;
+}
+
+.wordmark {
+  position: absolute;
+  left: 75px;
+  top: 12.86px;
+  width: 253px;
+  display: block;
+  isolation: isolate;
+}
+
+/* Hit area at least 44 px high (§10.13). */
+.wordmark::after {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  inset-inline: 0;
+  inset-block: min(0px, calc(50% - 22px));
+}
+
+.wordmark img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.desktopNav {
+  display: none;
+}
+
+@media (min-width: 1120px) {
+  .bar {
+    height: var(--header-height);
+  }
+
+  .mark {
+    left: calc(-20.09 * var(--u));
+    top: -15.38px;
+    width: 103.95px;
+    height: 113.4px;
+  }
+
+  .wordmark {
+    left: calc(96.39 * var(--u));
+    top: 15.73px;
+    width: 375px;
+  }
+
+  /* The group's right edge at x 1243 of the 1280 header (A§8). */
+  .desktopNav {
+    display: block;
+    position: absolute;
+    top: 30px;
+    right: calc(37 * var(--u));
+  }
+}

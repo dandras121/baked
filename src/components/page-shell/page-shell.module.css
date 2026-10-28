@@ -34,3 +34,26 @@
     padding-inline: 0;
   }
 }
+
+/* Skip link: hidden until it gets keyboard focus, then shown at the top left above the header. */
+.skip {
+  position: fixed;
+  top: var(--space-8);
+  left: var(--space-8);
+  z-index: 20;
+  padding: var(--space-12) var(--space-16);
+  border-radius: var(--radius-pill);
+  background: var(--colour-white);
+  color: var(--colour-ink);
+  font: var(--type-button);
+  text-decoration: none;
+  transform: translateY(calc(-100% - var(--space-16)));
+}
+
+.skip:focus {
+  transform: none;
+}
+
+.main:focus {
+  outline: none;
+}

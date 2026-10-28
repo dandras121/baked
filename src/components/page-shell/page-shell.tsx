@@ -16,8 +16,12 @@ type PageShellProps = {
 export function PageShell({ header, footer, children }: PageShellProps) {
   return (
     <div className={`shell ${styles.shell}`}>
+      {/* First stop for the keyboard (§10.13): jumps past the header to the page content. */}
+      <a href="#main" className={styles.skip}>
+        Skip to content
+      </a>
       <header className={styles.header}>{header}</header>
-      <main id="main" className={styles.main}>
+      <main id="main" tabIndex={-1} className={styles.main}>
         {children}
       </main>
       <footer className={styles.footer}>{footer}</footer>

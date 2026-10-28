@@ -1,0 +1,5 @@
+/* Tall enough to scroll, so the header shadow (ANIM-24) can be seen. */
+.stub {
+  min-height: 160vh;
+  padding-block: var(--space-48);
+}

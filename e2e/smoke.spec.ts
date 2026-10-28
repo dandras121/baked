@@ -3,7 +3,7 @@ import { expect, test } from "@playwright/test";
 
 // Slice 0.1 smoke test: the app starts and its first pages render without accessibility violations.
 const pages = [
-  { path: "/", heading: "Baked by Linda" },
+  { path: "/", heading: "Home" },
   { path: "/dev", heading: "Developer pages" },
   { path: "/dev/tokens", heading: "Design tokens" },
   { path: "/dev/layout", heading: "Layout and breakpoints" },

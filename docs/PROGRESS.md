@@ -137,11 +137,16 @@ Branch per phase (`phase-00-foundations`, …), one commit per accepted slice, t
 
 ## Current slice
 
-- Phase 0 review gate (CLAUDE.md §4.3): waiting for Bohoka (“mehet a következő szakasz” → tag `phase-00-done`).
+- **1.1 Desktop header, navigation, sticky shadow** (branch `phase-01-shell`).
+  - Files: `public/brand/` (wordmark, logo mark, header texture from Figma), `src/components/header/` (site header, desktop nav, nav items, ANIM-08 slide, ANIM-24 shadow), `src/app/(site)/` (public layout with the shell and header; stub pages for the seven items so the navigation can be clicked), `src/app/icon.svg`, favicon, skip link.
+  - Tests: active item per route (A§3.3), ANIM-08 edges against the A§12 rows, the slide in the browser (sampled), reload on the current item, ANIM-24 shadow only past 0, aria-current, hit areas, axe, screenshots at 402 / 1024 / 1280.
+  - Proposals: aria-current (§3.1), skip link text, the mascot not clipped left of the 1280 box on wider screens.
 
 ## Later (noticed, belongs to another slice)
 
-- `/` shows a temporary build placeholder until the Home page is built → slice 2.1.
+- `/` and the stub pages `/cakes`, `/bespoke`, `/gallery`, `/about`, `/faq`, `/contact`, `/terms` (added in 1.1 so the header can be clicked) are replaced by their real pages → slices 2.1, 3.2, 7.1, 2.8, 2.4, 2.5, 2.7, 2.6.
+- The phone and tablet header shows the logo and wordmark only; the “menu” button and the menu overlay → slice 1.2.
+- The header mascot sits still; its first-visit slide-in (ANIM-04) → slice 1.3.
 - `/dev/*` pages must not be reachable on the live site (404 in production, or behind admin sign-in) → slice 10.2 (or 11.1 at the latest).
 - Real titles “Page — Baked by Linda”, `robots.txt`, sitemap → slice 1.6.
 - The legacy “Coming soon” files on `main` (`index.html`, `backgrnd.jpg`, `CNAME`, the GitHub Pages workflow and the stray copies in `.github/workflows/`) stay untouched until launch → slice 11.1–11.3 decides how the domain moves to the app.
@@ -149,7 +154,6 @@ Branch per phase (`phase-00-foundations`, …), one commit per accepted slice, t
 - The admin does not use the tablet rule (R§5): its layout must set `--type-scale: 1` on `:root` → slice 8.2.
 - The mobile menu (1.2) and the lightbox (2.8) are overlays too: use the browser top layer (`<dialog>` / popover) or portal them outside `.shell`, because the shell is a size container.
 - The FAQ page uses DropDownGroup / DropDownRow with the stored answers → slice 2.5.
-- Skip link (“Skip to content”, §10.13) in the shell → slice 1.1.
 - Favicon and home-screen icons from the logo mark (Lighthouse: /favicon.ico 404) → slice 1.1 (logo SVG export) / 1.6.
 - Meta descriptions per page (Lighthouse SEO 90 on /) → slice 1.6 / 10.3.
 - ANIMATIONS §3.1 status column (designed → implemented) for ANIM-05, 07, 09, 10, 12, 13, 19 is Bohoka’s document → tell him in the phase summary.
