@@ -15,3 +15,4 @@ Bohoka’s decision is added when he gives it (“jó” = keep, “ne legyen”
 | 0.5b | ANIM-13 (“fast” swipe) | A flick faster than 0.5 px per ms closes the sheet even when shorter than a third | `src/components/ui/overlay.tsx` | |
 | 0.5b | §0.7 (notice sign) | Error notice sign: a bordó ring with “!”; calm notice sign: the drawn violet ring (975:9102) | `src/components/ui/notice.*` | |
 | 0.5c | ANIM-10 (“Arrow keys move between dashes”) | Arrow keys (and Home / End) go straight to the next item, so the slide follows the focused dash | `src/components/ui/slider-indicator.tsx` | |
+| 0.6 | CLAUDE.md §3 (Prisma or Drizzle, your pick) | Drizzle ORM with drizzle-kit migrations, postgres-js driver (decision 3a, 2026-10-26) | `src/db/*`, `drizzle/` | |

@@ -137,10 +137,10 @@ Branch per phase (`phase-00-foundations`, …), one commit per accepted slice, t
 
 ## Current slice
 
-- Slice: 0.5c Base components — slider indicator, drop-down row
-- Files: `src/components/ui/slider-window.ts` (window rule), `slider-indicator.*` (ANIM-10), `drop-down.*` (ANIM-09, one open per group, hidden="until-found", #anchor opens), FAQ type tokens, dark dash colours, `/dev/components`
-- Tests: `src/components/ui/slider-window.test.ts` (window rule with the ANIM-10 examples, states, never more than five); `e2e/slider-dropdown.spec.ts` (window walk 1–8, sizes 37 / 25 / 19, dash press, three items, arrow keys and one tab stop, dark surface, 44 × 44 hit area; first row open, one open at a time, chevron rotateX 180°, until-found, Enter, 360 ms, reduced motion, #anchor).
-- Proposals involved: arrow keys select the next item (see PROPOSALS.md).
+- Slice: 0.6 Data layer, money, time, settings
+- Files: `src/db/schema.ts` (settings, closed_days), `src/db/client.ts`, `src/db/settings-repo.ts`, `src/db/seed.ts`, `drizzle/` (migration 0000), `drizzle.config.ts`, `src/lib/money.ts`, `london-time.ts`, `deadlines.ts`, `constants.ts`, `words.ts`, `placeholders.ts`, `settings.ts`, `order-number.ts`, `scripts/dev-db.sh`, `scripts/session-start.sh`, `.claude/settings.json`, CI Postgres service, `.env.example`, README
+- Tests: `src/lib/deadlines.test.ts`, `src/lib/money-time.test.ts`, `src/lib/placeholders.test.ts`, `src/db/settings.test.ts` (against Postgres).
+- Proposals involved: §10.1 week Mon–Sun, §10.7 money and dates, §11.8 constants (all Proposal rows of the docs, built as written).
 
 ## Later (noticed, belongs to another slice)
 
@@ -153,4 +153,7 @@ Branch per phase (`phase-00-foundations`, …), one commit per accepted slice, t
 - The mobile menu (1.2) and the lightbox (2.8) are overlays too: use the browser top layer (`<dialog>` / popover) or portal them outside `.shell`, because the shell is a size container.
 - The FAQ page uses DropDownGroup / DropDownRow with the stored answers → slice 2.5.
 - Skip link (“Skip to content”, §10.13) in the shell → slice 1.1.
-- A cloud-session start hook that installs dependencies and starts Postgres → slice 0.6 (when the database arrives).
+- The seed grows with each table: the Figma cakes → 3.1, sample orders (BBL-2026-0147 …) and customers (Mairi Sinclair …) → 4.6 / 8.4, FAQ → 2.5, reviews fixture → 2.2.
+- The kitchen sentence {kitchen_handles} needs customer wording per allergen (“wheat”, “egg” in Figma vs the 14 legal names) → decide in 3.1 with the allergen labels.
+- The Facebook page address is not known yet → Linda (§14.1); stored empty.
+- Vercel needs a hosted Postgres (DATABASE_URL, e.g. Neon) once a page reads the database (first: the footer in 1.4) → ask Bohoka then.

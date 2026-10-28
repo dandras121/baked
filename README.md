@@ -14,6 +14,8 @@ The Next.js app for [bakedbylinda.co.uk](https://bakedbylinda.co.uk). The behavi
 ```sh
 pnpm install
 cp .env.example .env.local   # fill in values as later slices add them
+scripts/dev-db.sh            # local Postgres 16: creates bbl_dev and bbl_test (or point DATABASE_URL at your own)
+pnpm db:reset                # migrate and seed
 pnpm dev                     # http://localhost:3000
 ```
 

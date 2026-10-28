@@ -1,0 +1,232 @@
+{
+  "id": "1bb19054-22d5-4d4d-8e5c-ccda7d8990d6",
+  "prevId": "00000000-0000-0000-0000-000000000000",
+  "version": "7",
+  "dialect": "postgresql",
+  "tables": {
+    "public.closed_days": {
+      "name": "closed_days",
+      "schema": "",
+      "columns": {
+        "day": {
+          "name": "day",
+          "type": "date",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "note": {
+          "name": "note",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.settings": {
+      "name": "settings",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true,
+          "default": 1
+        },
+        "trading_name": {
+          "name": "trading_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "legal_name": {
+          "name": "legal_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "phone": {
+          "name": "phone",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "email": {
+          "name": "email",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "address_line": {
+          "name": "address_line",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "postcode": {
+          "name": "postcode",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "town": {
+          "name": "town",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "council": {
+          "name": "council",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "hygiene_rating": {
+          "name": "hygiene_rating",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "instagram": {
+          "name": "instagram",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "facebook": {
+          "name": "facebook",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "delivery_area": {
+          "name": "delivery_area",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "postcode_districts": {
+          "name": "postcode_districts",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "beyond_the_area": {
+          "name": "beyond_the_area",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "delivery_charge_pence": {
+          "name": "delivery_charge_pence",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "second_attempt_fee_pence": {
+          "name": "second_attempt_fee_pence",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "bespoke_minimum_pence": {
+          "name": "bespoke_minimum_pence",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "kitchen_handles": {
+          "name": "kitchen_handles",
+          "type": "text[]",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "daily_cap": {
+          "name": "daily_cap",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "weekly_cap": {
+          "name": "weekly_cap",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "lead_time_days": {
+          "name": "lead_time_days",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "bespoke_lead_time_weeks": {
+          "name": "bespoke_lead_time_weeks",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {
+        "settings_single_row": {
+          "name": "settings_single_row",
+          "value": "\"settings\".\"id\" = 1"
+        },
+        "lead_time_range": {
+          "name": "lead_time_range",
+          "value": "\"settings\".\"lead_time_days\" between 3 and 60"
+        },
+        "bespoke_lead_time_range": {
+          "name": "bespoke_lead_time_range",
+          "value": "\"settings\".\"bespoke_lead_time_weeks\" between 1 and 26"
+        },
+        "delivery_charge_not_negative": {
+          "name": "delivery_charge_not_negative",
+          "value": "\"settings\".\"delivery_charge_pence\" >= 0"
+        },
+        "second_attempt_fee_rule": {
+          "name": "second_attempt_fee_rule",
+          "value": "\"settings\".\"second_attempt_fee_pence\" = 0 or \"settings\".\"second_attempt_fee_pence\" >= 30"
+        },
+        "bespoke_minimum_range": {
+          "name": "bespoke_minimum_range",
+          "value": "\"settings\".\"bespoke_minimum_pence\" between 100 and 500000"
+        },
+        "caps_positive": {
+          "name": "caps_positive",
+          "value": "\"settings\".\"daily_cap\" >= 0 and \"settings\".\"weekly_cap\" >= 0"
+        }
+      },
+      "isRLSEnabled": false
+    }
+  },
+  "enums": {},
+  "schemas": {},
+  "sequences": {},
+  "roles": {},
+  "policies": {},
+  "views": {},
+  "_meta": {
+    "columns": {},
+    "schemas": {},
+    "tables": {}
+  }
+}
