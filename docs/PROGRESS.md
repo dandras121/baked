@@ -20,7 +20,7 @@ Branch per phase (`phase-00-foundations`, …), one commit per accepted slice, t
 
 | Slice | Title | Status | Commit | Accepted by Bohoka |
 |---|---|---|---|---|
-| 1.1 | Desktop header, navigation, sticky shadow | ☐ | | |
+| 1.1 | Desktop header, navigation, sticky shadow | ☑ | fc152e1 | 2026-10-29 |
 | 1.2 | Phone and tablet header, menu overlay | ☐ | | |
 | 1.3 | Header mascot | ☐ | | |
 | 1.4 | Footer and footer mascot | ☐ | | |
@@ -137,10 +137,7 @@ Branch per phase (`phase-00-foundations`, …), one commit per accepted slice, t
 
 ## Current slice
 
-- **1.1 Desktop header, navigation, sticky shadow** (branch `phase-01-shell`).
-  - Files: `public/brand/` (wordmark, logo mark, header texture from Figma), `src/components/header/` (site header, desktop nav, nav items, ANIM-08 slide, ANIM-24 shadow), `src/app/(site)/` (public layout with the shell and header; stub pages for the seven items so the navigation can be clicked), `src/app/icon.svg`, favicon, skip link.
-  - Tests: active item per route (A§3.3), ANIM-08 edges against the A§12 rows, the slide in the browser (sampled), reload on the current item, ANIM-24 shadow only past 0, aria-current, hit areas, axe, screenshots at 402 / 1024 / 1280.
-  - Proposals: aria-current (§3.1), skip link text, the mascot not clipped left of the 1280 box on wider screens.
+- **1.2 Phone and tablet header, menu overlay**: reading the docs and storyboards.
 
 ## Later (noticed, belongs to another slice)
 
