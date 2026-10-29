@@ -137,7 +137,11 @@ Branch per phase (`phase-00-foundations`, …), one commit per accepted slice, t
 
 ## Current slice
 
-- **1.2 Phone and tablet header, menu overlay**: reading the docs and storyboards.
+- **1.2 Phone and tablet header, menu overlay** (Bohoka 2026-10-29: one slice, not split; Neon later, before 1.4 — until then the preview hides the social links because Settings cannot be read there).
+  - Files: `src/components/header/` (mobile-menu, menu-timeline, site-header), `src/db/site-settings.ts` (cached Settings for public pages), page shell (header outside the size container), menu texture from Figma, two type tokens, CI seeds the test database for the browser tests.
+  - Tests: radii and steps vs the storyboard labels, landscape timing, open / close / select in the browser (sampled), Back, Esc, input lock, focus, inert page, resize to desktop, reduced motion, no JavaScript, axe.
+  - Size: about 900 hand-written lines (Bohoka chose one slice).
+  - Open question for Bohoka: tablet portrait item position (Figma 248 px from the top vs A§4.1 “centred”).
 
 ## Later (noticed, belongs to another slice)
 

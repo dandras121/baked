@@ -1,0 +1,252 @@
+/* Phone and tablet menu (ANIMATIONS §4; open frame 1517:9123, header 1461:9222).
+   Stacking (A§2): page · pink layer · white layer · menu content · header bar (always on top). */
+
+/* “menu” button: label + arrowhead, 34 × 13, right margin 17 px; its top-right corner is the
+   origin of the circles (A§4.2). */
+.button {
+  position: absolute;
+  z-index: 3;
+  top: 22.22px;
+  right: 17px;
+  width: 34px;
+  height: 13px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--colour-accent);
+  cursor: pointer;
+}
+
+/* Hit area 44 × 44 around the 34 × 13 button (§10.13). */
+.button::after {
+  content: "";
+  position: absolute;
+  inset: -15.5px -5px;
+}
+
+.label {
+  position: absolute;
+  left: -0.5px;
+  top: 0;
+  line-height: 13px;
+}
+
+.arrow {
+  position: absolute;
+  left: 33.6px;
+  top: 4.82px;
+  width: 4.0875px;
+  height: 7.1763px;
+  overflow: visible;
+  transform-origin: center;
+}
+
+/* Open: the arrow turned over and moved to its open place (A§4.4). */
+.button[data-open] .arrow {
+  transform: translateX(3.11px) rotateY(180deg);
+}
+
+/* The overlay is fixed to the screen; when open and still it is plain white with the items. */
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+}
+
+.overlay[hidden] {
+  display: none;
+}
+
+.pink,
+.white {
+  position: absolute;
+  inset: 0;
+}
+
+/* The header texture stays fixed to the viewport while its circle grows (A§4.3). */
+.pink {
+  background: var(--colour-pink) url("/brand/menu-texture.webp") center / cover
+    no-repeat;
+}
+
+/* The white 25 % monotone noise that Figma puts on the texture group (A§4.1). */
+.pink::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1.4' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0.32 0 0 0 -0.05'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+.white {
+  background: var(--colour-white);
+}
+
+.scroller {
+  position: absolute;
+  inset: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+/* Items: a 462 px block centred below the 55 px bar (top 248 on 402 × 902). The social block keeps
+   110 px from the bottom edge to its heading. A short screen moves the block up, keeps 40 px between
+   the two, and scrolls inside the panel when even that does not fit (Proposal, §3.1). */
+.content {
+  --items-top: clamp(
+    79px,
+    calc((100dvh + 55px - 462px) / 2),
+    calc(100dvh - 110px - 40px - 462px)
+  );
+  position: relative;
+  height: max(100dvh, calc(var(--items-top) + 462px + 40px + 110px));
+}
+
+/* On a tablet the menu keeps its phone layout: the social block stays in a 402 px column at the left
+   (1575:9818, 1578:10202). */
+@media (min-width: 768px) {
+  .social {
+    right: auto;
+    width: 402px;
+  }
+}
+
+/* Landscape tablet: the items start at y 106 (A§8.1). */
+@media (min-width: 768px) and (max-width: 1119.98px) and (orientation: landscape) {
+  .content {
+    --items-top: 106px;
+  }
+}
+
+.items {
+  position: absolute;
+  left: 24px;
+  top: var(--items-top);
+  display: flex;
+  flex-direction: column;
+  gap: 14px; /* 68 px pitch with 54 px items */
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* Items take taps from 660 ms (A§5 Input); not while closing or after a choice. */
+.overlay[data-state="opening"] .items:not([data-live]),
+.overlay[data-state="closing"] .items,
+.overlay[data-state="selecting"] .items {
+  pointer-events: none;
+}
+
+.item {
+  position: relative;
+  display: inline-block;
+  height: 54px;
+  color: var(--colour-display);
+  text-decoration: none;
+  white-space: nowrap;
+  border-radius: var(--radius-mark);
+}
+
+.word {
+  display: inline-block;
+}
+
+/* STYLE-01 in the menu: 2 px below the 44 px line box, the word's width; animated by width only. */
+.underline {
+  position: absolute;
+  left: 0;
+  top: 46px;
+  width: 0;
+  height: 2px;
+  border-radius: var(--radius-pill);
+  background: var(--colour-accent);
+  box-shadow: var(--shadow-underline);
+  pointer-events: none;
+}
+
+.underline[data-line] {
+  width: 100%;
+}
+
+.social {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: max(calc(100dvh - 110px), calc(var(--items-top) + 462px + 40px));
+  text-align: center;
+}
+
+.socialHeading {
+  width: 290px;
+  margin: 0 auto;
+  color: var(--colour-display);
+}
+
+/* Instagram left, Facebook right, centred as a pair with 67 px between them. */
+.socialLinks {
+  display: flex;
+  justify-content: center;
+  gap: 67px;
+  margin: 26px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.socialLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: var(--colour-ink);
+  text-decoration: none;
+  border-radius: var(--radius-mark);
+}
+
+.icon {
+  width: 17px;
+  height: 17px;
+  flex: none;
+}
+
+/* Without JavaScript the menu is a disclosure that opens the same list without animation (§3.1). */
+.noJs {
+  position: absolute;
+  z-index: 3;
+  top: 22.22px;
+  right: 17px;
+}
+
+.noJs > summary {
+  list-style: none;
+  color: var(--colour-accent);
+  cursor: pointer;
+}
+
+.noJs > summary::-webkit-details-marker {
+  display: none;
+}
+
+.noJsPanel {
+  position: fixed;
+  inset: 55px 0 0;
+  overflow-y: auto;
+  padding: 24px;
+  background: var(--colour-white);
+}
+
+.noJsPanel ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.noJsPanel a {
+  color: var(--colour-display);
+  text-decoration: none;
+}
+
+@media (min-width: 1120px) {
+  .button,
+  .overlay,
+  .noJs {
+    display: none;
+  }
+}

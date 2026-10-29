@@ -220,3 +220,12 @@
 .type-answer-phone {
   font: var(--type-answer-phone);
 }
+
+.type-menu-item {
+  font: var(--type-menu-item);
+}
+
+.type-menu-social {
+  font: var(--type-menu-social);
+  font-variation-settings: var(--font-display-axes);
+}

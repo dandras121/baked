@@ -21,7 +21,12 @@
 }
 
 /* The bar cuts the emblem at its top and bottom edge; the texture covers the full width. */
+/* Above the menu overlay; it is also the size container for --u (the page shell's container is
+   below the header, see page-shell.tsx). */
 .bar {
+  position: relative;
+  z-index: 2;
+  container-type: inline-size;
   height: var(--header-height-compact);
   overflow: clip;
   background: var(--colour-pink) url("/brand/header-texture.webp") center /

@@ -116,6 +116,8 @@
   --type-label-sm: 500 10px/13px var(--font-ui); /* field label on the phone (caps) · 1493:8743 */
   --type-field-phone: 400 13px/20px var(--font-ui); /* typed value in a phone field · 1493:8745 */
   --type-pill-phone: 500 13px/16px var(--font-ui); /* filter pill on the phone · 1492:8700 */
+  --type-menu-item: 300 34px/44px var(--font-ui); /* mobile menu item, kept on tablet · ANIMATIONS §2, 1517:9130 */
+  --type-menu-social: 300 24px/normal var(--font-display); /* “Follow our social media” in the menu · ANIMATIONS §2, 1517:9154 */
   --type-label-ls: calc(1.98px * max(var(--type-scale), min(1, calc(14 / 11)))); /* field label letter spacing (18 %) · input 630:3005 */
   --type-footer-heading: 700 max(calc(10px * var(--type-scale)), min(10px, 14px))/normal var(--font-ui); /* footer column heading · style guide Quicksand Bold 10 */
   --type-footer-heading-ls: calc(0.18px * max(var(--type-scale), min(1, calc(14 / 10)))); /* footer heading letter spacing (1.8 %) · style guide */

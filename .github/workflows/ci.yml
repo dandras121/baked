@@ -47,8 +47,14 @@ jobs:
         run: pnpm test
       - name: Install Playwright browser
         run: pnpm exec playwright install --with-deps chromium
+      - name: Database for the app under test (migrate and seed)
+        run: pnpm db:migrate && pnpm db:seed
+        env:
+          DATABASE_URL: postgres://bbl:bbl@localhost:5432/bbl_test
       - name: End-to-end tests
         run: pnpm e2e
+        env:
+          DATABASE_URL: postgres://bbl:bbl@localhost:5432/bbl_test
       - uses: actions/upload-artifact@v4
         if: always()
         with:
