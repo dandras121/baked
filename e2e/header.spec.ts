@@ -1,34 +1,22 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type Page } from "@playwright/test";
-import data from "../src/motion/keyframes.json";
 
-// Slice 1.1: desktop header, navigation (STYLE-01, ANIM-08), current item reloads, ANIM-24 shadow.
+// Slice 1.1: desktop header and navigation, current item reloads, ANIM-24 shadow.
+// No underline in the navigation (Bohoka 2026-10-29; DEVIATIONS).
 
 const isDesktop = (name: string) => name === "desktop";
 
 const nav = (page: Page) => page.getByRole("navigation", { name: "Main" });
 const item = (page: Page, name: string) =>
   nav(page).getByRole("link", { name, exact: true });
-const underline = (page: Page) => page.getByTestId("nav-underline");
-
-/** The underline's edges and the item's box, both relative to the navigation. */
-async function edges(page: Page, name?: string) {
-  return page.evaluate((label) => {
-    const navEl = document.querySelector('nav[aria-label="Main"]')!;
-    const n = navEl.getBoundingClientRect();
-    const u = document
-      .querySelector('[data-testid="nav-underline"]')!
-      .getBoundingClientRect();
-    const link = label
-      ? [...navEl.querySelectorAll("a")].find((a) => a.textContent === label)!
-      : null;
-    const li = link?.parentElement?.getBoundingClientRect();
-    return {
-      line: { left: u.left - n.left, right: u.right - n.left, top: u.top },
-      item: li ? { left: li.left - n.left, right: li.right - n.left } : null,
-    };
-  }, name);
-}
+const animationsInNav = (page: Page) =>
+  nav(page).evaluate(
+    (el) =>
+      el.getAnimations({ subtree: true }).filter((a) => {
+        const t = (a.effect as KeyframeEffect).target as Element;
+        return !t.hasAttribute("data-pressable-content");
+      }).length,
+  );
 
 test.describe("desktop navigation", () => {
   test.beforeEach(({}, testInfo) => {
@@ -50,32 +38,23 @@ test.describe("desktop navigation", () => {
   ];
 
   for (const [path, active] of routes) {
-    test(`A§3.3 ${path}: ${active ?? "no"} item is underlined and aria-current`, async ({
+    test(`A§3.3 ${path}: ${active ?? "no"} item is SemiBold and aria-current, no underline`, async ({
       page,
     }) => {
       await page.goto(path);
       const current = nav(page).locator('[aria-current="page"]');
+      expect(await nav(page).locator("span[aria-hidden]").count()).toBe(0);
       if (!active) {
         await expect(current).toHaveCount(0);
-        await expect(underline(page)).toBeHidden();
+        await expect(nav(page).locator("[data-bold]")).toHaveCount(0);
         return;
       }
       await expect(current).toHaveText(active);
-      const e = await edges(page, active);
-      expect(e.line.left).toBeCloseTo(e.item!.left, 0);
-      expect(e.line.right).toBeCloseTo(e.item!.right, 0);
-      // STYLE-01: 2 px high, 2 px below the 18 px text box, accent with the lilac glow, SemiBold.
-      const style = await underline(page).evaluate((el) => {
-        const s = getComputedStyle(el);
-        return [s.height, s.top, s.backgroundColor, s.boxShadow];
-      });
-      expect(style).toEqual([
-        "2px",
-        "20px",
-        "rgb(122, 87, 194)",
-        "rgb(201, 167, 232) 0px 0px 5.7px 0px",
-      ]);
       await expect(item(page, active)).toHaveCSS("font-weight", "600");
+      await expect(item(page, active)).toHaveCSS(
+        "text-decoration-line",
+        "none",
+      );
     });
   }
 
@@ -92,35 +71,14 @@ test.describe("desktop navigation", () => {
     await expect(item(page, "Home")).toHaveCSS("font-weight", "500");
   });
 
-  test("ANIM-08: clicking another item slides the underline along the A§12 rows, then the page changes", async ({
+  test("clicking another item opens its page; the weight moves with it and nothing shifts", async ({
     page,
   }) => {
     await page.goto("/cakes");
+    const before = await nav(page)
+      .locator("li")
+      .evaluateAll((els) => els.map((el) => el.getBoundingClientRect().left));
     await item(page, "About Linda").click();
-    // Freeze the running slide and read the edges at each sampled row.
-    const samples = await underline(page).evaluate((el) => {
-      const anim = el.getAnimations()[0];
-      anim.pause();
-      const nav = el.parentElement!.getBoundingClientRect();
-      const out: [number, number, number][] = [];
-      for (const t of [0, 60, 120, 180, 240, 300, 360, 419.9]) {
-        anim.currentTime = t;
-        const r = el.getBoundingClientRect();
-        out.push([t, r.left - nav.left, r.right - nav.left]);
-      }
-      const duration = anim.effect!.getComputedTiming().duration;
-      anim.play();
-      return { out, duration };
-    });
-    expect(samples.duration).toBe(data.navUnderlineSlide.durationMs);
-    // Cakes 72–112 → About Linda 313–394 inside the group (A§7F example minus x 704).
-    const from = { left: 72, right: 112 };
-    const to = { left: 313, right: 394 };
-    data.navUnderlineSlide.rows.forEach(([, lead, trail], i) => {
-      const [, left, right] = samples.out[i];
-      expect(left).toBeCloseTo(from.left + (to.left - from.left) * trail, 0);
-      expect(right).toBeCloseTo(from.right + (to.right - from.right) * lead, 0);
-    });
     await expect(page).toHaveURL(/\/about$/);
     await expect(item(page, "About Linda")).toHaveAttribute(
       "aria-current",
@@ -128,12 +86,11 @@ test.describe("desktop navigation", () => {
     );
     await expect(item(page, "About Linda")).toHaveCSS("font-weight", "600");
     await expect(item(page, "Cakes")).toHaveCSS("font-weight", "500");
-    await expect
-      .poll(() => underline(page).evaluate((el) => el.getAnimations().length))
-      .toBe(0);
-    const e = await edges(page, "About Linda");
-    expect(e.line.left).toBeCloseTo(e.item!.left, 0);
-    expect(e.line.right).toBeCloseTo(e.item!.right, 0);
+    const after = await nav(page)
+      .locator("li")
+      .evaluateAll((els) => els.map((el) => el.getBoundingClientRect().left));
+    expect(after).toEqual(before);
+    expect(await animationsInNav(page)).toBe(0);
   });
 
   test("ANIM-08: the weight switches at 210 ms, not before", async ({
@@ -165,23 +122,6 @@ test.describe("desktop navigation", () => {
     expect(ms).toBeLessThan(400);
   });
 
-  test("ANIM-08: from a page with no active item the line draws at the new item, 2 px → full in 200 ms", async ({
-    page,
-  }) => {
-    await page.goto("/terms");
-    await item(page, "FAQ").click();
-    const timing = await underline(page).evaluate((el) => {
-      const a = el.getAnimations()[0];
-      a.pause();
-      a.currentTime = 0;
-      const w0 = el.getBoundingClientRect().width;
-      return { w0, duration: a.effect!.getComputedTiming().duration };
-    });
-    expect(timing.w0).toBeCloseTo(2, 0);
-    expect(timing.duration).toBe(200);
-    await expect(page).toHaveURL(/\/faq$/);
-  });
-
   test("A§7F the current item reloads the page: fresh and at the top", async ({
     page,
   }) => {
@@ -198,9 +138,6 @@ test.describe("desktop navigation", () => {
       .toBeUndefined();
     expect(await page.evaluate(() => window.scrollY)).toBe(0);
     await expect(page).toHaveURL(/\/faq$/);
-    expect(
-      await underline(page).evaluate((el) => el.getAnimations().length),
-    ).toBe(0);
   });
 
   test("A§7F the current item clears filters and search in the address (reload without the query)", async ({
@@ -211,43 +148,31 @@ test.describe("desktop navigation", () => {
     await expect(page).toHaveURL(/\/cakes$/);
   });
 
-  test("A§7F Back / forward: no slide, the underline is simply at the page's item", async ({
+  test("A§7F Back / forward: the SemiBold item follows the page", async ({
     page,
   }) => {
     await page.goto("/cakes");
     await item(page, "FAQ").click();
     await expect(page).toHaveURL(/\/faq$/);
-    await expect
-      .poll(() => underline(page).evaluate((el) => el.getAnimations().length))
-      .toBe(0);
     await page.goBack();
     await expect(page).toHaveURL(/\/cakes$/);
-    expect(
-      await underline(page).evaluate((el) => el.getAnimations().length),
-    ).toBe(0);
-    const e = await edges(page, "Cakes");
-    expect(e.line.left).toBeCloseTo(e.item!.left, 0);
     await expect(item(page, "Cakes")).toHaveAttribute("aria-current", "page");
+    await expect(item(page, "Cakes")).toHaveCSS("font-weight", "600");
+    await expect(item(page, "FAQ")).toHaveCSS("font-weight", "500");
   });
 
-  test("A§1.4 reduced motion: the underline jumps to the new item", async ({
+  test("A§1.4 reduced motion: the weight switches at once", async ({
     page,
   }) => {
     await page.emulateMedia({ reducedMotion: "reduce" });
     await page.goto("/cakes");
     await item(page, "Contact").click();
-    expect(
-      await underline(page).evaluate((el) => el.getAnimations().length),
-    ).toBe(0);
     await expect(page).toHaveURL(/\/contact$/);
     await expect(item(page, "Contact")).toHaveCSS("font-weight", "600");
   });
 
-  test("ANIM-07: hover grows the item's text 15 %, the underline stays", async ({
-    page,
-  }) => {
+  test("ANIM-07: hover grows the item's text 15 %", async ({ page }) => {
     await page.goto("/gallery");
-    const before = await edges(page, "Gallery");
     await item(page, "Gallery").hover();
     await expect
       .poll(() =>
@@ -256,8 +181,6 @@ test.describe("desktop navigation", () => {
           .evaluate((el) => getComputedStyle(el).transform),
       )
       .toBe("matrix(1.15, 0, 0, 1.15, 0, 0)");
-    const after = await edges(page, "Gallery");
-    expect(after.line).toEqual(before.line);
   });
 
   test("§10.13 every item has a 44 × 44 hit area (FAQ, the narrowest)", async ({

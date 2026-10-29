@@ -101,12 +101,10 @@
   height: max(100dvh, calc(var(--items-top) + 462px + 40px + 110px));
 }
 
-/* On a tablet the menu keeps its phone layout: the social block stays in a 402 px column at the left
-   (1575:9818, 1578:10202). */
+/* Tablet portrait: the items start at y 248 as on the phone frame (1575:9818; Bohoka 2026-10-29). */
 @media (min-width: 768px) {
-  .social {
-    right: auto;
-    width: 402px;
+  .content {
+    --items-top: 248px;
   }
 }
 
@@ -150,29 +148,21 @@
   display: inline-block;
 }
 
-/* STYLE-01 in the menu: 2 px below the 44 px line box, the word's width; animated by width only. */
-.underline {
-  position: absolute;
-  left: 0;
-  top: 46px;
-  width: 0;
-  height: 2px;
-  border-radius: var(--radius-pill);
-  background: var(--colour-accent);
-  box-shadow: var(--shadow-underline);
-  pointer-events: none;
-}
-
-.underline[data-line] {
-  width: 100%;
-}
-
 .social {
   position: absolute;
   left: 0;
   right: 0;
   top: max(calc(100dvh - 110px), calc(var(--items-top) + 462px + 40px));
   text-align: center;
+}
+
+/* On a tablet the menu keeps its phone layout: the social block stays in a 402 px column at the left
+   (1575:9818, 1578:10202). */
+@media (min-width: 768px) {
+  .social {
+    right: auto;
+    width: 402px;
+  }
 }
 
 .socialHeading {

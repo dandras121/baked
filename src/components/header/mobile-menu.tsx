@@ -52,12 +52,6 @@ export function MobileMenu({
   const active = activeIndexFor(pathname);
 
   const [phase, setPhase] = useState<Phase>("closed");
-  const [lineItem, setLineItem] = useState(active);
-  const [seenActive, setSeenActive] = useState(active);
-  if (active !== seenActive) {
-    setSeenActive(active);
-    if (phase === "closed") setLineItem(active);
-  }
   const [isPending, startTransition] = useTransition();
   const [reveal, setReveal] = useState<{
     navStarted: boolean;
@@ -70,8 +64,6 @@ export function MobileMenu({
   const arrow = useRef<SVGSVGElement>(null);
   const items = useRef<HTMLUListElement>(null);
   const social = useRef<HTMLDivElement>(null);
-  const lines = useRef<(HTMLSpanElement | null)[]>([]);
-  const words = useRef<(HTMLSpanElement | null)[]>([]);
   const running = useRef<Animation[]>([]);
   const timers = useRef<number[]>([]);
   const historyPushed = useRef(false);
@@ -101,48 +93,36 @@ export function MobileMenu({
     items.current?.toggleAttribute("data-live", live);
 
   /** Play one sampled part on every layer; resolves when it ends (or at once with reduced motion). */
-  const playPart = useCallback(
-    (part: MenuPart, underlineOf: number): Promise<void> => {
-      const btn = button.current?.getBoundingClientRect();
-      if (!btn || isMotionReduced()) return Promise.resolve();
-      const g = menuGeometry(
-        { right: btn.right, top: btn.top },
-        { width: window.innerWidth, height: window.innerHeight },
-      );
-      const landscape = window.matchMedia(LANDSCAPE_QUERY).matches;
-      const word = underlineOf >= 0 ? words.current[underlineOf] : null;
-      const tracks = menuTracks(
-        menuRows(part, landscape),
-        g,
-        word?.offsetWidth ?? 0,
-      );
-      const opts: KeyframeAnimationOptions = {
-        duration: tracks.duration,
-        easing: "linear",
-        fill: "forwards",
-      };
-      const pairs: [Element | null | undefined, Keyframe[]][] = [
-        [pink.current, tracks.pink],
-        [white.current, tracks.white],
-        [arrow.current, tracks.arrow],
-        [items.current, tracks.menu],
-        [social.current, tracks.social],
-        [
-          underlineOf >= 0 ? lines.current[underlineOf] : null,
-          tracks.underline,
-        ],
-      ];
-      const anims = pairs
-        .filter(([el]) => el)
-        .map(([el, k]) => el!.animate(k, opts));
-      running.current.push(...anims);
-      return anims[0].finished.then(
-        () => undefined,
-        () => undefined,
-      );
-    },
-    [],
-  );
+  const playPart = useCallback((part: MenuPart): Promise<void> => {
+    const btn = button.current?.getBoundingClientRect();
+    if (!btn || isMotionReduced()) return Promise.resolve();
+    const g = menuGeometry(
+      { right: btn.right, top: btn.top },
+      { width: window.innerWidth, height: window.innerHeight },
+    );
+    const landscape = window.matchMedia(LANDSCAPE_QUERY).matches;
+    const tracks = menuTracks(menuRows(part, landscape), g);
+    const opts: KeyframeAnimationOptions = {
+      duration: tracks.duration,
+      easing: "linear",
+      fill: "forwards",
+    };
+    const pairs: [Element | null | undefined, Keyframe[]][] = [
+      [pink.current, tracks.pink],
+      [white.current, tracks.white],
+      [arrow.current, tracks.arrow],
+      [items.current, tracks.menu],
+      [social.current, tracks.social],
+    ];
+    const anims = pairs
+      .filter(([el]) => el)
+      .map(([el, k]) => el!.animate(k, opts));
+    running.current.push(...anims);
+    return anims[0].finished.then(
+      () => undefined,
+      () => undefined,
+    );
+  }, []);
 
   // History: opening pushes one entry so that Back only closes the menu (A§3.4).
   const pushEntry = () => {
@@ -179,11 +159,10 @@ export function MobileMenu({
       setLive(true);
       items.current?.querySelector("a")?.focus();
     });
-    void playPart("open", lineItem).then(() => {
+    void playPart("open").then(() => {
       if (phaseRef.current === "opening") go("open");
     });
-    // lineItem is read when the animation starts only.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- later and go only touch refs and setters
   }, [phase, playPart]);
 
   const close = useCallback(
@@ -194,17 +173,17 @@ export function MobileMenu({
       go("closing");
       if (!fromBack) dropEntry();
       else historyPushed.current = false;
-      void playPart("close", lineItem).then(() => {
+      void playPart("close").then(() => {
         if (phaseRef.current !== "closing") return;
         focusNext.current = "button";
         go("closed");
       });
     },
 
-    [lineItem, playPart, stopAll],
+    [playPart, stopAll],
   );
 
-  /** ANIM-03: underline the tapped item, hand over to the new page at 240 ms, reveal it 300–920 ms. */
+  /** ANIM-03: hand over to the new page at 240 ms, reveal it 300–920 ms (no underline, Bohoka 2026-10-29). */
   const select = (i: number) => {
     const p = phaseRef.current;
     if (
@@ -218,34 +197,6 @@ export function MobileMenu({
     const href = NAV_ITEMS[i].href;
     const same = i === active && samePath(pathname, href);
     const reduced = isMotionReduced();
-
-    if (!reduced && i !== lineItem) {
-      const ease = { easing: SELECT.easing, fill: "both" as const };
-      const old = lineItem >= 0 ? lines.current[lineItem] : null;
-      const oldW = lineItem >= 0 ? words.current[lineItem]?.offsetWidth : 0;
-      if (old)
-        running.current.push(
-          // Retracts to 2 px, then is gone (the tapped item takes the underline).
-          old.animate(
-            [
-              { width: `${oldW}px`, opacity: 1 },
-              { width: "2px", opacity: 1, offset: 0.99 },
-              { width: "2px", opacity: 0 },
-            ],
-            { ...ease, duration: SELECT.retractMs },
-          ),
-        );
-      const next = lines.current[i];
-      const w = words.current[i]?.offsetWidth ?? 0;
-      if (next)
-        running.current.push(
-          next.animate([{ width: "2px" }, { width: `${w}px` }], {
-            ...ease,
-            delay: SELECT.retractMs,
-            duration: SELECT.drawMs,
-          }),
-        );
-    }
 
     const navigate = () => {
       setReveal({ navStarted: true, holdDone: reduced });
@@ -268,8 +219,6 @@ export function MobileMenu({
         setReveal((r) => (r ? { ...r, holdDone: true } : r)),
       );
     });
-    // The tapped item is the active one from here on.
-    later(reduced ? 0 : SELECT.handoffMs, () => setLineItem(i));
   };
 
   // The reveal starts at 300 ms, or as soon as the new route has rendered if that takes longer.
@@ -278,12 +227,12 @@ export function MobileMenu({
     // A state transition that starts the reveal animation once.
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setReveal(null);
-    void playPart("selectReverse", lineItem).then(() => {
+    void playPart("selectReverse").then(() => {
       if (phaseRef.current !== "selecting") return;
       focusNext.current = "main";
       go("closed");
     });
-  }, [reveal, isPending, lineItem, playPart]);
+  }, [reveal, isPending, playPart]);
 
   // Back closes only the menu; Esc closes it; a restored page (bfcache) shows it closed.
   useEffect(() => {
@@ -412,23 +361,9 @@ export function MobileMenu({
                         select(i);
                       }}
                     >
-                      <span
-                        ref={(el) => {
-                          words.current[i] = el;
-                        }}
-                        data-pressable-content
-                        className={styles.word}
-                      >
+                      <span data-pressable-content className={styles.word}>
                         {item.label}
                       </span>
-                      <span
-                        ref={(el) => {
-                          lines.current[i] = el;
-                        }}
-                        aria-hidden
-                        data-line={i === lineItem ? "" : undefined}
-                        className={styles.underline}
-                      />
                     </a>
                   </li>
                 ))}

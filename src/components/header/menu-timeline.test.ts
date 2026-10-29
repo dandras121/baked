@@ -71,7 +71,7 @@ describe("ANIM-02 close and ANIM-03 reveal", () => {
   it("the select reveal runs 300–920 ms (620 ms after the hold)", () => {
     const rows = menuRows("selectReverse");
     expect([rows[0].t, rows.at(-1)!.t]).toEqual([300, 920]);
-    expect(menuTracks(rows, phone, 94).duration).toBe(620);
+    expect(menuTracks(rows, phone).duration).toBe(620);
   });
 
   it("A§7.1 timeline: retract 0–80, draw 80–240, hand-over 240, hold to 300, end 920", () => {
@@ -118,14 +118,13 @@ describe("A§1 global rules for the menu tracks", () => {
   it.each(["open", "close", "selectReverse"] as MenuPart[])(
     "%s: under 1 s, linear offsets 0 → 1, only clip-path / transform / opacity / width",
     (part) => {
-      const tracks = menuTracks(menuRows(part), phone, 94.5);
+      const tracks = menuTracks(menuRows(part), phone);
       expect(tracks.duration).toBeLessThan(1000);
       const layers = [
         tracks.pink,
         tracks.white,
         tracks.arrow,
         tracks.menu,
-        tracks.underline,
         tracks.social,
       ];
       for (const frames of layers) {
@@ -145,12 +144,11 @@ describe("A§1 global rules for the menu tracks", () => {
   );
 
   it("circles are clip-path circles around the origin; the arrow uses rotateY without perspective (A§4.4)", () => {
-    const t = menuTracks(menuRows("open"), phone, 94.5);
+    const t = menuTracks(menuRows("open"), phone);
     expect(t.pink.at(-1)!.clipPath).toBe("circle(985px at 385px 22px)");
     expect(t.white.at(-1)!.clipPath).toBe("circle(961px at 385px 22px)");
     expect(t.arrow.at(-1)!.transform).toBe(
       "translateX(3.11px) rotateY(180deg)",
     );
-    expect(t.underline.at(-1)!.width).toBe("94.5px");
   });
 });

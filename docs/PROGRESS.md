@@ -141,9 +141,11 @@ Branch per phase (`phase-00-foundations`, …), one commit per accepted slice, t
   - Files: `src/components/header/` (mobile-menu, menu-timeline, site-header), `src/db/site-settings.ts` (cached Settings for public pages), page shell (header outside the size container), menu texture from Figma, two type tokens, CI seeds the test database for the browser tests.
   - Tests: radii and steps vs the storyboard labels, landscape timing, open / close / select in the browser (sampled), Back, Esc, input lock, focus, inert page, resize to desktop, reduced motion, no JavaScript, axe.
   - Size: about 900 hand-written lines (Bohoka chose one slice).
-  - Open question for Bohoka: tablet portrait item position (Figma 248 px from the top vs A§4.1 “centred”).
+  - Bohoka 2026-10-29: tablet portrait items at 248 (a); the underline removed from both menus (DEVIATIONS). Report again (short).
 
 ## Later (noticed, belongs to another slice)
+
+- `e2e/components.spec.ts` “busy” button test (aria-busy on a quick action) failed once in a full local run and passed 3 / 3 on re-run: make its timing robust → slice 10.1 (or the next slice that touches buttons).
 
 - `/` and the stub pages `/cakes`, `/bespoke`, `/gallery`, `/about`, `/faq`, `/contact`, `/terms` (added in 1.1 so the header can be clicked) are replaced by their real pages → slices 2.1, 3.2, 7.1, 2.8, 2.4, 2.5, 2.7, 2.6.
 - The phone and tablet header shows the logo and wordmark only; the “menu” button and the menu overlay → slice 1.2.

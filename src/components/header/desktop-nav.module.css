@@ -1,4 +1,4 @@
-/* Desktop navigation (≥ 1120 px): seven items 32 px apart, STYLE-01 underline (ANIMATIONS §8). */
+/* Desktop navigation (≥ 1120 px): seven items 32 px apart (ANIMATIONS §8); no underline (Bohoka 2026-10-29). */
 .nav {
   position: relative;
 }
@@ -34,15 +34,4 @@
 
 .label {
   display: inline-block;
-}
-
-/* One line for the whole group; ANIM-08 moves its left edge and width (never scaleX: the glow stays round). */
-.underline {
-  position: absolute;
-  top: 20px;
-  height: 2px;
-  border-radius: 100px;
-  background: var(--colour-accent);
-  box-shadow: var(--shadow-underline);
-  pointer-events: none;
 }

@@ -106,18 +106,9 @@ test("ANIM-01 → open: focus on Home, aria-expanded, the page behind is inert a
   expect(
     await page.evaluate(() => document.documentElement.style.overflow),
   ).toBe("hidden");
-  // Open and still: pure white, the current page's item underlined (STYLE-01).
-  const line = item(page, "Gallery").locator("span[aria-hidden]");
-  const word = item(page, "Gallery").locator("[data-pressable-content]");
-  expect((await line.boundingBox())!.width).toBeCloseTo(
-    (await word.boundingBox())!.width,
-    0,
-  );
+  // Open and still: pure white, no underline (Bohoka 2026-10-29); the current page keeps aria-current.
   await expect(item(page, "Gallery")).toHaveAttribute("aria-current", "page");
-  expect(
-    (await item(page, "Home").locator("span[aria-hidden]").boundingBox())
-      ?.width ?? 0,
-  ).toBe(0);
+  expect(await menu(page).locator("span[aria-hidden]").count()).toBe(0);
 });
 
 test("A§4.1 open layout on the reference phone: items 24 px from the left, 68 px pitch, centred below the bar", async ({
@@ -164,6 +155,18 @@ test("A§8.1 tablet landscape (1024 × 768): the items start at y 106", async ({
   expect(
     (await page.getByText("Follow our social media").boundingBox())!.y,
   ).toBeCloseTo(768 - 110, 0);
+});
+
+test("tablet portrait: the items start at y 248 as on the phone (Bohoka 2026-10-29)", async ({
+  page,
+}, testInfo) => {
+  test.skip(testInfo.project.name !== "tablet", "tablet only");
+  await page.goto("/");
+  await openMenu(page);
+  expect((await item(page, "Home").boundingBox())!.y).toBeCloseTo(248, 0);
+  expect(
+    (await page.getByText("Follow our social media").boundingBox())!.y,
+  ).toBeCloseTo(1366 - 110, 0);
 });
 
 test("ANIM-02: the button and Esc close the menu (760 ms); focus returns to the button; no history left behind", async ({
@@ -232,7 +235,7 @@ test("A§5 input lock: a second tap during the opening is ignored", async ({
   });
 });
 
-test("ANIM-03: tapping another item underlines it, opens the page under the circles and reveals it; Back returns", async ({
+test("ANIM-03: tapping another item opens the page under the circles and reveals it; Back returns", async ({
   page,
 }) => {
   await page.goto("/gallery");

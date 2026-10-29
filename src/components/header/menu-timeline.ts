@@ -69,16 +69,14 @@ export type Tracks = {
   white: Keyframe[];
   arrow: Keyframe[];
   menu: Keyframe[];
-  underline: Keyframe[];
   social: Keyframe[];
 };
 
+// The rows keep their underline column (A§12); the menu has no underline since Bohoka's decision of
+// 2026-10-29, so no track is built from it.
+
 /** Keyframes for every layer, linear between the rows (A§1.2). `start` is the first row's time. */
-export function menuTracks(
-  rows: MenuRow[],
-  g: Geometry,
-  underlineWidth: number,
-): Tracks {
+export function menuTracks(rows: MenuRow[], g: Geometry): Tracks {
   const start = rows[0].t;
   const duration = rows[rows.length - 1].t - start;
   const offset = (t: number) => (duration ? (t - start) / duration : 1);
@@ -92,12 +90,11 @@ export function menuTracks(
       transform: `translateX(${r.arrowShiftPx}px) rotateY(${r.arrowDeg}deg)`,
     })),
     menu: map((r) => ({ opacity: r.menuOpacity })),
-    underline: map((r) => ({ width: `${r.underline * underlineWidth}px` })),
     social: map((r) => ({ opacity: r.socialOpacity })),
   };
 }
 
-/** ANIM-03 0–240 ms (A§7.1): the old underline retracts 0–80, the tapped one draws 80–240, ease-out. */
+/** ANIM-03 timeline (A§7.1). 0–240 ms was the underline change; the hand-over stays at 240 ms. */
 export const SELECT = {
   retractMs: 80,
   drawMs: 160,
