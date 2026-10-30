@@ -24,7 +24,7 @@ Branch per phase (`phase-00-foundations`, …), one commit per accepted slice, t
 | 1.2 | Phone and tablet header, menu overlay | ☑ | 668f1b2, 9d269d8, 61980bc | 2026-10-30 |
 | 1.3 | Header mascot | ☑ | c8312e6, 40cdb2e | 2026-10-30 |
 | 1.4 | Footer and footer mascot | ☑ | 5971ac9, 53d85a0 | 2026-10-30 |
-| 1.5 | Cookie bar, panel, consent | ☐ | | |
+| 1.5 | Cookie bar, panel, consent | ☑ | 88a3dcd, aad7e8a | 2026-10-30 |
 | 1.6 | 404, 500, SEO basics | ☐ | | |
 
 ## Phase 2 — Content pages
@@ -137,9 +137,7 @@ Branch per phase (`phase-00-foundations`, …), one commit per accepted slice, t
 
 ## Current slice
 
-- **1.5 Cookie bar, panel, consent** (§3.3, §10.11, ANIM-15, ANIM-12 / 13; 1003:9096, 1199:9345, 1199:9382).
-  - Files: `src/lib/consent.ts` (bbl_consent), `src/lib/analytics.ts` (hook, no provider), `src/components/cookies/` (bar, panel, switch, footer button), Overlay class hooks + data-kind, `buttonClasses`, page padding in base.css, cookie colour and type tokens; Playwright starts other tests with a stored choice.
-  - Tests: cookie format / version / 12 months / malformed (unit); bar timing, no focus, no cookies before a choice, Accept / Essential / Settings, Esc, footer reopen, withdrawal deletes analytics cookies without reload, version bump, page padding, not modal, the menu covers it, reduced motion, no JavaScript, axe.
+- **1.6 404, 500, SEO basics**: reading §4.6, §4.7, §10.12, §2.
 
 ## Later (noticed, belongs to another slice)
 
