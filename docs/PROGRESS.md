@@ -23,7 +23,7 @@ Branch per phase (`phase-00-foundations`, …), one commit per accepted slice, t
 | 1.1 | Desktop header, navigation, sticky shadow | ☑ | fc152e1 | 2026-10-29 |
 | 1.2 | Phone and tablet header, menu overlay | ☑ | 668f1b2, 9d269d8, 61980bc | 2026-10-30 |
 | 1.3 | Header mascot | ☑ | c8312e6, 40cdb2e | 2026-10-30 |
-| 1.4 | Footer and footer mascot | ☐ | | |
+| 1.4 | Footer and footer mascot | ☑ | 5971ac9, 53d85a0 | 2026-10-30 |
 | 1.5 | Cookie bar, panel, consent | ☐ | | |
 | 1.6 | 404, 500, SEO basics | ☐ | | |
 
@@ -137,9 +137,7 @@ Branch per phase (`phase-00-foundations`, …), one commit per accepted slice, t
 
 ## Current slice
 
-- **1.4 Footer and footer mascot (ANIM-06)**; Neon created (2026-10-30) and connected to the `baked` project (environment variables for Development, Preview, Production) the same day: the next build migrates and adds the starting Settings (db:deploy). Vercel Authentication on previews switched off by Bohoka so the previews can be checked from here.
-  - Files: `src/components/footer/` (site footer, mascot with the 80 % sentinel), footer textures from Figma, three footer type tokens, `src/styles/mascot.css` (ANIM-06), html.js in the head script, `src/db/deploy-setup.ts` + `vercel.json` (tables and starting Settings on every hosted build), `prepare: false` for hosted poolers.
-  - Tests: Settings values in the footer, legal list order and columns, links, drawn heights, ANIM-06 start row / timing / resting box on three widths, once per page, a new page replays, reduced motion, no JavaScript, axe; database test for “Settings only when missing”.
+- **1.5 Cookie bar, panel, consent**: reading §3.3, §10.11, ANIM-15, ANIM-12 / 13 and the state frames.
 
 ## Later (noticed, belongs to another slice)
 
