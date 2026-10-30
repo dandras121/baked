@@ -137,11 +137,9 @@ Branch per phase (`phase-00-foundations`, …), one commit per accepted slice, t
 
 ## Current slice
 
-- **Phase 1 review gate** (2026-10-30; Bohoka: “kezdj bele magadtól a 2. szakaszba”):
-  - Tests: 298 unit and database tests, 295 browser tests (phone, tablet, desktop), axe 0 violations on every page built (header, menu open, footer, cookie bar and panel, 404, 500).
-  - Lighthouse (local production build): Home mobile 91 / 100 / 100 / 100, desktop 100 / 100 / 100 / 100; Gallery stub mobile 94 / 100 / 100 / 92, desktop 100 / 100 / 100 / 92 (performance / accessibility / best practices / SEO). Gallery SEO 92 = no description yet (its page comes in 2.8). The 404 is not scored by Lighthouse (it measures only 200 pages).
-  - Fixed at the gate: the footer e-mail and phone links were 22 px apart, so their touch targets overlapped (Lighthouse target-size, WCAG 2.5.8); now 2 px apart with 24 × 24 targets (§10.13 dense lists).
-  - ANIMATIONS §9 for phase 1 (ANIM-01, 02, 03, 04, 06, 07, 08, 15, 24): covered by the browser tests against the A§12 rows; the underline parts of ANIM-01–03 / ANIM-08 / STYLE-01 are removed by Bohoka's decision (DEVIATIONS).
+- Phase 1 closed 2026-10-30 (gate in the commit “phase 1 review gate”; tag `phase-01-done` local, the git proxy refuses tag pushes).
+- Phase 2 on branch `phase-02-content`. Bohoka 2026-10-30: 2.1 stays one slice; on Vercel previews the hero shows the three slides (placeholders 2–3), `?hero=live` shows the live hero alone; production never shows the placeholders.
+- **2.1 Home: hero and fixed sections**: reading §4.1, UI-06, ANIM-10 and the Home frames.
 
 ## Later (noticed, belongs to another slice)
 
