@@ -1,0 +1,339 @@
+/*
+ * Home fixed sections (§4.1). Phone design px × --u (402 wide); tablet and desktop: desktop design px × --u
+ * (0.8 at 1024). Text rewraps between the drawn widths (RESPONSIVE §3.3), so the text runs in normal flow;
+ * only the decorative glow, map and the cake slot are placed.
+ */
+
+/* The Home frames are drawn on white (518:2687, 1464:8417), not on the page's paper colour. */
+.home {
+  background: var(--colour-white);
+}
+
+/* ── “We got you.” — phone 1381:10080 (402 × 518), desktop 1311:9957 (1280 × 532) ── */
+.weGotYou {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: calc(402 * var(--u));
+  min-height: calc(518 * var(--u));
+  margin-inline: auto;
+  padding-top: calc(13.7 * var(--u));
+  overflow-x: clip;
+}
+
+.glow {
+  position: absolute;
+  top: calc(28.81 * var(--u));
+  left: 0;
+  width: calc(342.37 * var(--u));
+  height: calc(140.02 * var(--u));
+  max-width: none;
+  pointer-events: none;
+}
+
+.copy {
+  position: relative;
+  padding-left: calc(43.12 * var(--u));
+}
+
+.title {
+  margin: 0 0 0 calc(-13 * var(--u));
+  color: var(--colour-display);
+  font: var(--type-wordmark);
+  font-variation-settings: var(--font-display-axes);
+}
+
+.subhead {
+  margin: calc(21 * var(--u)) 0 0;
+  max-width: calc(256.13 * var(--u));
+  color: var(--colour-display);
+  font: var(--type-subhead-phone);
+  font-variation-settings: var(--font-display-axes);
+}
+
+.lead {
+  margin: calc(17 * var(--u)) 0 0;
+  max-width: calc(319.27 * var(--u));
+  color: var(--colour-accent);
+  font: var(--type-note);
+}
+
+.cakeSlot {
+  position: relative;
+  width: calc(181.41 * var(--u));
+  aspect-ratio: 1;
+  margin: calc(20.7 * var(--u)) 0 0 calc(112.05 * var(--u));
+  border-radius: 50%;
+  background: var(--colour-placeholder);
+}
+
+.flourish {
+  position: relative;
+  width: calc(147.26 * var(--u));
+  height: auto;
+  margin: calc(22.2 * var(--u)) 0 calc(43.6 * var(--u)) calc(129.13 * var(--u));
+  color: var(--colour-body);
+  overflow: visible;
+}
+
+/* ── “Local, home baked.” on the pink band — phone 1384:10041, desktop 1361:9949 ── */
+.band {
+  position: relative;
+  overflow: hidden;
+  background: url("/home/band-texture.webp") no-repeat;
+  background-position: calc(-65.92 * var(--u)) 100%;
+  background-size: calc(523 * var(--u)) 132.43%;
+}
+
+/* The white curved edges at the top and the bottom (Ellipse 42 / 43, Ellipse 40 / 41). */
+.band::before,
+.band::after {
+  content: "";
+  position: absolute;
+  left: calc(-1 * var(--u));
+  right: calc(-1 * var(--u));
+  height: calc(61.62 * var(--u));
+  border-radius: 50%;
+  background: var(--colour-white);
+}
+
+.band::before {
+  top: calc(-35.64 * var(--u));
+}
+
+.band::after {
+  bottom: calc(-31.83 * var(--u));
+}
+
+.local {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  width: calc(402 * var(--u));
+  margin-inline: auto;
+  padding: calc(56 * var(--u)) 0 calc(64 * var(--u));
+}
+
+.localTitle {
+  margin: 0 0 0 calc(15 * var(--u));
+  color: var(--colour-display);
+  font: var(--type-section-tight-phone);
+  font-variation-settings: var(--font-display-axes);
+}
+
+.local .subhead {
+  max-width: calc(336.85 * var(--u));
+  margin: calc(34.8 * var(--u)) 0 0 calc(15.94 * var(--u));
+}
+
+.map {
+  width: calc(175.21 * var(--u));
+  height: auto;
+  margin: calc(32 * var(--u)) 0 0 calc(107.97 * var(--u));
+  filter: drop-shadow(var(--shadow-map));
+}
+
+.story {
+  width: calc(340.86 * var(--u));
+  margin: calc(13.5 * var(--u)) 0 0 calc(33.17 * var(--u));
+  color: var(--colour-plum);
+  font: var(--type-intro-phone);
+  text-align: center;
+}
+
+.story p {
+  margin: 0;
+}
+
+.story p + p {
+  margin-top: 1.25em;
+}
+
+.story .highlight {
+  font: var(--type-highlight-phone);
+  font-variation-settings: var(--font-display-axes);
+}
+
+/* ── “Check out our social media” — phone 1443:9323 (402 × 141), desktop 1373:10130 (1280 × 84) ── */
+.socialBand {
+  display: grid;
+  grid-template-columns: calc(55 * var(--u)) calc(180 * var(--u)) 1fr;
+  grid-template-areas:
+    ". title title"
+    ". insta fb";
+  align-items: center;
+  row-gap: calc(25 * var(--u));
+  width: calc(402 * var(--u));
+  min-height: calc(141 * var(--u));
+  margin-inline: auto;
+  padding: calc(33.6 * var(--u)) 0 calc(34 * var(--u));
+}
+
+.socialTitle {
+  grid-area: title;
+  margin: 0;
+  color: var(--colour-display);
+  font: var(--type-menu-social);
+  font-variation-settings: var(--font-display-axes);
+}
+
+.social {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  justify-self: start;
+  color: var(--colour-ink);
+  text-decoration: none;
+}
+
+.socialInstagram {
+  grid-area: insta;
+}
+
+.socialFacebook {
+  grid-area: fb;
+}
+
+.socialIcon {
+  width: 17px;
+  height: 17px;
+  flex: none;
+}
+
+@media (min-width: 768px) {
+  .weGotYou {
+    width: calc(1280 * var(--u));
+    min-height: calc(532 * var(--u));
+    padding-top: 0;
+  }
+
+  .glow {
+    top: calc(3.55 * var(--u));
+    left: calc(-25.86 * var(--u));
+    width: calc(770.6 * var(--u));
+    height: calc(315.16 * var(--u));
+  }
+
+  .copy {
+    width: calc(780 * var(--u));
+    padding-left: calc(84.23 * var(--u));
+  }
+
+  .title {
+    margin: calc(-15.28 * var(--u)) 0 0 calc(-36.12 * var(--u));
+    font: var(--type-section);
+  }
+
+  .subhead {
+    max-width: calc(500 * var(--u));
+    margin-top: calc(79.3 * var(--u));
+    font: var(--type-subhead);
+  }
+
+  .lead {
+    max-width: calc(569.58 * var(--u));
+    margin-top: calc(15.1 * var(--u));
+    margin-left: calc(3.11 * var(--u));
+    font: var(--type-lead);
+  }
+
+  .cakeSlot {
+    position: absolute;
+    top: calc(38.63 * var(--u));
+    left: calc(806.22 * var(--u));
+    width: calc(359.32 * var(--u));
+    margin: 0;
+  }
+
+  .flourish {
+    position: absolute;
+    top: calc(429.77 * var(--u));
+    left: calc(921 * var(--u));
+    margin: 0;
+  }
+
+  .band {
+    background-position: 0 100%;
+    background-size: 100% 132.43%;
+  }
+
+  .band::before,
+  .band::after {
+    left: 0;
+    right: 0;
+  }
+
+  .band::before {
+    top: calc(-22.97 * var(--u));
+    height: calc(50.03 * var(--u));
+  }
+
+  .band::after {
+    bottom: calc(-29.97 * var(--u));
+    height: calc(56.17 * var(--u));
+  }
+
+  .local {
+    display: grid;
+    grid-template-columns: calc(816.92 * var(--u)) 1fr;
+    grid-template-areas:
+      "title title"
+      "sub ."
+      "story map";
+    align-items: start;
+    width: calc(1280 * var(--u));
+    padding: calc(64 * var(--u)) 0 calc(113.5 * var(--u));
+  }
+
+  .localTitle {
+    grid-area: title;
+    margin-left: calc(53.99 * var(--u));
+    font: var(--type-section);
+  }
+
+  .local .subhead {
+    grid-area: sub;
+    max-width: none;
+    margin: calc(16.7 * var(--u)) 0 0 calc(60.84 * var(--u));
+    font: var(--type-subhead);
+  }
+
+  .map {
+    grid-area: map;
+    width: calc(397.25 * var(--u));
+    margin: calc(-23 * var(--u)) 0 0 calc(53.99 * var(--u));
+  }
+
+  .story {
+    grid-area: story;
+    width: calc(759.54 * var(--u));
+    margin: calc(35.7 * var(--u)) 0 0 calc(62.04 * var(--u));
+    font: var(--type-intro);
+    text-align: left;
+  }
+
+  .story .highlight {
+    font: var(--type-highlight);
+  }
+
+  .socialBand {
+    grid-template-columns: calc(470.5 * var(--u)) auto 1fr;
+    grid-template-areas: "insta title fb";
+    width: calc(1280 * var(--u));
+    min-height: calc(84 * var(--u));
+    padding: calc(12 * var(--u)) 0 calc(33 * var(--u));
+  }
+
+  .socialTitle {
+    font: var(--type-heading-md);
+  }
+
+  .socialInstagram {
+    margin-left: calc(213 * var(--u));
+  }
+
+  .socialFacebook {
+    margin-left: calc(98.5 * var(--u));
+  }
+}

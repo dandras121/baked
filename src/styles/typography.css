@@ -272,3 +272,50 @@
   font: var(--type-error-title-phone);
   font-variation-settings: var(--font-display-axes);
 }
+
+.type-hero-question {
+  font: var(--type-hero-question);
+  font-variation-settings: var(--font-display-axes);
+}
+
+.type-hero-question-phone {
+  font: var(--type-hero-question-phone);
+  font-variation-settings: var(--font-display-axes);
+}
+
+.type-hero-body-phone {
+  font: var(--type-hero-body-phone);
+}
+
+.type-button-sm {
+  font: var(--type-button-sm);
+}
+
+.type-subhead {
+  font: var(--type-subhead);
+  font-variation-settings: var(--font-display-axes);
+}
+
+.type-subhead-phone {
+  font: var(--type-subhead-phone);
+  font-variation-settings: var(--font-display-axes);
+}
+
+.type-section-tight-phone {
+  font: var(--type-section-tight-phone);
+  font-variation-settings: var(--font-display-axes);
+}
+
+.type-intro-phone {
+  font: var(--type-intro-phone);
+}
+
+.type-highlight-phone {
+  font: var(--type-highlight-phone);
+  font-variation-settings: var(--font-display-axes);
+}
+
+.type-heading-md {
+  font: var(--type-heading-md);
+  font-variation-settings: var(--font-display-axes);
+}

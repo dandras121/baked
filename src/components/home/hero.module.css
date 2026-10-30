@@ -1,0 +1,255 @@
+/*
+ * Home hero (§4.1, UI-06). Phone: slide 1817:13636 (370 × 712 at 16, 15.9; dashes 9.8 below).
+ * Tablet and desktop: 1817:13560 (1202 × 492 at 39, 22; dashes 8 below), × 0.8 at 1024 through --u.
+ * The text layer is an art-directed composition over the photo, so its parts sit at their drawn
+ * positions. Between the drawn widths its type follows the width too (min of the band size and the
+ * width-scaled size), so the wordmark never wraps across the photo (DEVIATIONS 2.1).
+ */
+.hero {
+  width: calc(402 * var(--u));
+  height: calc(774 * var(--u));
+  margin-inline: auto;
+  padding: calc(15.9 * var(--u)) calc(16 * var(--u)) 0;
+}
+
+.slider {
+  position: relative;
+}
+
+.stage {
+  display: grid;
+  touch-action: pan-y;
+}
+
+.slide {
+  grid-area: 1 / 1;
+  position: relative;
+  z-index: 2;
+}
+
+.slide[data-state="leaving"] {
+  z-index: 1;
+}
+
+.slide[data-state="hidden"] {
+  z-index: 0;
+  visibility: hidden;
+}
+
+.frame {
+  position: relative;
+  aspect-ratio: 370 / 712;
+  overflow: hidden;
+  border-radius: calc(15 * var(--u));
+  background: var(--colour-placeholder);
+}
+
+.frame[data-tone="placeholder"] {
+  display: grid;
+  place-items: center;
+  background: var(--colour-slide-placeholder);
+}
+
+.marker {
+  margin: 0;
+  color: var(--colour-paper);
+  font: var(--type-caption);
+}
+
+.picture,
+.layer {
+  position: absolute;
+  inset: 0;
+}
+
+.photo {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 108.95%;
+  max-width: none;
+  height: auto;
+}
+
+/* Phone: the wordmark is not drawn on the phone hero; it stays the page's heading for screen readers. */
+.wordmark {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.question {
+  position: absolute;
+  top: calc(52.72 * var(--u));
+  left: calc(10.3 * var(--u));
+  width: calc(348.7 * var(--u));
+  margin: 0;
+  color: var(--colour-display);
+  font: var(--type-hero-question-phone);
+  font-variation-settings: var(--font-display-axes);
+}
+
+.body {
+  position: absolute;
+  margin: 0;
+  color: var(--colour-accent);
+}
+
+.bodyPhone {
+  top: calc(194.8 * var(--u));
+  left: calc(13.34 * var(--u));
+  width: calc(281.76 * var(--u));
+}
+
+.bodyWide {
+  display: none;
+}
+
+.hero .cta {
+  position: absolute;
+  top: calc(657 * var(--u));
+  min-height: 45px;
+  padding-inline: 0;
+  font: var(--type-button-sm);
+  letter-spacing: 0.01em;
+}
+
+.hero .start {
+  left: calc(13.35 * var(--u));
+  width: calc(139 * var(--u));
+}
+
+.hero .about {
+  left: calc(178 * var(--u));
+  width: calc(181 * var(--u));
+}
+
+/* Dashes and the pause button (Proposal) under the photo. The row is as tall as a dash. */
+.controls {
+  display: flex;
+  align-items: center;
+  height: 5px;
+  margin-top: calc(9.8 * var(--u));
+  padding-left: calc(22 * var(--u));
+}
+
+.pause {
+  display: grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  margin: -7.5px 0 -7.5px var(--space-10);
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--colour-body);
+  cursor: pointer;
+}
+
+.pause svg {
+  width: 10px;
+  height: 10px;
+  fill: currentColor;
+}
+
+@media (min-width: 768px) {
+  .hero {
+    width: calc(1280 * var(--u));
+    height: calc(616 * var(--u));
+    padding: calc(22 * var(--u)) calc(39 * var(--u)) 0;
+  }
+
+  .frame {
+    aspect-ratio: 1202 / 492;
+  }
+
+  .photo {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .wordmark {
+    inset: 0;
+    width: auto;
+    height: auto;
+    margin: 0;
+    overflow: visible;
+    clip-path: none;
+    font-weight: inherit;
+  }
+
+  .baked,
+  .by,
+  .linda {
+    position: absolute;
+    top: 0;
+    color: var(--colour-display);
+    font-size: min(calc(155px * var(--type-scale)), calc(155 * var(--u)));
+  }
+
+  .baked {
+    left: calc(34.09 * var(--u));
+  }
+
+  .linda {
+    left: calc(508.88 * var(--u));
+  }
+
+  .by {
+    top: calc(126 * var(--u));
+    left: calc(426 * var(--u));
+    color: var(--colour-accent);
+    font-size: min(calc(64px * var(--type-scale)), calc(64 * var(--u)));
+  }
+
+  .question {
+    top: calc(239.63 * var(--u));
+    left: calc(34 * var(--u));
+    width: calc(347 * var(--u));
+    font: var(--type-hero-question);
+    font-size: min(calc(48px * var(--type-scale)), calc(48 * var(--u)));
+    line-height: min(calc(40px * var(--type-scale)), calc(40 * var(--u)));
+  }
+
+  .bodyPhone {
+    display: none;
+  }
+
+  .bodyWide {
+    display: block;
+    top: calc(338.64 * var(--u));
+    left: calc(34.09 * var(--u));
+    width: calc(505.48 * var(--u));
+    font-size: min(calc(18px * var(--type-scale)), calc(18 * var(--u)));
+  }
+
+  .hero .cta {
+    top: calc(408 * var(--u));
+    min-height: calc(47px * var(--type-scale));
+    padding-inline: calc(20px * var(--type-scale));
+    font: var(--type-nav);
+  }
+
+  .hero .start {
+    left: calc(34 * var(--u));
+    width: auto;
+    min-width: calc(189 * var(--u));
+  }
+
+  .hero .about {
+    left: calc(256 * var(--u));
+    width: auto;
+    min-width: calc(234 * var(--u));
+  }
+
+  .controls {
+    margin-top: calc(8 * var(--u));
+    padding-left: calc(15.76 * var(--u));
+  }
+}

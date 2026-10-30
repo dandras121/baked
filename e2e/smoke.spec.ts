@@ -3,7 +3,8 @@ import { expect, test } from "@playwright/test";
 
 // Slice 0.1 smoke test: the app starts and its first pages render without accessibility violations.
 const pages = [
-  { path: "/", heading: "Home" },
+  // Home: the hero wordmark is the h1; on the phone it is not drawn, so it is only read out.
+  { path: "/", heading: "Baked by Linda" },
   { path: "/dev", heading: "Developer pages" },
   { path: "/dev/tokens", heading: "Design tokens" },
   { path: "/dev/layout", heading: "Layout and breakpoints" },
@@ -17,7 +18,7 @@ for (const { path, heading } of pages) {
     expect(response?.status()).toBe(200);
     await expect(
       page.getByRole("heading", { level: 1, name: heading }),
-    ).toBeVisible();
+    ).toBeAttached();
 
     const axe = await new AxeBuilder({ page }).analyze();
     expect(axe.violations).toEqual([]);

@@ -72,5 +72,7 @@ export default defineConfig({
     url: `http://localhost:${PORT}`,
     reuseExistingServer: !process.env.CI,
     timeout: 240_000,
+    // The hero's development-only placeholder slides, so the slider can be tested (slice 2.1).
+    env: { BBL_HERO_PLACEHOLDERS: "1" },
   },
 });

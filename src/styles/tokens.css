@@ -64,6 +64,7 @@
   --colour-icon-muted: #9a93a8; /* lock icon on the locked row (decorative) · 1003:9143 */
   --colour-scrim-hint: rgb(36 27 51 / 0.42); /* visual-only dimming behind the phone cookie sheet · 1004:9104 */
   --colour-grabber: rgb(36 27 51 / 0.18); /* sheet grabber on the cookie sheet · 1004:9106 */
+  --colour-slide-placeholder: #756c82; /* development-only hero placeholder slides 2–3 · Placeholder-hero slide 2|3 1817:13581 */
 
   /* @group Font families */
   --font-display: "Fraunces", Georgia, "Times New Roman", serif; /* headings, card titles, quotes, field values · style guide 02 */
@@ -136,6 +137,16 @@
   --type-pill-phone: 500 13px/16px var(--font-ui); /* filter pill on the phone · 1492:8700 */
   --type-menu-item: 300 34px/44px var(--font-ui); /* mobile menu item, kept on tablet · ANIMATIONS §2, 1517:9130 */
   --type-menu-social: 300 24px/normal var(--font-display); /* “Follow our social media” in the menu · ANIMATIONS §2, 1517:9154 */
+  --type-hero-question: 600 max(calc(48px * var(--type-scale)), min(48px, 14px))/calc(40px * var(--type-scale)) var(--font-display); /* hero “What’s your dream cake?” · 1817:13560 */
+  --type-hero-question-phone: 600 60px/67px var(--font-display); /* hero question on the phone · 1817:13638 */
+  --type-hero-body-phone: 700 14px/15px var(--font-ui); /* hero supporting line on the phone, accent · 1817:13641 */
+  --type-button-sm: 500 12px/normal var(--font-ui); /* hero buttons on the phone · 1817:13639 */
+  --type-subhead: 600 max(calc(48px * var(--type-scale)), min(48px, 14px))/normal var(--font-display); /* Home block subheading “Whatever the vibe is …” · 1345:9965, 1363:10106 */
+  --type-subhead-phone: 600 24px/normal var(--font-display); /* Home block subheading on the phone · 1384:10031 */
+  --type-section-tight-phone: 300 64px/0.767 var(--font-display); /* “Local, home baked.” on the phone, two tight lines · 1385:10077 */
+  --type-intro-phone: 500 14px/normal var(--font-ui); /* “Local, home baked.” text on the phone, plum · 1385:10081 */
+  --type-highlight-phone: 700 14px/normal var(--font-display); /* “Real cake. Real care.” on the phone · 1385:10081 */
+  --type-heading-md: 300 max(calc(32px * var(--type-scale)), min(32px, 14px))/normal var(--font-display); /* “Check out our social media” · 1373:10131 */
   --type-label-ls: calc(1.98px * max(var(--type-scale), min(1, calc(14 / 11)))); /* field label letter spacing (18 %) · input 630:3005 */
   --type-footer-heading: 700 max(calc(10px * var(--type-scale)), min(10px, 14px))/normal var(--font-ui); /* footer column heading · style guide Quicksand Bold 10 */
   --type-footer-heading-ls: calc(0.18px * max(var(--type-scale), min(1, calc(14 / 10)))); /* footer heading letter spacing (1.8 %) · style guide */
@@ -168,6 +179,7 @@
   --shadow-cake-card: 0 0 9.6px 0 rgb(255 255 255 / 0.63); /* cake card glow · 1487:8534 */
   --shadow-header: 0 4px 16px 0 rgb(36 27 51 / 0.1); /* sticky header when scrolled · ANIM-24 */
   --shadow-underline: 0 0 5.7px var(--colour-lilac); /* navigation underline glow · ANIMATIONS §2 */
+  --shadow-map: 0 0 42px 0 rgb(255 255 255 / 0.4); /* white glow around the West Lothian map · 1367:10108 */
   --blur-glass: 17px; /* testimonial backdrop blur · 701:4792 */
 
   /* @group Spacing (the gaps and paddings drawn in Figma; no Figma spacing variables exist) */
