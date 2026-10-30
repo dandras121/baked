@@ -305,7 +305,10 @@ test("A§3.4 the logo in the open menu goes Home like the Home item", async ({
 }) => {
   await page.goto("/gallery");
   await openMenu(page);
-  await page.getByRole("link", { name: "Baked by Linda" }).click();
+  await page
+    .getByTestId("site-header")
+    .getByRole("link", { name: "Baked by Linda" })
+    .click();
   await expect(page).toHaveURL(/\/$/);
   await expect(overlay(page)).toBeHidden({ timeout: 3000 });
 });

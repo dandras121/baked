@@ -103,6 +103,9 @@
   --type-nav-active: 600 max(calc(14px * var(--type-scale)), min(14px, 14px))/normal var(--font-ui); /* active navigation item · style guide Quicksand SemiBold 14 */
   --type-nav: 500 max(calc(14px * var(--type-scale)), min(14px, 14px))/normal var(--font-ui); /* navigation, filter pill, card button · style guide Quicksand Medium 14 */
   --type-body-sm: 400 max(calc(14px * var(--type-scale)), min(14px, 14px))/1.5 var(--font-ui); /* checkbox label, small body · 630:3018 */
+  --type-footer-title: 500 max(calc(15px * var(--type-scale)), min(15px, 14px))/normal var(--font-ui); /* footer column heading (LEGAL, FOOD & COMPLIANCE) · 1411:9594 */
+  --type-footer-text: 400 max(calc(13px * var(--type-scale)), min(13px, 14px))/22px var(--font-ui); /* footer tagline and address · 1411:9620, 1411:9621 */
+  --type-footer-legal: 400 max(calc(13px * var(--type-scale)), min(13px, 14px))/20px var(--font-ui); /* footer legal links · 1411:9596 */
   --type-footer-contact: 500 max(calc(13px * var(--type-scale)), min(13px, 14px))/1.69 var(--font-ui); /* footer contact · style guide Quicksand Medium 13 */
   --type-meta: 400 max(calc(13px * var(--type-scale)), min(13px, 14px))/normal var(--font-ui); /* pager meta, hints · style guide Quicksand Regular 13 */
   --type-note: 300 max(calc(13px * var(--type-scale)), min(13px, 14px))/normal var(--font-ui); /* small note · style guide Quicksand Light 13 */

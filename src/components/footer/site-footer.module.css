@@ -1,0 +1,271 @@
+/* Footer (SITE-FLOWS §3.2). Phone 1461:9223 (402 wide); tablet 1551:10408 = desktop × 0.8; desktop 1411:9627.
+   It grows with its content, so everything flows; the mascot hangs from the bottom-right corner (A§7D). */
+.footer {
+  position: relative;
+  overflow: clip;
+  background: var(--colour-pink) url("/brand/footer-phone.webp") center / cover
+    no-repeat;
+}
+
+/* Zero-specificity resets, so the spacing rules below win without. */
+:where(.footer) :where(p, ul, h2) {
+  margin: 0;
+}
+
+:where(.footer) ul {
+  padding: 0;
+  list-style: none;
+}
+
+.inner {
+  position: relative;
+  max-width: var(--page-max);
+  margin-inline: auto;
+  padding: 29px calc(24 * var(--u)) 17.8px;
+}
+
+.ink {
+  color: var(--colour-ink);
+}
+
+.inkDeep {
+  color: var(--colour-ink-deep);
+}
+
+.underlined {
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
+}
+
+/* Phone: one column, as drawn. */
+.about {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  color: var(--colour-ink-deep);
+}
+
+.wordmark {
+  display: block;
+  width: min(337px, 100%);
+}
+
+.wordmark img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.tagline,
+.address,
+.contact {
+  margin-top: 22px;
+}
+
+.findMyOrder {
+  margin-top: 14px;
+}
+
+.title {
+  color: var(--colour-ink);
+  text-align: center;
+  margin-bottom: 14px;
+}
+
+.legal {
+  margin-top: 32px;
+}
+
+/* One list in reading order; shown as two columns, the right one right-aligned (§3.2). */
+.legalList {
+  display: grid;
+  grid-auto-flow: column;
+  grid-template-rows: repeat(4, auto);
+  justify-content: space-between;
+  row-gap: 14px;
+  color: var(--colour-ink-deep);
+}
+
+.legalList li:nth-child(n + 5) {
+  justify-self: end;
+  text-align: right;
+}
+
+.food {
+  margin-top: 32px;
+}
+
+.foodList {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  color: var(--colour-ink-deep);
+}
+
+.bottom {
+  margin-top: 32px;
+  color: var(--colour-ink-deep);
+}
+
+/* Phone: the button sits low beside the mascot. */
+.closing {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.copyright {
+  margin-top: 22.4px; /* small print ends at 838, © at 860.4 (1461:9216) */
+  line-height: 18px;
+}
+
+.cookies {
+  margin-top: 207.8px;
+}
+
+/* The mascot, cropped by the footer's right and bottom edges; placed from the bottom-right corner. */
+.mascot {
+  position: absolute;
+  right: -153.24px;
+  bottom: -60.39px;
+  width: 312.55px;
+  height: 336.6px;
+  transform: rotate(-30deg);
+  transform-origin: 50% 100%;
+  pointer-events: none;
+}
+
+/* The mascot's visible area inside the footer: what the trigger watches (A§7D). */
+.sentinel {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: 159.31px;
+  height: 276.21px;
+  pointer-events: none;
+}
+
+/* Tablet and desktop: three columns in desktop design px (× --u: 0.8 at 1024, 1 at 1280). */
+@media (min-width: 768px) {
+  .footer {
+    background-image: url("/brand/footer-tablet.webp");
+  }
+
+  .inner {
+    display: grid;
+    grid-template-columns:
+      calc(340 * var(--u)) calc(102.5 * var(--u)) calc(400 * var(--u))
+      calc(77.5 * var(--u)) calc(220 * var(--u));
+    align-items: start;
+    padding: calc(49.88 * var(--u)) 0 calc(39.5 * var(--u)) calc(70 * var(--u));
+  }
+
+  .about {
+    grid-column: 1;
+  }
+
+  .wordmark {
+    width: calc(375 * var(--u));
+    margin: calc(4.35 * var(--u)) 0 0 calc(2.9 * var(--u));
+  }
+
+  .tagline {
+    margin-top: calc(13.5 * var(--u));
+  }
+
+  .address,
+  .contact {
+    margin-top: calc(22 * var(--u));
+  }
+
+  .findMyOrder {
+    margin-top: calc(14 * var(--u));
+  }
+
+  .title {
+    margin-bottom: calc(14 * var(--u));
+  }
+
+  .legal {
+    grid-column: 3;
+    margin-top: 0;
+  }
+
+  .legalList {
+    row-gap: calc(9 * var(--u)); /* tablet 7.2 px (1551:10408) */
+  }
+
+  .food {
+    grid-column: 5;
+    margin-top: 0;
+  }
+
+  .foodList {
+    gap: calc(11 * var(--u));
+  }
+
+  .bottom {
+    grid-column: 1 / 4;
+    max-width: calc(760 * var(--u));
+    margin-top: calc(75 * var(--u));
+  }
+
+  .closing {
+    flex-direction: row;
+    align-items: center;
+    gap: calc(13 * var(--u));
+    margin-top: calc(14 * var(--u));
+  }
+
+  /* The © line is a 247 px box with the button 13 px after it (1411:9624, 1411:9625). */
+  .copyright {
+    margin-top: 0;
+    min-width: calc(247 * var(--u));
+  }
+
+  .cookies {
+    margin-top: 0;
+  }
+
+  .mascot {
+    right: -94.3px;
+    bottom: -46.69px;
+    width: 270.98px;
+    height: 291.82px;
+    transform: rotate(-17.55deg);
+  }
+
+  .sentinel {
+    width: 176.68px;
+    height: 245.13px;
+  }
+}
+
+@media (min-width: 1120px) {
+  .footer {
+    background-image: url("/brand/footer-desktop.webp");
+  }
+
+  .inner {
+    grid-template-columns:
+      calc(340 * var(--u)) calc(136 * var(--u)) calc(340 * var(--u))
+      calc(104 * var(--u)) calc(220 * var(--u));
+  }
+
+  .legalList {
+    row-gap: calc(14 * var(--u));
+  }
+
+  /* Wider than 1280 px the mascot stays at the footer's own corner (Proposal, R§4). */
+  .mascot {
+    right: -117.87px;
+    bottom: -58.36px;
+    width: 338.72px;
+    height: 364.77px;
+  }
+
+  .sentinel {
+    width: 220.85px;
+    height: 306.41px;
+  }
+}

@@ -19,9 +19,10 @@ export const viewport: Viewport = {
   initialScale: 1,
 };
 
-// ANIM-04 first-load logic (A§7A), before the first paint: once per tab session the header mascot slides
+// Before the first paint: html.js marks that scripts run (ANIM-06 hides the footer mascot only then).
+// ANIM-04 first-load logic (A§7A): once per tab session the header mascot slides
 // in. The class is removed when the slide ends, so a header mounted later in the visit does not replay it.
-const MASCOT_INTRO = `try{if(!sessionStorage.getItem("bbl:mascot-seen")){sessionStorage.setItem("bbl:mascot-seen","1");var d=document.documentElement;d.classList.add("mascot-intro");document.addEventListener("animationend",function e(v){if(v.animationName.indexOf("bbl-mascot-in")===0){d.classList.remove("mascot-intro");document.removeEventListener("animationend",e)}})}}catch(e){}`;
+const MASCOT_INTRO = `document.documentElement.classList.add("js");try{if(!sessionStorage.getItem("bbl:mascot-seen")){sessionStorage.setItem("bbl:mascot-seen","1");var d=document.documentElement;d.classList.add("mascot-intro");document.addEventListener("animationend",function e(v){if(v.animationName.indexOf("bbl-mascot-in")===0){d.classList.remove("mascot-intro");document.removeEventListener("animationend",e)}})}}catch(e){}`;
 
 // The two faces almost every page shows first; the rest load when used.
 const PRELOAD_FONTS = [

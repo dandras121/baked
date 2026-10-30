@@ -4,7 +4,7 @@ import { INITIAL_SETTINGS } from "@/lib/settings";
 import { connect } from "./client";
 import { closedDays, settings } from "./schema";
 import { seed } from "./seed";
-import { readSettings, writeSettings } from "./settings-repo";
+import { ensureSettings, readSettings, writeSettings } from "./settings-repo";
 
 // Integration: needs a Postgres test database (TEST_DATABASE_URL; CI starts one, locally see README).
 const url = process.env.TEST_DATABASE_URL;
@@ -33,6 +33,20 @@ describe.skipIf(!url)("database: Settings (§11.1, §11.2) and the seed", () => 
     await seed(url);
     expect(await conn!.db.select().from(settings)).toHaveLength(1);
     expect(await conn!.db.select().from(closedDays)).toHaveLength(2);
+  });
+
+  it("deploy: the starting Settings are added only when missing, never over saved ones", async () => {
+    await writeSettings(conn!.db, {
+      ...INITIAL_SETTINGS,
+      hygieneRating: "Improvement Required",
+    });
+    expect(await ensureSettings(conn!.db, INITIAL_SETTINGS)).toBe(false);
+    expect((await readSettings(conn!.db)).hygieneRating).toBe(
+      "Improvement Required",
+    );
+    await conn!.db.delete(settings);
+    expect(await ensureSettings(conn!.db, INITIAL_SETTINGS)).toBe(true);
+    expect(await readSettings(conn!.db)).toEqual(INITIAL_SETTINGS);
   });
 
   it("§10.7 money is stored as integer pence", async () => {

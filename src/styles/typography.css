@@ -229,3 +229,15 @@
   font: var(--type-menu-social);
   font-variation-settings: var(--font-display-axes);
 }
+
+.type-footer-title {
+  font: var(--type-footer-title);
+}
+
+.type-footer-text {
+  font: var(--type-footer-text);
+}
+
+.type-footer-legal {
+  font: var(--type-footer-legal);
+}

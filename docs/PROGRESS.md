@@ -137,14 +137,18 @@ Branch per phase (`phase-00-foundations`, …), one commit per accepted slice, t
 
 ## Current slice
 
-- **1.4 Footer and footer mascot (ANIM-06)**: reading the docs; Neon on Vercel requested from Bohoka.
+- **1.4 Footer and footer mascot (ANIM-06)**; Neon on Vercel requested from Bohoka (2026-10-30).
+  - Files: `src/components/footer/` (site footer, mascot with the 80 % sentinel), footer textures from Figma, three footer type tokens, `src/styles/mascot.css` (ANIM-06), html.js in the head script, `src/db/deploy-setup.ts` + `vercel.json` (tables and starting Settings on every hosted build), `prepare: false` for hosted poolers.
+  - Tests: Settings values in the footer, legal list order and columns, links, drawn heights, ANIM-06 start row / timing / resting box on three widths, once per page, a new page replays, reduced motion, no JavaScript, axe; database test for “Settings only when missing”.
 
 ## Later (noticed, belongs to another slice)
+
+- Footer “Cookie preferences” opens the cookie panel instead of linking to `/cookies#changing-your-mind` → slice 1.5.
+- The footer links to pages that come later (`/find-my-order`, the legal pages): they 404 until slices 2.6 / 6.4; the 404 page itself → 1.6.
 
 - `e2e/components.spec.ts` “busy” button test (aria-busy on a quick action) failed once in a full local run and passed 3 / 3 on re-run: make its timing robust → slice 10.1 (or the next slice that touches buttons).
 
 - `/` and the stub pages `/cakes`, `/bespoke`, `/gallery`, `/about`, `/faq`, `/contact`, `/terms` (added in 1.1 so the header can be clicked) are replaced by their real pages → slices 2.1, 3.2, 7.1, 2.8, 2.4, 2.5, 2.7, 2.6.
-- The phone and tablet header shows the logo and wordmark only; the “menu” button and the menu overlay → slice 1.2.
 - `/dev/*` pages must not be reachable on the live site (404 in production, or behind admin sign-in) → slice 10.2 (or 11.1 at the latest).
 - Real titles “Page — Baked by Linda”, `robots.txt`, sitemap → slice 1.6.
 - The legacy “Coming soon” files on `main` (`index.html`, `backgrnd.jpg`, `CNAME`, the GitHub Pages workflow and the stray copies in `.github/workflows/`) stay untouched until launch → slice 11.1–11.3 decides how the domain moves to the app.

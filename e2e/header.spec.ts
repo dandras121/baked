@@ -195,7 +195,9 @@ test.describe("desktop navigation", () => {
     await expect(skip).toBeInViewport();
     await page.keyboard.press("Tab");
     await expect(
-      page.getByRole("link", { name: "Baked by Linda" }),
+      page
+        .getByTestId("site-header")
+        .getByRole("link", { name: "Baked by Linda" }),
     ).toBeFocused();
     for (const name of [
       "Home",
@@ -224,7 +226,10 @@ test.describe("every width", () => {
     await page.evaluate(() => window.scrollTo(0, 600));
     const box = (await page.getByTestId("site-header").boundingBox())!;
     expect(box.y).toBe(0);
-    await page.getByRole("link", { name: "Baked by Linda" }).click();
+    await page
+      .getByTestId("site-header")
+      .getByRole("link", { name: "Baked by Linda" })
+      .click();
     await expect(page).toHaveURL(/\/$/);
   });
 

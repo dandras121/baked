@@ -43,3 +43,66 @@ html.mascot-intro .logo-mark {
 html[data-motion="reduce"].mascot-intro .logo-mark {
   animation: none;
 }
+
+/*
+ * ANIM-06: the footer mascot peeks in once per page when its corner is 80 % on screen (A§7D).
+ * Hidden start only with JavaScript (html.js) and without reduced motion; FooterMascot adds .is-in.
+ * Phone below 768 px, tablet 768–1119 px, desktop from 1120 px.
+ */
+@keyframes bbl-footer-mascot-in {
+  from {
+    transform: translate(150.5px, 260.7px) rotate(-40deg);
+  }
+  to {
+    transform: translate(0, 0) rotate(-30deg);
+  }
+}
+
+@keyframes bbl-footer-mascot-in-tablet {
+  from {
+    transform: translate(83.8px, 265.1px) rotate(-27.55deg);
+  }
+  to {
+    transform: translate(0, 0) rotate(-17.55deg);
+  }
+}
+
+@keyframes bbl-footer-mascot-in-desktop {
+  from {
+    transform: translate(104.6px, 330.9px) rotate(-27.55deg);
+  }
+  to {
+    transform: translate(0, 0) rotate(-17.55deg);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  html.js:not([data-motion="reduce"]) .footer-mascot:not(.is-in) {
+    transform: translate(150.5px, 260.7px) rotate(-40deg);
+  }
+
+  html.js:not([data-motion="reduce"]) .footer-mascot.is-in {
+    animation: bbl-footer-mascot-in var(--duration-450) var(--ease-mascot) 150ms
+      both;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) and (min-width: 768px) {
+  html.js:not([data-motion="reduce"]) .footer-mascot:not(.is-in) {
+    transform: translate(83.8px, 265.1px) rotate(-27.55deg);
+  }
+
+  html.js:not([data-motion="reduce"]) .footer-mascot.is-in {
+    animation-name: bbl-footer-mascot-in-tablet;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) and (min-width: 1120px) {
+  html.js:not([data-motion="reduce"]) .footer-mascot:not(.is-in) {
+    transform: translate(104.6px, 330.9px) rotate(-27.55deg);
+  }
+
+  html.js:not([data-motion="reduce"]) .footer-mascot.is-in {
+    animation-name: bbl-footer-mascot-in-desktop;
+  }
+}

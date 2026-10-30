@@ -44,3 +44,19 @@ export async function writeSettings(db: Db, values: Settings): Promise<void> {
       set: { ...values, updatedAt: new Date() },
     });
 }
+
+/**
+ * Stores the starting Settings only when there are none yet (a new hosted database). Never overwrites
+ * Settings that exist, so what Linda saves in the admin survives every deploy.
+ */
+export async function ensureSettings(
+  db: Db,
+  values: Settings,
+): Promise<boolean> {
+  const inserted = await db
+    .insert(settings)
+    .values({ id: 1, ...values })
+    .onConflictDoNothing({ target: settings.id })
+    .returning({ id: settings.id });
+  return inserted.length > 0;
+}
