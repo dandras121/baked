@@ -7,6 +7,9 @@ import {
   WeGotYou,
 } from "@/components/home/home-sections";
 import styles from "@/components/home/home-sections.module.css";
+import { CakeRowInBand, RecipesHeading } from "@/components/home/home-band";
+import { SpecialIdea } from "@/components/home/special-idea";
+import { getHomeCakes, getHomeSquares } from "@/db/home-repo";
 import { getSiteSettings } from "@/db/site-settings";
 import { heroPlaceholdersEnabled, wantsLiveHero } from "@/lib/hero";
 
@@ -31,7 +34,11 @@ async function PreviewHero({
 }
 
 export default async function Home({ searchParams }: PageProps<"/">) {
-  const settings = await getSiteSettings();
+  const [settings, cakes, gallery] = await Promise.all([
+    getSiteSettings(),
+    getHomeCakes(),
+    getHomeSquares(),
+  ]);
   return (
     <div className={styles.home}>
       {heroPlaceholdersEnabled() ? (
@@ -42,9 +49,21 @@ export default async function Home({ searchParams }: PageProps<"/">) {
         <Hero placeholders={false} />
       )}
       <WeGotYou />
-      {/* Slice 2.3: “Try my recipes.” and the cake row open the pink band above “Local, home baked.” */}
-      {settings && <LocalHomeBaked town={settings.town} />}
-      {/* Slice 2.3: “Special idea?” · slice 2.2: “Thoughts on my work.” (Google reviews) */}
+      {/* With no visible design the whole cake block is not rendered (§4.1). */}
+      {cakes.length > 0 && <RecipesHeading />}
+      {settings && (
+        <LocalHomeBaked
+          town={settings.town}
+          cakeRow={
+            cakes.length > 0 ? <CakeRowInBand cakes={cakes} /> : undefined
+          }
+        />
+      )}
+      <SpecialIdea
+        squares={gallery.squares}
+        galleryLink={gallery.galleryLink}
+      />
+      {/* Slice 2.2: “Thoughts on my work.” (Google reviews) */}
       {settings && (
         <SocialBand
           instagram={settings.instagram}

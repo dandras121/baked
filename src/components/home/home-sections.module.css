@@ -115,6 +115,11 @@
   padding: calc(56 * var(--u)) 0 calc(64 * var(--u));
 }
 
+/* After the cake row: the white line, then the title 16 px below (1385:10075 → 1385:10077). */
+.local[data-after-row] {
+  padding-top: calc(16 * var(--u));
+}
+
 .localTitle {
   margin: 0 0 0 calc(15 * var(--u));
   color: var(--colour-display);
@@ -293,6 +298,10 @@
     align-items: start;
     width: calc(1280 * var(--u));
     padding: calc(64 * var(--u)) 0 calc(113.5 * var(--u));
+  }
+
+  .local[data-after-row] {
+    padding-top: 0;
   }
 
   .localTitle {

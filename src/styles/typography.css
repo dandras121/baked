@@ -319,3 +319,30 @@
   font: var(--type-heading-md);
   font-variation-settings: var(--font-display-axes);
 }
+
+.type-display-lg {
+  font: var(--type-display-lg);
+  font-variation-settings: var(--font-display-axes);
+}
+
+.type-title-phone {
+  font: var(--type-title-phone);
+  font-variation-settings: var(--font-display-axes);
+}
+
+.type-lead-phone {
+  font: var(--type-lead-phone);
+}
+
+.type-link-sm-phone {
+  font: var(--type-link-sm-phone);
+  font-variation-settings: var(--font-display-axes);
+}
+
+.type-price-phone {
+  font: var(--type-price-phone);
+}
+
+.type-body-light {
+  font: var(--type-body-light);
+}

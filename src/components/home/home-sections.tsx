@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import { FacebookIcon, InstagramIcon } from "@/components/ui/social-icons";
 import type { Settings } from "@/lib/settings";
 import styles from "./home-sections.module.css";
@@ -60,10 +61,22 @@ export function WeGotYou() {
 }
 
 /** “Local, home baked.” on the pink band (desktop 1361:9949, phone 1384:10041); the town from Settings (D14). */
-export function LocalHomeBaked({ town }: { town: string }) {
+export function LocalHomeBaked({
+  town,
+  cakeRow,
+}: {
+  town: string;
+  /** The Home cake row (2.3) opens the band when there are visible designs. */
+  cakeRow?: ReactNode;
+}) {
   return (
-    <section className={styles.band} aria-labelledby="local-home-baked">
-      <div className={styles.local}>
+    <div className={styles.band}>
+      {cakeRow}
+      <section
+        className={styles.local}
+        aria-labelledby="local-home-baked"
+        data-after-row={cakeRow ? "" : undefined}
+      >
         <h2 id="local-home-baked" className={styles.localTitle}>
           Local, <br className="only-phone" />
           home baked.
@@ -96,8 +109,8 @@ export function LocalHomeBaked({ town }: { town: string }) {
             Real cake. Real care. Made right here at home.
           </p>
         </div>
-      </div>
-    </section>
+      </section>
+    </div>
   );
 }
 

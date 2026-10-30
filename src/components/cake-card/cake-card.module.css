@@ -1,0 +1,127 @@
+/*
+ * Cake card, closed. Tablet and desktop: 355 × 355 in desktop design px × --u (0.8 at 1024 = the tablet card
+ * 284); phone Home: 274 wide (1381:10001). Cards in one row share the tallest card's height (§4.1).
+ */
+.card {
+  display: flex;
+  flex-direction: column;
+  width: calc(274 * var(--u));
+  min-height: calc(421 * var(--u));
+  overflow: hidden;
+  border-radius: var(--radius-card);
+  background: var(--colour-white);
+  box-shadow: var(--shadow-cake-card);
+}
+
+.picture {
+  flex: none;
+  height: calc(273 * var(--u));
+  border: 8px solid var(--colour-white);
+  border-radius: var(--radius-card) var(--radius-card) 0 0;
+  background: var(--colour-placeholder);
+}
+
+.name {
+  margin: calc(1 * var(--u)) calc(12 * var(--u)) 0 calc(15.47 * var(--u));
+  color: var(--colour-display);
+  font: var(--type-card-title);
+  font-variation-settings: var(--font-display-axes);
+}
+
+/* Up to two lines, then an ellipsis (§4.1). */
+.nameLink {
+  display: -webkit-box;
+  overflow: hidden;
+  color: inherit;
+  text-decoration: none;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  transition: color var(--duration-120) var(--ease-out);
+}
+
+.nameLink:hover {
+  color: var(--colour-accent);
+}
+
+.flavour {
+  display: -webkit-box;
+  max-width: calc(250 * var(--u));
+  margin: 0 0 0 calc(15.47 * var(--u));
+  overflow: hidden;
+  color: var(--colour-accent);
+  font: var(--type-card-desc);
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.bottom {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: auto;
+  padding: calc(4 * var(--u)) calc(8.5 * var(--u)) calc(9 * var(--u))
+    calc(15.47 * var(--u));
+}
+
+.tiers {
+  display: flex;
+  flex-direction: column;
+  flex-basis: 100%;
+  margin: 0;
+  color: var(--colour-display);
+  font: var(--type-micro);
+  letter-spacing: var(--type-micro-ls);
+  text-transform: uppercase;
+}
+
+.buy {
+  display: flex;
+  align-items: center;
+  gap: calc(15.5 * var(--u));
+  margin-left: auto;
+}
+
+.from {
+  margin: 0;
+  color: var(--colour-ink);
+  font: var(--type-price-phone);
+}
+
+@media (min-width: 768px) {
+  .card {
+    width: calc(355 * var(--u));
+    min-height: calc(355 * var(--u));
+  }
+
+  .picture {
+    height: calc(220.7 * var(--u));
+    border-width: calc(8 * var(--u));
+  }
+
+  .name {
+    margin: calc(4.46 * var(--u)) calc(12 * var(--u)) 0 calc(8.76 * var(--u));
+  }
+
+  .flavour {
+    margin: calc(5 * var(--u)) 0 0 calc(12.68 * var(--u));
+  }
+
+  .bottom {
+    flex-wrap: nowrap;
+    padding: calc(4 * var(--u)) calc(6.63 * var(--u)) calc(7 * var(--u))
+      calc(12.68 * var(--u));
+  }
+
+  .tiers {
+    flex-basis: auto;
+  }
+
+  .buy {
+    gap: calc(14 * var(--u));
+  }
+
+  .from {
+    font: var(--type-price);
+  }
+}

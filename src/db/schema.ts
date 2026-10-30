@@ -1,13 +1,18 @@
 // Database schema (Drizzle). Money in integer pence (§10.7); dates as calendar dates (§10.1).
 import { sql } from "drizzle-orm";
 import {
+  boolean,
   check,
   date,
+  index,
   integer,
   jsonb,
   pgTable,
+  serial,
   text,
   timestamp,
+  unique,
+  uniqueIndex,
 } from "drizzle-orm/pg-core";
 
 /** One row: the Settings values of §11.1 and §11.2 (admin Settings §9.14, Availability §9.11). */
@@ -70,3 +75,86 @@ export const closedDays = pgTable("closed_days", {
   day: date("day").primaryKey(),
   note: text("note"),
 });
+
+/**
+ * The catalogue (§9.13, §11.3) — the part slice 2.3 needs for the Home cake row (Bohoka 2026-10-30:
+ * "most csak a szükséges rész"); options, allergens, categories, photos and the card video join in 3.1.
+ * A deleted cake is kept (soft delete): its slug is never reused, its name can be.
+ */
+export const cakes = pgTable(
+  "cakes",
+  {
+    id: serial("id").primaryKey(),
+    slug: text("slug").notNull().unique(),
+    name: text("name").notNull(),
+    whatItIs: text("what_it_is").notNull().default(""),
+    flavour: text("flavour").notNull(),
+    visible: boolean("visible").notNull().default(false),
+    /** Linda's drag order: the catalogue order; the Home row is the first five visible. */
+    position: integer("position").notNull(),
+    deletedAt: timestamp("deleted_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [
+    check("cake_name_length", sql`char_length(${t.name}) between 2 and 60`),
+    check(
+      "cake_flavour_length",
+      sql`char_length(${t.flavour}) between 1 and 60`,
+    ),
+    check("cake_what_it_is_length", sql`char_length(${t.whatItIs}) <= 300`),
+    uniqueIndex("cake_name_unique_live")
+      .on(sql`lower(${t.name})`)
+      .where(sql`${t.deletedAt} is null`),
+    index("cake_position").on(t.position),
+  ],
+);
+
+/** A cake's sizes (§9.13): serves · tiers · price; each keeps its id when edited. */
+export const cakeSizes = pgTable(
+  "cake_sizes",
+  {
+    id: serial("id").primaryKey(),
+    cakeId: integer("cake_id")
+      .notNull()
+      .references(() => cakes.id, { onDelete: "cascade" }),
+    serves: integer("serves").notNull(),
+    tiers: integer("tiers").notNull(),
+    pricePence: integer("price_pence").notNull(),
+  },
+  (t) => [
+    unique("cake_size_serves_unique").on(t.cakeId, t.serves),
+    check("size_serves_range", sql`${t.serves} between 1 and 500`),
+    check("size_tiers_positive", sql`${t.tiers} >= 1`),
+    check("size_price_range", sql`${t.pricePence} between 100 and 500000`),
+  ],
+);
+
+/**
+ * Gallery photos (§9.18, §11.4) — the fields the Home "Special idea?" squares need. The file itself
+ * arrives with uploads (slice 9.x); until then `imagePath` is empty and the square shows the placeholder.
+ */
+export const galleryPhotos = pgTable(
+  "gallery_photos",
+  {
+    id: serial("id").primaryKey(),
+    caption: text("caption").notNull().default(""),
+    altText: text("alt_text").notNull().default(""),
+    imagePath: text("image_path"),
+    showing: boolean("showing").notNull().default(false),
+    position: integer("position").notNull(),
+    /** Linda's Home pick, 1–4 in her order; null = not on Home. */
+    homeOrder: integer("home_order"),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [
+    check("caption_length", sql`char_length(${t.caption}) <= 80`),
+    check("home_order_range", sql`${t.homeOrder} between 1 and 4`),
+    uniqueIndex("home_order_unique")
+      .on(t.homeOrder)
+      .where(sql`${t.homeOrder} is not null`),
+  ],
+);

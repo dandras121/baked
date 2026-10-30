@@ -1,0 +1,212 @@
+/*
+ * “Special idea?” — phone 1443:9297 (402 × 740), desktop 1588:10482 (1280 × 670; × 0.8 = tablet 1642:11949).
+ * Phone: one column (title, text, gallery link, squares, button, note). Tablet and desktop: text on the left,
+ * the 2 × 2 squares on the right with the gallery link under them.
+ */
+.special {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1fr;
+  grid-template-areas:
+    "title"
+    "subhead"
+    "text"
+    "pictures"
+    "actions";
+  width: calc(402 * var(--u));
+  min-height: calc(740 * var(--u));
+  margin-inline: auto;
+  padding: calc(14.57 * var(--u)) calc(39.59 * var(--u)) calc(14 * var(--u));
+  overflow-x: clip;
+}
+
+.glow {
+  position: absolute;
+  top: calc(8.75 * var(--u));
+  left: calc(-63.4 * var(--u));
+  width: calc(318.42 * var(--u));
+  height: calc(130.23 * var(--u));
+  max-width: none;
+  pointer-events: none;
+}
+
+.title {
+  position: relative;
+  grid-area: title;
+  margin: 0 0 0 calc(-12.59 * var(--u));
+  color: var(--colour-display);
+  font: var(--type-wordmark);
+  font-variation-settings: var(--font-display-axes);
+  white-space: nowrap;
+}
+
+.subhead {
+  position: relative;
+  grid-area: subhead;
+  margin: calc(3.6 * var(--u)) 0 0;
+  color: var(--colour-display);
+  font: var(--type-subhead-phone);
+  font-variation-settings: var(--font-display-axes);
+}
+
+.text {
+  grid-area: text;
+  max-width: calc(317.36 * var(--u));
+  margin: calc(5.6 * var(--u)) 0 0;
+  color: var(--colour-accent);
+  font: var(--type-body-light);
+}
+
+/* Phone: the gallery link above the squares; tablet and desktop: under them. */
+.pictures {
+  grid-area: pictures;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  margin-top: calc(31.7 * var(--u));
+}
+
+.gallery {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  color: var(--colour-display);
+  font: var(--type-body-light);
+  text-decoration: none;
+}
+
+.galleryArrow {
+  width: 3.5px;
+  height: 7px;
+}
+
+.squares {
+  display: grid;
+  grid-template-columns: repeat(2, calc(159.66 * var(--u)));
+  gap: calc(3.5 * var(--u));
+  margin: calc(9.8 * var(--u)) 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* Without the gallery link the squares keep their drawn place. */
+.squares:first-child {
+  margin-top: calc(27.3 * var(--u));
+}
+
+.square {
+  aspect-ratio: 1;
+  overflow: hidden;
+  background: var(--colour-placeholder);
+}
+
+.square img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.actions {
+  grid-area: actions;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: calc(13.7 * var(--u));
+}
+
+.start {
+  width: calc(189 * var(--u));
+}
+
+.note {
+  max-width: calc(268.84 * var(--u));
+  margin: calc(14.5 * var(--u)) 0 0;
+  color: var(--colour-meta);
+  font: var(--type-note);
+  text-align: center;
+}
+
+.wideBreak {
+  display: none;
+}
+
+@media (min-width: 768px) {
+  .special {
+    grid-template-columns: calc(698.18 * var(--u)) 1fr;
+    grid-template-rows: auto auto auto 1fr;
+    grid-template-areas:
+      "title pictures"
+      "subhead pictures"
+      "text pictures"
+      "actions pictures";
+    width: calc(1280 * var(--u));
+    min-height: calc(670 * var(--u));
+    padding: calc(39.42 * var(--u)) 0 calc(60 * var(--u)) calc(40.16 * var(--u));
+  }
+
+  .glow {
+    top: calc(22.93 * var(--u));
+    left: calc(-272.9 * var(--u));
+    width: calc(770.6 * var(--u));
+    height: calc(315.16 * var(--u));
+  }
+
+  .title {
+    margin-left: calc(-9.5 * var(--u));
+    font: var(--type-display-lg);
+    font-size: min(calc(145px * var(--type-scale)), calc(145 * var(--u)));
+  }
+
+  .subhead {
+    margin-top: calc(58.5 * var(--u));
+    font: var(--type-subhead);
+  }
+
+  .text {
+    max-width: calc(657.72 * var(--u));
+    margin: calc(10 * var(--u)) 0 0 calc(2.64 * var(--u));
+    font: var(--type-lead);
+  }
+
+  .pictures {
+    align-self: start;
+    align-items: center;
+    width: calc(511 * var(--u));
+    margin-top: calc(17 * var(--u));
+  }
+
+  .squares,
+  .squares:first-child {
+    order: -1;
+    grid-template-columns: repeat(2, calc(250 * var(--u)));
+    gap: calc(11 * var(--u));
+    margin: 0;
+  }
+
+  .gallery {
+    margin-top: calc(11.5 * var(--u));
+  }
+
+  .actions {
+    flex-direction: row;
+    align-items: flex-start;
+    align-self: start;
+    margin-top: calc(38.7 * var(--u));
+  }
+
+  .start {
+    width: auto;
+    min-width: calc(189 * var(--u));
+  }
+
+  .note {
+    max-width: calc(276.95 * var(--u));
+    margin: calc(9 * var(--u)) 0 0 calc(21 * var(--u));
+    text-align: left;
+  }
+
+  .wideBreak {
+    display: inline;
+  }
+}

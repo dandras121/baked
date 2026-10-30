@@ -23,6 +23,7 @@ test("the hero has the designed slide and two placeholders, with dashes and a pa
   page,
 }) => {
   await page.goto("/");
+  await expect(page.getByTestId("hero")).toHaveCount(1);
   await expect(slides(page)).toHaveCount(3);
   await expect(
     page.getByRole("button", { name: "Slide 1 of 3" }),
@@ -31,10 +32,10 @@ test("the hero has the designed slide and two placeholders, with dashes and a pa
     page.getByRole("button", { name: "Pause the slides" }),
   ).toBeVisible();
   await expect(
-    page.getByRole("link", { name: "Start enquiry" }),
+    page.getByTestId("hero").getByRole("link", { name: "Start enquiry" }),
   ).toHaveAttribute("href", "/bespoke");
   await expect(
-    page.getByRole("link", { name: "About Linda" }).first(),
+    page.getByTestId("hero").getByRole("link", { name: "About Linda" }),
   ).toHaveAttribute("href", "/about");
 });
 
@@ -42,6 +43,7 @@ test("?hero=live shows the designed hero alone: no dashes, no timer", async ({
   page,
 }) => {
   await page.goto("/?hero=live");
+  await expect(page.getByTestId("hero")).toHaveCount(1);
   await expect(page.getByTestId("hero")).toHaveAttribute("data-slides", "1");
   await expect(page.getByText("Hero slide 2 — placeholder")).toHaveCount(0);
   await expect(page.getByRole("button", { name: /Slide \d of/ })).toHaveCount(
@@ -55,11 +57,14 @@ test("?hero=live shows the designed hero alone: no dashes, no timer", async ({
 test("advances every 6 s and loops 1 → 2 → 3 → 1", async ({ page }) => {
   await page.clock.install();
   await page.goto("/");
+  await expect(page.getByTestId("hero")).toHaveCount(1);
   await page.mouse.move(0, 0);
   await expect(page.locator("[data-hero-slider]")).toHaveAttribute(
     "data-autoplay",
     "",
   );
+  // Freeze the page clock, so only runFor moves time (no drift while the machine is busy).
+  await page.clock.pauseAt(new Date(Date.now() + 1000));
   let previous = 0;
   for (const expected of [1, 2, 0]) {
     // Not after only 4 s (the clock also ticks in real time while polling) …
@@ -83,13 +88,17 @@ test("pauses while hovered and with keyboard focus inside", async ({
   test.skip(info.project.name !== "desktop", "mouse hover is a desktop case");
   await page.clock.install();
   await page.goto("/");
+  await expect(page.getByTestId("hero")).toHaveCount(1);
   await live(page);
   await page.getByTestId("hero").hover();
   await page.clock.runFor(13000);
   expect(await activeIndex(page)).toBe(0);
 
   await page.mouse.move(0, 0);
-  await page.getByRole("link", { name: "Start enquiry" }).focus();
+  await page
+    .getByTestId("hero")
+    .getByRole("link", { name: "Start enquiry" })
+    .focus();
   await page.keyboard.press("Shift+Tab");
   await page.keyboard.press("Tab"); // keyboard focus on Start enquiry
   await page.clock.runFor(13000);
@@ -99,6 +108,7 @@ test("pauses while hovered and with keyboard focus inside", async ({
 test("the pause button stops and restarts the slides", async ({ page }) => {
   await page.clock.install();
   await page.goto("/");
+  await expect(page.getByTestId("hero")).toHaveCount(1);
   await page.mouse.move(0, 0);
   await live(page);
   await page.getByRole("button", { name: "Pause the slides" }).click();
@@ -115,6 +125,7 @@ test("with reduced motion the hero never advances", async ({ page }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.clock.install();
   await page.goto("/");
+  await expect(page.getByTestId("hero")).toHaveCount(1);
   await page.mouse.move(0, 0);
   await page.clock.runFor(20000);
   expect(await activeIndex(page)).toBe(0);
@@ -127,6 +138,7 @@ test("crossfade: the incoming slide fades in above the outgoing one (0 / 0.409 /
   page,
 }) => {
   await page.goto("/");
+  await expect(page.getByTestId("hero")).toHaveCount(1);
   await page.getByRole("button", { name: "Slide 2 of 3" }).click();
   const samples = await page.evaluate(() => {
     const all = [
@@ -163,6 +175,8 @@ test("crossfade: the incoming slide fades in above the outgoing one (0 / 0.409 /
 test("swipe changes the slide on touch screens", async ({ page }, info) => {
   test.skip(info.project.name === "desktop", "swipe is phone and tablet");
   await page.goto("/");
+  await expect(page.getByTestId("hero")).toHaveCount(1);
+  await live(page);
   const box = (await page
     .locator("[data-hero-slider] > div")
     .first()
@@ -198,6 +212,7 @@ test("fixed sections: town from Settings, the cake slot, the social band without
   page,
 }) => {
   await page.goto("/");
+  await expect(page.getByTestId("hero")).toHaveCount(1);
   await expect(
     page.getByRole("heading", { name: "We got you." }),
   ).toBeVisible();
@@ -216,6 +231,7 @@ test("fixed sections: town from Settings, the cake slot, the social band without
 
 test("no horizontal scroll and no axe violations", async ({ page }) => {
   await page.goto("/");
+  await expect(page.getByTestId("hero")).toHaveCount(1);
   const overflow = await page.evaluate(
     () => document.documentElement.scrollWidth - window.innerWidth,
   );
@@ -231,6 +247,8 @@ test("phone hero: the question stays two lines above the supporting line on narr
   for (const width of [360, 375, 390, 402]) {
     await page.setViewportSize({ width, height: 902 });
     await page.goto("/?hero=live");
+    await expect(page.getByTestId("hero")).toHaveCount(1); // the streamed hero has replaced the fallback
+    await page.evaluate(() => document.fonts.ready);
     const q = (await page
       .getByRole("heading", { name: /What’s your/ })
       .boundingBox())!;
@@ -254,12 +272,14 @@ test("tablet portrait: the hero is as tall as it is wide (Bohoka 2026-10-30)", a
   ]) {
     await page.setViewportSize({ width, height });
     await page.goto("/?hero=live");
+    await expect(page.getByTestId("hero")).toHaveCount(1);
     const box = (await page.locator("[class*=frame]").first().boundingBox())!;
     expect(Math.abs(box.width - box.height), `${width}px`).toBeLessThan(1.5);
   }
   // Landscape keeps the wide hero.
   await page.setViewportSize({ width: 1180, height: 820 });
   await page.goto("/?hero=live");
+  await expect(page.getByTestId("hero")).toHaveCount(1);
   const wide = (await page.locator("[class*=frame]").first().boundingBox())!;
   expect(wide.width / wide.height).toBeCloseTo(1202 / 492, 1);
 });
@@ -276,6 +296,7 @@ test("the big Home titles stay on one line on iPad widths", async ({
   ]) {
     await page.setViewportSize({ width, height });
     await page.goto("/");
+    await expect(page.getByTestId("hero")).toHaveCount(1);
     for (const name of ["We got you.", "Local, home baked."]) {
       const h = page.getByRole("heading", { name });
       const lines = await h.evaluate((el) => {
@@ -289,4 +310,86 @@ test("the big Home titles stay on one line on iPad widths", async ({
       expect(lines, `${name} at ${width}px`).toBe(1);
     }
   }
+});
+
+// Slice 2.3: the cake row and “Special idea?” (§4.1).
+test("cake row: the first five visible designs in Linda's order, View opens the cake page", async ({
+  page,
+}) => {
+  await page.goto("/?hero=live");
+  await expect(page.getByTestId("hero")).toHaveCount(1);
+  const cards = page.locator("[data-cake-card]");
+  await expect(cards).toHaveCount(5);
+  await expect(cards.locator("h3")).toHaveText([
+    "The Lothian",
+    "Bramble & Cream",
+    "Wee Beastie",
+    "Sugar Peony",
+    "Confetti Drum",
+  ]);
+  const first = cards.first();
+  await expect(first).toContainText("Two tiers");
+  await expect(first).toContainText("Serves 24");
+  await expect(first).toContainText("From £185");
+  await expect(
+    page.getByRole("link", { name: "View the whole collection" }),
+  ).toHaveAttribute("href", "/cakes");
+  await first.getByRole("link", { name: "View The Lothian" }).click();
+  await expect(page).toHaveURL(/\/cakes\/the-lothian$/);
+  await expect(
+    page.getByRole("heading", { level: 1, name: "The Lothian" }),
+  ).toBeVisible();
+});
+
+test("cake row: desktop arrows stop at the ends; phone and tablet swipe without arrows", async ({
+  page,
+}, info) => {
+  await page.goto("/?hero=live");
+  await expect(page.getByTestId("hero")).toHaveCount(1);
+  const prev = page.getByRole("button", { name: "Previous cakes" });
+  const next = page.getByRole("button", { name: "Next cakes" });
+  if (info.project.name !== "desktop") {
+    await expect(prev).toBeHidden();
+    await expect(next).toBeHidden();
+    const scrolls = await page
+      .getByRole("list", { name: "Cakes" })
+      .evaluate(
+        (el) =>
+          el.scrollWidth > el.clientWidth &&
+          getComputedStyle(el).scrollSnapType.includes("x"),
+      );
+    expect(scrolls).toBe(true);
+    return;
+  }
+  await expect(prev).toHaveAttribute("aria-disabled", "true");
+  for (
+    let i = 0;
+    i < 4 && (await next.getAttribute("aria-disabled")) !== "true";
+    i++
+  ) {
+    await next.click();
+    await page.waitForTimeout(600);
+  }
+  await expect(next).toHaveAttribute("aria-disabled", "true");
+  await expect(prev).not.toHaveAttribute("aria-disabled", "true");
+});
+
+test("Special idea: four squares, no gallery link while the gallery has no showing photo", async ({
+  page,
+}) => {
+  await page.goto("/?hero=live");
+  await expect(page.getByTestId("hero")).toHaveCount(1);
+  const section = page.locator("section[aria-labelledby='special-idea']");
+  await expect(
+    section.getByRole("heading", { name: "Special idea?" }),
+  ).toBeVisible();
+  await expect(section.locator("li")).toHaveCount(4);
+  await expect(
+    section.getByRole("link", { name: /previous works gallery/ }),
+  ).toHaveCount(0);
+  await expect(
+    section.getByRole("link", { name: "Start enquiry" }),
+  ).toHaveAttribute("href", "/bespoke");
+  // Squares are not links.
+  await expect(section.locator("li a")).toHaveCount(0);
 });

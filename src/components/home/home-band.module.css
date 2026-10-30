@@ -1,0 +1,169 @@
+/*
+ * “Try my recipes.” and the Home cake row (§4.1). Desktop 1361:9949 (× 0.8 on the 1024 tablet), phone 1384:10041.
+ * Phone and tablet swipe (scroll-snap, RESPONSIVE §3.5); desktop adds arrows. The heading sits on white above
+ * the band; the link, the cards and the white line sit at the top of the band.
+ */
+.recipes {
+  width: calc(402 * var(--u));
+  margin-inline: auto;
+  padding: calc(11.7 * var(--u)) 0 calc(31.7 * var(--u));
+  text-align: center;
+}
+
+.recipesTitle {
+  margin: 0;
+  color: var(--colour-display);
+  font: var(--type-title-phone);
+  font-variation-settings: var(--font-display-axes);
+}
+
+.recipesLead {
+  margin: calc(5.4 * var(--u)) 0 0;
+  color: var(--colour-accent);
+  font: var(--type-lead-phone);
+}
+
+.row {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.collection {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  align-self: center;
+  margin-top: calc(-4.8 * var(--u));
+  color: var(--colour-display);
+  font: var(--type-link-sm-phone);
+  font-variation-settings: var(--font-display-axes);
+  text-decoration: none;
+}
+
+.collectionArrow {
+  width: 2.9px;
+  height: 5.8px;
+  overflow: visible;
+}
+
+.carousel {
+  margin-top: calc(38.2 * var(--u));
+}
+
+/* The cards' white glow needs a little room inside the scroller. */
+.track {
+  display: flex;
+  gap: calc(18 * var(--u));
+  margin: calc(-12 * var(--u)) 0;
+  padding: calc(12 * var(--u)) calc(14 * var(--u));
+  overflow-x: auto;
+  scroll-padding-inline: calc(14 * var(--u));
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+  list-style: none;
+  overscroll-behavior-x: contain;
+}
+
+.track::-webkit-scrollbar {
+  display: none;
+}
+
+.slot {
+  display: flex;
+  flex: none;
+  scroll-snap-align: start;
+}
+
+.arrows {
+  display: none;
+}
+
+.rule {
+  width: 100%;
+  height: 1px;
+  margin: calc(28.4 * var(--u)) 0 0;
+  border: 0;
+  background: var(--colour-white);
+}
+
+@media (min-width: 768px) {
+  .recipes {
+    width: calc(1280 * var(--u));
+    padding: calc(12.72 * var(--u)) 0 calc(20.6 * var(--u));
+  }
+
+  .recipesTitle {
+    font: var(--type-section-sm);
+    font-size: min(calc(128px * var(--type-scale)), calc(128 * var(--u)));
+    white-space: nowrap;
+  }
+
+  .recipesLead {
+    margin-top: calc(17.7 * var(--u));
+    font: var(--type-lead);
+  }
+
+  .collection {
+    margin-top: 0;
+    font: var(--type-button-serif-sm);
+  }
+
+  .carousel {
+    margin-top: calc(23.75 * var(--u));
+  }
+
+  .track {
+    gap: calc(37.96 * var(--u));
+    padding-inline: calc(18.04 * var(--u));
+    scroll-padding-inline: calc(18.04 * var(--u));
+  }
+
+  /* Tablet: no arrows; the line keeps the desktop distance from the cards. */
+  .rule {
+    margin-top: calc(64.57 * var(--u));
+  }
+}
+
+@media (min-width: 1120px) {
+  .arrows {
+    display: flex;
+    justify-content: center;
+    gap: calc(15.33 * var(--u));
+    margin-top: calc(16.74 * var(--u));
+  }
+
+  .rule {
+    margin-top: calc(20.5 * var(--u));
+  }
+
+  .carousel[data-fits] ~ .rule {
+    margin-top: calc(64.57 * var(--u));
+  }
+
+  .arrow {
+    display: grid;
+    place-items: center;
+    width: calc(49.36 * var(--u));
+    height: calc(27.33 * var(--u));
+    padding: 0;
+    border: 1px solid var(--colour-display);
+    border-radius: var(--radius-pill);
+    background: var(--colour-arrow-wash);
+    color: var(--colour-display);
+    cursor: pointer;
+    backdrop-filter: blur(0.35px);
+  }
+
+  .arrow[aria-disabled="true"] {
+    opacity: 0.4;
+    cursor: default;
+  }
+
+  .chevron {
+    width: calc(7.39 * var(--u));
+    height: calc(14.78 * var(--u));
+    overflow: visible;
+  }
+}
