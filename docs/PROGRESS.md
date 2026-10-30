@@ -137,7 +137,7 @@ Branch per phase (`phase-00-foundations`, …), one commit per accepted slice, t
 
 ## Current slice
 
-- **1.4 Footer and footer mascot (ANIM-06)**; Neon on Vercel requested from Bohoka (2026-10-30).
+- **1.4 Footer and footer mascot (ANIM-06)**; Neon connected on Vercel by Bohoka (2026-10-30): the next build migrates and adds the starting Settings (db:deploy).
   - Files: `src/components/footer/` (site footer, mascot with the 80 % sentinel), footer textures from Figma, three footer type tokens, `src/styles/mascot.css` (ANIM-06), html.js in the head script, `src/db/deploy-setup.ts` + `vercel.json` (tables and starting Settings on every hosted build), `prepare: false` for hosted poolers.
   - Tests: Settings values in the footer, legal list order and columns, links, drawn heights, ANIM-06 start row / timing / resting box on three widths, once per page, a new page replays, reduced motion, no JavaScript, axe; database test for “Settings only when missing”.
 
@@ -162,4 +162,3 @@ Branch per phase (`phase-00-foundations`, …), one commit per accepted slice, t
 - The seed grows with each table: the Figma cakes → 3.1, sample orders (BBL-2026-0147 …) and customers (Mairi Sinclair …) → 4.6 / 8.4, FAQ → 2.5, reviews fixture → 2.2.
 - The kitchen sentence {kitchen_handles} needs customer wording per allergen (“wheat”, “egg” in Figma vs the 14 legal names) → decide in 3.1 with the allergen labels.
 - The Facebook page address is not known yet → Linda (§14.1); stored empty.
-- Vercel needs a hosted Postgres (DATABASE_URL, e.g. Neon) once a page reads the database (first: the footer in 1.4) → ask Bohoka then.
