@@ -58,18 +58,11 @@ html[data-motion="reduce"].mascot-intro .logo-mark {
   }
 }
 
-@keyframes bbl-footer-mascot-in-tablet {
+/* Tablet and desktop: the desktop row × --u (at 1024: the tablet row 83.8, 265.1). */
+@keyframes bbl-footer-mascot-in-wide {
   from {
-    transform: translate(83.8px, 265.1px) rotate(-27.55deg);
-  }
-  to {
-    transform: translate(0, 0) rotate(-17.55deg);
-  }
-}
-
-@keyframes bbl-footer-mascot-in-desktop {
-  from {
-    transform: translate(104.6px, 330.9px) rotate(-27.55deg);
+    transform: translate(calc(104.6 * var(--u)), calc(330.9 * var(--u)))
+      rotate(-27.55deg);
   }
   to {
     transform: translate(0, 0) rotate(-17.55deg);
@@ -89,20 +82,11 @@ html[data-motion="reduce"].mascot-intro .logo-mark {
 
 @media (prefers-reduced-motion: no-preference) and (min-width: 768px) {
   html.js:not([data-motion="reduce"]) .footer-mascot:not(.is-in) {
-    transform: translate(83.8px, 265.1px) rotate(-27.55deg);
+    transform: translate(calc(104.6 * var(--u)), calc(330.9 * var(--u)))
+      rotate(-27.55deg);
   }
 
   html.js:not([data-motion="reduce"]) .footer-mascot.is-in {
-    animation-name: bbl-footer-mascot-in-tablet;
-  }
-}
-
-@media (prefers-reduced-motion: no-preference) and (min-width: 1120px) {
-  html.js:not([data-motion="reduce"]) .footer-mascot:not(.is-in) {
-    transform: translate(104.6px, 330.9px) rotate(-27.55deg);
-  }
-
-  html.js:not([data-motion="reduce"]) .footer-mascot.is-in {
-    animation-name: bbl-footer-mascot-in-desktop;
+    animation-name: bbl-footer-mascot-in-wide;
   }
 }

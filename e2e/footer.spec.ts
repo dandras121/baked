@@ -249,3 +249,26 @@ test.describe("without JavaScript", () => {
     await expect(mascot(page)).toBeVisible();
   });
 });
+
+test("§3.2 at the iPad landscape width (1180) the mascot never covers the columns", async ({
+  page,
+}, testInfo) => {
+  test.skip(testInfo.project.name !== "desktop", "sets its own viewport");
+  for (const width of [1120, 1180, 1280, 1600]) {
+    await page.setViewportSize({ width, height: 820 });
+    await page.goto("/terms");
+    await toBottom(page);
+    await expect.poll(() => playState(page)).toBe("finished");
+    const food = (await footer(page)
+      .getByRole("region", { name: "FOOD & COMPLIANCE" })
+      .boundingBox())!;
+    const legal = (await footer(page)
+      .getByRole("navigation", { name: "LEGAL" })
+      .boundingBox())!;
+    const m = (await mascot(page).boundingBox())!;
+    // The rotated box reaches a little higher than its artwork; the hearts start about 10 % below its top.
+    expect(m.y + m.height * 0.1, `${width} px`).toBeGreaterThan(
+      Math.max(food.y + food.height, legal.y + legal.height),
+    );
+  }
+});

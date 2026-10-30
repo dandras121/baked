@@ -1,8 +1,10 @@
 /* Footer (SITE-FLOWS §3.2). Phone 1461:9223 (402 wide); tablet 1551:10408 = desktop × 0.8; desktop 1411:9627.
    It grows with its content, so everything flows; the mascot hangs from the bottom-right corner (A§7D). */
+/* The footer keeps at least its drawn height, so the mascot never climbs over the columns. */
 .footer {
   position: relative;
   overflow: clip;
+  min-height: 1132px;
   background: var(--colour-pink) url("/brand/footer-phone.webp") center / cover
     no-repeat;
 }
@@ -17,8 +19,13 @@
   list-style: none;
 }
 
+/* The inner box fills the footer's minimum height; spare height goes above the bottom block, so the
+   © line and Cookie preferences always sit at the bottom as drawn. */
 .inner {
   position: relative;
+  display: flex;
+  flex-direction: column;
+  min-height: inherit;
   max-width: var(--page-max);
   margin-inline: auto;
   padding: 29px calc(24 * var(--u)) 17.8px;
@@ -93,6 +100,7 @@
 
 .food {
   margin-top: 32px;
+  margin-bottom: auto;
 }
 
 .foodList {
@@ -153,6 +161,7 @@
 
   .inner {
     display: grid;
+    grid-template-rows: auto 1fr;
     grid-template-columns:
       calc(340 * var(--u)) calc(102.5 * var(--u)) calc(400 * var(--u))
       calc(77.5 * var(--u)) calc(220 * var(--u));
@@ -198,6 +207,7 @@
   .food {
     grid-column: 5;
     margin-top: 0;
+    margin-bottom: 0;
   }
 
   .foodList {
@@ -206,6 +216,7 @@
 
   .bottom {
     grid-column: 1 / 4;
+    align-self: end;
     max-width: calc(760 * var(--u));
     margin-top: calc(75 * var(--u));
   }
@@ -227,17 +238,23 @@
     margin-top: 0;
   }
 
+  /* Tablet and desktop: the desktop mascot in design px (× --u), so it shrinks with the layout;
+     at 1024 this is the tablet frame's 270.98 × 291.82 (A§7D). */
+  .footer {
+    min-height: calc(594 * var(--u));
+  }
+
   .mascot {
-    right: -94.3px;
-    bottom: -46.69px;
-    width: 270.98px;
-    height: 291.82px;
+    right: calc(-117.87 * var(--u));
+    bottom: calc(-58.36 * var(--u));
+    width: calc(338.72 * var(--u));
+    height: calc(364.77 * var(--u));
     transform: rotate(-17.55deg);
   }
 
   .sentinel {
-    width: 176.68px;
-    height: 245.13px;
+    width: calc(220.85 * var(--u));
+    height: calc(306.41 * var(--u));
   }
 }
 
@@ -257,15 +274,4 @@
   }
 
   /* Wider than 1280 px the mascot stays at the footer's own corner (Proposal, R§4). */
-  .mascot {
-    right: -117.87px;
-    bottom: -58.36px;
-    width: 338.72px;
-    height: 364.77px;
-  }
-
-  .sentinel {
-    width: 220.85px;
-    height: 306.41px;
-  }
 }
