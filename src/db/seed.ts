@@ -17,6 +17,39 @@ export function slugify(name: string): string {
     .replace(/^-|-$/g, "");
 }
 
+type Db = ReturnType<typeof connect>["db"];
+
+/** The five Home sample cakes (2.3); also used on an empty preview database (deploy-setup). */
+export async function insertSampleCakes(db: Db) {
+  const names = [
+    "The Lothian",
+    "Bramble & Cream",
+    "Wee Beastie",
+    "Sugar Peony",
+    "Confetti Drum",
+  ];
+  const rows = await db
+    .insert(cakes)
+    .values(
+      names.map((name, i) => ({
+        slug: slugify(name),
+        name,
+        flavour: "Vanilla sponge, raspberry conserve, Scottish butter icing",
+        visible: true,
+        position: i + 1,
+      })),
+    )
+    .returning({ id: cakes.id });
+  await db.insert(cakeSizes).values(
+    rows.map((r) => ({
+      cakeId: r.id,
+      serves: 24,
+      tiers: 2,
+      pricePence: 18500,
+    })),
+  );
+}
+
 export async function seed(url?: string) {
   const { db, close } = connect(url);
   try {
@@ -30,35 +63,7 @@ export async function seed(url?: string) {
     // (flavour, two tiers, serves 24, £185) — Bohoka 2026-10-30: "Lothian-minta, más névvel".
     await db.delete(galleryPhotos);
     await db.delete(cakes);
-    const names = [
-      "The Lothian",
-      "Bramble & Cream",
-      "Wee Beastie",
-      "Sugar Peony",
-      "Confetti Drum",
-    ];
-    const rows = await db
-      .insert(cakes)
-      .values(
-        names.map((name, i) => ({
-          slug: slugify(name),
-          name,
-          flavour: "Vanilla sponge, raspberry conserve, Scottish butter icing",
-          visible: true,
-          position: i + 1,
-        })),
-      )
-      .returning({ id: cakes.id });
-    await db
-      .insert(cakeSizes)
-      .values(
-        rows.map((r) => ({
-          cakeId: r.id,
-          serves: 24,
-          tiers: 2,
-          pricePence: 18500,
-        })),
-      );
+    await insertSampleCakes(db);
   } finally {
     await close();
   }

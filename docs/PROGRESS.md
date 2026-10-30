@@ -156,6 +156,7 @@ Branch per phase (`phase-00-foundations`, …), one commit per accepted slice, t
 
 - `/` and the stub pages `/cakes`, `/bespoke`, `/gallery`, `/about`, `/faq`, `/contact`, `/terms` (added in 1.1 so the header can be clicked) are replaced by their real pages → slices 2.1, 3.2, 7.1, 2.8, 2.4, 2.5, 2.7, 2.6.
 - `/dev/*` pages must not be reachable on the live site (404 in production, or behind admin sign-in) → slice 10.2 (or 11.1 at the latest).
+- Launch (11.x): production must use its own database; previews put the Home sample cakes into an empty catalogue (`deploy-setup`, VERCEL_ENV=preview only).
 - Flaky under full parallel load (passes alone): `e2e/mascot.spec.ts` sampled-curve test on the tablet project → 10.1 with the busy-button test.
 - Cake page (3.3): `src/proxy.ts` answers unknown / hidden cake slugs with status 404 (list of visible slugs from the database, kept 60 s). Saving a cake in the admin (9.x) should also clear that list.
 - Canonical links, Open Graph images and structured data (§10.12 Other) → with the pages they belong to (2.1 Home, 3.x cake pages) / 10.3.

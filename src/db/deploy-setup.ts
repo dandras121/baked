@@ -4,6 +4,8 @@
 import { migrate } from "drizzle-orm/postgres-js/migrator";
 import { INITIAL_SETTINGS } from "@/lib/settings";
 import { connect, databaseUrl } from "./client";
+import { cakes } from "./schema";
+import { insertSampleCakes } from "./seed";
 import { ensureSettings } from "./settings-repo";
 
 async function main() {
@@ -17,6 +19,15 @@ async function main() {
   try {
     await migrate(db, { migrationsFolder: "drizzle" });
     const added = await ensureSettings(db, INITIAL_SETTINGS);
+    // Previews only: an empty catalogue gets the five Home sample cakes, so the Home row can be checked.
+    // Never on the live site (launch: production gets its own database, PROGRESS “Later”).
+    if (process.env.VERCEL_ENV === "preview") {
+      const [any] = await db.select({ id: cakes.id }).from(cakes).limit(1);
+      if (!any) {
+        await insertSampleCakes(db);
+        console.log("deploy-setup: preview sample cakes added");
+      }
+    }
     console.log(
       added
         ? "deploy-setup: tables ready, starting Settings added"
