@@ -138,6 +138,8 @@ Branch per phase (`phase-00-foundations`, …), one commit per accepted slice, t
 ## Current slice
 
 - **1.3 Header mascot (ANIM-04)**: first page load of a visit; storyboard `1545:10103`.
+  - Files: `src/styles/mascot.css` (keyframes, mobile and desktop), the inline first-load script in `src/app/layout.tsx`, the mascot's resting box moved to the A§7A values (same place, turned around its bottom centre).
+  - Tests: the six A§12 rows on every width, hidden during the delay, once per visit (next page, reload), a new tab plays again, resting place = Figma, reduced motion, no JavaScript.
 
 ## Later (noticed, belongs to another slice)
 
@@ -145,7 +147,6 @@ Branch per phase (`phase-00-foundations`, …), one commit per accepted slice, t
 
 - `/` and the stub pages `/cakes`, `/bespoke`, `/gallery`, `/about`, `/faq`, `/contact`, `/terms` (added in 1.1 so the header can be clicked) are replaced by their real pages → slices 2.1, 3.2, 7.1, 2.8, 2.4, 2.5, 2.7, 2.6.
 - The phone and tablet header shows the logo and wordmark only; the “menu” button and the menu overlay → slice 1.2.
-- The header mascot sits still; its first-visit slide-in (ANIM-04) → slice 1.3.
 - `/dev/*` pages must not be reachable on the live site (404 in production, or behind admin sign-in) → slice 10.2 (or 11.1 at the latest).
 - Real titles “Page — Baked by Linda”, `robots.txt`, sitemap → slice 1.6.
 - The legacy “Coming soon” files on `main` (`index.html`, `backgrnd.jpg`, `CNAME`, the GitHub Pages workflow and the stray copies in `.github/workflows/`) stay untouched until launch → slice 11.1–11.3 decides how the domain moves to the app.

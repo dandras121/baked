@@ -43,7 +43,7 @@ export async function SiteHeader() {
         <div className={styles.inner}>
           {/* Decorative emblem, cut by the bar as drawn; it slides in on the first load (ANIM-04, slice 1.3). */}
           <Image
-            className={styles.mark}
+            className={`${styles.mark} logo-mark`}
             src="/brand/logo-mark.svg"
             alt=""
             width={139}

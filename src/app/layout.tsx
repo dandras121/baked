@@ -7,6 +7,7 @@ import "@/styles/typography.css";
 import "@/styles/base.css";
 import "@/styles/responsive.css";
 import "@/styles/interaction.css";
+import "@/styles/mascot.css";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -17,6 +18,10 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
 };
+
+// ANIM-04 first-load logic (A§7A), before the first paint: once per tab session the header mascot slides
+// in. The class is removed when the slide ends, so a header mounted later in the visit does not replay it.
+const MASCOT_INTRO = `try{if(!sessionStorage.getItem("bbl:mascot-seen")){sessionStorage.setItem("bbl:mascot-seen","1");var d=document.documentElement;d.classList.add("mascot-intro");document.addEventListener("animationend",function e(v){if(v.animationName.indexOf("bbl-mascot-in")===0){d.classList.remove("mascot-intro");document.removeEventListener("animationend",e)}})}}catch(e){}`;
 
 // The two faces almost every page shows first; the rest load when used.
 const PRELOAD_FONTS = [
@@ -29,7 +34,11 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     preload(href, { as: "font", type: "font/woff2", crossOrigin: "anonymous" });
   }
   return (
-    <html lang="en-GB">
+    // The inline script may add a class to <html> before React hydrates it.
+    <html lang="en-GB" suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: MASCOT_INTRO }} />
+      </head>
       <body>
         {children}
         <MotionRoot />

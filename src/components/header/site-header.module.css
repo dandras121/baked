@@ -40,14 +40,16 @@
   margin-inline: auto;
 }
 
-/* Logo mark, tilted 15° (Figma −15°). Phone and tablet: 58.41 × 63.72 at the drawn place. */
+/* Logo mark, tilted 15° (Figma −15°), turned around its bottom centre (ANIM-04 values, A§7A).
+   Phone and tablet: 58.41 × 63.72 at left −17.49, top 1.29. The first-visit slide-in is in mascot.css. */
 .mark {
   position: absolute;
-  left: -9.24px;
-  top: 2.38px;
+  left: -17.49px;
+  top: 1.29px;
   width: 58.41px;
   height: 63.72px;
   transform: rotate(15deg);
+  transform-origin: 50% 100%;
   pointer-events: none;
 }
 
@@ -85,8 +87,8 @@
   }
 
   .mark {
-    left: calc(-20.09 * var(--u));
-    top: -15.38px;
+    left: calc(-34.77 * var(--u));
+    top: -17.32px;
     width: 103.95px;
     height: 113.4px;
   }
