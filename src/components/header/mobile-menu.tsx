@@ -52,6 +52,14 @@ export function MobileMenu({
   const active = activeIndexFor(pathname);
 
   const [phase, setPhase] = useState<Phase>("closed");
+  // The current page's item is SemiBold (Bohoka 2026-10-30). A tap moves it at once (the weight
+  // change is a 200 ms transition, inside the 0–240 ms before the hand-over); route changes follow.
+  const [bold, setBold] = useState(active);
+  const [seenActive, setSeenActive] = useState(active);
+  if (active !== seenActive) {
+    setSeenActive(active);
+    setBold(active);
+  }
   const [isPending, startTransition] = useTransition();
   const [reveal, setReveal] = useState<{
     navStarted: boolean;
@@ -194,6 +202,7 @@ export function MobileMenu({
     stopAll();
     setLive(false);
     go("selecting");
+    setBold(i);
     const href = NAV_ITEMS[i].href;
     const same = i === active && samePath(pathname, href);
     const reduced = isMotionReduced();
@@ -354,6 +363,7 @@ export function MobileMenu({
                       href={item.href}
                       className={`${styles.item} type-menu-item`}
                       data-pressable="row"
+                      data-bold={i === bold ? "" : undefined}
                       aria-current={i === active ? "page" : undefined}
                       onClick={(e) => {
                         if (!isPlainClick(e)) return;

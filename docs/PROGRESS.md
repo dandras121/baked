@@ -141,7 +141,8 @@ Branch per phase (`phase-00-foundations`, …), one commit per accepted slice, t
   - Files: `src/components/header/` (mobile-menu, menu-timeline, site-header), `src/db/site-settings.ts` (cached Settings for public pages), page shell (header outside the size container), menu texture from Figma, two type tokens, CI seeds the test database for the browser tests.
   - Tests: radii and steps vs the storyboard labels, landscape timing, open / close / select in the browser (sampled), Back, Esc, input lock, focus, inert page, resize to desktop, reduced motion, no JavaScript, axe.
   - Size: about 900 hand-written lines (Bohoka chose one slice).
-  - Bohoka 2026-10-29: tablet portrait items at 248 (a); the underline removed from both menus (DEVIATIONS). Report again (short).
+  - Bohoka 2026-10-29: tablet portrait items at 248 (a); the underline removed from both menus (DEVIATIONS).
+  - Bohoka 2026-10-30: current item SemiBold in the phone / tablet menu too; the weight changes over 200 ms in both menus (DEVIATIONS). Report again (short).
 
 ## Later (noticed, belongs to another slice)
 

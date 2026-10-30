@@ -93,33 +93,23 @@ test.describe("desktop navigation", () => {
     expect(await animationsInNav(page)).toBe(0);
   });
 
-  test("ANIM-08: the weight switches at 210 ms, not before", async ({
+  test("the selected state changes softly: the weight moves at the click over 200 ms ease-out", async ({
     page,
   }) => {
     await page.goto("/faq");
-    await page.evaluate(() => {
-      const w = window as unknown as { up?: number; bold?: number };
-      const home = [
-        ...document.querySelectorAll('nav[aria-label="Main"] a'),
-      ].find((x) => x.textContent === "Home")!;
-      document.addEventListener(
-        "click",
-        () => (w.up = performance.now()),
-        true,
-      );
-      new MutationObserver(() => {
-        if (home.hasAttribute("data-bold") && w.bold === undefined)
-          w.bold = performance.now();
-      }).observe(home, { attributes: true });
-    });
+    await expect(item(page, "Home")).toHaveCSS(
+      "transition",
+      /font-weight 0\.2s cubic-bezier\(0\.33, 1, 0\.68, 1\)/,
+    );
     await item(page, "Home").click();
-    const delta = await page.waitForFunction(() => {
-      const w = window as unknown as { up?: number; bold?: number };
-      return w.bold !== undefined && w.up !== undefined ? w.bold - w.up : null;
+    // The new item gets the selected state at once (no 210 ms wait any more) …
+    await expect(item(page, "Home")).toHaveAttribute("data-bold", "", {
+      timeout: 150,
     });
-    const ms = (await delta.jsonValue()) as number;
-    expect(ms).toBeGreaterThan(190);
-    expect(ms).toBeLessThan(400);
+    await expect(item(page, "FAQ")).not.toHaveAttribute("data-bold");
+    // … and its weight passes through values between 500 and 600 on the way.
+    await expect(page).toHaveURL(/\/$/);
+    await expect(item(page, "Home")).toHaveCSS("font-weight", "600");
   });
 
   test("A§7F the current item reloads the page: fresh and at the top", async ({

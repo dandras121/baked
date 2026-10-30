@@ -28,6 +28,12 @@
   border-radius: 2px;
 }
 
+/* The selected state fades in its weight: Medium 500 → SemiBold 600 and back, 200 ms ease-out
+   (Bohoka 2026-10-30). Reduced motion: at once (interaction.css). */
+.link {
+  transition: font-weight var(--duration-200) var(--ease-out);
+}
+
 .link[data-bold] {
   font: var(--type-nav-active);
 }

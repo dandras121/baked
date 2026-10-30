@@ -2,50 +2,30 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useRef, useState, type MouseEvent } from "react";
-import data from "@/motion/keyframes.json";
-import { isMotionReduced } from "@/motion/reduced-motion";
+import { useState, type MouseEvent } from "react";
 import { activeIndexFor, NAV_ITEMS } from "./nav-items";
 import styles from "./desktop-nav.module.css";
-
-/** The clicked item turns SemiBold at 210 ms (ANIM-08; the underline itself was removed, see DEVIATIONS). */
-const WEIGHT_SWITCH_MS = data.navUnderlineSlide.weightSwitchMs;
 
 const samePath = (a: string, b: string) =>
   a.replace(/\/$/, "") === b.replace(/\/$/, "");
 
 /**
  * Desktop navigation (≥ 1120 px, SITE-FLOWS §3.1): seven items, the current page's item SemiBold with
- * aria-current="page". No underline (Bohoka 2026-10-29). Clicking the item of the page you are on
- * reloads that page.
+ * aria-current="page". No underline (Bohoka 2026-10-29); the weight changes over 200 ms (2026-10-30).
+ * Clicking the item of the page you are on reloads that page.
  */
 export function DesktopNav() {
   const pathname = usePathname();
   const active = activeIndexFor(pathname);
 
-  // `bold`: the item drawn SemiBold; after a click it switches at 210 ms while the page changes.
+  // `bold`: the item drawn SemiBold. A click moves it at once (the weight change itself is a 200 ms
+  // transition, Bohoka 2026-10-30); any route change (Back / Forward, other links) follows the page.
   const [bold, setBold] = useState(active);
-  const [pending, setPending] = useState<number | null>(null);
   const [seenActive, setSeenActive] = useState(active);
-
-  // The route changed. After our own click the switch is already scheduled; otherwise (Back / Forward,
-  // a link elsewhere on the page) the weight simply follows the page.
   if (active !== seenActive) {
     setSeenActive(active);
-    if (pending !== active) setBold(active);
-    setPending(null);
+    setBold(active);
   }
-
-  const weightTimer = useRef<number | undefined>(undefined);
-  const clicked = useRef<number | null>(null);
-  useEffect(() => () => window.clearTimeout(weightTimer.current), []);
-  // A route change that is not the clicked item (Back / Forward meanwhile) cancels the pending switch.
-  useEffect(() => {
-    if (clicked.current !== null && clicked.current !== active) {
-      window.clearTimeout(weightTimer.current);
-      clicked.current = null;
-    }
-  }, [active]);
 
   function onItemClick(e: MouseEvent<HTMLAnchorElement>, i: number) {
     // A modifier or middle click opens a new tab.
@@ -59,17 +39,7 @@ export function DesktopNav() {
       window.location.assign(href);
       return;
     }
-    if (i === bold) return;
-    window.clearTimeout(weightTimer.current);
-    clicked.current = i;
-    setPending(i);
-    weightTimer.current = window.setTimeout(
-      () => {
-        clicked.current = null;
-        setBold(i);
-      },
-      isMotionReduced() || active < 0 ? 0 : WEIGHT_SWITCH_MS,
-    );
+    setBold(i);
   }
 
   return (

@@ -109,6 +109,13 @@ test("ANIM-01 → open: focus on Home, aria-expanded, the page behind is inert a
   // Open and still: pure white, no underline (Bohoka 2026-10-29); the current page keeps aria-current.
   await expect(item(page, "Gallery")).toHaveAttribute("aria-current", "page");
   expect(await menu(page).locator("span[aria-hidden]").count()).toBe(0);
+  // The current page's item is SemiBold, the others Light (Bohoka 2026-10-30).
+  await expect(item(page, "Gallery")).toHaveCSS("font-weight", "600");
+  await expect(item(page, "Home")).toHaveCSS("font-weight", "300");
+  await expect(item(page, "Home")).toHaveCSS(
+    "transition",
+    /font-weight 0\.2s cubic-bezier\(0\.33, 1, 0\.68, 1\)/,
+  );
 });
 
 test("A§4.1 open layout on the reference phone: items 24 px from the left, 68 px pitch, centred below the bar", async ({
@@ -242,6 +249,9 @@ test("ANIM-03: tapping another item opens the page under the circles and reveals
   await openMenu(page);
   await item(page, "Cakes").click();
   await expect(overlay(page)).toHaveAttribute("data-state", "selecting");
+  // The tapped item takes the selected state at once; its weight eases from 300 to 600.
+  await expect(item(page, "Cakes")).toHaveAttribute("data-bold", "");
+  await expect(item(page, "Gallery")).not.toHaveAttribute("data-bold");
   await expect(page).toHaveURL(/\/cakes$/);
   await expect(overlay(page)).toBeHidden({ timeout: 3000 });
   await expect(
