@@ -220,9 +220,18 @@
     padding-left: calc(84.23 * var(--u));
   }
 
+  /* The 155 px titles stay one line between the drawn widths (iPad 820, 1180): the smaller of the band
+     size and the width-scaled size (DEVIATIONS 2.1). Exactly as drawn at 1024 and 1280. */
+  .title,
+  .localTitle {
+    font-size: min(calc(155px * var(--type-scale)), calc(155 * var(--u)));
+    white-space: nowrap;
+  }
+
   .title {
     margin: calc(-15.28 * var(--u)) 0 0 calc(-36.12 * var(--u));
-    font: var(--type-section);
+    font-family: var(--font-display);
+    font-weight: 300;
   }
 
   .subhead {
@@ -289,7 +298,9 @@
   .localTitle {
     grid-area: title;
     margin-left: calc(53.99 * var(--u));
-    font: var(--type-section);
+    font-family: var(--font-display);
+    font-weight: 300;
+    line-height: normal;
   }
 
   .local .subhead {

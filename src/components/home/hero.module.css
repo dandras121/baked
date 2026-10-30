@@ -259,3 +259,55 @@
     padding-left: calc(15.76 * var(--u));
   }
 }
+
+/* Tablet portrait (768–1119 px, Bohoka 2026-10-30, Figma 1852:14415 / 14437 / 14444): the slide is as tall
+   as it is wide. The square shows the phone photo's lower part; the text stacks on the wall at the top
+   left. The wordmark does not fit there, so it is read out only, as on the phone. */
+@media (min-width: 768px) and (max-width: 1119.98px) and (orientation: portrait) {
+  .hero {
+    height: auto;
+    padding-bottom: calc(88 * var(--u));
+  }
+
+  .frame {
+    aspect-ratio: 1;
+  }
+
+  .wordmark {
+    inset: auto;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+  }
+
+  .question {
+    top: calc(80 * var(--u));
+    left: calc(50 * var(--u));
+    width: auto;
+    font: var(--type-hero-question-phone);
+    font-size: min(60px, calc(75 * var(--u)));
+    line-height: min(67px, calc(83.75 * var(--u)));
+  }
+
+  .bodyWide {
+    top: calc(267.5 * var(--u));
+    left: calc(50 * var(--u));
+    width: calc(550 * var(--u));
+    font-size: min(18px, calc(22.5 * var(--u)));
+    line-height: 1.5;
+  }
+
+  .hero .cta {
+    top: calc(407.5 * var(--u));
+  }
+
+  .hero .start {
+    left: calc(50 * var(--u));
+  }
+
+  .hero .about {
+    left: calc(271.5 * var(--u));
+  }
+}

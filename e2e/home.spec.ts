@@ -242,3 +242,51 @@ test("phone hero: the question stays two lines above the supporting line on narr
     expect(q.y + q.height, `${width}px`).toBeLessThanOrEqual(body.y);
   }
 });
+
+test("tablet portrait: the hero is as tall as it is wide (Bohoka 2026-10-30)", async ({
+  page,
+}, info) => {
+  test.skip(info.project.name !== "tablet", "tablet portrait");
+  for (const [width, height] of [
+    [768, 1024],
+    [820, 1180],
+    [1024, 1366],
+  ]) {
+    await page.setViewportSize({ width, height });
+    await page.goto("/?hero=live");
+    const box = (await page.locator("[class*=frame]").first().boundingBox())!;
+    expect(Math.abs(box.width - box.height), `${width}px`).toBeLessThan(1.5);
+  }
+  // Landscape keeps the wide hero.
+  await page.setViewportSize({ width: 1180, height: 820 });
+  await page.goto("/?hero=live");
+  const wide = (await page.locator("[class*=frame]").first().boundingBox())!;
+  expect(wide.width / wide.height).toBeCloseTo(1202 / 492, 1);
+});
+
+test("the big Home titles stay on one line on iPad widths", async ({
+  page,
+}, info) => {
+  test.skip(info.project.name !== "tablet", "tablet widths");
+  for (const [width, height] of [
+    [768, 1024],
+    [820, 1180],
+    [1024, 1366],
+    [1180, 820],
+  ]) {
+    await page.setViewportSize({ width, height });
+    await page.goto("/");
+    for (const name of ["We got you.", "Local, home baked."]) {
+      const h = page.getByRole("heading", { name });
+      const lines = await h.evaluate((el) => {
+        const cs = getComputedStyle(el);
+        const lh =
+          cs.lineHeight === "normal"
+            ? parseFloat(cs.fontSize) * 1.25
+            : parseFloat(cs.lineHeight);
+        return Math.round(el.getBoundingClientRect().height / lh);
+      });
+      expect(lines, `${name} at ${width}px`).toBe(1);
+    }
+  }
+});

@@ -28,6 +28,12 @@ export function HeroSlide({
 function DesignedHeroPhoto() {
   return (
     <picture>
+      {/* Tablet portrait: a square crop of the phone photo (Bohoka 2026-10-30, Figma 1852:14415). */}
+      <source
+        media="(min-width: 768px) and (max-width: 1119.98px) and (orientation: portrait)"
+        srcSet="/home/hero-square-600.webp 600w, /home/hero-square-904.webp 904w"
+        sizes="94vw"
+      />
       <source
         media="(min-width: 768px)"
         srcSet="/home/hero-wide-1200.webp 1200w, /home/hero-wide-1960.webp 1960w"

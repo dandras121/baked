@@ -280,3 +280,21 @@ test.describe("every width", () => {
     });
   });
 });
+
+test("narrow phones: the wordmark keeps clear of “menu ›”", async ({
+  page,
+}, info) => {
+  test.skip(info.project.name !== "phone", "phone header");
+  for (const width of [360, 375, 390, 402]) {
+    await page.setViewportSize({ width, height: 800 });
+    await page.goto("/");
+    const mark = (await page
+      .getByTestId("site-header")
+      .getByRole("link", { name: "Baked by Linda" })
+      .boundingBox())!;
+    const menu = (await page
+      .getByRole("button", { name: /menu/i })
+      .boundingBox())!;
+    expect(mark.x + mark.width, `${width}px`).toBeLessThanOrEqual(menu.x - 8);
+  }
+});

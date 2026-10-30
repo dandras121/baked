@@ -54,11 +54,14 @@
   pointer-events: none;
 }
 
+/* 253 wide on the 402 phone. Narrower phones (360–393): it shrinks so it keeps the drawn 23 px gap to
+   “menu ›” (right 17, 34 wide), and its baseline stays where it is drawn (510 / 3370 = wordmark height / width). */
 .wordmark {
+  --wordmark-w: min(253px, calc(100cqw - 149px));
   position: absolute;
   left: 75px;
-  top: 12.86px;
-  width: 253px;
+  top: calc(12.86px + (253px - var(--wordmark-w)) * 0.1513);
+  width: var(--wordmark-w);
   display: block;
   isolation: isolate;
 }
