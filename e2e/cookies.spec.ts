@@ -17,6 +17,12 @@ async function press(page: Page, name: string, touch: boolean) {
   await (touch ? b.tap() : b.click());
 }
 
+/** Overlays arrive with a motion (ANIM-12 / ANIM-13); taps wait until it has finished. */
+const settled = (page: Page) =>
+  page.waitForFunction(() =>
+    document.getAnimations().every((a) => a.playState !== "running"),
+  );
+
 async function consentCookie(page: Page) {
   const c = (await page.context().cookies()).find(
     (k) => k.name === "bbl_consent",
@@ -113,6 +119,10 @@ test("§3.3 Settings opens the panel: Essential locked on, Analytics off; switch
   await expect(essential).toHaveAttribute("aria-disabled", "true");
   await expect(analytics).toHaveAttribute("aria-checked", "false");
   await expect(panel(page)).toContainText("Off until you switch it on.");
+  // Let the dialog / sheet finish arriving (ANIM-12 / ANIM-13) before pressing inside it.
+  await page.waitForFunction(() =>
+    document.getAnimations().every((a) => a.playState !== "running"),
+  );
   // Pressing the locked switch changes nothing.
   await (touch
     ? essential.tap({ force: true })
@@ -160,6 +170,7 @@ test("§3.2 / §3.3 the footer's Cookie preferences reopens the panel with the s
     "Here's what you're currently sharing",
   );
   await expect(panel(page)).toContainText("Opened from the footer");
+  await settled(page);
   const analytics = panel(page).getByRole("switch", { name: "Analytics" });
   await expect(analytics).toHaveAttribute("aria-checked", "true");
   await (touch ? analytics.tap() : analytics.click());
