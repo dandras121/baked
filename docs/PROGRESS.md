@@ -137,7 +137,7 @@ Branch per phase (`phase-00-foundations`, …), one commit per accepted slice, t
 
 ## Current slice
 
-- **1.4 Footer and footer mascot (ANIM-06)**; Neon connected on Vercel by Bohoka (2026-10-30): the next build migrates and adds the starting Settings (db:deploy).
+- **1.4 Footer and footer mascot (ANIM-06)**; Neon created (2026-10-30) and connected to the `baked` project (environment variables for Development, Preview, Production) the same day: the next build migrates and adds the starting Settings (db:deploy). Vercel Authentication on previews switched off by Bohoka so the previews can be checked from here.
   - Files: `src/components/footer/` (site footer, mascot with the 80 % sentinel), footer textures from Figma, three footer type tokens, `src/styles/mascot.css` (ANIM-06), html.js in the head script, `src/db/deploy-setup.ts` + `vercel.json` (tables and starting Settings on every hosted build), `prepare: false` for hosted poolers.
   - Tests: Settings values in the footer, legal list order and columns, links, drawn heights, ANIM-06 start row / timing / resting box on three widths, once per page, a new page replays, reduced motion, no JavaScript, axe; database test for “Settings only when missing”.
 
