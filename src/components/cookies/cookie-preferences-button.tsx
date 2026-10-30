@@ -1,5 +1,6 @@
 "use client";
 
+import NextLink from "next/link";
 import { buttonClasses } from "@/components/ui/button";
 import { OPEN_COOKIE_SETTINGS } from "./cookie-consent";
 
@@ -13,7 +14,7 @@ export function CookiePreferencesButton({
   className?: string;
 }) {
   return (
-    <a
+    <NextLink
       href="/cookies#changing-your-mind"
       role="button"
       className={buttonClasses({ variant: "outline", size: "sm", className })}
@@ -26,6 +27,6 @@ export function CookiePreferencesButton({
       }}
     >
       Cookie preferences
-    </a>
+    </NextLink>
   );
 }

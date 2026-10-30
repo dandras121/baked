@@ -10,8 +10,20 @@ import "@/styles/interaction.css";
 import "@/styles/mascot.css";
 import "./globals.css";
 
+/** The address of the live site; previews and development fall back to their own host (§10.12). */
+export const SITE_URL =
+  process.env.SITE_URL ||
+  (process.env.VERCEL_URL
+    ? `https://${process.env.VERCEL_URL}`
+    : "http://localhost:3000");
+
+// Titles “{Page} — Baked by Linda” (§10.12); Home sets its own.
 export const metadata: Metadata = {
-  title: "Baked by Linda",
+  metadataBase: new URL(SITE_URL),
+  title: {
+    template: "%s — Baked by Linda",
+    default: "Baked by Linda — Celebration cakes in West Lothian",
+  },
 };
 
 export const viewport: Viewport = {

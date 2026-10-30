@@ -262,3 +262,13 @@
   font: var(--type-heading-phone);
   font-variation-settings: var(--font-display-axes);
 }
+
+.type-error-title {
+  font: var(--type-error-title);
+  font-variation-settings: var(--font-display-axes);
+}
+
+.type-error-title-phone {
+  font: var(--type-error-title-phone);
+  font-variation-settings: var(--font-display-axes);
+}

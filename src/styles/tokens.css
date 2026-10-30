@@ -116,6 +116,8 @@
   --type-caption-phone: 400 11px/normal var(--font-ui); /* cookie texts on the phone · 1004:9108 */
   --type-caption-strong-phone: 500 11px/normal var(--font-ui); /* cookie category name on the phone · 1004:9130 */
   --type-heading-phone: 300 22px/normal var(--font-display); /* cookie sheet title on the phone · 1004:9107 */
+  --type-error-title: 400 max(calc(145px * var(--type-scale)), min(145px, 14px))/calc(140px * var(--type-scale)) var(--font-display); /* 404 / 500 title · 654:3577 */
+  --type-error-title-phone: 400 64px/60px var(--font-display); /* 404 / 500 title on the phone · 839:7325 */
   --type-footer-title: 500 max(calc(15px * var(--type-scale)), min(15px, 14px))/normal var(--font-ui); /* footer column heading (LEGAL, FOOD & COMPLIANCE) · 1411:9594 */
   --type-footer-text: 400 max(calc(13px * var(--type-scale)), min(13px, 14px))/22px var(--font-ui); /* footer tagline and address · 1411:9620, 1411:9621 */
   --type-footer-legal: 400 max(calc(13px * var(--type-scale)), min(13px, 14px))/20px var(--font-ui); /* footer legal links · 1411:9596 */

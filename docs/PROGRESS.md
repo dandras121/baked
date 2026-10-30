@@ -137,7 +137,9 @@ Branch per phase (`phase-00-foundations`, …), one commit per accepted slice, t
 
 ## Current slice
 
-- **1.6 404, 500, SEO basics**: reading §4.6, §4.7, §10.12, §2.
+- **1.6 404, 500, SEO basics** (§2, §4.6, §4.7, §10.12; 654:3550, 839:7303, 1558:11134, 1608:10783 / 10885 / 10968).
+  - Files: `src/components/error-page/`, `(site)/not-found.tsx`, `(site)/[...missing]`, `(site)/error.tsx`, `global-error.tsx`, `/dev/error-500`, `src/db/write-site-facts.ts` (build step), `src/lib/seo.ts`, `robots.ts`, `sitemap.ts`, `next.config.ts` headers, title template, Home description.
+  - Tests: 404 status and content at three widths, deeper unknown paths 404, the 500 preview, site-facts, titles, robots.txt, sitemap, noindex and no-referrer headers, axe.
 
 ## Later (noticed, belongs to another slice)
 
@@ -148,7 +150,8 @@ Branch per phase (`phase-00-foundations`, …), one commit per accepted slice, t
 
 - `/` and the stub pages `/cakes`, `/bespoke`, `/gallery`, `/about`, `/faq`, `/contact`, `/terms` (added in 1.1 so the header can be clicked) are replaced by their real pages → slices 2.1, 3.2, 7.1, 2.8, 2.4, 2.5, 2.7, 2.6.
 - `/dev/*` pages must not be reachable on the live site (404 in production, or behind admin sign-in) → slice 10.2 (or 11.1 at the latest).
-- Real titles “Page — Baked by Linda”, `robots.txt`, sitemap → slice 1.6.
+- Canonical links, Open Graph images and structured data (§10.12 Other) → with the pages they belong to (2.1 Home, 3.x cake pages) / 10.3.
+- Saving Settings must rebuild the 500 page's `site-facts.json` and revalidate the Settings cache → slice 9.x (admin Settings).
 - The legacy “Coming soon” files on `main` (`index.html`, `backgrnd.jpg`, `CNAME`, the GitHub Pages workflow and the stray copies in `.github/workflows/`) stay untouched until launch → slice 11.1–11.3 decides how the domain moves to the app.
 - Phone type sizes are set per component from the phone frames → each UI slice (1.x onwards).
 - The admin does not use the tablet rule (R§5): its layout must set `--type-scale: 1` on `:root` → slice 8.2.

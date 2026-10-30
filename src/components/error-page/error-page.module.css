@@ -1,0 +1,118 @@
+/* 404 / 500 (654:3550, 1608:10783). Desktop and tablet in desktop design px (× --u; 0.8 at 1024),
+   type through the tablet formula; the phone frames (839:7303, 1608:10885) have their own sizes. */
+.page {
+  background: var(--colour-white);
+  padding: 32px calc(24 * var(--u)) 56px;
+}
+
+.title {
+  margin: 0;
+  font: var(--type-error-title-phone);
+  font-variation-settings: var(--font-display-axes);
+  color: var(--colour-display);
+}
+
+.body {
+  margin-top: 58px;
+}
+
+.text {
+  margin: 0;
+  max-width: 354px;
+  font: var(--type-caption);
+  line-height: 21px;
+  color: var(--colour-body);
+}
+
+.actions {
+  margin-top: 26px;
+}
+
+/* Phone: “Back to home” is a full-width outlined button, 46 high; the second action a text link. */
+.primary.primary {
+  display: flex;
+  width: 100%;
+  min-height: 46px;
+  height: 46px;
+  padding-block: 0;
+  border-color: var(--colour-ink);
+  background: transparent;
+  color: var(--colour-ink);
+}
+
+.secondaryButton.secondaryButton {
+  display: none;
+}
+
+.secondaryLink.secondaryLink {
+  display: inline-flex;
+  margin-top: 14px;
+  font: var(--type-caption-strong);
+  line-height: 18px;
+  color: var(--colour-accent);
+}
+
+.email {
+  margin: 22px 0 0;
+  font: var(--type-caption-phone);
+  line-height: 18px;
+  color: var(--colour-meta);
+}
+
+.emailLink.emailLink {
+  color: inherit;
+}
+
+@media (min-width: 768px) {
+  .page {
+    padding: calc(22.5 * var(--u)) calc(80 * var(--u)) calc(84 * var(--u));
+  }
+
+  .title {
+    margin-left: calc(
+      -8 * var(--u)
+    ); /* the title starts at x 72, the body at 80 */
+    font: var(--type-error-title);
+    font-variation-settings: var(--font-display-axes);
+  }
+
+  .body {
+    margin-top: calc(61.5 * var(--u));
+  }
+
+  .text {
+    max-width: calc(620 * var(--u));
+    font: var(--type-body);
+    line-height: calc(27px * var(--type-scale));
+  }
+
+  .actions {
+    display: flex;
+    gap: calc(14 * var(--u));
+    margin-top: calc(32 * var(--u));
+  }
+
+  .primary.primary {
+    display: inline-flex;
+    width: auto;
+    height: auto;
+    min-height: calc(50px * var(--type-scale));
+    padding-block: calc(15px * var(--type-scale));
+    border-color: transparent;
+    background: var(--colour-ink);
+    color: var(--colour-ink-inverse);
+  }
+
+  .secondaryButton.secondaryButton {
+    display: inline-flex;
+  }
+
+  .secondaryLink.secondaryLink {
+    display: none;
+  }
+
+  .email {
+    margin-top: calc(26 * var(--u));
+    font: var(--type-meta);
+  }
+}

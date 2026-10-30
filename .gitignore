@@ -46,3 +46,6 @@ next-env.d.ts
 /test-results/
 /blob-report/
 /playwright/.cache/
+
+# Written before each build from Settings (500 page).
+/public/site-facts.json
