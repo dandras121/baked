@@ -241,3 +241,24 @@
 .type-footer-legal {
   font: var(--type-footer-legal);
 }
+
+.type-caption {
+  font: var(--type-caption);
+}
+
+.type-caption-strong {
+  font: var(--type-caption-strong);
+}
+
+.type-caption-phone {
+  font: var(--type-caption-phone);
+}
+
+.type-caption-strong-phone {
+  font: var(--type-caption-strong-phone);
+}
+
+.type-heading-phone {
+  font: var(--type-heading-phone);
+  font-variation-settings: var(--font-display-axes);
+}

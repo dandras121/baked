@@ -6,8 +6,14 @@ html {
   font: var(--type-body);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  /* Anchors and focus moves keep clear of the sticky header (§3.1). */
+  /* Anchors and focus moves keep clear of the sticky header (§3.1) and of the cookie bar (§3.3). */
   scroll-padding-top: var(--header-height-compact);
+  scroll-padding-bottom: var(--cookie-space, 0px);
+}
+
+/* While the cookie bar shows, the end of the page stays reachable above it (§3.3 Page padding). */
+body {
+  padding-bottom: var(--cookie-space, 0px);
 }
 
 @media (min-width: 1120px) {

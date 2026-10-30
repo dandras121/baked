@@ -32,6 +32,11 @@ type ButtonProps = CommonProps &
 
 export const MIN_BUSY_MS = 600;
 
+/** The class list of a button look, for controls that must be another element (e.g. a link with a click handler). */
+export function buttonClasses(look: Omit<CommonProps, "children">) {
+  return classes({ ...look, children: null });
+}
+
 function classes({
   variant = "solid",
   size = "md",

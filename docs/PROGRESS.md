@@ -137,11 +137,13 @@ Branch per phase (`phase-00-foundations`, …), one commit per accepted slice, t
 
 ## Current slice
 
-- **1.5 Cookie bar, panel, consent**: reading §3.3, §10.11, ANIM-15, ANIM-12 / 13 and the state frames.
+- **1.5 Cookie bar, panel, consent** (§3.3, §10.11, ANIM-15, ANIM-12 / 13; 1003:9096, 1199:9345, 1199:9382).
+  - Files: `src/lib/consent.ts` (bbl_consent), `src/lib/analytics.ts` (hook, no provider), `src/components/cookies/` (bar, panel, switch, footer button), Overlay class hooks + data-kind, `buttonClasses`, page padding in base.css, cookie colour and type tokens; Playwright starts other tests with a stored choice.
+  - Tests: cookie format / version / 12 months / malformed (unit); bar timing, no focus, no cookies before a choice, Accept / Essential / Settings, Esc, footer reopen, withdrawal deletes analytics cookies without reload, version bump, page padding, not modal, the menu covers it, reduced motion, no JavaScript, axe.
 
 ## Later (noticed, belongs to another slice)
 
-- Footer “Cookie preferences” opens the cookie panel instead of linking to `/cookies#changing-your-mind` → slice 1.5.
+- The phone order-summary bar and the cookie card stack (§3.3) → slice 4.2 / 4.3.
 - The footer links to pages that come later (`/find-my-order`, the legal pages): they 404 until slices 2.6 / 6.4; the 404 page itself → 1.6.
 
 - `e2e/components.spec.ts` “busy” button test (aria-busy on a quick action) failed once in a full local run and passed 3 / 3 on re-run: make its timing robust → slice 10.1 (or the next slice that touches buttons).

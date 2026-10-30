@@ -1,7 +1,7 @@
 import Image from "next/image";
 import NextLink from "next/link";
 import { cacheLife } from "next/cache";
-import { ButtonLink } from "@/components/ui/button";
+import { CookiePreferencesButton } from "@/components/cookies/cookie-preferences-button";
 import { Link } from "@/components/ui/link";
 import { getSiteSettings } from "@/db/site-settings";
 import { londonDate } from "@/lib/london-time";
@@ -135,15 +135,7 @@ export async function SiteFooter() {
               © {year}
               {s ? ` ${s.tradingName}` : ""}. All rights reserved.
             </p>
-            {/* The cookie panel arrives in slice 1.5; until then (and without JavaScript) a link (§3.2). */}
-            <ButtonLink
-              href="/cookies#changing-your-mind"
-              variant="outline"
-              size="sm"
-              className={styles.cookies}
-            >
-              Cookie preferences
-            </ButtonLink>
+            <CookiePreferencesButton className={styles.cookies} />
           </div>
         </div>
       </div>

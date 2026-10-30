@@ -9,6 +9,30 @@ export const viewports = {
   desktop: { width: 1280, height: 800 },
 } as const;
 
+// Every test starts with the cookie choice already made, so the bar (slice 1.5) does not cover what a
+// test clicks. e2e/cookies.spec.ts starts empty to test the bar itself.
+const consentGiven = {
+  cookies: [
+    {
+      name: "bbl_consent",
+      value: encodeURIComponent(
+        JSON.stringify({
+          v: 1,
+          analytics: false,
+          ts: new Date().toISOString(),
+        }),
+      ),
+      domain: "localhost",
+      path: "/",
+      expires: Math.floor(Date.now() / 1000) + 30 * 86_400,
+      httpOnly: false,
+      secure: true,
+      sameSite: "Lax" as const,
+    },
+  ],
+  origins: [],
+};
+
 export default defineConfig({
   testDir: "./e2e",
   fullyParallel: true,
@@ -18,6 +42,7 @@ export default defineConfig({
   use: {
     baseURL: `http://localhost:${PORT}`,
     trace: "retain-on-failure",
+    storageState: consentGiven,
   },
   projects: [
     {

@@ -95,7 +95,7 @@ test("§3.2 Find my order →, Cookie preferences, the small-print link and the 
     f.getByRole("link", { name: "Find my order →" }),
   ).toHaveAttribute("href", "/find-my-order");
   await expect(
-    f.getByRole("link", { name: "Cookie preferences" }),
+    f.getByRole("button", { name: "Cookie preferences" }),
   ).toHaveAttribute("href", "/cookies#changing-your-mind");
   await expect(
     f.getByRole("link", { name: "Cancellations & refunds" }).last(),

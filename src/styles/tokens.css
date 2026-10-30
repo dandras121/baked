@@ -56,6 +56,14 @@
   --colour-disabled: rgb(36 27 51 / 0.25); /* disabled solid button fill · 983:9174 */
   --colour-selected-wash: rgb(36 27 51 / 0.04); /* selected choice card and size option · 632:3007, 606:2892 */
   --colour-line-icon-button: rgb(201 167 232 / 0.6); /* round icon button border · 1491:8737 */
+  --colour-card-translucent: rgb(255 255 255 / 0.94); /* cookie bar card · 1003:9112 */
+  --colour-line-cookie: rgb(201 167 232 / 0.7); /* cookie bar edge · 1003:9112 */
+  --colour-line-category: rgb(201 167 232 / 0.55); /* cookie category rows · 1003:9138 */
+  --colour-toggle-locked: rgb(154 147 168 / 0.45); /* locked-on switch track · 1003:9141 */
+  --colour-toggle-off: rgb(36 27 51 / 0.12); /* switch track when off · 1003:9149 */
+  --colour-icon-muted: #9a93a8; /* lock icon on the locked row (decorative) · 1003:9143 */
+  --colour-scrim-hint: rgb(36 27 51 / 0.42); /* visual-only dimming behind the phone cookie sheet · 1004:9104 */
+  --colour-grabber: rgb(36 27 51 / 0.18); /* sheet grabber on the cookie sheet · 1004:9106 */
 
   /* @group Font families */
   --font-display: "Fraunces", Georgia, "Times New Roman", serif; /* headings, card titles, quotes, field values · style guide 02 */
@@ -103,6 +111,11 @@
   --type-nav-active: 600 max(calc(14px * var(--type-scale)), min(14px, 14px))/normal var(--font-ui); /* active navigation item · style guide Quicksand SemiBold 14 */
   --type-nav: 500 max(calc(14px * var(--type-scale)), min(14px, 14px))/normal var(--font-ui); /* navigation, filter pill, card button · style guide Quicksand Medium 14 */
   --type-body-sm: 400 max(calc(14px * var(--type-scale)), min(14px, 14px))/1.5 var(--font-ui); /* checkbox label, small body · 630:3018 */
+  --type-caption: 400 max(calc(12px * var(--type-scale)), min(12px, 14px))/normal var(--font-ui); /* cookie texts, category descriptions · 1003:9114 */
+  --type-caption-strong: 500 max(calc(12px * var(--type-scale)), min(12px, 14px))/normal var(--font-ui); /* cookie category name · 1003:9139 */
+  --type-caption-phone: 400 11px/normal var(--font-ui); /* cookie texts on the phone · 1004:9108 */
+  --type-caption-strong-phone: 500 11px/normal var(--font-ui); /* cookie category name on the phone · 1004:9130 */
+  --type-heading-phone: 300 22px/normal var(--font-display); /* cookie sheet title on the phone · 1004:9107 */
   --type-footer-title: 500 max(calc(15px * var(--type-scale)), min(15px, 14px))/normal var(--font-ui); /* footer column heading (LEGAL, FOOD & COMPLIANCE) · 1411:9594 */
   --type-footer-text: 400 max(calc(13px * var(--type-scale)), min(13px, 14px))/22px var(--font-ui); /* footer tagline and address · 1411:9620, 1411:9621 */
   --type-footer-legal: 400 max(calc(13px * var(--type-scale)), min(13px, 14px))/20px var(--font-ui); /* footer legal links · 1411:9596 */

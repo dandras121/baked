@@ -31,6 +31,13 @@ type OverlayProps = {
   children: ReactNode;
   /** Force a kind (tests, previews); by default it follows the input (RESPONSIVE §1). */
   kind?: "dialog" | "sheet";
+  /** Own layout for a panel that is more than a confirm (e.g. the cookie settings). */
+  classNames?: {
+    panel?: string;
+    title?: string;
+    description?: string;
+    body?: string;
+  };
 };
 
 type Part = { panel: HTMLElement; scrim: HTMLElement };
@@ -55,6 +62,7 @@ export function Overlay({
   description,
   children,
   kind: forced,
+  classNames = {},
 }: OverlayProps) {
   const ref = useRef<HTMLDialogElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
@@ -224,6 +232,7 @@ export function Overlay({
     <dialog
       ref={ref}
       className={`${styles.overlay} ${styles[kind]}`}
+      data-kind={kind}
       aria-labelledby={titleId}
       aria-describedby={description ? descId : undefined}
       onCancel={(e) => {
@@ -234,22 +243,25 @@ export function Overlay({
       <div ref={scrimRef} className={styles.scrim} onClick={onClose} />
       <div
         ref={panelRef}
-        className={styles.panel}
+        className={`${styles.panel} ${classNames.panel ?? ""}`}
         onPointerDown={onPointerDown}
         onPointerMove={onPointerMove}
         onPointerUp={onPointerUp}
         onPointerCancel={onPointerUp}
       >
         {kind === "sheet" && <span className={styles.grabber} aria-hidden />}
-        <h2 id={titleId} className={styles.title}>
+        <h2 id={titleId} className={classNames.title ?? styles.title}>
           {title}
         </h2>
         {description && (
-          <div id={descId} className={styles.description}>
+          <div
+            id={descId}
+            className={classNames.description ?? styles.description}
+          >
             {description}
           </div>
         )}
-        <div className={styles.actions}>{children}</div>
+        <div className={classNames.body ?? styles.actions}>{children}</div>
       </div>
     </dialog>
   );
