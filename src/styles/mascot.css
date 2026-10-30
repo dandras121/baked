@@ -3,11 +3,12 @@
  * The inline script in the root layout adds html.mascot-intro once per tab session; without
  * JavaScript, on later loads and with reduced motion the mascot simply sits in place.
  * One ease-out curve over 450 ms after a 150 ms delay; `both` keeps it hidden behind the bar's lower
- * edge during the delay. Phone and tablet use the mobile values, desktop its own (A§8.1).
+ * edge during the delay. Phone and tablet use the desktop values scaled to the 55 px bar.
  */
+/* Phone and tablet: the desktop values × 55/77, as the resting mascot (Bohoka 2026-10-30). */
 @keyframes bbl-mascot-in {
   from {
-    transform: translate(-24px, 74.1px) rotate(25deg);
+    transform: translate(-31.43px, 90.71px) rotate(25deg);
   }
   to {
     transform: translate(0, 0) rotate(15deg);

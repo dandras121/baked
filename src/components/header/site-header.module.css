@@ -40,14 +40,15 @@
   margin-inline: auto;
 }
 
-/* Logo mark, tilted 15° (Figma −15°), turned around its bottom centre (ANIM-04 values, A§7A).
-   Phone and tablet: 58.41 × 63.72 at left −17.49, top 1.29. The first-visit slide-in is in mascot.css. */
+/* Logo mark, tilted 15° (Figma −15°), turned around its bottom centre (A§7A). Phone and tablet use
+   the desktop composition scaled to the 55 px bar (× 55/77; Bohoka 2026-10-30, DEVIATIONS):
+   74.25 × 81 at left −24.84, top −12.37. The first-visit slide-in is in mascot.css. */
 .mark {
   position: absolute;
-  left: -17.49px;
-  top: 1.29px;
-  width: 58.41px;
-  height: 63.72px;
+  left: -24.84px;
+  top: -12.37px;
+  width: 74.25px;
+  height: 81px;
   transform: rotate(15deg);
   transform-origin: 50% 100%;
   pointer-events: none;
