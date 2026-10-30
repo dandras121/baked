@@ -22,7 +22,7 @@ Branch per phase (`phase-00-foundations`, …), one commit per accepted slice, t
 |---|---|---|---|---|
 | 1.1 | Desktop header, navigation, sticky shadow | ☑ | fc152e1 | 2026-10-29 |
 | 1.2 | Phone and tablet header, menu overlay | ☑ | 668f1b2, 9d269d8, 61980bc | 2026-10-30 |
-| 1.3 | Header mascot | ☐ | | |
+| 1.3 | Header mascot | ☑ | c8312e6, 40cdb2e | 2026-10-30 |
 | 1.4 | Footer and footer mascot | ☐ | | |
 | 1.5 | Cookie bar, panel, consent | ☐ | | |
 | 1.6 | 404, 500, SEO basics | ☐ | | |
@@ -137,9 +137,7 @@ Branch per phase (`phase-00-foundations`, …), one commit per accepted slice, t
 
 ## Current slice
 
-- **1.3 Header mascot (ANIM-04)**: first page load of a visit; storyboard `1545:10103`.
-  - Files: `src/styles/mascot.css` (keyframes, mobile and desktop), the inline first-load script in `src/app/layout.tsx`, the mascot's resting box moved to the A§7A values (same place, turned around its bottom centre).
-  - Tests: the six A§12 rows on every width, hidden during the delay, once per visit (next page, reload), a new tab plays again, resting place = Figma, reduced motion, no JavaScript.
+- **1.4 Footer and footer mascot (ANIM-06)**: reading the docs; Neon on Vercel requested from Bohoka.
 
 ## Later (noticed, belongs to another slice)
 
