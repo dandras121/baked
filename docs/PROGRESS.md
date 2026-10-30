@@ -25,7 +25,7 @@ Branch per phase (`phase-00-foundations`, …), one commit per accepted slice, t
 | 1.3 | Header mascot | ☑ | c8312e6, 40cdb2e | 2026-10-30 |
 | 1.4 | Footer and footer mascot | ☑ | 5971ac9, 53d85a0 | 2026-10-30 |
 | 1.5 | Cookie bar, panel, consent | ☑ | 88a3dcd, aad7e8a | 2026-10-30 |
-| 1.6 | 404, 500, SEO basics | ☐ | | |
+| 1.6 | 404, 500, SEO basics | ☑ | 801c21e | 2026-10-30 |
 
 ## Phase 2 — Content pages
 
@@ -137,9 +137,11 @@ Branch per phase (`phase-00-foundations`, …), one commit per accepted slice, t
 
 ## Current slice
 
-- **1.6 404, 500, SEO basics** (§2, §4.6, §4.7, §10.12; 654:3550, 839:7303, 1558:11134, 1608:10783 / 10885 / 10968).
-  - Files: `src/components/error-page/`, `(site)/not-found.tsx`, `(site)/[...missing]`, `(site)/error.tsx`, `global-error.tsx`, `/dev/error-500`, `src/db/write-site-facts.ts` (build step), `src/lib/seo.ts`, `robots.ts`, `sitemap.ts`, `next.config.ts` headers, title template, Home description.
-  - Tests: 404 status and content at three widths, deeper unknown paths 404, the 500 preview, site-facts, titles, robots.txt, sitemap, noindex and no-referrer headers, axe.
+- **Phase 1 review gate** (2026-10-30; Bohoka: “kezdj bele magadtól a 2. szakaszba”):
+  - Tests: 298 unit and database tests, 295 browser tests (phone, tablet, desktop), axe 0 violations on every page built (header, menu open, footer, cookie bar and panel, 404, 500).
+  - Lighthouse (local production build): Home mobile 91 / 100 / 100 / 100, desktop 100 / 100 / 100 / 100; Gallery stub mobile 94 / 100 / 100 / 92, desktop 100 / 100 / 100 / 92 (performance / accessibility / best practices / SEO). Gallery SEO 92 = no description yet (its page comes in 2.8). The 404 is not scored by Lighthouse (it measures only 200 pages).
+  - Fixed at the gate: the footer e-mail and phone links were 22 px apart, so their touch targets overlapped (Lighthouse target-size, WCAG 2.5.8); now 2 px apart with 24 × 24 targets (§10.13 dense lists).
+  - ANIMATIONS §9 for phase 1 (ANIM-01, 02, 03, 04, 06, 07, 08, 15, 24): covered by the browser tests against the A§12 rows; the underline parts of ANIM-01–03 / ANIM-08 / STYLE-01 are removed by Bohoka's decision (DEVIATIONS).
 
 ## Later (noticed, belongs to another slice)
 

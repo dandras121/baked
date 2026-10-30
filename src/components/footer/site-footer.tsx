@@ -62,12 +62,20 @@ export async function SiteFooter() {
                 <br />
                 Scotland
               </p>
+              {/* Two separate links; 2 px apart so their 24 × 24 targets never overlap (§10.13). */}
               <p className={`${styles.contact} type-footer-contact`}>
-                <Link href={`mailto:${s.email}`} className={styles.ink}>
+                <Link
+                  href={`mailto:${s.email}`}
+                  dense
+                  className={`${styles.ink} ${styles.contactLink}`}
+                >
                   {s.email}
                 </Link>
-                <br />
-                <Link href={telHref(s.phone)} className={styles.ink}>
+                <Link
+                  href={telHref(s.phone)}
+                  dense
+                  className={`${styles.ink} ${styles.contactLink}`}
+                >
                   {s.phone}
                 </Link>
               </p>
