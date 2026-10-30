@@ -21,7 +21,7 @@ Branch per phase (`phase-00-foundations`, …), one commit per accepted slice, t
 | Slice | Title | Status | Commit | Accepted by Bohoka |
 |---|---|---|---|---|
 | 1.1 | Desktop header, navigation, sticky shadow | ☑ | fc152e1 | 2026-10-29 |
-| 1.2 | Phone and tablet header, menu overlay | ☐ | | |
+| 1.2 | Phone and tablet header, menu overlay | ☑ | 668f1b2, 9d269d8, 61980bc | 2026-10-30 |
 | 1.3 | Header mascot | ☐ | | |
 | 1.4 | Footer and footer mascot | ☐ | | |
 | 1.5 | Cookie bar, panel, consent | ☐ | | |
@@ -137,12 +137,7 @@ Branch per phase (`phase-00-foundations`, …), one commit per accepted slice, t
 
 ## Current slice
 
-- **1.2 Phone and tablet header, menu overlay** (Bohoka 2026-10-29: one slice, not split; Neon later, before 1.4 — until then the preview hides the social links because Settings cannot be read there).
-  - Files: `src/components/header/` (mobile-menu, menu-timeline, site-header), `src/db/site-settings.ts` (cached Settings for public pages), page shell (header outside the size container), menu texture from Figma, two type tokens, CI seeds the test database for the browser tests.
-  - Tests: radii and steps vs the storyboard labels, landscape timing, open / close / select in the browser (sampled), Back, Esc, input lock, focus, inert page, resize to desktop, reduced motion, no JavaScript, axe.
-  - Size: about 900 hand-written lines (Bohoka chose one slice).
-  - Bohoka 2026-10-29: tablet portrait items at 248 (a); the underline removed from both menus (DEVIATIONS).
-  - Bohoka 2026-10-30: current item SemiBold in the phone / tablet menu too; the weight changes over 200 ms in both menus (DEVIATIONS). Report again (short).
+- **1.3 Header mascot (ANIM-04)**: first page load of a visit; storyboard `1545:10103`.
 
 ## Later (noticed, belongs to another slice)
 
