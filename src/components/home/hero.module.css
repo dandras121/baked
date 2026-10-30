@@ -91,6 +91,10 @@
   color: var(--colour-display);
   font: var(--type-hero-question-phone);
   font-variation-settings: var(--font-display-axes);
+  /* Narrower phones (375, 390): the text shrinks with the photo so it never wraps over the line below. */
+  font-size: min(60px, calc(60 * var(--u)));
+  line-height: min(67px, calc(67 * var(--u)));
+  white-space: nowrap; /* the two lines are set with <br>; rounding must not add a third */
 }
 
 .body {
@@ -103,6 +107,8 @@
   top: calc(194.8 * var(--u));
   left: calc(13.34 * var(--u));
   width: calc(281.76 * var(--u));
+  font-size: min(14px, calc(14 * var(--u)));
+  line-height: min(15px, calc(15 * var(--u)));
 }
 
 .bodyWide {

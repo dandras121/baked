@@ -223,3 +223,22 @@ test("no horizontal scroll and no axe violations", async ({ page }) => {
   const axe = await new AxeBuilder({ page }).analyze();
   expect(axe.violations).toEqual([]);
 });
+
+test("phone hero: the question stays two lines above the supporting line on narrower phones", async ({
+  page,
+}, info) => {
+  test.skip(info.project.name !== "phone", "phone layout");
+  for (const width of [360, 375, 390, 402]) {
+    await page.setViewportSize({ width, height: 902 });
+    await page.goto("/?hero=live");
+    const q = (await page
+      .getByRole("heading", { name: /What’s your/ })
+      .boundingBox())!;
+    const body = (await page.locator("[class*=bodyPhone]").boundingBox())!;
+    const lineHeight = await page
+      .getByRole("heading", { name: /What’s your/ })
+      .evaluate((el) => parseFloat(getComputedStyle(el).lineHeight));
+    expect(Math.round(q.height / lineHeight), `${width}px`).toBe(2);
+    expect(q.y + q.height, `${width}px`).toBeLessThanOrEqual(body.y);
+  }
+});

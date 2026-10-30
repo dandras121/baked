@@ -139,7 +139,7 @@ Branch per phase (`phase-00-foundations`, …), one commit per accepted slice, t
 
 - Phase 1 closed 2026-10-30 (gate in the commit “phase 1 review gate”; tag `phase-01-done` local, the git proxy refuses tag pushes).
 - Phase 2 on branch `phase-02-content`. Bohoka 2026-10-30: 2.1 stays one slice; on Vercel previews the hero shows the three slides (placeholders 2–3), `?hero=live` shows the live hero alone; production never shows the placeholders.
-- **2.1 Home: hero and fixed sections** — built, waiting for Bohoka.
+- **2.1 Home: hero and fixed sections** — built, waiting for Bohoka. Fix 1 (Bohoka: “el van csúszva … hero telefonon”): the phone hero text shrinks with the width below 402, so it stays two lines above the supporting line (test at 360 / 375 / 390 / 402).
   - Files: `src/components/home/` (hero, hero-slider, home-sections), `src/lib/hero.ts`, `src/app/(site)/page.tsx`, `public/home/*.webp`, tokens (+10 type, 1 colour, 1 shadow), `src/components/ui/social-icons.tsx` (moved out of the mobile menu).
   - Tests: `src/lib/hero.test.ts` (flag, loop, ease samples); `e2e/home.spec.ts` (3 slides, `?hero=live`, 6 s loop, hover / keyboard-focus pause, pause button, reduced motion, crossfade samples 0 / 0.409 / 0.802 / 0.96 / 1 with the incoming slide on top, swipe, Settings town, social band, axe, no side scroll). A production build (`VERCEL_ENV=production`) prerenders the hero with one slide.
   - Proposals: pause button, keyboard-only focus pause, swipe loop, carousel semantics, photo alt, band top without the cake row.
@@ -153,6 +153,7 @@ Branch per phase (`phase-00-foundations`, …), one commit per accepted slice, t
 
 - `/` and the stub pages `/cakes`, `/bespoke`, `/gallery`, `/about`, `/faq`, `/contact`, `/terms` (added in 1.1 so the header can be clicked) are replaced by their real pages → slices 2.1, 3.2, 7.1, 2.8, 2.4, 2.5, 2.7, 2.6.
 - `/dev/*` pages must not be reachable on the live site (404 in production, or behind admin sign-in) → slice 10.2 (or 11.1 at the latest).
+- Header at 360–375 px: the “menu ›” button overlaps “Linda” in the wordmark → header fix (phase 1 component), ask Bohoka.
 - Home band: “Try my recipes.” + cake row open the pink band, Line 32 / 33 between the row and “Local, home baked.” → 2.3.
 - Canonical links, Open Graph images and structured data (§10.12 Other) → with the pages they belong to (2.1 Home, 3.x cake pages) / 10.3.
 - Saving Settings must rebuild the 500 page's `site-facts.json` and revalidate the Settings cache → slice 9.x (admin Settings).
