@@ -76,14 +76,29 @@
   scroll-snap-align: start;
 }
 
-.arrows {
+/* The slider indicator under the row (Bohoka 2026-10-31); desktop adds the arrows on its line. */
+.controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-24);
+  height: 5px;
+  margin-top: 16px;
+}
+
+/* A fixed width, so the arrows stay put while the dashes change length. */
+.indicator {
+  width: 140px;
+}
+
+.arrow {
   display: none;
 }
 
 .rule {
   width: 100%;
   height: 1px;
-  margin: calc(28.4 * var(--u)) 0 0;
+  margin: 18px 0 0;
   border: 0;
   background: var(--colour-white);
 }
@@ -120,30 +135,25 @@
     scroll-padding-inline: calc(18.04 * var(--u));
   }
 
-  /* Tablet: no arrows; the line keeps the desktop distance from the cards. */
-  .rule {
-    margin-top: calc(64.57 * var(--u));
-  }
-}
-
-@media (min-width: 1120px) {
-  .arrows {
-    display: flex;
-    justify-content: center;
-    gap: calc(15.33 * var(--u));
-    margin-top: calc(16.74 * var(--u));
+  /* Tablet and desktop: the dashes sit where the drawn arrows' middle is (30.4 below the cards), and the
+     line keeps the drawn distance from the cards (64.57). Tablet has no arrows. */
+  .controls {
+    margin-top: calc(30.4 * var(--u) - 2.5px);
   }
 
   .rule {
-    margin-top: calc(20.5 * var(--u));
+    margin-top: calc(34.17 * var(--u) - 2.5px);
   }
 
   .carousel[data-fits] ~ .rule {
     margin-top: calc(64.57 * var(--u));
   }
+}
 
+@media (min-width: 1120px) {
   .arrow {
     display: grid;
+    flex: none;
     place-items: center;
     width: calc(49.36 * var(--u));
     height: calc(27.33 * var(--u));

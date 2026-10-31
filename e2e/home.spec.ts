@@ -398,3 +398,27 @@ test("Special idea: four squares, no gallery link while the gallery has no showi
   // Squares are not links.
   await expect(section.locator("li a")).toHaveCount(0);
 });
+
+test("cake row: the slider indicator follows the row, a dash moves it (Bohoka 2026-10-31)", async ({
+  page,
+}) => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.goto("/?hero=live");
+  await expect(page.getByTestId("hero")).toHaveCount(1);
+  const row = page.getByRole("list", { name: "Cakes" });
+  await row.scrollIntoViewIfNeeded();
+  const dash = (n: number) =>
+    page.getByRole("button", {
+      name: new RegExp(`^Cakes, position ${n} of \\d+$`),
+    });
+  await expect(dash(1)).toHaveAttribute("aria-current", "true");
+  const before = await row.evaluate((el) => el.scrollLeft);
+  await dash(2).click();
+  await expect(dash(2)).toHaveAttribute("aria-current", "true");
+  expect(await row.evaluate((el) => el.scrollLeft)).toBeGreaterThan(before);
+  expect(
+    await page
+      .locator("[aria-label^='Cakes, position']:not([data-state='hidden'])")
+      .count(),
+  ).toBeLessThanOrEqual(5);
+});
