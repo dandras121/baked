@@ -1,0 +1,277 @@
+/*
+ * About Linda (§4.3). Phone 1600:10493 (402 wide, design px × --u); tablet and desktop: the desktop design
+ * 518:2688 in desktop design px × --u (0.8 at 1024 = tablet 1562:12372). The big “Hello, I am Linda” is a
+ * composition, so its three parts are placed; between the drawn widths their size follows the width.
+ */
+.page {
+  background: var(--colour-white);
+}
+
+.intro {
+  position: relative;
+  width: calc(402 * var(--u));
+  margin-inline: auto;
+  padding: calc(256 * var(--u)) calc(8 * var(--u)) 0 calc(18 * var(--u));
+}
+
+.title {
+  position: absolute;
+  inset: 0 0 auto;
+  height: calc(256 * var(--u));
+  margin: 0;
+  font-weight: inherit;
+}
+
+.hello,
+.iam,
+.name {
+  position: absolute;
+  white-space: nowrap;
+}
+
+.hello {
+  top: calc(48 * var(--u));
+  left: calc(14 * var(--u));
+  color: var(--colour-ink);
+  font: var(--type-wordmark);
+  font-variation-settings: var(--font-display-axes);
+}
+
+.iam {
+  top: calc(116 * var(--u));
+  left: calc(18 * var(--u));
+  color: var(--colour-ink);
+  font: var(--type-about-iam-phone);
+  font-variation-settings: var(--font-display-axes);
+}
+
+.name {
+  top: calc(142 * var(--u));
+  left: calc(10 * var(--u));
+  color: var(--colour-display);
+  font: var(--type-about-name-phone);
+  font-variation-settings: var(--font-display-axes);
+}
+
+/* Linda's page photos (§9.12): the placeholder background until she uploads them (§0.6). */
+.photo {
+  border-radius: calc(15 * var(--u));
+  background: var(--colour-placeholder);
+}
+
+.portrait {
+  position: absolute;
+  top: calc(11 * var(--u));
+  left: calc(230 * var(--u));
+  width: calc(152 * var(--u));
+  height: calc(232 * var(--u));
+}
+
+.introText {
+  position: relative;
+  margin: 0;
+  color: var(--colour-ink);
+  font: var(--type-about-intro-phone);
+}
+
+.offerSection {
+  width: calc(402 * var(--u));
+  margin: calc(3.5 * var(--u)) auto 0;
+}
+
+.offerTitle {
+  margin: 0 0 0 calc(12 * var(--u));
+  color: var(--colour-display);
+  font: var(--type-title-phone);
+  font-variation-settings: var(--font-display-axes);
+}
+
+.offer {
+  margin-top: calc(17.5 * var(--u));
+}
+
+.cards {
+  display: flex;
+  gap: 12px;
+  margin: 0;
+  padding: 0 calc(16.5 * var(--u));
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scroll-padding-inline: calc(16.5 * var(--u));
+  scrollbar-width: none;
+  list-style: none;
+  overscroll-behavior-x: contain;
+}
+
+.cards::-webkit-scrollbar {
+  display: none;
+}
+
+.card {
+  flex: none;
+  width: calc(369 * var(--u));
+  min-height: calc(143 * var(--u));
+  padding: 0 calc(6 * var(--u)) calc(16 * var(--u));
+  border-radius: calc(10 * var(--u));
+  background: var(--colour-about-card);
+  text-align: center;
+  scroll-snap-align: center;
+}
+
+.card[data-pressable] {
+  cursor: pointer;
+}
+
+.cardTitle {
+  margin: 0;
+  color: var(--colour-ink);
+  font: var(--type-card-title);
+  font-variation-settings: var(--font-display-axes);
+}
+
+.cardText {
+  margin: calc(16 * var(--u)) 0 0;
+  color: var(--colour-ink);
+  font: var(--type-body-tight);
+}
+
+.indicator {
+  margin-top: calc(6 * var(--u));
+}
+
+.local {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: calc(402 * var(--u));
+  margin: calc(33 * var(--u)) auto 0;
+  padding-bottom: calc(31 * var(--u));
+}
+
+.localTitle {
+  margin: 0 0 0 calc(18 * var(--u));
+  color: var(--colour-display);
+  font: var(--type-about-heading);
+  font-variation-settings: var(--font-display-axes);
+}
+
+.localText {
+  width: calc(360 * var(--u));
+  margin: calc(11 * var(--u)) 0 0 calc(22 * var(--u));
+  color: var(--colour-ink);
+  font: var(--type-about-local-phone);
+}
+
+.community {
+  width: calc(341 * var(--u));
+  height: calc(171 * var(--u));
+  margin: calc(13 * var(--u)) 0 0 calc(31 * var(--u));
+}
+
+@media (min-width: 768px) {
+  .intro {
+    width: calc(1280 * var(--u));
+    min-height: calc(665 * var(--u));
+    padding: calc(529 * var(--u)) 0 0 calc(53 * var(--u));
+  }
+
+  .title {
+    height: calc(529 * var(--u));
+  }
+
+  .hello {
+    top: calc(23 * var(--u));
+    left: calc(36 * var(--u));
+    font: var(--type-about-hello);
+    font-size: min(calc(200px * var(--type-scale)), calc(200 * var(--u)));
+  }
+
+  .iam {
+    top: calc(207 * var(--u));
+    left: calc(53 * var(--u));
+    font: var(--type-about-iam);
+    font-size: min(calc(100px * var(--type-scale)), calc(100 * var(--u)));
+  }
+
+  .name {
+    top: calc(239 * var(--u));
+    left: calc(36 * var(--u));
+    font: var(--type-about-name);
+    font-size: min(calc(270px * var(--type-scale)), calc(270 * var(--u)));
+  }
+
+  .portrait {
+    top: calc(57 * var(--u));
+    left: calc(794 * var(--u));
+    width: calc(424 * var(--u));
+    height: calc(601 * var(--u));
+  }
+
+  .introText {
+    width: calc(504 * var(--u));
+    font: var(--type-body);
+  }
+
+  .offerSection {
+    width: calc(1280 * var(--u));
+    margin-top: calc(68 * var(--u));
+  }
+
+  .offerTitle {
+    margin: 0;
+    font: var(--type-about-title);
+    text-align: center;
+  }
+
+  .offer {
+    margin-top: calc(16 * var(--u));
+  }
+
+  /* Side by side, not pressable (§4.3). */
+  .cards {
+    display: grid;
+    grid-template-columns: calc(476 * var(--u)) calc(393 * var(--u)) 1fr;
+    gap: 0;
+    padding: 0 0 0 calc(36 * var(--u));
+    overflow: visible;
+  }
+
+  .card {
+    width: auto;
+    min-height: 0;
+    padding: 0;
+    border-radius: 0;
+    background: none;
+    text-align: left;
+  }
+
+  .cardText {
+    max-width: calc(303 * var(--u));
+    margin-top: calc(10 * var(--u));
+  }
+
+  .local {
+    width: calc(1280 * var(--u));
+    min-height: calc(343 * var(--u));
+    margin-top: calc(12 * var(--u));
+    padding: calc(25 * var(--u)) 0 calc(68 * var(--u));
+  }
+
+  .localTitle {
+    margin-left: calc(53 * var(--u));
+  }
+
+  .localText {
+    margin: calc(16 * var(--u)) 0 0 calc(57 * var(--u));
+    font: var(--type-body);
+  }
+
+  .community {
+    position: absolute;
+    top: 0;
+    left: calc(533 * var(--u));
+    width: calc(685 * var(--u));
+    height: calc(343 * var(--u));
+    margin: 0;
+  }
+}

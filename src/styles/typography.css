@@ -359,3 +359,50 @@
 .type-review-meta-phone {
   font: var(--type-review-meta-phone);
 }
+
+.type-about-hello {
+  font: var(--type-about-hello);
+  font-variation-settings: var(--font-display-axes);
+}
+
+.type-about-iam {
+  font: var(--type-about-iam);
+  font-variation-settings: var(--font-display-axes);
+}
+
+.type-about-name {
+  font: var(--type-about-name);
+  font-variation-settings: var(--font-display-axes);
+}
+
+.type-about-title {
+  font: var(--type-about-title);
+  font-variation-settings: var(--font-display-axes);
+}
+
+.type-about-heading {
+  font: var(--type-about-heading);
+  font-variation-settings: var(--font-display-axes);
+}
+
+.type-body-tight {
+  font: var(--type-body-tight);
+}
+
+.type-about-iam-phone {
+  font: var(--type-about-iam-phone);
+  font-variation-settings: var(--font-display-axes);
+}
+
+.type-about-name-phone {
+  font: var(--type-about-name-phone);
+  font-variation-settings: var(--font-display-axes);
+}
+
+.type-about-intro-phone {
+  font: var(--type-about-intro-phone);
+}
+
+.type-about-local-phone {
+  font: var(--type-about-local-phone);
+}

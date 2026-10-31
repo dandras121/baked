@@ -138,7 +138,10 @@ Branch per phase (`phase-00-foundations`, …), one commit per accepted slice, t
 ## Current slice
 
 - Phase 1 closed 2026-10-30 (gate in the commit “phase 1 review gate”; tag `phase-01-done` local, the git proxy refuses tag pushes).
-- Phase 2 on branch `phase-02-content`. 2.1–2.3 accepted 2026-10-31; next: **2.4 About Linda**. Bohoka 2026-10-30: 2.1 stays one slice; on Vercel previews the hero shows the three slides (placeholders 2–3), `?hero=live` shows the live hero alone; production never shows the placeholders.
+- Phase 2 on branch `phase-02-content`. 2.1–2.3 accepted 2026-10-31. Bohoka 2026-10-30: 2.1 stays one slice; on Vercel previews the hero shows the three slides (placeholders 2–3), `?hero=live` shows the live hero alone; production never shows the placeholders.
+- **2.4 About Linda** — built, waiting for Bohoka.
+  - Files: `src/components/about/` (page, cards, CSS), `src/app/(site)/about/page.tsx`, tokens (+10 type, 1 colour).
+  - Tests: `e2e/about.spec.ts` (headings, description from Settings, phone row with indicator and centre on click, side by side and not pressable on tablet / desktop, axe, no side scroll).
 - **2.2 Home testimonials = Google reviews** — accepted 2026-10-31.
   - Files: `src/db/schema.ts` + `drizzle/0002_*` (google_reviews, google_rating), `src/db/reviews-repo.ts`, `src/db/fixtures/google-reviews.json`, `src/lib/reviews.ts`, `src/app/api/reviews/route.ts`, `src/components/home/reviews*.{tsx,css}`, seed and preview setup, tokens (+3 type, 2 colour).
   - Tests: `src/lib/reviews.test.ts` (stars, translation dropped, no text, London month, rating format and 30-day rule, cursor / limit, ANIM-10 window with 200), `src/db/reviews-repo.test.ts` (newest first, only with text, every rating, pages without gaps, deleted at next sync), `e2e/reviews.spec.ts` (order, rating name, cut text + Read on Google, ≤ 5 dashes, six per request, one at a time, CLS < 0.01, retry once after 3 s, arrows stop at the last loaded card, empty shape same size, centre on click, API shape).

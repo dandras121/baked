@@ -159,6 +159,17 @@
   --type-quote-phone: italic 300 18px/1.52 var(--font-display); /* review quote on the phone · 701:4810 */
   --type-review-author-phone: 600 13px/normal var(--font-quote); /* review author on the phone · 701:4810 */
   --type-review-meta-phone: 300 11px/normal var(--font-quote); /* review stars and month, rating line on the phone · 701:4810, 1614:11113 */
+  --type-about-hello: 300 max(calc(200px * var(--type-scale)), min(200px, 14px))/normal var(--font-display); /* About “Hello,” · 479:2709 */
+  --type-about-iam: 300 max(calc(100px * var(--type-scale)), min(100px, 14px))/normal var(--font-display); /* About “I am” · 479:2711 */
+  --type-about-name: 300 max(calc(270px * var(--type-scale)), min(270px, 14px))/normal var(--font-display); /* About “Linda” · 479:2712 */
+  --type-about-title: 600 max(calc(64px * var(--type-scale)), min(64px, 14px))/normal var(--font-display); /* “What do we offer?” · 481:2681 */
+  --type-about-heading: 300 max(calc(48px * var(--type-scale)), min(48px, 14px))/1 var(--font-display); /* “Part of the local community” · 1175:9140 */
+  --type-body-tight: 400 max(calc(16px * var(--type-scale)), min(16px, 14px))/1.5 var(--font-ui); /* About card text · 42:30 */
+  --type-about-iam-phone: 300 36px/normal var(--font-display); /* “I am” on the phone · 578:4981 */
+  --type-about-name-phone: 400 96px/normal var(--font-display); /* “Linda” on the phone · 578:4982 */
+  --type-about-intro-phone: 400 13px/27px var(--font-ui); /* About introduction on the phone · 578:4983 */
+  --type-about-local-phone: 500 13px/25px var(--font-ui); /* “Based in West Lothian…” on the phone · 482:2691 */
+  --colour-about-card: rgb(224 224 224 / 0.24); /* phone “What do we offer?” card · 1173:9142 */
   --type-label-ls: calc(1.98px * max(var(--type-scale), min(1, calc(14 / 11)))); /* field label letter spacing (18 %) · input 630:3005 */
   --type-footer-heading: 700 max(calc(10px * var(--type-scale)), min(10px, 14px))/normal var(--font-ui); /* footer column heading · style guide Quicksand Bold 10 */
   --type-footer-heading-ls: calc(0.18px * max(var(--type-scale), min(1, calc(14 / 10)))); /* footer heading letter spacing (1.8 %) · style guide */
