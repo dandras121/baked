@@ -3,6 +3,13 @@
  * 284); phone Home: 274 wide (1381:10001). Cards in one row share the tallest card's height (§4.1).
  */
 .card {
+  /* The picture box: closed and open heights (ANIM-11); the phone Home card here, the others below. */
+  --pic-closed: calc(273 * var(--u));
+  --pic-open: calc(372.9 * var(--u));
+  /* Where the square card video sits so the closed / open crop fills the box (src/lib/card-crop.ts). */
+  --crop-closed: none;
+  --crop-open: translate(-28.125%, -20.125%) scale(1.5625);
+  position: relative;
   display: flex;
   flex-direction: column;
   width: calc(274 * var(--u));
@@ -14,10 +21,142 @@
 }
 
 .picture {
+  position: relative;
+  z-index: 1;
   flex: none;
-  height: calc(273 * var(--u));
-  /* No white frame: the picture runs to the card's edges (Bohoka 2026-10-31); the card's corners round it. */
+  height: var(--pic-closed);
+}
+
+/* The picture as drawn open; closed, its bottom is clipped away — it grows by opening the clip, never by layout.
+   No white frame: the picture runs to the card's edges (Bohoka 2026-10-31); the card's corners round it. */
+.media {
+  position: absolute;
+  inset: 0 0 auto;
+  height: var(--pic-open);
+  overflow: hidden;
   background: var(--colour-placeholder);
+  clip-path: inset(0 0 calc(var(--pic-open) - var(--pic-closed)) 0);
+}
+
+.frame {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  aspect-ratio: 1;
+  object-fit: cover;
+  transform: var(--crop-closed);
+  transform-origin: 0 0;
+}
+
+.card[data-open] .media {
+  clip-path: inset(0);
+}
+
+.card[data-open] .frame {
+  transform: var(--crop-open);
+}
+
+/* The corner button (ANIM-11): 44 × 44, two white chevrons that flip outward → inward like the menu arrow. */
+.corner {
+  position: absolute;
+  z-index: 2;
+  top: 0;
+  right: 0;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+}
+
+.cornerInner {
+  position: absolute;
+  inset: 0;
+}
+
+.chevron {
+  position: absolute;
+  width: 10px;
+  height: 18px;
+}
+
+/* Centres and directions from the drawn icon (1777:12927): one points down-left, one up-right. */
+.chevronA {
+  left: 12.5px;
+  top: 17.7px;
+  transform: rotate(-45deg);
+}
+
+.chevronB {
+  left: 21.5px;
+  top: 8.3px;
+  transform: rotate(135deg);
+}
+
+.chevron svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  fill: none;
+  stroke: var(--colour-white);
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.card[data-open] .chevron svg {
+  transform: rotateY(180deg);
+}
+
+/* The title's place in the open card. */
+.openTitle {
+  position: absolute;
+  z-index: 2;
+  top: calc(372.9 * var(--u));
+  left: calc(10 * var(--u));
+  max-width: 60%;
+  color: var(--colour-display);
+  font: var(--type-card-title);
+  font-size: calc(13 * var(--u));
+  font-variation-settings: var(--font-display-axes);
+  line-height: 1.18;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* The ellipsis lives on the text, so its box scales with it while the title travels. */
+.openTitleText {
+  display: block;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transform-origin: 0 0;
+}
+
+.card[data-open] .openTitle {
+  opacity: 1;
+}
+
+.card[data-open] .name {
+  opacity: 0;
+}
+
+.name {
+  position: relative;
+  z-index: 2;
+}
+
+.card [data-fade] {
+  transform-origin: 0 0;
+}
+
+.card[data-open] [data-fade] {
+  opacity: 0;
+  transform: scale(0.92);
 }
 
 .name {
@@ -89,12 +228,25 @@
 
 @media (min-width: 768px) {
   .card {
+    --pic-closed: calc(220.7 * var(--u));
+    --pic-open: calc(294 * var(--u));
+    --crop-closed: translate(0, -37.83%);
+    --crop-open: translate(-14.7%, -46.584%) scale(1.29399);
     width: calc(355 * var(--u));
     min-height: calc(355 * var(--u));
   }
 
-  .picture {
-    height: calc(220.7 * var(--u));
+  .corner {
+    top: calc(6.66 * var(--u));
+    right: calc(8.28 * var(--u));
+  }
+
+  /* Tablet: 14 px at (14.2, 259.4) on the 284 card (ANIM-11). */
+  .openTitle {
+    top: calc(324.25 * var(--u));
+    left: calc(17.72 * var(--u));
+    max-width: calc(140 * var(--u));
+    font-size: calc(17.5 * var(--u));
   }
 
   .name {
@@ -124,6 +276,14 @@
   }
 }
 
+/* Desktop: 15 px at (17.7, 314) in the bottom row. */
+@media (min-width: 1120px) {
+  .openTitle {
+    top: calc(314 * var(--u));
+    font-size: calc(15 * var(--u));
+  }
+}
+
 /*
  * Phone catalogue card (V2 · Card / Cake — mobil v3, 1777:12902): 196 × 323 design px, scaled to its column
  * (two columns, 16 px gutters, 10 px gap, §4.2), so every length is a share of the card's own width (--c is read inside the card, where 100cqw is the card).
@@ -131,6 +291,10 @@
 @media (max-width: 767.98px) {
   .card[data-variant="catalogue"] {
     --c: calc(100cqw / 196);
+    --pic-closed: calc(195 * var(--c));
+    --pic-open: calc(276 * var(--c));
+    --crop-closed: none;
+    --crop-open: translate(-28.125%, -15.4375%) scale(1.5625);
     container-type: inline-size;
     width: 100%;
     min-height: 0;
@@ -139,8 +303,12 @@
     border-radius: calc((100cqw - 42px) / 2 * 19 / 196);
   }
 
-  .card[data-variant="catalogue"] .picture {
-    height: calc(195 * var(--c));
+  /* 11 px at (10, 276), on its own line above the price. */
+  .card[data-variant="catalogue"] .openTitle {
+    top: calc(276 * var(--c));
+    left: calc(10 * var(--c));
+    max-width: calc(176 * var(--c));
+    font-size: calc(11 * var(--c));
   }
 
   .card[data-variant="catalogue"] .name {

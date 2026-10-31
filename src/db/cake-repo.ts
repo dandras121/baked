@@ -5,7 +5,13 @@ import { cakeProblems, sortSizes, type CakeInput } from "@/lib/cakes";
 import { SAMPLE_CATALOGUE } from "@/lib/sample-catalogue";
 import { slugify } from "@/lib/slug";
 import type { connect } from "./client";
-import { cakeOptionChoices, cakeOptions, cakeSizes, cakes } from "./schema";
+import {
+  cakeCardVideos,
+  cakeOptionChoices,
+  cakeOptions,
+  cakeSizes,
+  cakes,
+} from "./schema";
 
 type Db = ReturnType<typeof connect>["db"];
 
@@ -132,4 +138,32 @@ export async function replaceOldSamples(db: Db): Promise<number> {
     )
     .returning({ id: cakes.id });
   return old.length;
+}
+
+/** The synthetic test clip (scripts/card-test-clip.geq) as the card video of five sample cakes (dev and previews). */
+export const SAMPLE_CARD_VIDEO = {
+  path1080: "/samples/card-video/card-1080.mp4",
+  path1440: "/samples/card-video/card-1440.mp4",
+  stillPath: "/samples/card-video/card-still.webp",
+};
+const WITH_CARD_VIDEO = [
+  "The Lothian",
+  "Bramble & Cream",
+  "Sugar Peony",
+  "Almond & Rose",
+  "Midnight Berry",
+];
+
+export async function ensureSampleCardVideos(db: Db): Promise<number> {
+  const rows = await db
+    .select({ id: cakes.id })
+    .from(cakes)
+    .where(and(inArray(cakes.name, WITH_CARD_VIDEO), isNull(cakes.deletedAt)));
+  if (!rows.length) return 0;
+  const added = await db
+    .insert(cakeCardVideos)
+    .values(rows.map((r) => ({ cakeId: r.id, ...SAMPLE_CARD_VIDEO })))
+    .onConflictDoNothing()
+    .returning({ id: cakeCardVideos.cakeId });
+  return added.length;
 }

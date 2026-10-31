@@ -16,6 +16,7 @@ const cake = (name: string, flavour = "", whatItIs = ""): CatalogueCake => ({
   serves: "Serves 24",
   from: "From £185",
   categories: [],
+  cardVideo: null,
 });
 
 const list = [

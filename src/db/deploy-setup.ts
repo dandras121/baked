@@ -8,7 +8,11 @@ import { googleReviews } from "./schema";
 import { ensureFaq } from "./faq-repo";
 import { ensureSampleGallery } from "./gallery-repo";
 import { ensureLegalPages } from "./legal-repo";
-import { ensureSampleCatalogue, replaceOldSamples } from "./cake-repo";
+import {
+  ensureSampleCardVideos,
+  ensureSampleCatalogue,
+  replaceOldSamples,
+} from "./cake-repo";
 import { importSampleReviews } from "./seed";
 import { ensureSettings } from "./settings-repo";
 
@@ -36,6 +40,8 @@ async function main() {
       const cakes = await ensureSampleCatalogue(db);
       if (cakes)
         console.log(`deploy-setup: ${cakes} preview sample cakes added`);
+      if (await ensureSampleCardVideos(db))
+        console.log("deploy-setup: preview sample card videos added");
       if (await ensureSampleGallery(db))
         console.log("deploy-setup: preview sample gallery added");
       const [review] = await db

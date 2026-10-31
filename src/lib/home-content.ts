@@ -5,6 +5,9 @@ import { numberInWords } from "./words";
 
 export type CakeSize = { serves: number; tiers: number; pricePence: number };
 
+/** The card video's web versions and the still of frame 0 (§9.13, ANIM-11). */
+export type CardVideo = { still: string; v1080: string; v1440: string };
+
 export type CakeRow = {
   slug: string;
   name: string;
@@ -16,6 +19,7 @@ export type CakeRow = {
   /** The occasions (§4.2 filters) and the text the search looks in (§4.2, 3.3). */
   categories?: string[];
   whatItIs?: string;
+  cardVideo?: CardVideo | null;
 };
 
 export type CakeCardData = {
@@ -28,6 +32,8 @@ export type CakeCardData = {
   serves: string;
   /** "From £185" — the smallest price. */
   from: string;
+  /** Without one the card shows its main photo and no corner button (ANIM-11). */
+  cardVideo: CardVideo | null;
 };
 
 /** The Home row holds the first ten visible designs in Linda's order (§4.1 said five; Bohoka 2026-10-31: ten). */
@@ -48,6 +54,7 @@ export function cakeCard(cake: CakeRow): CakeCardData | null {
     tiers,
     serves: `Serves ${smallest.serves}`,
     from: `From ${formatPrice(cheapest)}`,
+    cardVideo: cake.cardVideo ?? null,
   };
 }
 
