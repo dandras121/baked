@@ -27,8 +27,8 @@ export type CakeCardData = {
   from: string;
 };
 
-/** The Home row holds the first five visible designs in Linda's order (§4.1, §11.3). */
-export const HOME_CAKES = 5;
+/** The Home row holds the first ten visible designs in Linda's order (§4.1 said five; Bohoka 2026-10-31: ten). */
+export const HOME_CAKES = 10;
 
 const capital = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 
@@ -48,7 +48,7 @@ export function cakeCard(cake: CakeRow): CakeCardData | null {
   };
 }
 
-/** The first five visible, not deleted designs, in Linda's order. */
+/** The first ten visible, not deleted designs, in Linda's order. */
 export function homeCakes(rows: CakeRow[]): CakeCardData[] {
   return rows
     .filter((c) => c.visible && !c.deleted)

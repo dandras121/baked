@@ -18,7 +18,7 @@ describe.skipIf(!url)("database: the Home cakes (§4.1, §9.13)", () => {
   });
   afterAll(async () => conn?.close());
 
-  it("the seed holds the five Home names in order, each with the drawn sample", async () => {
+  it("the seed holds the Home names in order, each with the drawn sample", async () => {
     const row = homeCakes(await readCakeRows(conn!.db));
     expect(row.map((c) => c.name)).toEqual([
       "The Lothian",
@@ -26,6 +26,11 @@ describe.skipIf(!url)("database: the Home cakes (§4.1, §9.13)", () => {
       "Wee Beastie",
       "Sugar Peony",
       "Confetti Drum",
+      "Sample cake 6",
+      "Sample cake 7",
+      "Sample cake 8",
+      "Sample cake 9",
+      "Sample cake 10",
     ]);
     expect(row[0]).toMatchObject({
       tiers: "Two tiers",

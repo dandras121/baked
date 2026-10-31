@@ -22,7 +22,7 @@ export function slugify(name: string): string {
 
 type Db = ReturnType<typeof connect>["db"];
 
-/** The five Home sample cakes (2.3); also used on an empty preview database (deploy-setup). */
+/** The Home sample cakes (2.3); adds only the ones missing, so previews can pick up new samples (deploy-setup). */
 export async function insertSampleCakes(db: Db) {
   const names = [
     "The Lothian",
@@ -30,6 +30,12 @@ export async function insertSampleCakes(db: Db) {
     "Wee Beastie",
     "Sugar Peony",
     "Confetti Drum",
+    // Ten on Home since 2026-10-31; Figma names only five, so the rest are plainly marked samples.
+    "Sample cake 6",
+    "Sample cake 7",
+    "Sample cake 8",
+    "Sample cake 9",
+    "Sample cake 10",
   ];
   const rows = await db
     .insert(cakes)
@@ -42,7 +48,9 @@ export async function insertSampleCakes(db: Db) {
         position: i + 1,
       })),
     )
+    .onConflictDoNothing()
     .returning({ id: cakes.id });
+  if (rows.length === 0) return;
   await db.insert(cakeSizes).values(
     rows.map((r) => ({
       cakeId: r.id,

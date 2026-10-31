@@ -139,12 +139,22 @@
   font: var(--type-review-meta-phone);
 }
 
-.arrow {
-  display: none;
+.controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-24);
+  height: 5px; /* as tall as a dash; the arrows sit centred on the line */
+  margin-top: -5px;
 }
 
+/* A fixed width, so the arrows stay put while the dashes change length. */
 .indicator {
-  margin-top: -5px;
+  width: 140px;
+}
+
+.arrow {
+  display: none;
 }
 
 @media (min-width: 768px) {
@@ -212,11 +222,10 @@
     height: calc(240 * var(--u));
   }
 
-  /* Desktop arrows, level with the cards' middle (1373:10004 / 1373:10007). */
+  /* Desktop arrows (1373:10004 / 1373:10007) on the dashes' line (Bohoka 2026-10-31). */
   .arrow {
-    position: absolute;
-    top: calc(10px + 120 * var(--u) - 13.67 * var(--u));
     display: grid;
+    flex: none;
     place-items: center;
     width: calc(49.36 * var(--u));
     height: calc(27.33 * var(--u));
@@ -226,14 +235,6 @@
     background: var(--colour-arrow-wash-strong);
     color: var(--colour-display);
     cursor: pointer;
-  }
-
-  .prev {
-    left: calc(36.64 * var(--u));
-  }
-
-  .next {
-    right: calc(35.64 * var(--u));
   }
 
   .arrow[aria-disabled="true"] {

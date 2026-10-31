@@ -19,24 +19,15 @@ const cake = (n: number, over: Partial<CakeRow> = {}): CakeRow => ({
 });
 
 describe("Home cake row (§4.1, §11.3)", () => {
-  it("first five visible designs in Linda's order", () => {
+  it("the first ten visible designs in Linda's order (Bohoka 2026-10-31)", () => {
     const rows = [
-      cake(7),
-      cake(1),
-      cake(3, { visible: false }),
-      cake(2),
-      cake(5),
-      cake(4, { deleted: true }),
-      cake(6),
-      cake(8),
+      ...Array.from({ length: 14 }, (_, k) => cake(14 - k)),
+      cake(15, { visible: false, position: 0 }),
+      cake(16, { deleted: true, position: 0 }),
     ];
-    expect(homeCakes(rows).map((c) => c.slug)).toEqual([
-      "cake-1",
-      "cake-2",
-      "cake-5",
-      "cake-6",
-      "cake-7",
-    ]);
+    expect(homeCakes(rows).map((c) => c.slug)).toEqual(
+      Array.from({ length: 10 }, (_, k) => `cake-${k + 1}`),
+    );
   });
 
   it("no visible design → an empty row (the block is not rendered)", () => {

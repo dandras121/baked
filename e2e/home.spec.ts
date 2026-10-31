@@ -313,19 +313,24 @@ test("the big Home titles stay on one line on iPad widths", async ({
 });
 
 // Slice 2.3: the cake row and “Special idea?” (§4.1).
-test("cake row: the first five visible designs in Linda's order, View opens the cake page", async ({
+test("cake row: the first ten visible designs in Linda's order (Bohoka 2026-10-31), View opens the cake page", async ({
   page,
 }) => {
   await page.goto("/?hero=live");
   await expect(page.getByTestId("hero")).toHaveCount(1);
   const cards = page.locator("[data-cake-card]");
-  await expect(cards).toHaveCount(5);
+  await expect(cards).toHaveCount(10);
   await expect(cards.locator("h3")).toHaveText([
     "The Lothian",
     "Bramble & Cream",
     "Wee Beastie",
     "Sugar Peony",
     "Confetti Drum",
+    "Sample cake 6",
+    "Sample cake 7",
+    "Sample cake 8",
+    "Sample cake 9",
+    "Sample cake 10",
   ]);
   const first = cards.first();
   await expect(first).toContainText("Two tiers");
@@ -364,7 +369,7 @@ test("cake row: desktop arrows stop at the ends; phone and tablet swipe without 
   await expect(prev).toHaveAttribute("aria-disabled", "true");
   for (
     let i = 0;
-    i < 4 && (await next.getAttribute("aria-disabled")) !== "true";
+    i < 9 && (await next.getAttribute("aria-disabled")) !== "true";
     i++
   ) {
     await next.click();

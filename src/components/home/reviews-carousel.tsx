@@ -173,26 +173,17 @@ export function ReviewsCarousel({ total, first, reviewsUrl }: Props) {
         })}
       </ul>
       {several && (
-        <>
+        // Dashes with the desktop arrows on the same line, one each side (Bohoka 2026-10-31).
+        <div className={styles.controls}>
           <button
             type="button"
-            className={`${styles.arrow} ${styles.prev} hit-44`}
+            className={`${styles.arrow} hit-44`}
             data-pressable
             aria-label="Previous review"
             aria-disabled={active <= 0 || undefined}
             onClick={() => active > 0 && go(active - 1)}
           >
             <Chevron flip />
-          </button>
-          <button
-            type="button"
-            className={`${styles.arrow} ${styles.next} hit-44`}
-            data-pressable
-            aria-label="Next review"
-            aria-disabled={active >= last || undefined}
-            onClick={() => active < last && go(active + 1)}
-          >
-            <Chevron />
           </button>
           <div className={styles.indicator}>
             <SliderIndicator
@@ -202,7 +193,17 @@ export function ReviewsCarousel({ total, first, reviewsUrl }: Props) {
               label={(i, n) => `Review ${i + 1} of ${n}`}
             />
           </div>
-        </>
+          <button
+            type="button"
+            className={`${styles.arrow} hit-44`}
+            data-pressable
+            aria-label="Next review"
+            aria-disabled={active >= last || undefined}
+            onClick={() => active < last && go(active + 1)}
+          >
+            <Chevron />
+          </button>
+        </div>
       )}
     </div>
   );
