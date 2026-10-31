@@ -4,13 +4,13 @@
 import type { ApiReviewPage } from "@/lib/reviews";
 import { INITIAL_SETTINGS } from "@/lib/settings";
 import fixture from "./fixtures/google-reviews.json";
+import { ensureSampleCatalogue } from "./cake-repo";
 import { ensureFaq } from "./faq-repo";
 import { ensureSampleGallery } from "./gallery-repo";
 import { ensureLegalPages } from "./legal-repo";
 import { importReviews } from "./reviews-repo";
 import { connect } from "./client";
 import {
-  cakeSizes,
   cakes,
   closedDays,
   faqQuestions,
@@ -19,57 +19,9 @@ import {
 } from "./schema";
 import { writeSettings } from "./settings-repo";
 
-/** "Bramble & Cream" → "bramble-and-cream". */
-export function slugify(name: string): string {
-  return name
-    .toLowerCase()
-    .replace(/&/g, " and ")
-    .normalize("NFKD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-|-$/g, "");
-}
+export { slugify } from "@/lib/slug";
 
 type Db = ReturnType<typeof connect>["db"];
-
-/** The Home sample cakes (2.3); adds only the ones missing, so previews can pick up new samples (deploy-setup). */
-export async function insertSampleCakes(db: Db) {
-  const names = [
-    "The Lothian",
-    "Bramble & Cream",
-    "Wee Beastie",
-    "Sugar Peony",
-    "Confetti Drum",
-    // Ten on Home since 2026-10-31; Figma names only five, so the rest are plainly marked samples.
-    "Sample cake 6",
-    "Sample cake 7",
-    "Sample cake 8",
-    "Sample cake 9",
-    "Sample cake 10",
-  ];
-  const rows = await db
-    .insert(cakes)
-    .values(
-      names.map((name, i) => ({
-        slug: slugify(name),
-        name,
-        flavour: "Vanilla sponge, raspberry conserve, Scottish butter icing",
-        visible: true,
-        position: i + 1,
-      })),
-    )
-    .onConflictDoNothing()
-    .returning({ id: cakes.id });
-  if (rows.length === 0) return;
-  await db.insert(cakeSizes).values(
-    rows.map((r) => ({
-      cakeId: r.id,
-      serves: 24,
-      tiers: 2,
-      pricePence: 18500,
-    })),
-  );
-}
 
 /** Linda's Google reviews from the fixture (Business Profile API shape); development and previews only. */
 export async function importSampleReviews(db: Db) {
@@ -94,7 +46,7 @@ export async function seed(url?: string) {
     await db.delete(galleryPhotos);
     await ensureSampleGallery(db);
     await db.delete(cakes);
-    await insertSampleCakes(db);
+    await ensureSampleCatalogue(db);
     await importSampleReviews(db);
     await db.delete(faqQuestions);
     await ensureFaq(db);
@@ -109,7 +61,7 @@ if (process.argv[1]?.endsWith("seed.ts")) {
   seed()
     .then(() =>
       console.log(
-        "Seeded: settings, closed days, gallery, Home cakes, sample reviews, FAQ, legal pages",
+        "Seeded: settings, closed days, gallery, sample catalogue, sample reviews, FAQ, legal pages",
       ),
     )
     .catch((e) => {

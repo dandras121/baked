@@ -45,12 +45,14 @@ Branch per phase (`phase-00-foundations`, …), one commit per accepted slice, t
 
 | Slice | Title | Status | Commit | Accepted by Bohoka |
 |---|---|---|---|---|
-| 3.1 | Cake data model | ☐ | | |
+| 3.1 | Cake data model | ◐ built, waiting for Bohoka | | |
 | 3.2 | The full range: grid, filters, pages | ☐ | | |
 | 3.3 | Search field and the result motion | ☐ | | |
-| 3.4 | Cake card open / close with the card video | ☐ | | |
+| 3.4a | Cake card open / close (ANIM-11) | ☐ | | |
+| 3.4b | Card video | ☐ | | |
 | 3.5 | Cake page: media | ☐ | | |
-| 3.6 | Cake page: sizes, options, inscription, price, allergens, add to order | ☐ | | |
+| 3.6a | Cake page: sizes, options, price, allergens | ☐ | | |
+| 3.6b | Cake page: inscription, add to order, edit mode, limit | ☐ | | |
 
 ## Phase 4 — Checkout (Stripe test mode)
 
@@ -139,6 +141,10 @@ Branch per phase (`phase-00-foundations`, …), one commit per accepted slice, t
 ## Current slice
 
 - Phase 1 closed 2026-10-30 (gate in the commit “phase 1 review gate”; tag `phase-01-done` local, the git proxy refuses tag pushes).
+- **Phase 3 started 2026-10-31** on branch `phase-03-catalogue`. Bohoka's answers: 3.4 and 3.6 are split up front (3.4a card open / close, 3.4b card video; 3.6a sizes, options, price, allergens; 3.6b inscription, add to order, edit mode, limit); the sample catalogue uses the Figma names and drawn values (The Lothian's values where nothing is drawn), 2–3 cakes with options, development and previews only.
+- **3.1 Cake data model** — built, waiting for Bohoka.
+  - Files: `src/db/schema.ts` + `drizzle/0007_*` (cakes: allergens, gluten / nut kinds, also contains, categories, inscription switch; cake_options, cake_option_choices, cake_media, cake_card_videos), `src/lib/cakes.ts` (From £, sizes, every rule of §9.13 / §5.8, allergen wording), `src/lib/sample-catalogue.ts` (14 Figma cakes), `src/lib/slug.ts`, `src/db/cake-repo.ts` (insert in one transaction, free slugs, soft delete, sample catalogue, preview replacement of the 2.3 samples), seed and preview setup.
+  - Tests: `src/lib/cakes.test.ts` (From £, sorting, name / text / size / option / choice limits, gluten and nut kinds, wording, the catalogue keeps every rule), `src/db/cake-repo.test.ts` (14 in order with options and choices, a rejected cake saves nothing, the database refuses unknown allergens / categories and unnamed gluten / nuts, a deleted cake's address is never reused, hidden and deleted have no page); Home tests updated to the catalogue names.
 - **Phase 2 review gate, 2026-10-31** (Bohoka “mehet” on 2.7, 2.8a, 2.8b):
   - Tests: lint, format, typecheck clean; 450 unit and database tests; 504 end-to-end (phone, tablet, desktop) green — the hero timer test once flaky under full load, 9 / 9 alone (→ 10.1). CI green on every phase-2 commit.
   - axe: 0 violations on every page built so far (Home, About, FAQ, the seven legal pages, Contact, Message sent, Gallery and its lightbox, 404, the header, menu, footer and cookie panel).

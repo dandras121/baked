@@ -8,6 +8,7 @@ import {
   integer,
   jsonb,
   pgTable,
+  real,
   serial,
   text,
   timestamp,
@@ -89,6 +90,23 @@ export const cakes = pgTable(
     name: text("name").notNull(),
     whatItIs: text("what_it_is").notNull().default(""),
     flavour: text("flavour").notNull(),
+    /** The cake's own allergens: keys of UK_ALLERGENS (§9.13, Decided D17). */
+    allergens: text("allergens")
+      .array()
+      .notNull()
+      .default(sql`'{}'::text[]`),
+    /** Which cereals and which tree nuts, required when those are ticked (“wheat”, “almonds, hazelnuts”). */
+    glutenKinds: text("gluten_kinds").notNull().default(""),
+    nutKinds: text("nut_kinds").notNull().default(""),
+    /** The free “Also contains” line (max 120). */
+    alsoContains: text("also_contains").notNull().default(""),
+    /** The fixed four occasions (§4.2 filters); a cake can be in several. */
+    categories: text("categories")
+      .array()
+      .notNull()
+      .default(sql`'{}'::text[]`),
+    /** “Offer an inscription” (§5.8), on by default. */
+    offerInscription: boolean("offer_inscription").notNull().default(true),
     visible: boolean("visible").notNull().default(false),
     /** Linda's drag order: the catalogue order; the Home row is the first five visible. */
     position: integer("position").notNull(),
@@ -104,6 +122,26 @@ export const cakes = pgTable(
       sql`char_length(${t.flavour}) between 1 and 60`,
     ),
     check("cake_what_it_is_length", sql`char_length(${t.whatItIs}) <= 300`),
+    check(
+      "cake_allergen_keys",
+      sql`${t.allergens} <@ array['celery','cereals containing gluten','crustaceans','eggs','fish','lupin','milk','molluscs','mustard','nuts','peanuts','sesame','soya','sulphites']::text[]`,
+    ),
+    check(
+      "cake_gluten_named",
+      sql`not ('cereals containing gluten' = any(${t.allergens})) or char_length(trim(${t.glutenKinds})) > 0`,
+    ),
+    check(
+      "cake_nuts_named",
+      sql`not ('nuts' = any(${t.allergens})) or char_length(trim(${t.nutKinds})) > 0`,
+    ),
+    check(
+      "cake_also_contains_length",
+      sql`char_length(${t.alsoContains}) <= 120`,
+    ),
+    check(
+      "cake_category_keys",
+      sql`${t.categories} <@ array['birthdays','kids','weddings','corporate']::text[]`,
+    ),
     uniqueIndex("cake_name_unique_live")
       .on(sql`lower(${t.name})`)
       .where(sql`${t.deletedAt} is null`),
@@ -302,3 +340,130 @@ export const formSends = pgTable(
   },
   (t) => [index("form_sends_lookup").on(t.form, t.connection, t.at)],
 );
+
+/**
+ * A cake's options (§5.8, Decided 2026-10-21): Choice (pick one), Choices (tick several), Text (a short answer),
+ * Yes/no (one tick box). At most 6 per cake (checked when saving, §9.13).
+ */
+export const cakeOptions = pgTable(
+  "cake_options",
+  {
+    id: serial("id").primaryKey(),
+    cakeId: integer("cake_id")
+      .notNull()
+      .references(() => cakes.id, { onDelete: "cascade" }),
+    position: integer("position").notNull(),
+    type: text("type").notNull(),
+    label: text("label").notNull(),
+    help: text("help").notNull().default(""),
+    /** Choice and Text: required or not. */
+    required: boolean("required").notNull().default(false),
+    /** Choices: how many may be ticked (0–10). */
+    minPicks: integer("min_picks").notNull().default(0),
+    maxPicks: integer("max_picks").notNull().default(10),
+    /** Text: the longest answer (1–200, default 40). */
+    maxLength: integer("max_length").notNull().default(40),
+  },
+  (t) => [
+    check(
+      "option_type",
+      sql`${t.type} in ('choice', 'choices', 'text', 'yesno')`,
+    ),
+    check("option_label_length", sql`char_length(${t.label}) between 1 and 40`),
+    check("option_help_length", sql`char_length(${t.help}) <= 120`),
+    check(
+      "option_picks",
+      sql`${t.minPicks} between 0 and 10 and ${t.maxPicks} between 0 and 10 and ${t.minPicks} <= ${t.maxPicks}`,
+    ),
+    check("option_max_length", sql`${t.maxLength} between 1 and 200`),
+    index("option_cake").on(t.cakeId, t.position),
+  ],
+);
+
+/**
+ * The choices of a Choice / Choices option, or the one tick of a Yes/no (§5.8): a price add-on (£0–£1,000) and the
+ * allergens it adds. At most 10 per option.
+ */
+export const cakeOptionChoices = pgTable(
+  "cake_option_choices",
+  {
+    id: serial("id").primaryKey(),
+    optionId: integer("option_id")
+      .notNull()
+      .references(() => cakeOptions.id, { onDelete: "cascade" }),
+    position: integer("position").notNull(),
+    label: text("label").notNull(),
+    pricePence: integer("price_pence").notNull().default(0),
+    allergens: text("allergens")
+      .array()
+      .notNull()
+      .default(sql`'{}'::text[]`),
+    glutenKinds: text("gluten_kinds").notNull().default(""),
+    nutKinds: text("nut_kinds").notNull().default(""),
+    alsoContains: text("also_contains").notNull().default(""),
+  },
+  (t) => [
+    check("choice_label_length", sql`char_length(${t.label}) between 1 and 40`),
+    check("choice_price_range", sql`${t.pricePence} between 0 and 100000`),
+    check(
+      "choice_allergen_keys",
+      sql`${t.allergens} <@ array['celery','cereals containing gluten','crustaceans','eggs','fish','lupin','milk','molluscs','mustard','nuts','peanuts','sesame','soya','sulphites']::text[]`,
+    ),
+    check(
+      "choice_gluten_named",
+      sql`not ('cereals containing gluten' = any(${t.allergens})) or char_length(trim(${t.glutenKinds})) > 0`,
+    ),
+    check(
+      "choice_nuts_named",
+      sql`not ('nuts' = any(${t.allergens})) or char_length(trim(${t.nutKinds})) > 0`,
+    ),
+    index("choice_option").on(t.optionId, t.position),
+  ],
+);
+
+/**
+ * The cake page's photos and videos (§9.13): up to 8 photos (the first = the card photo) and 2 videos, in order.
+ * Each photo keeps Linda's focal point (0–1, default the centre) for every crop (§0.6). Files arrive with the
+ * media pipeline (9.2).
+ */
+export const cakeMedia = pgTable(
+  "cake_media",
+  {
+    id: serial("id").primaryKey(),
+    cakeId: integer("cake_id")
+      .notNull()
+      .references(() => cakes.id, { onDelete: "cascade" }),
+    kind: text("kind").notNull(),
+    position: integer("position").notNull(),
+    path: text("path").notNull(),
+    /** Videos: the cover picture. */
+    posterPath: text("poster_path"),
+    altText: text("alt_text").notNull().default(""),
+    focalX: real("focal_x").notNull().default(0.5),
+    focalY: real("focal_y").notNull().default(0.5),
+  },
+  (t) => [
+    check("media_kind", sql`${t.kind} in ('photo', 'video')`),
+    check(
+      "media_focal",
+      sql`${t.focalX} between 0 and 1 and ${t.focalY} between 0 and 1`,
+    ),
+    index("media_cake").on(t.cakeId, t.position),
+  ],
+);
+
+/**
+ * The card video (§9.13, Decided 2026-10-22; claude/torta-video-szabalyrendszer.md): one per cake, shown only on
+ * the cake card — closed: its first frame, open: playing (ANIM-11). Web versions 1080 and 1440 square, and a still.
+ */
+export const cakeCardVideos = pgTable("cake_card_videos", {
+  cakeId: integer("cake_id")
+    .primaryKey()
+    .references(() => cakes.id, { onDelete: "cascade" }),
+  path1080: text("path_1080").notNull(),
+  path1440: text("path_1440").notNull(),
+  stillPath: text("still_path").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+});

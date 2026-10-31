@@ -326,11 +326,11 @@ test("cake row: the first ten visible designs in Linda's order (Bohoka 2026-10-3
     "Wee Beastie",
     "Sugar Peony",
     "Confetti Drum",
-    "Sample cake 6",
-    "Sample cake 7",
-    "Sample cake 8",
-    "Sample cake 9",
-    "Sample cake 10",
+    "Almond & Rose",
+    "The Forth",
+    "Buttercream Bloom",
+    "Cocoa & Sea Salt",
+    "Tartan Ribbon",
   ]);
   const first = cards.first();
   await expect(first).toContainText("Two tiers");

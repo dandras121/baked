@@ -8,7 +8,8 @@ import { googleReviews } from "./schema";
 import { ensureFaq } from "./faq-repo";
 import { ensureSampleGallery } from "./gallery-repo";
 import { ensureLegalPages } from "./legal-repo";
-import { importSampleReviews, insertSampleCakes } from "./seed";
+import { ensureSampleCatalogue, replaceOldSamples } from "./cake-repo";
+import { importSampleReviews } from "./seed";
 import { ensureSettings } from "./settings-repo";
 
 async function main() {
@@ -27,11 +28,14 @@ async function main() {
     // The starting legal pages (§4.5) on every site, once per page; saved revisions are kept.
     const legal = await ensureLegalPages(db);
     if (legal) console.log(`deploy-setup: ${legal} starting legal pages added`);
-    // Previews only: the Home sample cakes (missing ones added), so the Home row can be checked.
+    // Previews only: the sample catalogue (missing cakes added), so the Home row can be checked.
     // Never on the live site (launch: production gets its own database, PROGRESS “Later”).
     if (process.env.VERCEL_ENV === "preview") {
-      await insertSampleCakes(db);
-      console.log("deploy-setup: preview sample cakes in place");
+      if (await replaceOldSamples(db))
+        console.log("deploy-setup: old preview sample cakes replaced");
+      const cakes = await ensureSampleCatalogue(db);
+      if (cakes)
+        console.log(`deploy-setup: ${cakes} preview sample cakes added`);
       if (await ensureSampleGallery(db))
         console.log("deploy-setup: preview sample gallery added");
       const [review] = await db
