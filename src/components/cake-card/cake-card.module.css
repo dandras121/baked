@@ -44,9 +44,26 @@
   left: 0;
   width: 100%;
   aspect-ratio: 1;
-  object-fit: cover;
   transform: var(--crop-closed);
   transform-origin: 0 0;
+}
+
+/* The still first frame, and the video over it once it plays (3.4b). */
+.frame > img,
+.frame > video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.frame > video {
+  opacity: 0;
+}
+
+.frame > video[data-playing] {
+  opacity: 1;
 }
 
 .card[data-open] .media {

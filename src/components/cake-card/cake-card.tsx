@@ -7,6 +7,7 @@ import type { CakeCardData } from "@/lib/home-content";
 import { isMotionReduced } from "@/motion/reduced-motion";
 import styles from "./cake-card.module.css";
 import { animateCard } from "./card-motion";
+import { CardVideo } from "./card-video";
 
 /** Opening a card closes any other open card on the page (ANIM-11 row E). */
 const OPEN_EVENT = "bbl:cake-card-open";
@@ -70,14 +71,11 @@ export function CakeCard({
       <div className={styles.picture}>
         <div className={styles.media} data-media>
           {cake.cardVideo && (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              className={styles.frame}
-              data-frame
-              src={cake.cardVideo.still}
-              alt=""
-              loading="lazy"
-            />
+            <div className={styles.frame} data-frame>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={cake.cardVideo.still} alt="" loading="lazy" />
+              <CardVideo video={cake.cardVideo} open={open} />
+            </div>
           )}
         </div>
         {cake.cardVideo && (

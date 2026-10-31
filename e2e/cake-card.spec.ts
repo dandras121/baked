@@ -179,3 +179,116 @@ test("axe: no violations with a card open", async ({ page }, testInfo) => {
     path: testInfo.outputPath(`${testInfo.project.name}_card-open.png`),
   });
 });
+
+// Slice 3.4b: the card video (ANIM-11 Video, Video playback).
+const video = (page: Page, name: string) => card(page, name).locator("video");
+
+test("the video is not fetched before the first open; it plays from frame 0 when fully open, looping, muted, no controls", async ({
+  page,
+}, testInfo) => {
+  const mp4: string[] = [];
+  page.on("request", (r) => {
+    if (r.url().endsWith(".mp4")) mp4.push(r.url());
+  });
+  await page.goto("/cakes");
+  await page.waitForTimeout(500);
+  expect(mp4).toEqual([]);
+  await expect(video(page, "The Lothian")).toHaveAttribute("preload", "none");
+  await corner(page, "The Lothian").click();
+  // Not before the card is fully open (500 ms).
+  await page.waitForTimeout(250);
+  expect(
+    await video(page, "The Lothian").evaluate(
+      (v: HTMLVideoElement) => v.paused,
+    ),
+  ).toBe(true);
+  await expect
+    .poll(
+      () =>
+        video(page, "The Lothian").evaluate(
+          (v: HTMLVideoElement) => !v.paused && v.currentTime > 0,
+        ),
+      {
+        timeout: 5000,
+      },
+    )
+    .toBe(true);
+  const v = await video(page, "The Lothian").evaluate(
+    (el: HTMLVideoElement) => ({
+      loop: el.loop,
+      muted: el.muted,
+      controls: el.controls,
+      inline: el.playsInline,
+      src: el.currentSrc,
+      duration: Math.round(el.duration * 10) / 10,
+    }),
+  );
+  expect(v).toMatchObject({
+    loop: true,
+    muted: true,
+    controls: false,
+    inline: true,
+    duration: 5,
+  });
+  expect(v.src).toMatch(
+    testInfo.project.name === "desktop" ? /card-1440\.mp4$/ : /card-1080\.mp4$/,
+  );
+  await expect(video(page, "The Lothian")).toHaveAttribute("data-playing", "");
+});
+
+test("closing stops the video and returns to the still first frame", async ({
+  page,
+}) => {
+  await page.goto("/cakes");
+  await corner(page, "The Lothian").click();
+  await expect(video(page, "The Lothian")).toHaveAttribute("data-playing", "", {
+    timeout: 5000,
+  });
+  await corner(page, "The Lothian").click();
+  await expect(video(page, "The Lothian")).not.toHaveAttribute("data-playing", {
+    timeout: 2000,
+  });
+  const v = await video(page, "The Lothian").evaluate(
+    (el: HTMLVideoElement) => [el.paused, el.currentTime],
+  );
+  expect(v).toEqual([true, 0]);
+});
+
+test("off screen it pauses; back on screen it carries on", async ({ page }) => {
+  await page.goto("/cakes");
+  await corner(page, "The Lothian").click();
+  await expect(video(page, "The Lothian")).toHaveAttribute("data-playing", "", {
+    timeout: 5000,
+  });
+  await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
+  await expect
+    .poll(() =>
+      video(page, "The Lothian").evaluate((v: HTMLVideoElement) => v.paused),
+    )
+    .toBe(true);
+  await card(page, "The Lothian").scrollIntoViewIfNeeded();
+  await expect
+    .poll(() =>
+      video(page, "The Lothian").evaluate((v: HTMLVideoElement) => v.paused),
+    )
+    .toBe(false);
+});
+
+test("reduced motion: the open card shows the still; the video never starts or loads", async ({
+  page,
+}) => {
+  const mp4: string[] = [];
+  page.on("request", (r) => {
+    if (r.url().endsWith(".mp4")) mp4.push(r.url());
+  });
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.goto("/cakes");
+  await corner(page, "The Lothian").click();
+  await page.waitForTimeout(1200);
+  expect(
+    await video(page, "The Lothian").evaluate(
+      (v: HTMLVideoElement) => v.paused,
+    ),
+  ).toBe(true);
+  expect(mp4).toEqual([]);
+});

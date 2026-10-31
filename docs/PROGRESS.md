@@ -48,8 +48,8 @@ Branch per phase (`phase-00-foundations`, …), one commit per accepted slice, t
 | 3.1 | Cake data model | ◐ built, waiting for Bohoka | 3b4a451 | |
 | 3.2 | The full range: grid, filters, pages | ◐ built, waiting for Bohoka | 64bf8e9 | |
 | 3.3 | Search field and the result motion | ◐ built, waiting for Bohoka | e7e1751 | |
-| 3.4a | Cake card open / close (ANIM-11) | ◐ built, waiting for Bohoka | | |
-| 3.4b | Card video | ☐ | | |
+| 3.4a | Cake card open / close (ANIM-11) | ◐ built, waiting for Bohoka | 7e2c6a5 | |
+| 3.4b | Card video | ◐ built, waiting for Bohoka | | |
 | 3.5 | Cake page: media | ☐ | | |
 | 3.6a | Cake page: sizes, options, price, allergens | ☐ | | |
 | 3.6b | Cake page: inscription, add to order, edit mode, limit | ☐ | | |
@@ -142,10 +142,12 @@ Branch per phase (`phase-00-foundations`, …), one commit per accepted slice, t
 
 - Phase 1 closed 2026-10-30 (gate in the commit “phase 1 review gate”; tag `phase-01-done` local, the git proxy refuses tag pushes).
 - **Phase 3 started 2026-10-31** on branch `phase-03-catalogue`. Bohoka's answers: 3.4 and 3.6 are split up front (3.4a card open / close, 3.4b card video; 3.6a sizes, options, price, allergens; 3.6b inscription, add to order, edit mode, limit); the sample catalogue uses the Figma names and drawn values (The Lothian's values where nothing is drawn), 2–3 cakes with options, development and previews only.
+- **3.4b Card video** — built, waiting for Bohoka.
+  - Files: `src/components/cake-card/card-video.tsx` (fetched on the first open only, 1080 / 1440, starts at 500 ms or when it can play through, loops muted inline without controls, pauses off screen and in a hidden tab, closing cross-fades it to the still in 120 ms and rewinds; reduced motion never starts it), `cake-card.tsx` / CSS (still and video share the crop transform).
+  - Tests: `src/lib/card-test-clip.test.ts` (ffprobe: square, 30 fps, 150 frames, key frame at 0, start 0, no audio), `e2e/cake-card.spec.ts` (+4: nothing fetched before the first open, plays only when fully open, loop / muted / no controls / 5 s / the right size, closing stops at frame 0, pauses off screen and resumes, reduced motion never loads).
 - **3.4a Cake card open / close (ANIM-11)** — built, waiting for Bohoka.
   - Files: `src/lib/card-crop.ts` (the drawn crops, the rule for any size, the transform that puts a crop into the box), `src/components/cake-card/` (client card: corner button with `aria-expanded`, the open title's place, one open at a time; `card-motion.ts`: Web Animations for the clip, the crop zoom, the title (position on p, size on the gentle curve), the fades and the chevron flip; CSS for both states at every size), `src/lib/home-content.ts` + `src/db/home-repo.ts` (card video in the card data), `src/db/cake-repo.ts` (sample card videos on five cakes), `public/samples/card-video/` (synthetic test clip: 1080 / 1440 MP4, still of frame 0; recipe `scripts/card-test-clip.geq`).
   - Tests: `src/lib/card-crop.test.ts` (drawn crops = JSON, aspect and bottom edge for every card, the rule gives the drawn crops, the transform), `e2e/cake-card.spec.ts` (button only with a card video, 44 px, size and price / View unchanged, title under the grown picture, open crop scale and bottom edge, timings incl. the 120 ms close delay, one open at a time, reduced motion, Home row, axe).
-  - 3.4b next: the video itself (plays when fully open, loops, pauses off screen, the 120 ms cross-fade on close).
 - **3.3 Search field and the result motion** — built, waiting for Bohoka.
   - Files: `src/lib/catalogue-search.ts` (normalising, every word in name / flavour / what it is, name matches first, 2–60 characters, 250 ms, count line), `src/components/catalogue/search-field.tsx`, `use-result-motion.ts` (ANIM-16 with the Web Animations API: leave 0–120, move 80–320, enter 160–320, a newer result starts from where the cards are), `catalogue-grid.tsx` (search, `?q=`, nothing found, Search all designs), `catalogue.ts` (`q` in the address), tokens (+1 colour).
   - Tests: `src/lib/catalogue-search.test.ts`, `e2e/catalogue.spec.ts` (+8: live from 2 characters with `?q=` and the count line, ranking and every word, inside the pill and keeping the text, × and Esc keep the focus, nothing found, shared `?q=`, ANIM-16 timings, reduced motion, axe).
