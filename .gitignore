@@ -49,3 +49,4 @@ next-env.d.ts
 
 # Written before each build from Settings (500 page).
 /public/site-facts.json
+.shots/
