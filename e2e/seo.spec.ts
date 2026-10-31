@@ -39,10 +39,16 @@ test("§4.6 deeper unknown addresses are 404 too (a cake that does not exist, a 
   for (const path of [
     "/cakes/not-a-cake",
     "/my-order/unknown-token",
-    "/order/when",
   ]) {
     expect((await page.goto(path))?.status(), path).toBe(404);
   }
+});
+
+test("§10.2 a checkout step opened without a draft goes to /cakes", async ({
+  page,
+}) => {
+  await page.goto("/order/when");
+  await expect(page).toHaveURL(/\/cakes$/);
 });
 
 test("§4.7 the 500 page (preview): Back to home, Call {phone}, Email {e-mail} from Settings", async ({

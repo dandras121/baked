@@ -9,6 +9,7 @@ export type MediaItem =
   | { kind: "video"; src: string; poster: string | null; alt: string };
 
 export type CakePageData = {
+  id: number;
   slug: string;
   name: string;
   whatItIs: string;
@@ -28,6 +29,7 @@ export type CakePageData = {
 
 export function cakePage(
   cake: {
+    id: number;
     slug: string;
     name: string;
     whatItIs: string;
@@ -40,6 +42,7 @@ export function cakePage(
   const sorted = [...sizes].sort((a, b) => a.serves - b.serves);
   const smallest = sorted[0];
   return {
+    id: cake.id,
     slug: cake.slug,
     name: cake.name,
     whatItIs: cake.whatItIs,

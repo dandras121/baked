@@ -14,6 +14,7 @@ import {
   timestamp,
   unique,
   uniqueIndex,
+  uuid,
 } from "drizzle-orm/pg-core";
 
 /** One row: the Settings values of §11.1 and §11.2 (admin Settings §9.14, Availability §9.11). */
@@ -467,3 +468,62 @@ export const cakeCardVideos = pgTable("cake_card_videos", {
     .notNull()
     .defaultNow(),
 });
+
+/**
+ * The checkout draft (§10.2): its id lives in the httpOnly cookie `bbl_session`. Deleted after 24 hours without
+ * activity. Phase 3 stores the cakes; the date, handover, details, hold and payment fields arrive with phase 4.
+ */
+export const drafts = pgTable(
+  "drafts",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    status: text("status").notNull().default("draft"),
+    /** 1 the cake · 2 when & where · 3 your details · 4 review & pay (§5). */
+    furthestStep: integer("furthest_step").notNull().default(1),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    lastActivityAt: timestamp("last_activity_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [
+    check(
+      "draft_status",
+      sql`${t.status} in ('draft', 'pending', 'confirmed', 'abandoned')`,
+    ),
+    check("draft_step", sql`${t.furthestStep} between 1 and 4`),
+    index("draft_activity").on(t.lastActivityAt),
+  ],
+);
+
+/** One cake in a draft: the size, the option answers (option and choice ids) and the inscription (§10.2). */
+export const draftLines = pgTable(
+  "draft_lines",
+  {
+    id: serial("id").primaryKey(),
+    draftId: uuid("draft_id")
+      .notNull()
+      .references(() => drafts.id, { onDelete: "cascade" }),
+    position: integer("position").notNull(),
+    cakeId: integer("cake_id")
+      .notNull()
+      .references(() => cakes.id, { onDelete: "cascade" }),
+    // A size Linda removes takes the line out of the draft with it (§5.5 notices come with phase 4).
+    sizeId: integer("size_id")
+      .notNull()
+      .references(() => cakeSizes.id, { onDelete: "cascade" }),
+    /** { picks: { optionId: choiceId[] }, texts: { optionId: text } } */
+    answers: jsonb("answers")
+      .notNull()
+      .default(sql`'{"picks":{},"texts":{}}'::jsonb`),
+    inscription: text("inscription").notNull().default(""),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [
+    check("line_inscription_length", sql`char_length(${t.inscription}) <= 48`),
+    index("line_draft").on(t.draftId, t.position),
+  ],
+);

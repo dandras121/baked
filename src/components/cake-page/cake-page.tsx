@@ -1,7 +1,18 @@
 "use client";
 
-import { useState } from "react";
+import {
+  startTransition,
+  useActionState,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
+import { addToOrder, type AddState } from "@/app/(site)/cakes/[slug]/actions";
+import { Button } from "@/components/ui/button";
+import { Notice } from "@/components/ui/notice";
+import { Overlay } from "@/components/ui/overlay";
 import { Checkbox } from "@/components/ui/choice";
+import { FieldError } from "@/components/ui/field-error";
 import { Link } from "@/components/ui/link";
 import { TextField } from "@/components/ui/text-field";
 import {
@@ -21,16 +32,25 @@ import {
 import type { CakePageData } from "@/lib/cake-page";
 import type { Allergen } from "@/lib/constants";
 import { formatPrice } from "@/lib/money";
+import { inscriptionError, LINE_COPY, optionErrors } from "@/lib/order-line";
+import { AddedPanel, CapPanel, InscriptionBlock } from "./cake-order";
 import { CakeMedia } from "./cake-media";
 import styles from "./cake-page.module.css";
 import { PriceFigure } from "./price-figure";
 
 const two = (n: number) => String(n).padStart(2, "0");
 
+const ERROR_ORDER = (cake: CakePageData) => [
+  ...cake.options.map((o) => `option-${o.id}`),
+  "inscription",
+];
+
 /**
  * The cake page, step 1 — The cake (§5.1; desktop 609:2889, phone 815:5841; with options 1715:11996). The size
- * (the smallest pre-selected), Linda's options (§5.8), the live price (ANIM-20) and the allergen line, which follows
- * the chosen options. The stepper (4.1) and the inscription and Add to your order (3.6b) come in their own slices.
+ * (the smallest pre-selected), Linda's options (§5.8), the inscription and its preview, the live price (ANIM-20),
+ * the allergen line (it follows the options) and Add to your order: the cap first, then every option and the
+ * inscription, then “Leave the cake plain?”, then “Added to your order” (or the cap notice). Without JavaScript the
+ * same form posts to the server, which asks the same questions. The stepper is slice 4.1.
  */
 export function CakePage({
   cake,
@@ -40,11 +60,95 @@ export function CakePage({
   kitchen: readonly Allergen[];
 }) {
   const sizes = sizeChoices(cake.sizes);
-  const [sizeId, setSizeId] = useState(sizes[0]?.id);
-  const [answers, setAnswers] = useState<Answers>(NO_ANSWERS);
+  const INITIAL: AddState = {
+    kind: "idle",
+    errors: {},
+    notice: null,
+    lines: [],
+    values: {
+      size: sizes[0]?.id ?? null,
+      answers: NO_ANSWERS,
+      inscription: "",
+    },
+  };
+  // Without JavaScript the form posts here; with it, the wrapper turns a lost connection into a notice.
+  const [posted, postAction] = useActionState(addToOrder, INITIAL);
+  const [state, formAction, pending] = useActionState<AddState, FormData>(
+    async (previous, form) => {
+      try {
+        return await addToOrder(previous, form);
+      } catch {
+        return {
+          ...previous,
+          kind: "failed",
+          errors: {},
+          notice: LINE_COPY.failed,
+        };
+      }
+    },
+    posted,
+  );
+  const [sizeId, setSizeId] = useState(posted.values.size ?? sizes[0]?.id);
+  const [answers, setAnswers] = useState<Answers>(posted.values.answers);
+  const [inscription, setInscription] = useState(posted.values.inscription);
+  const [errors, setErrors] = useState<Record<string, string>>(posted.errors);
+  const [askPlain, setAskPlain] = useState(false);
+  const [seen, setSeen] = useState(state);
+  const [focusFirst, setFocusFirst] = useState(0);
+  const formRef = useRef<HTMLFormElement>(null);
+  const plainRef = useRef<HTMLInputElement>(null);
+  // Where the focus goes when the sheet closes: the field (Add a message, Esc) or the added panel (Yes).
+  const afterSheet = useRef<"field" | "added">("field");
   const size = sizes.find((s) => s.id === sizeId) ?? sizes[0];
   const price = size ? linePricePence(size, cake.options, answers) : 0;
   const includes = includesLine(cake.options, answers);
+
+  // A server answer: errors come back under their fields; “plain” opens the sheet.
+  if (state !== seen) {
+    setSeen(state);
+    if (state.kind === "invalid") {
+      setErrors(state.errors);
+      setFocusFirst((n) => n + 1);
+    }
+    if (state.kind === "plain") setAskPlain(true);
+  }
+
+  useEffect(() => {
+    if (!focusFirst) return;
+    const first = ERROR_ORDER(cake).find((f) => errors[f]);
+    formRef.current
+      ?.querySelector<HTMLElement>(
+        `[data-field="${first}"] input:not([type=hidden]), [data-field="${first}"] textarea`,
+      )
+      ?.focus();
+    // Only when a failed Add asks for it.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [focusFirst]);
+
+  /** A field with an error is checked again as it is corrected. */
+  const recheck = (nextAnswers: Answers, nextInscription: string) => {
+    if (!Object.keys(errors).length) return;
+    const now: Record<string, string> = {};
+    for (const [id, m] of Object.entries(
+      optionErrors(cake.options, nextAnswers),
+    ))
+      if (errors[`option-${id}`]) now[`option-${id}`] = m;
+    const ins = cake.offerInscription
+      ? inscriptionError(nextInscription)
+      : null;
+    if (ins && errors.inscription) now.inscription = ins;
+    setErrors(now);
+  };
+
+  const submit = (plain: boolean) => {
+    const form = formRef.current;
+    if (!form || pending) return;
+    if (plainRef.current) plainRef.current.value = plain ? "1" : "";
+    const data = new FormData(form);
+    startTransition(() => formAction(data));
+  };
+
+  const done = state.kind === "added" || state.kind === "cap";
 
   return (
     <div className={styles.page}>
@@ -59,55 +163,139 @@ export function CakePage({
         {cake.from && <p className={styles.from}>{cake.from}</p>}
         <hr className={styles.rule} />
 
-        {size && (
-          <fieldset className={styles.section}>
-            <legend className={styles.sectionLabel}>01 · Size</legend>
-            {sizes.length === 1 ? (
-              <p className={styles.oneSize}>
-                Serves {size.serves} · {tierWords(size.tiers)}
-              </p>
-            ) : (
-              <div className={styles.pills} data-kind="size">
-                {sizes.map((s) => (
-                  <Pill
-                    key={s.id}
-                    name="size"
-                    value={s.id}
-                    checked={s.id === size.id}
-                    title={s.name}
-                    extra={s.extra}
-                    detail={tierWords(s.tiers)}
-                    onChange={() => setSizeId(s.id)}
-                  />
-                ))}
-              </div>
-            )}
-          </fieldset>
-        )}
+        {state.kind === "added" && <AddedPanel lines={state.lines} />}
+        {state.kind === "cap" && <CapPanel />}
 
-        {cake.options.map((o, i) => (
-          <OptionBlock
-            key={o.id}
-            number={i + 2}
-            option={o}
-            answers={answers}
-            onChange={setAnswers}
-          />
-        ))}
-
-        <hr className={styles.rule} />
-        <div className={styles.price}>
-          <PriceFigure text={formatPrice(price)} className={styles.amount} />
+        <form
+          ref={formRef}
+          action={postAction}
+          noValidate
+          hidden={done}
+          onSubmit={(e) => {
+            e.preventDefault();
+            const found: Record<string, string> = {};
+            for (const [id, m] of Object.entries(
+              optionErrors(cake.options, answers),
+            ))
+              found[`option-${id}`] = m;
+            const ins = cake.offerInscription
+              ? inscriptionError(inscription)
+              : null;
+            if (ins) found.inscription = ins;
+            setErrors(found);
+            // The cap is the server's to check first; with errors here it still asks, so the cap notice wins.
+            if (Object.keys(found).length) setFocusFirst((n) => n + 1);
+            submit(false);
+          }}
+        >
+          <input type="hidden" name="slug" value={cake.slug} />
+          <input ref={plainRef} type="hidden" name="plain" defaultValue="" />
           {size && (
-            <p className={styles.detail}>
-              {priceDetail(size, {
-                offered: cake.offerInscription,
-                text: "",
-              })}
-            </p>
+            <fieldset className={styles.section}>
+              <legend className={styles.sectionLabel}>01 · Size</legend>
+              {sizes.length === 1 ? (
+                <>
+                  <input type="hidden" name="size" value={size.id} />
+                  <p className={styles.oneSize}>
+                    Serves {size.serves} · {tierWords(size.tiers)}
+                  </p>
+                </>
+              ) : (
+                <div className={styles.pills} data-kind="size">
+                  {sizes.map((s) => (
+                    <Pill
+                      key={s.id}
+                      name="size"
+                      value={s.id}
+                      checked={s.id === size.id}
+                      title={s.name}
+                      extra={s.extra}
+                      detail={tierWords(s.tiers)}
+                      onChange={() => setSizeId(s.id)}
+                    />
+                  ))}
+                </div>
+              )}
+            </fieldset>
           )}
-        </div>
-        {includes && <p className={styles.includes}>{includes}</p>}
+
+          {cake.options.map((o, i) => (
+            <OptionBlock
+              key={o.id}
+              number={i + 2}
+              option={o}
+              answers={answers}
+              error={errors[`option-${o.id}`]}
+              onChange={(a) => {
+                setAnswers(a);
+                recheck(a, inscription);
+              }}
+            />
+          ))}
+
+          {cake.offerInscription && (
+            <InscriptionBlock
+              number={cake.options.length + 2}
+              value={inscription}
+              error={errors.inscription}
+              onChange={(t) => {
+                setInscription(t);
+                recheck(answers, t);
+              }}
+            />
+          )}
+
+          <hr className={styles.rule} />
+          <div className={styles.price}>
+            <PriceFigure text={formatPrice(price)} className={styles.amount} />
+            {size && (
+              <p className={styles.detail}>
+                {priceDetail(size, {
+                  offered: cake.offerInscription,
+                  text: inscription,
+                })}
+              </p>
+            )}
+          </div>
+          {includes && <p className={styles.includes}>{includes}</p>}
+
+          {/* Without JavaScript the plain question comes back from the server as part of the page (only a
+              JavaScript-free post fills `posted`; with JavaScript the sheet asks instead). */}
+          {posted.kind === "plain" && (
+            <Notice title={LINE_COPY.plainTitle}>
+              {LINE_COPY.plainText}{" "}
+              <button
+                type="submit"
+                name="plain"
+                value="1"
+                className={styles.noJsButton}
+              >
+                Yes, keep it plain
+              </button>
+            </Notice>
+          )}
+
+          <Button
+            type="submit"
+            block
+            className={styles.add}
+            busy={pending}
+            busyLabel="Adding"
+          >
+            Add to your order
+          </Button>
+          {state.kind === "failed" && state.notice && (
+            <div className={styles.addNotice}>
+              <Notice tone="error" urgent title="Nothing was added">
+                {state.notice}
+              </Notice>
+            </div>
+          )}
+          <p className={styles.addNote}>
+            Nothing is charged yet — add another cake if you need one, then pick
+            a date for the whole order.
+          </p>
+        </form>
       </div>
 
       <section className={styles.allergens} aria-labelledby="allergens-heading">
@@ -121,6 +309,45 @@ export function CakePage({
           See full allergen information →
         </Link>
       </section>
+
+      <Overlay
+        open={askPlain}
+        title={LINE_COPY.plainTitle}
+        description={LINE_COPY.plainText}
+        onClose={() => {
+          // Esc = Add a message: back to the field.
+          afterSheet.current = "field";
+          setAskPlain(false);
+        }}
+        returnFocus={() =>
+          afterSheet.current === "added"
+            ? document.getElementById("added-heading")
+            : (formRef.current?.querySelector<HTMLInputElement>(
+                '[name="inscription"]',
+              ) ?? null)
+        }
+      >
+        <Button
+          size="compact"
+          onClick={() => {
+            afterSheet.current = "added";
+            setAskPlain(false);
+            submit(true);
+          }}
+        >
+          Yes, keep it plain
+        </Button>
+        <Button
+          size="compact"
+          variant="outline"
+          onClick={() => {
+            afterSheet.current = "field";
+            setAskPlain(false);
+          }}
+        >
+          Add a message
+        </Button>
+      </Overlay>
     </div>
   );
 }
@@ -175,21 +402,26 @@ function OptionBlock({
   option: o,
   answers,
   onChange,
+  error,
 }: {
   number: number;
   option: OptionView;
   answers: Answers;
   onChange: (a: Answers) => void;
+  error?: string;
 }) {
+  const errorId = `option-${o.id}-error`;
   const label = `${two(number)} · ${o.label}`;
   const picks = answers.picks[o.id] ?? [];
   const pick = (choiceId: number) => onChange(togglePick(o, answers, choiceId));
 
   if (o.type === "text")
     return (
-      <div className={styles.section}>
+      <div className={styles.section} data-field={`option-${o.id}`}>
+        <input type="hidden" name={`kind-${o.id}`} value="text" />
         <TextField
           label={label}
+          error={error}
           name={`option-${o.id}`}
           max={o.maxLength}
           counterMode="always"
@@ -206,7 +438,12 @@ function OptionBlock({
     );
 
   return (
-    <fieldset className={styles.section}>
+    <fieldset
+      className={styles.section}
+      data-field={`option-${o.id}`}
+      data-error={error ? "" : undefined}
+      aria-describedby={error ? errorId : undefined}
+    >
       <legend className={styles.sectionLabel}>{label}</legend>
       {o.help && o.type !== "yesno" && <p className={styles.help}>{o.help}</p>}
       {o.type === "choice" && (
@@ -252,6 +489,7 @@ function OptionBlock({
           ))}
         </div>
       )}
+      <FieldError id={errorId} message={error} />
     </fieldset>
   );
 }

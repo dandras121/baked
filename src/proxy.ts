@@ -1,9 +1,11 @@
+// Checkout steps (§10.2) open only with a live draft; without one they go to /cakes.
 // Message sent (§7.4) is shown only after a send (a signed link valid 10 minutes); opened directly it goes to the form.
 // Cake addresses (§11.3): only a visible, not deleted cake has a page; any other /cakes/{slug} is a real 404 (status 404, not the 404 page sent with 200). The list is read from the database and kept for a
 // minute, so showing or hiding a cake in the admin takes effect without a deploy.
 import { and, eq, isNull } from "drizzle-orm";
 import { NextResponse, type NextRequest } from "next/server";
 import { connect, databaseUrl } from "@/db/client";
+import { DRAFT_COOKIE, liveDraft } from "@/db/draft-repo";
 import { cakes } from "@/db/schema";
 import { sentTokenValid } from "@/lib/sent-token";
 
@@ -26,7 +28,24 @@ async function visibleSlugs(): Promise<Set<string>> {
   }
 }
 
+/** True when the bbl_session cookie points at a live draft (§10.2). */
+async function hasDraft(request: NextRequest): Promise<boolean> {
+  const id = request.cookies.get(DRAFT_COOKIE)?.value;
+  if (!id || !databaseUrl()) return false;
+  const { db, close } = connect();
+  try {
+    return (await liveDraft(db, id)) !== null;
+  } finally {
+    await close();
+  }
+}
+
 export async function proxy(request: NextRequest) {
+  // A checkout step opened without a draft goes to the range (§10.2 Opening a step directly).
+  if (request.nextUrl.pathname.startsWith("/order/")) {
+    if (await hasDraft(request)) return NextResponse.next();
+    return NextResponse.redirect(new URL("/cakes", request.url));
+  }
   if (request.nextUrl.pathname === "/contact/sent") {
     if (sentTokenValid("contact", request.nextUrl.searchParams.get("t")))
       return NextResponse.next();
@@ -41,4 +60,6 @@ export async function proxy(request: NextRequest) {
   return NextResponse.rewrite(new URL("/__not-found", request.url));
 }
 
-export const config = { matcher: ["/cakes/:slug", "/contact/sent"] };
+export const config = {
+  matcher: ["/cakes/:slug", "/contact/sent", "/order/:path*"],
+};

@@ -562,3 +562,13 @@
 .type-allergen-line {
   font: var(--type-allergen-line);
 }
+
+.type-preview {
+  font: var(--type-preview);
+  font-variation-settings: var(--font-display-axes);
+}
+
+.type-preview-phone {
+  font: var(--type-preview-phone);
+  font-variation-settings: var(--font-display-axes);
+}

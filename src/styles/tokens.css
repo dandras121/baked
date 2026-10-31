@@ -189,6 +189,8 @@
   --type-price-lg: 300 max(calc(46px * var(--type-scale)), min(46px, 14px))/normal var(--font-ui); /* cake page price · 611:2961 */
   --type-price-lg-phone: 300 34px/38px var(--font-ui); /* cake page price on the phone · 815:5919 */
   --type-allergen-line: 400 max(calc(14px * var(--type-scale)), min(14px, 14px))/calc(23px * var(--type-scale)) var(--font-ui); /* cake page allergen line · 611:2973 */
+  --type-preview: 300 italic max(calc(32px * var(--type-scale)), min(32px, 14px))/normal var(--font-display); /* HOW IT WILL LOOK preview · 611:2956 */
+  --type-preview-phone: 300 22px/30px var(--font-display); /* the preview on the phone · 815:5915 */
   --type-legal-intro-phone: 400 12px/20px var(--font-ui); /* legal page intro on the phone · 844:7228 */
   --type-legal-heading: 400 max(calc(19px * var(--type-scale)), min(19px, 14px))/normal var(--font-display); /* legal section heading · 664:4192 */
   --type-contact-detail: 400 max(calc(16px * var(--type-scale)), min(16px, 14px))/normal var(--font-display); /* Contact “THE DETAILS” item heading (Email, Phone …) · 656:3904 */

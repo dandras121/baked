@@ -76,7 +76,7 @@ test("options are numbered on from the size, in Linda's order", async ({
 
 test("a Text option has a live counter at Linda's limit", async ({ page }) => {
   await page.goto("/cakes/wee-beastie");
-  const field = page.getByRole("textbox");
+  const field = page.getByRole("textbox", { name: /Name on the topper/ });
   await field.fill("Isla");
   await expect(page.getByText(/^4 \/ \d+$/)).toBeVisible();
 });

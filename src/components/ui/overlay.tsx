@@ -29,6 +29,8 @@ type OverlayProps = {
   description?: ReactNode;
   /** The buttons; the first one gets the focus. */
   children: ReactNode;
+  /** Where the focus goes on close; by default back to the opener. */
+  returnFocus?: () => HTMLElement | null;
   /** Force a kind (tests, previews); by default it follows the input (RESPONSIVE §1). */
   kind?: "dialog" | "sheet";
   /** Own layout for a panel that is more than a confirm (e.g. the cookie settings). */
@@ -63,11 +65,16 @@ export function Overlay({
   children,
   kind: forced,
   classNames = {},
+  returnFocus,
 }: OverlayProps) {
   const ref = useRef<HTMLDialogElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
   const scrimRef = useRef<HTMLDivElement>(null);
   const opener = useRef<Element | null>(null);
+  const returnTo = useRef(returnFocus);
+  useEffect(() => {
+    returnTo.current = returnFocus;
+  });
   const [kind, setKind] = useState<"dialog" | "sheet">(forced ?? "dialog");
   const [mounted, setMounted] = useState(open);
   const titleId = useId();
@@ -145,7 +152,10 @@ export function Overlay({
     const finish = () => {
       dialog.close();
       delete document.documentElement.dataset.overlayOpen;
-      (opener.current as HTMLElement | null)?.focus?.({ preventScroll: true });
+      const target = returnTo.current
+        ? returnTo.current()
+        : (opener.current as HTMLElement | null);
+      target?.focus?.({ preventScroll: true });
       setMounted(false);
     };
     if (!p || isMotionReduced()) return finish();

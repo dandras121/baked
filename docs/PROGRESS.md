@@ -45,14 +45,15 @@ Branch per phase (`phase-00-foundations`, …), one commit per accepted slice, t
 
 | Slice | Title | Status | Commit | Accepted by Bohoka |
 |---|---|---|---|---|
-| 3.1 | Cake data model | ◐ built, waiting for Bohoka | 3b4a451 | |
-| 3.2 | The full range: grid, filters, pages | ◐ built, waiting for Bohoka | 64bf8e9 | |
-| 3.3 | Search field and the result motion | ◐ built, waiting for Bohoka | e7e1751 | |
-| 3.4a | Cake card open / close (ANIM-11) | ◐ built, waiting for Bohoka | 7e2c6a5 | |
-| 3.4b | Card video | ◐ built, waiting for Bohoka | | |
-| 3.5 | Cake page: media | ◐ built, waiting for Bohoka | ca16ef4 | |
-| 3.6a | Cake page: sizes, options, price, allergens | ◐ built, waiting for Bohoka | 1f46868 | |
-| 3.6b | Cake page: inscription, add to order, edit mode, limit | ☐ | | |
+| 3.1 | Cake data model | ✅ accepted 2026-10-31 | 3b4a451 | |
+| 3.2 | The full range: grid, filters, pages | ✅ accepted 2026-10-31 | 64bf8e9 | |
+| 3.3 | Search field and the result motion | ✅ accepted 2026-10-31 | e7e1751 | |
+| 3.4a | Cake card open / close (ANIM-11) | ✅ accepted 2026-10-31 | 7e2c6a5 | |
+| 3.4b | Card video | ✅ accepted 2026-10-31 | | |
+| 3.5 | Cake page: media | ✅ accepted 2026-10-31 | ca16ef4 | |
+| 3.6a | Cake page: sizes, options, price, allergens | ✅ accepted 2026-10-31 | 1f46868 | |
+| 3.6b | Cake page: inscription, Add to your order, the draft, the 5-cake cap | ◐ built, waiting for Bohoka | | |
+| 3.6c | Cake page: edit mode `?line=`, Save this cake, “Your order was cleared” | ☐ | | |
 
 ## Phase 4 — Checkout (Stripe test mode)
 
@@ -146,6 +147,7 @@ Branch per phase (`phase-00-foundations`, …), one commit per accepted slice, t
 - **3.5 Cake page: media** — built, waiting for Bohoka. Files: `src/components/cake-page/*`, `src/lib/cake-page.ts`, `src/db/cake-page-repo.ts`, `src/app/(site)/cakes/[slug]/page.tsx`, sample photos in `public/samples/cake-photos/` (seed: The Lothian 3 photos + the test video, Bramble & Cream 1 photo). Tests: `e2e/cake-page.spec.ts` (arrows stop at the ends, thumbnails, ANIM-22 240 ms, video muted loop / tap to unmute / moving on stops it, reduced motion play button, phone swipe moves the dashes, one-photo and no-photo cakes have no controls, axe). Later: the stepper (4.1); sizes, options, price, allergens (3.6a); the second phone “← Back to the range” at the bottom (3.6b).
 - **3.6a Cake page: sizes, options, price, allergens** — built, waiting for Bohoka. Files: `src/lib/cake-config.ts` (+ tests: sizes against the smallest, tier words, price in pence, Includes line, picking rules, allergen line with options and kitchen list), `src/components/cake-page/{cake-page,price-figure}.tsx`, `src/db/cake-page-repo.ts` (options and choices). Tests: `e2e/cake-config.spec.ts`. Later (3.6b): the inscription and its preview, Add to your order with the option checks (“Choose a sponge.”), the draft, edit mode, the 5-cake cap; without JavaScript the price does not update (the order form posts in 3.6b).
 - **Design fixes (Bohoka 2026-10-31: “cut-off tops”)** — checked every page at 320–1920 px with three scripted audits: controls cut off by a clipping parent when they grow (ANIM-07), controls painted over by another element, sideways overflow. Fixed: (1) iPhone / iPad zoomed in when a field under 16 px got focus and stayed zoomed, so the page looked cut off — on iOS only the viewport gets maximum-scale=1 (pinch zoom still works there; other browsers keep zoom free); (2) the open phone catalogue card's picture covered the top of View — View is drawn 52 × 28 as in 1777:12896 (44 × 44 hit area) and the bottom row sits above the picture; (3) the phone filter-pill row, the desktop review cards and the cake page thumbnails got room to grow; (4) the Home “View the whole collection” and the review rating link stay above neighbouring blocks. No sideways overflow found. Tests: `e2e/ios-focus-zoom.spec.ts`, “open card: nothing covers the price or View”.
+- **3.6b Inscription, Add to your order, draft, cap** — built, waiting for Bohoka. Bohoka accepted 3.1–3.6a and the design fixes 2026-10-31 (“most jó, mehet tovább”). 3.6 was split once more: edit mode and the “cleared” message moved to 3.6c (the slice is still about 1,150 formatted lines with CSS, over the ~600 guide — the parts only work together). Files: `src/lib/order-line.ts` (+ tests: the pipeable set, 24 characters as seen, curly quotes, option errors, the order line, the cap copy), `drizzle/0008_checkout_draft.sql` + `src/db/schema.ts` (drafts, draft_lines), `src/db/draft-repo.ts` (+ DB tests: one draft per cookie, order, 5-cake cap under a row lock incl. two Adds at once, 24-hour expiry), `src/app/(site)/cakes/[slug]/actions.ts` (addToOrder: cap → checks → plain question → add; bbl_session httpOnly 7 days), `src/components/cake-page/{cake-page,cake-order}.tsx`, `src/components/ui/overlay.tsx` (returnFocus), `src/proxy.ts` (/order/* needs a live draft), `/order/when` stand-in (4.2). Tests: `e2e/cake-add.spec.ts` (+ no-JS post).
   - Files: `src/components/cake-card/card-video.tsx` (fetched on the first open only, 1080 / 1440, starts at 500 ms or when it can play through, loops muted inline without controls, pauses off screen and in a hidden tab, closing cross-fades it to the still in 120 ms and rewinds; reduced motion never starts it), `cake-card.tsx` / CSS (still and video share the crop transform).
   - Tests: `src/lib/card-test-clip.test.ts` (ffprobe: square, 30 fps, 150 frames, key frame at 0, start 0, no audio), `e2e/cake-card.spec.ts` (+4: nothing fetched before the first open, plays only when fully open, loop / muted / no controls / 5 s / the right size, closing stops at frame 0, pauses off screen and resumes, reduced motion never loads).
 - **3.4a Cake card open / close (ANIM-11)** — built, waiting for Bohoka.

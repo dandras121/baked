@@ -611,3 +611,203 @@
     font: var(--type-meta);
   }
 }
+
+/* ---- Inscription, Add to your order, after adding (3.6b; 606:2895, 1096:9111, 1199:9241) ---- */
+.section[data-error] .sectionLabel {
+  color: var(--colour-error);
+}
+
+.preview,
+.previewEmpty {
+  margin: 10px 0 0;
+  overflow-wrap: anywhere;
+}
+
+.preview {
+  color: var(--colour-ink);
+  font: var(--type-preview-phone);
+  font-variation-settings: var(--font-display-axes);
+}
+
+.previewEmpty {
+  color: var(--colour-meta);
+  font: var(--type-answer-phone);
+}
+
+.add {
+  margin-top: 18px;
+}
+
+.addNotice {
+  margin-top: 12px;
+}
+
+.addNote,
+.note {
+  margin: 12px 0 0;
+  color: var(--colour-meta);
+  font: var(--type-caption-phone);
+  line-height: 18px;
+}
+
+.noJsButton {
+  margin-top: 8px;
+  padding: 10px 20px;
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: var(--colour-ink);
+  color: var(--colour-paper);
+  font: var(--type-button-sm);
+}
+
+.after {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-top: 24px;
+}
+
+.afterTitle {
+  margin: 0;
+  color: var(--colour-display);
+  font: var(--type-question-phone);
+}
+
+.afterTitle:focus {
+  outline: none;
+}
+
+.panel {
+  padding: 16px;
+  border: 1px solid var(--colour-line-category);
+  border-radius: 14px;
+  background: var(--colour-white);
+}
+
+.lines {
+  margin: 12px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.line {
+  display: flex;
+  gap: 16px;
+  justify-content: space-between;
+  padding: 6px 0;
+  color: var(--colour-body);
+  font: var(--type-caption);
+}
+
+.line + .line {
+  border-top: 1px solid var(--colour-line-rule);
+}
+
+.lineOptions {
+  display: block;
+  margin-top: 2px;
+  color: var(--colour-meta);
+}
+
+.linePrice {
+  flex: none;
+  color: var(--colour-ink);
+  font-weight: 500;
+}
+
+.panelNote {
+  margin: 10px 0 0;
+  color: var(--colour-meta);
+  font: var(--type-caption);
+}
+
+.rows {
+  margin: 12px 0 0;
+}
+
+.rows > div {
+  display: flex;
+  justify-content: space-between;
+  padding: 6px 0;
+  color: var(--colour-body);
+  font: var(--type-caption);
+}
+
+.rows > div + div {
+  border-top: 1px solid var(--colour-line-rule);
+}
+
+.rows dd {
+  margin: 0;
+  color: var(--colour-ink);
+  font-weight: 500;
+}
+
+.actions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.backToOrder {
+  align-self: flex-start;
+  color: var(--colour-accent);
+  font: var(--type-meta);
+}
+
+@media (min-width: 768px) {
+  .preview,
+  .previewEmpty {
+    margin-top: calc(12 * var(--u));
+  }
+
+  .preview {
+    font: var(--type-preview);
+  }
+
+  .previewEmpty {
+    font: var(--type-meta);
+    line-height: 20px;
+  }
+
+  .add {
+    margin-top: calc(22 * var(--u));
+  }
+
+  .addNote,
+  .note {
+    margin-top: calc(14 * var(--u));
+    color: var(--colour-body);
+    font: var(--type-meta);
+    line-height: 21px;
+  }
+
+  .after {
+    gap: calc(20 * var(--u));
+    margin-top: calc(34 * var(--u));
+  }
+
+  .afterTitle {
+    font: var(--type-heading-sm);
+  }
+
+  .panel {
+    padding: calc(20 * var(--u));
+  }
+
+  .actions {
+    flex-direction: row;
+    gap: calc(20 * var(--u));
+  }
+
+  .grow {
+    flex: 1;
+  }
+}
+
+/* The panel headings are violet on every width (1096:9114). */
+.panel .sectionLabel {
+  color: var(--colour-accent);
+  font: var(--type-category-phone);
+  letter-spacing: 0.18em;
+}
