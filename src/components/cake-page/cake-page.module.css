@@ -811,3 +811,77 @@
   font: var(--type-category-phone);
   letter-spacing: 0.18em;
 }
+
+/*
+ * The configurator in the site's own look (Bohoka 2026-10-31: “jobban a weboldalhoz illő”): a rounded card with
+ * the pink-to-lilac wash of the header and bands, white pills with a lilac edge, the chosen one glowing violet
+ * like the navigation underline, violet labels and price.
+ */
+.config {
+  margin-top: 24px;
+  padding: 20px 16px 22px;
+  border: 1px solid var(--colour-line-glass);
+  border-radius: var(--radius-card);
+  background: linear-gradient(
+    160deg,
+    var(--colour-wash-pink),
+    var(--colour-wash-lilac)
+  );
+  box-shadow: var(--shadow-card-inner);
+}
+
+.config > fieldset:first-of-type {
+  margin-top: 0;
+}
+
+/* The card itself separates it from the cake's lines; the rule above it would be a second edge. */
+.rule:has(+ .config:not([hidden])) {
+  display: none;
+}
+
+.config .sectionLabel {
+  color: var(--colour-accent);
+}
+
+.config .rule {
+  background: var(--colour-line-category);
+}
+
+.config .pill {
+  border-color: var(--colour-line-category);
+  border-radius: 14px;
+  background: var(--colour-white);
+  transition: box-shadow var(--duration-200) var(--ease-out);
+}
+
+.config .pill[data-checked] {
+  border-color: var(--colour-display);
+  background: var(--colour-white);
+  box-shadow:
+    inset 0 0 0 0.5px var(--colour-display),
+    var(--shadow-pill-selected);
+}
+
+.config .pill[data-checked] .pillName {
+  color: var(--colour-display);
+}
+
+.config .amount {
+  color: var(--colour-display);
+}
+
+@media (min-width: 768px) {
+  .config {
+    margin-top: calc(34 * var(--u));
+    padding: calc(30 * var(--u)) calc(32 * var(--u)) calc(32 * var(--u));
+  }
+
+  .config .sectionLabel {
+    color: var(--colour-accent);
+  }
+
+  /* Three choices to a row inside the card. */
+  .config .pills[data-kind="choice"] .pill {
+    flex: 0 0 calc((100% - 24 * var(--u)) / 3);
+  }
+}

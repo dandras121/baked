@@ -5,11 +5,12 @@
  * positions. Between the drawn widths its type follows the width too (min of the band size and the
  * width-scaled size), so the wordmark never wraps across the photo (DEVIATIONS 2.1).
  */
+/* The photo fills the hero from edge to edge, with no frame or rounded corners (Bohoka 2026-10-31); the phone
+   slide is shorter than drawn (402 × 600 instead of 370 × 712). */
 .hero {
   width: calc(402 * var(--u));
-  height: calc(774 * var(--u));
   margin-inline: auto;
-  padding: calc(15.9 * var(--u)) calc(16 * var(--u)) 0;
+  padding-bottom: calc(31 * var(--u));
 }
 
 .slider {
@@ -38,9 +39,8 @@
 
 .frame {
   position: relative;
-  aspect-ratio: 370 / 712;
+  aspect-ratio: 402 / 600;
   overflow: hidden;
-  border-radius: calc(15 * var(--u));
   background: var(--colour-placeholder);
 }
 
@@ -62,13 +62,14 @@
   inset: 0;
 }
 
+/* The shorter phone slide crops the photo so the text keeps the wall above the cakes and the buttons the marble below them. */
 .photo {
   position: absolute;
-  top: 0;
-  left: 0;
-  width: 108.95%;
-  max-width: none;
-  height: auto;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 50% 63%;
 }
 
 /* Phone: the wordmark is not drawn on the phone hero; it stays the page's heading for screen readers. */
@@ -84,8 +85,8 @@
 
 .question {
   position: absolute;
-  top: calc(52.72 * var(--u));
-  left: calc(10.3 * var(--u));
+  top: calc(44 * var(--u));
+  left: calc(26.3 * var(--u));
   width: calc(348.7 * var(--u));
   margin: 0;
   color: var(--colour-display);
@@ -104,8 +105,8 @@
 }
 
 .bodyPhone {
-  top: calc(194.8 * var(--u));
-  left: calc(13.34 * var(--u));
+  top: calc(186 * var(--u));
+  left: calc(29.34 * var(--u));
   width: calc(281.76 * var(--u));
   font-size: min(14px, calc(14 * var(--u)));
   line-height: min(15px, calc(15 * var(--u)));
@@ -117,7 +118,7 @@
 
 .hero .cta {
   position: absolute;
-  top: calc(657 * var(--u));
+  top: calc(543 * var(--u));
   min-height: 45px;
   padding-inline: 0;
   font: var(--type-button-sm);
@@ -125,12 +126,12 @@
 }
 
 .hero .start {
-  left: calc(13.35 * var(--u));
+  left: calc(29.35 * var(--u));
   width: calc(139 * var(--u));
 }
 
 .hero .about {
-  left: calc(178 * var(--u));
+  left: calc(194 * var(--u));
   width: calc(181 * var(--u));
 }
 
@@ -164,14 +165,22 @@
 }
 
 @media (min-width: 768px) {
+  /* Edge to edge on every width; the text keeps its place on the 1280 composition, centred. */
   .hero {
-    width: calc(1280 * var(--u));
-    height: calc(616 * var(--u));
-    padding: calc(22 * var(--u)) calc(39 * var(--u)) 0;
+    width: 100%;
+    padding-bottom: calc(89 * var(--u));
   }
 
   .frame {
-    aspect-ratio: 1202 / 492;
+    aspect-ratio: auto;
+    height: calc(524 * var(--u));
+  }
+
+  .layer {
+    left: 50%;
+    right: auto;
+    width: calc(1280 * var(--u));
+    margin-left: calc(-640 * var(--u));
   }
 
   .photo {
@@ -255,8 +264,9 @@
   }
 
   .controls {
-    margin-top: calc(8 * var(--u));
-    padding-left: calc(15.76 * var(--u));
+    width: calc(1280 * var(--u));
+    margin: calc(8 * var(--u)) auto 0;
+    padding-left: calc(54.76 * var(--u));
   }
 }
 
@@ -265,11 +275,11 @@
    left. The wordmark does not fit there, so it is read out only, as on the phone. */
 @media (min-width: 768px) and (max-width: 1119.98px) and (orientation: portrait) {
   .hero {
-    height: auto;
     padding-bottom: calc(88 * var(--u));
   }
 
   .frame {
+    height: auto;
     aspect-ratio: 1;
   }
 

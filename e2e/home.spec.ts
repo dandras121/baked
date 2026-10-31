@@ -105,6 +105,12 @@ test("pauses while hovered and with keyboard focus inside", async ({
   expect(await activeIndex(page)).toBe(0);
 });
 
+/** A click outside the hero (it runs edge to edge, so below it), which takes the focus and the pointer away. */
+async function clickAway(page: Page) {
+  const h = page.viewportSize()!.height;
+  await page.locator("body").click({ position: { x: 2, y: h - 4 } });
+}
+
 test("the pause button stops and restarts the slides", async ({ page }) => {
   await page.clock.install();
   await page.goto("/");
@@ -112,11 +118,11 @@ test("the pause button stops and restarts the slides", async ({ page }) => {
   await page.mouse.move(0, 0);
   await live(page);
   await page.getByRole("button", { name: "Pause the slides" }).click();
-  await page.locator("body").click({ position: { x: 2, y: 400 } }); // focus away
+  await clickAway(page); // focus away (below the edge-to-edge hero)
   await page.clock.runFor(13000);
   expect(await activeIndex(page)).toBe(0);
   await page.getByRole("button", { name: "Play the slides" }).click();
-  await page.locator("body").click({ position: { x: 2, y: 400 } });
+  await clickAway(page);
   await page.clock.runFor(6000);
   await expect.poll(() => activeIndex(page)).toBe(1);
 });

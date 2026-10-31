@@ -171,6 +171,7 @@ export function CakePage({
           action={postAction}
           noValidate
           hidden={done}
+          className={styles.config}
           onSubmit={(e) => {
             e.preventDefault();
             const found: Record<string, string> = {};

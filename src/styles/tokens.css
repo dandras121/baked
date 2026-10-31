@@ -70,6 +70,8 @@
   --colour-arrow-wash-strong: rgb(255 255 255 / 0.35); /* testimonial arrow pill fill · 1373:10004 */
   --colour-glass: rgb(255 255 255 / 0.62); /* testimonial card glass (62 % white over a 17 px blur) · 701:4791 */
   --colour-line-play: rgb(201 167 232 / 0.6); /* play-video button edge · 1281:9618 */
+  --colour-wash-pink: rgb(251 172 191 / 0.16); /* cake page configurator card, pink end (Bohoka 2026-10-31) */
+  --colour-wash-lilac: rgb(201 167 232 / 0.22); /* cake page configurator card, lilac end (Bohoka 2026-10-31) */
 
   /* @group Font families */
   --font-display: "Fraunces", Georgia, "Times New Roman", serif; /* headings, card titles, quotes, field values · style guide 02 */
@@ -241,6 +243,7 @@
   --shadow-cake-card: 0 0 9.6px 0 rgb(255 255 255 / 0.63); /* cake card glow · 1487:8534 */
   --shadow-header: 0 4px 16px 0 rgb(36 27 51 / 0.1); /* sticky header when scrolled · ANIM-24 */
   --shadow-underline: 0 0 5.7px var(--colour-lilac); /* navigation underline glow · ANIMATIONS §2 */
+  --shadow-pill-selected: 0 0 10px 0 rgb(201 167 232 / 0.75); /* selected size / choice pill glow, like the nav underline */
   --shadow-map: 0 0 42px 0 rgb(255 255 255 / 0.4); /* white glow around the West Lothian map · 1367:10108 */
   --blur-glass: 17px; /* testimonial backdrop blur · 701:4792 */
 
