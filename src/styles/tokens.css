@@ -146,7 +146,7 @@
   --type-subhead-phone: 600 24px/normal var(--font-display); /* Home block subheading on the phone · 1384:10031 */
   --type-section-tight-phone: 300 64px/0.767 var(--font-display); /* “Local, home baked.” on the phone, two tight lines · 1385:10077 */
   --type-intro-phone: 500 14px/normal var(--font-ui); /* “Local, home baked.” text on the phone, plum · 1385:10081 */
-  --type-highlight-phone: 700 14px/normal var(--font-display); /* “Real cake. Real care.” on the phone · 1385:10081 */
+  --type-highlight-phone: 700 18px/normal var(--font-display); /* “Real cake. Real care.” on the phone; 18 instead of the drawn 14 (Bohoka 2026-10-31) · 1385:10081 */
   --type-heading-md: 300 max(calc(32px * var(--type-scale)), min(32px, 14px))/normal var(--font-display); /* “Check out our social media” · 1373:10131 */
   --type-display-lg: 300 max(calc(145px * var(--type-scale)), min(145px, 14px))/normal var(--font-display); /* “Special idea?” · 1588:10480 */
   --type-title-phone: 300 48px/normal var(--font-display); /* “Try my recipes.” on the phone · 1384:10042 */

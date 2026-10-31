@@ -278,8 +278,10 @@
     right: 0;
   }
 
+  /* The white curve reaches 27 design px into the band; never less than the collection link (17 px)
+     plus the desktop gap of 10, so on narrower tablets the link keeps clear of the pink (Bohoka 2026-10-31). */
   .band::before {
-    top: calc(-22.97 * var(--u));
+    top: calc(max(27.06 * var(--u), 17px + 10 * var(--u)) - 50.03 * var(--u));
     height: calc(50.03 * var(--u));
   }
 

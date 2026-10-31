@@ -16,8 +16,7 @@
 .picture {
   flex: none;
   height: calc(273 * var(--u));
-  border: 8px solid var(--colour-white);
-  border-radius: var(--radius-card) var(--radius-card) 0 0;
+  /* No white frame: the picture runs to the card's edges (Bohoka 2026-10-31); the card's corners round it. */
   background: var(--colour-placeholder);
 }
 
@@ -96,7 +95,6 @@
 
   .picture {
     height: calc(220.7 * var(--u));
-    border-width: calc(8 * var(--u));
   }
 
   .name {
