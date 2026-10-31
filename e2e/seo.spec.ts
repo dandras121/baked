@@ -138,7 +138,8 @@ test("§2 / §10.5 private pages send noindex; token pages also no referrer", as
     "/admin",
     "/dev",
   ]) {
-    const r = await request.get(path);
+    // The page's own answer: /contact/sent opened directly redirects to the (indexed) form (§7.4).
+    const r = await request.get(path, { maxRedirects: 0 });
     expect(r.headers()["x-robots-tag"], path).toContain("noindex");
   }
   for (const path of [

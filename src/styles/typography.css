@@ -469,3 +469,25 @@
 .type-questions-phone {
   font: var(--type-questions-phone);
 }
+
+.type-contact-detail {
+  font: var(--type-contact-detail);
+  font-variation-settings: var(--font-display-axes);
+}
+
+.type-contact-detail-phone {
+  font: var(--type-contact-detail-phone);
+  font-variation-settings: var(--font-display-axes);
+}
+
+.type-contact-value {
+  font: var(--type-contact-value);
+}
+
+.type-contact-note {
+  font: var(--type-contact-note);
+}
+
+.type-contact-note-phone {
+  font: var(--type-contact-note-phone);
+}

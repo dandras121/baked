@@ -248,3 +248,51 @@ export const legalRevisions = pgTable(
   },
   (t) => [index("legal_slug_newest").on(t.slug, t.createdAt)],
 );
+
+/**
+ * Contact messages (§7.4): kept 30 days on the site, then deleted by the daily job (§10.10, §12); the e-mail stays
+ * in Linda's mailbox. Shown read-only at /admin/messages/[id] (slice 9.8). `formKey` makes a repeated send one
+ * message (§10.8 Double submit).
+ */
+export const contactMessages = pgTable(
+  "contact_messages",
+  {
+    id: serial("id").primaryKey(),
+    formKey: text("form_key").notNull(),
+    name: text("name").notNull(),
+    email: text("email").notNull(),
+    /** E.164 (§10.8), or null. */
+    phone: text("phone"),
+    message: text("message").notNull(),
+    /** The page the form was sent from. */
+    page: text("page").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [
+    unique("contact_form_key").on(t.formKey),
+    index("contact_created").on(t.createdAt),
+    // The form allows 400 characters as the customer counts them (an emoji is one); the database only guards
+    // against something far larger.
+    check(
+      "contact_message_length",
+      sql`char_length(${t.message}) between 1 and 2000`,
+    ),
+  ],
+);
+
+/**
+ * Form sends per connection (§10.9): one row per send, the connection kept only as a salted hash. Rows older than
+ * an hour no longer count; the daily job removes them (§12).
+ */
+export const formSends = pgTable(
+  "form_sends",
+  {
+    id: serial("id").primaryKey(),
+    form: text("form").notNull(),
+    connection: text("connection").notNull(),
+    at: timestamp("at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index("form_sends_lookup").on(t.form, t.connection, t.at)],
+);

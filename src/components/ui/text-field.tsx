@@ -10,18 +10,9 @@ import {
 } from "react";
 import { FieldError } from "./field-error";
 import styles from "./text-field.module.css";
+import { countCharacters } from "@/lib/words";
 
-/** Characters as the customer sees them (§5.1): emoji and accented letters count once. */
-export function countCharacters(text: string): number {
-  if (typeof Intl !== "undefined" && "Segmenter" in Intl) {
-    return [
-      ...new Intl.Segmenter("en-GB", { granularity: "grapheme" }).segment(
-        text.normalize("NFC"),
-      ),
-    ].length;
-  }
-  return [...text.normalize("NFC")].length;
-}
+export { countCharacters };
 
 /** Counters show always, or only from 80 % of the limit (§7.1 Counters, Proposal). */
 export function counterVisible(
@@ -39,6 +30,8 @@ type FrameProps = {
   hint?: ReactNode;
   error?: string | null;
   counter?: ReactNode;
+  /** The counter under the box instead of inside it (Contact 656:3895). */
+  counterBelow?: boolean;
   id: string;
   children: ReactNode;
 };
@@ -49,6 +42,7 @@ function Frame({
   hint,
   error,
   counter,
+  counterBelow = false,
   id,
   children,
 }: FrameProps) {
@@ -65,8 +59,11 @@ function Frame({
         data-writable
       >
         {children}
-        {counter}
+        {!counterBelow && counter}
       </div>
+      {counterBelow && counter && (
+        <div className={styles.counterBelow}>{counter}</div>
+      )}
       <FieldError id={`${id}-error`} message={error} />
       {hint && (
         <p id={`${id}-hint`} className={styles.hint}>
@@ -162,8 +159,10 @@ export function TextField({
 }
 
 type TextAreaProps = Shared &
-  CounterProps &
-  Omit<TextareaHTMLAttributes<HTMLTextAreaElement>, "maxLength">;
+  CounterProps & { counterBelow?: boolean } & Omit<
+    TextareaHTMLAttributes<HTMLTextAreaElement>,
+    "maxLength"
+  >;
 
 export function TextArea({
   label,
@@ -173,6 +172,7 @@ export function TextArea({
   id: given,
   max,
   counterMode = "always",
+  counterBelow,
   onChange,
   ...area
 }: TextAreaProps) {
@@ -185,7 +185,7 @@ export function TextArea({
     counterMode,
   );
   return (
-    <Frame {...{ label, labelStyle, hint, error, id, counter }}>
+    <Frame {...{ label, labelStyle, hint, error, id, counter, counterBelow }}>
       <textarea
         {...area}
         id={id}

@@ -51,3 +51,15 @@ export function leadTimeWords(days: number): string {
 export function plural(n: number, one: string, many = `${one}s`): string {
   return `${n} ${n === 1 ? one : many}`;
 }
+
+/** Characters as the customer sees them (§5.1): emoji and accented letters count once. */
+export function countCharacters(text: string): number {
+  if (typeof Intl !== "undefined" && "Segmenter" in Intl) {
+    return [
+      ...new Intl.Segmenter("en-GB", { granularity: "grapheme" }).segment(
+        text.normalize("NFC"),
+      ),
+    ].length;
+  }
+  return [...text.normalize("NFC")].length;
+}

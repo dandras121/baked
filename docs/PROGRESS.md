@@ -36,8 +36,8 @@ Branch per phase (`phase-00-foundations`, …), one commit per accepted slice, t
 | 2.3 | Home cake row and Special idea | ☑ | ac869c7 | 2026-10-31 “mehet” (ten cakes, indicator under the row) |
 | 2.4 | About Linda | ☑ | f729564 | 2026-10-31 “mehet” |
 | 2.5 | FAQ | ☑ | eca244d | 2026-10-31 “mehet tovább” |
-| 2.6 | Legal pages and Allergen information | ☐ | | |
-| 2.7 | Contact and Message sent | ☐ | | |
+| 2.6 | Legal pages and Allergen information | ☑ | 850e42e | 2026-10-31 “menj tovább” |
+| 2.7 | Contact and Message sent | ◐ built, waiting for Bohoka | | |
 | 2.8 | Gallery, lightbox, Show more, photo fade-in | ☐ | | |
 
 ## Phase 3 — Catalogue and cake page
@@ -139,7 +139,13 @@ Branch per phase (`phase-00-foundations`, …), one commit per accepted slice, t
 
 - Phase 1 closed 2026-10-30 (gate in the commit “phase 1 review gate”; tag `phase-01-done` local, the git proxy refuses tag pushes).
 - Phase 2 on branch `phase-02-content`. 2.1–2.3 accepted 2026-10-31. Bohoka 2026-10-30: 2.1 stays one slice; on Vercel previews the hero shows the three slides (placeholders 2–3), `?hero=live` shows the live hero alone; production never shows the placeholders.
-- **2.6 Legal pages and Allergen information** — built, waiting for Bohoka.
+- Bohoka 2026-10-31: “ha kész menj tovább a következő lépésekre amíg tartanak a tokenek” — 2.6 accepted; the next slices are built one after another, each reported and committed on its own, and Bohoka checks them as they come.
+- Tablet header 77 px (Bohoka 2026-10-31, DEVIATIONS); the read-only Figma tools run without a prompt (`.claude/settings.json`).
+- **2.7 Contact and Message sent** — built, waiting for Bohoka.
+  - Files: `src/lib/contact.ts` (rules, copy, the e-mail to Linda), `src/lib/phone.ts` (E.164, libphonenumber-js), `src/lib/email/adapter.ts` (log only until phase 5), `src/db/schema.ts` + `drizzle/0005_*` (contact_messages, form_sends), `src/db/contact-repo.ts`, `src/app/(site)/contact/{page,actions}.ts(x)`, `src/app/(site)/contact/sent/page.tsx`, `src/components/contact/`, `src/proxy.ts` (Message sent only after a send), `TextArea` counter under the box, tokens (+5 type), `countCharacters` moved to `src/lib/words.ts`.
+  - Tests: `src/lib/phone.test.ts`, `src/lib/contact.test.ts` (every rule, copy, the e-mail in London time), `src/db/contact-repo.test.ts` (5 per hour per connection and form, one message per form key, 30-day deletion, hashed connection), `e2e/contact.spec.ts` (details from Settings, empty send, wrong values, live clearing, stored message, sent page, direct opening, honeypot, limit, lost connection, reduced motion, axe, without JavaScript), `e2e/seo.spec.ts` (sent page noindex on its own answer).
+  - New dependency: `libphonenumber-js` (phone numbers only; no money, auth, e-mail or uploads).
+- **2.6 Legal pages and Allergen information** — accepted 2026-10-31.
   - Files: `src/db/schema.ts` + `drizzle/0004_*` (legal_revisions), `src/db/legal-repo.ts`, `src/lib/legal.ts`, `src/lib/legal-seed.ts`, `src/components/legal/`, `src/app/(site)/legal-route.tsx` and the seven routes, tokens (+7 type).
   - Tests: `src/lib/legal.test.ts` (sections, anchors, format, placeholders, Appendix A), `src/db/legal-repo.test.ts` (seed once, a save is a new revision, the old one kept), `e2e/legal.spec.ts` (every page, On this page jump, cookie panel, ICO links, axe).
   - Still with Linda (§14.1 item 5): the Privacy policy revisions, the analytics provider, the final allergen wording.
@@ -163,6 +169,9 @@ Branch per phase (`phase-00-foundations`, …), one commit per accepted slice, t
 
 ## Later (noticed, belongs to another slice)
 
+- The daily job (10.1 / §12) must call `purgeContactMessages` (contact messages after 30 days, send counts after a day); Postmark sending of the contact e-mail and its retries → 5.1; `/admin/messages/[id]` → 9.8.
+- Production needs `RATE_LIMIT_SALT` set (a long random string) → 11.2.
+
 - The phone order-summary bar and the cookie card stack (§3.3) → slice 4.2 / 4.3.
 - The footer links to pages that come later (`/find-my-order`, the legal pages): they 404 until slices 2.6 / 6.4; the 404 page itself → 1.6.
 
@@ -171,7 +180,7 @@ Branch per phase (`phase-00-foundations`, …), one commit per accepted slice, t
 - `/` and the stub pages `/cakes`, `/bespoke`, `/gallery`, `/about`, `/faq`, `/contact`, `/terms` (added in 1.1 so the header can be clicked) are replaced by their real pages → slices 2.1, 3.2, 7.1, 2.8, 2.4, 2.5, 2.7, 2.6.
 - `/dev/*` pages must not be reachable on the live site (404 in production, or behind admin sign-in) → slice 10.2 (or 11.1 at the latest).
 - Launch (11.x): production must use its own database; previews put the Home sample cakes into an empty catalogue (`deploy-setup`, VERCEL_ENV=preview only).
-- Flaky under full parallel load (passes alone): `e2e/mascot.spec.ts` sampled-curve test on the tablet project → 10.1 with the busy-button test.
+- Flaky under full parallel load (passes alone): the busy-button test → 10.1. (The mascot slide tests were fixed in 2.7: they now hold the slide where it starts, so a slow load cannot end it first.)
 - Cake page (3.3): `src/proxy.ts` answers unknown / hidden cake slugs with status 404 (list of visible slugs from the database, kept 60 s). Saving a cake in the admin (9.x) should also clear that list.
 - Canonical links, Open Graph images and structured data (§10.12 Other) → with the pages they belong to (2.1 Home, 3.x cake pages) / 10.3.
 - Saving Settings must rebuild the 500 page's `site-facts.json` and revalidate the Settings cache → slice 9.x (admin Settings).

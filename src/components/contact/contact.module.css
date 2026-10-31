@@ -1,0 +1,256 @@
+/*
+ * Contact and Message sent (§7.4). Phone 839:6616 / 839:7071 (402 wide, 24 side margins); tablet and desktop:
+ * 656:3843 / 654:3724 in desktop design px × --u (the tablet 1558:11846 / 1558:11484 = × 0.8).
+ */
+.page {
+  width: calc(402 * var(--u));
+  margin-inline: auto;
+  background: var(--colour-white);
+}
+
+.title {
+  max-width: calc(354 * var(--u));
+  margin: 0 0 0 calc(24 * var(--u));
+  padding: 32px 0 32px;
+  color: var(--colour-display);
+  font: var(--type-page-title-phone);
+  font-variation-settings: var(--font-display-axes);
+}
+
+.body {
+  padding: 26px calc(24 * var(--u)) 40px;
+}
+
+.intro {
+  margin: 0 0 26px;
+  color: var(--colour-body);
+  font: var(--type-answer-phone);
+}
+
+/* The form: 14 px between the fields on the phone, 20 on desktop. */
+.form {
+  display: grid;
+  gap: 14px;
+  justify-items: stretch;
+}
+
+.message {
+  margin-top: 10px;
+}
+
+.message textarea {
+  min-height: 84px;
+}
+
+.send {
+  width: 100%;
+  margin-top: 8px;
+}
+
+.sendError {
+  margin-top: -8px;
+}
+
+.privacy {
+  margin: 0;
+  color: var(--colour-meta);
+  font: var(--type-contact-note-phone);
+}
+
+/* Never seen or reached (§7.1): off the screen, out of the tab order, hidden from screen readers. */
+.honeypot {
+  position: absolute;
+  left: -10000px;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}
+
+.details {
+  margin-top: 26px;
+  padding-top: 20px;
+  border-top: 1px solid var(--colour-line-rule);
+}
+
+.detailsTitle {
+  margin: 0 0 10px;
+  color: var(--colour-accent);
+  font: var(--type-category-phone);
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.list {
+  margin: 0;
+}
+
+.item {
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--colour-line-rule);
+}
+
+.item + .item {
+  padding-top: 20px;
+}
+
+.term {
+  color: var(--colour-ink);
+  font: var(--type-contact-detail-phone);
+  font-variation-settings: var(--font-display-axes);
+}
+
+.value {
+  margin: 6px 0 0;
+  color: var(--colour-body);
+  font: var(--type-answer-phone);
+}
+
+.value .valueLink {
+  color: inherit;
+  font: inherit;
+}
+
+.kitchen {
+  margin: 20px 0 16px;
+  color: var(--colour-meta);
+  font: var(--type-contact-note-phone);
+}
+
+/* Message sent. */
+.sentTitle {
+  padding-bottom: 32px;
+}
+
+.wideBreak {
+  display: none;
+}
+
+.sentBody {
+  padding-bottom: 54px;
+}
+
+.sentText {
+  margin: 0 0 26px;
+  color: var(--colour-body);
+  font: var(--type-answer-phone);
+}
+
+.back {
+  box-sizing: border-box;
+  width: 100%;
+}
+
+@media (min-width: 768px) {
+  .page {
+    width: calc(1280 * var(--u));
+  }
+
+  .title {
+    max-width: calc(1136 * var(--u));
+    margin-left: calc(72 * var(--u));
+    padding: calc(92.5 * var(--u)) 0 calc(75.5 * var(--u));
+    font: var(--type-page-title);
+    font-size: min(calc(145px * var(--type-scale)), calc(145 * var(--u)));
+    line-height: 0.9655; /* 140 / 145, as drawn */
+  }
+
+  .body {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    align-items: start;
+    gap: calc(80 * var(--u));
+    padding: calc(56 * var(--u)) calc(80 * var(--u)) calc(84 * var(--u));
+  }
+
+  .intro {
+    max-width: calc(520 * var(--u));
+    margin-bottom: calc(30px * var(--type-scale));
+    font: var(--type-body);
+  }
+
+  .form {
+    gap: calc(20px * var(--type-scale));
+  }
+
+  .message {
+    margin-top: 0;
+  }
+
+  .message textarea {
+    min-height: calc(96px * var(--type-scale));
+  }
+
+  .send {
+    justify-self: start;
+    width: auto;
+    margin-top: calc(4px * var(--type-scale));
+  }
+
+  .sendError {
+    margin-top: calc(-12px * var(--type-scale));
+  }
+
+  .privacy {
+    max-width: calc(520 * var(--u));
+    margin-top: calc(-2px * var(--type-scale));
+    color: var(--colour-body);
+    font: var(--type-contact-note);
+  }
+
+  .details {
+    margin-top: 0;
+    padding-top: 0;
+    border-top: 0;
+  }
+
+  .detailsTitle {
+    margin-bottom: calc(22px * var(--type-scale));
+    color: var(--colour-meta);
+    font: var(--type-label);
+    letter-spacing: var(--type-label-ls);
+  }
+
+  .item + .item {
+    padding-top: calc(16px * var(--type-scale));
+  }
+
+  .term {
+    color: var(--colour-display);
+    font: var(--type-contact-detail);
+  }
+
+  .value {
+    margin-top: calc(4px * var(--type-scale));
+    font: var(--type-contact-value);
+  }
+
+  .kitchen {
+    margin: calc(16px * var(--type-scale)) 0 0;
+    color: var(--colour-body);
+    font: var(--type-contact-note);
+  }
+
+  /* Message sent: the title sits higher and further left than on Contact (654:3751). */
+  .sentTitle {
+    margin-left: calc(54.33 * var(--u));
+    padding: calc(22.5 * var(--u)) 0 calc(5.5 * var(--u));
+  }
+
+  .wideBreak {
+    display: inline;
+  }
+
+  .sentBody {
+    display: block;
+  }
+
+  .sentText {
+    max-width: calc(620 * var(--u));
+    margin-bottom: calc(32px * var(--type-scale));
+    font: var(--type-body);
+  }
+
+  .back {
+    width: auto;
+  }
+}

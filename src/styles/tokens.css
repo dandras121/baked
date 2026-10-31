@@ -180,6 +180,11 @@
   --type-legal-title-phone: 300 36px/52px var(--font-display); /* legal page title on the phone · 844:7228 */
   --type-legal-intro-phone: 400 12px/20px var(--font-ui); /* legal page intro on the phone · 844:7228 */
   --type-legal-heading: 400 max(calc(19px * var(--type-scale)), min(19px, 14px))/normal var(--font-display); /* legal section heading · 664:4192 */
+  --type-contact-detail: 400 max(calc(16px * var(--type-scale)), min(16px, 14px))/normal var(--font-display); /* Contact “THE DETAILS” item heading (Email, Phone …) · 656:3904 */
+  --type-contact-detail-phone: 400 15px/20px var(--font-display); /* Contact details item heading on the phone · 839:6677 */
+  --type-contact-value: 400 max(calc(14px * var(--type-scale)), min(14px, 14px))/1.571 var(--font-ui); /* Contact details value (address, e-mail) · 656:3906 */
+  --type-contact-note: 400 max(calc(13px * var(--type-scale)), min(13px, 14px))/1.615 var(--font-ui); /* Contact privacy line and kitchen note · 656:3900 */
+  --type-contact-note-phone: 400 11px/18px var(--font-ui); /* Contact notes and counter on the phone · 839:6670 */
   --type-legal-body: 400 max(calc(15px * var(--type-scale)), min(15px, 14px))/calc(26px * var(--type-scale)) var(--font-ui); /* legal section text · 664:4192 */
   --type-toc-phone: 400 12px/18px var(--font-ui); /* “On this page” links on the phone · 844:7228 */
   --type-questions-phone: 400 12px/17px var(--font-ui); /* “Questions? Email … or call …” on the phone · 844:7228 */

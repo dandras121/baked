@@ -15,6 +15,24 @@ const transformAt = (page: Page, ms: number) =>
     return getComputedStyle(el).transform;
   }, ms);
 
+/**
+ * Holds the slide where it starts, so a slow page load cannot let the 0.6 s slide finish (and the intro class go)
+ * before the test reads it. The tests then set the time they look at.
+ */
+const holdIntro = (page: Page) =>
+  page.addInitScript(() => {
+    document.addEventListener(
+      "animationstart",
+      (e) => {
+        if (!e.animationName.startsWith("bbl-mascot-in")) return;
+        for (const a of document.getAnimations())
+          if ((a as CSSAnimation).animationName?.startsWith("bbl-mascot-in"))
+            a.pause();
+      },
+      true,
+    );
+  });
+
 /** matrix(a, b, c, d, e, f) → rotation in degrees and the translate part. */
 function parse(matrix: string) {
   const [a, b, , , e, f] = /matrix\(([^)]+)\)/
@@ -27,6 +45,7 @@ function parse(matrix: string) {
 test("A§7A first load: the mascot slides along the sampled curve (150 ms delay, 450 ms)", async ({
   page,
 }, testInfo) => {
+  await holdIntro(page);
   await page.goto("/");
   await expect(page.locator("html")).toHaveClass(/mascot-intro/);
   const timing = await mark(page).evaluate((el) => {
@@ -76,6 +95,7 @@ test("A§7A first load: the mascot slides along the sampled curve (150 ms delay,
 test("A§7A during the 150 ms delay the mascot is hidden behind the bar (never over the page)", async ({
   page,
 }) => {
+  await holdIntro(page);
   await page.goto("/");
   const hidden = await mark(page).evaluate((el) => {
     const a = el.getAnimations()[0];

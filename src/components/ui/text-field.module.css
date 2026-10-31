@@ -108,6 +108,15 @@
   color: var(--colour-error);
 }
 
+/* Under the box (Contact 656:3895: 8 px below, left aligned). */
+.counterBelow {
+  margin-top: calc(8px * var(--type-scale));
+}
+
+.counterBelow .counter {
+  padding: 0;
+}
+
 .hint {
   margin-top: calc(10px * var(--type-scale));
   font: var(--type-meta);
@@ -138,5 +147,9 @@
 
   .hint {
     font: var(--type-small);
+  }
+
+  .counterBelow .counter {
+    font: var(--type-contact-note-phone);
   }
 }
