@@ -51,7 +51,7 @@ Branch per phase (`phase-00-foundations`, …), one commit per accepted slice, t
 | 3.4a | Cake card open / close (ANIM-11) | ◐ built, waiting for Bohoka | 7e2c6a5 | |
 | 3.4b | Card video | ◐ built, waiting for Bohoka | | |
 | 3.5 | Cake page: media | ◐ built, waiting for Bohoka | ca16ef4 | |
-| 3.6a | Cake page: sizes, options, price, allergens | ◐ built, waiting for Bohoka | | |
+| 3.6a | Cake page: sizes, options, price, allergens | ◐ built, waiting for Bohoka | 1f46868 | |
 | 3.6b | Cake page: inscription, add to order, edit mode, limit | ☐ | | |
 
 ## Phase 4 — Checkout (Stripe test mode)
