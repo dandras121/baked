@@ -256,14 +256,15 @@ test.describe("every width", () => {
     await expect(shadow).toHaveCSS("opacity", "0");
   });
 
-  test("R§1 below 1120 px the desktop navigation is not shown; header 55 px", async ({
+  test("R§1 below 1120 px the desktop navigation is not shown; header 55 px on the phone, 77 px on the tablet", async ({
     page,
   }, testInfo) => {
     test.skip(isDesktop(testInfo.project.name), "phone and tablet only");
     await page.goto("/gallery");
     await expect(nav(page)).toBeHidden();
     const header = (await page.getByTestId("site-header").boundingBox())!;
-    expect(header.height).toBe(55);
+    // Tablet: as tall as the desktop bar (Bohoka 2026-10-31).
+    expect(header.height).toBe(testInfo.project.name === "tablet" ? 77 : 55);
   });
 
   test("axe: no violations on a page with the header (and the 404-free favicon)", async ({

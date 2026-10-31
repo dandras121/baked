@@ -39,7 +39,8 @@ test("§3.1 the phone / tablet header: “menu” button 17 px from the right ed
   const vw = page.viewportSize()!.width;
   const b = (await button(page).boundingBox())!;
   expect(b.x + b.width).toBeCloseTo(vw - 17, 0);
-  expect(b.y).toBeCloseTo(22.22, 0);
+  // The tablet bar is 77 px since Bohoka 2026-10-31: the button moves down by half the 22 px.
+  expect(b.y).toBeCloseTo(vw >= 768 ? 33.22 : 22.22, 0);
   expect([Math.round(b.width), Math.round(b.height)]).toEqual([34, 13]);
   await expect(button(page)).toHaveAttribute("aria-expanded", "false");
   await expect(button(page)).toHaveAttribute("aria-label", "Open menu");
@@ -67,13 +68,14 @@ test("ANIM-01: the circles grow from the button corner along the A§12 rows (ste
     return [0, 1].map((i) => getComputedStyle(layers[i]).clipPath);
   });
   const ox = vw - 17;
-  const rWhite = Math.ceil(Math.hypot(ox, vh - 22.22));
+  const oy = vw >= 768 ? 33.22 : 22.22;
+  const rWhite = Math.ceil(Math.hypot(ox, vh - oy));
   const radius = (s: string) => parseFloat(/circle\(([\d.]+)px/.exec(s)![1]);
   expect(radius(values[0])).toBeCloseTo(0.7746 * (rWhite + 24), 0);
   expect(radius(values[1])).toBeCloseTo(0.4755 * rWhite, 0);
   const centre = /at ([\d.]+)px ([\d.]+)px/.exec(values[0])!;
   expect(Number(centre[1])).toBeCloseTo(ox, 0);
-  expect(Number(centre[2])).toBeCloseTo(22.22, 1);
+  expect(Number(centre[2])).toBeCloseTo(oy, 1);
   // The arrow is edge-on at 330 ms and turned over at 660 ms (A§4.4).
   const arrow330 = await at(
     page,
@@ -151,14 +153,14 @@ test("A§4.1 open layout on the reference phone: items 24 px from the left, 68 p
   await expect(item(page, "Home")).toHaveCSS("color", "rgb(86, 59, 131)");
 });
 
-test("A§8.1 tablet landscape (1024 × 768): the items start at y 106", async ({
+test("A§8.1 tablet landscape (1024 × 768): the items start 51 px below the 77 px bar (y 128)", async ({
   page,
 }, testInfo) => {
   test.skip(testInfo.project.name !== "tablet", "tablet only");
   await page.setViewportSize({ width: 1024, height: 768 });
   await page.goto("/");
   await openMenu(page);
-  expect((await item(page, "Home").boundingBox())!.y).toBeCloseTo(106, 0);
+  expect((await item(page, "Home").boundingBox())!.y).toBeCloseTo(128, 0);
   expect(
     (await page.getByText("Follow our social media").boundingBox())!.y,
   ).toBeCloseTo(768 - 110, 0);

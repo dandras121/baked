@@ -52,10 +52,11 @@ test("A§7A first load: the mascot slides along the sampled curve (150 ms delay,
   expect(ox).toBeCloseTo(w / 2, 0);
   expect(oy).toBeCloseTo(h, 0);
 
-  const desktop = testInfo.project.name === "desktop";
-  // Rows of the A§7A table: [t, phone / tablet x, y, desktop x, y, rotate].
+  // The tablet has the 77 px desktop bar since Bohoka 2026-10-31.
+  const desktop = testInfo.project.name !== "phone";
+  // Rows of the A§7A table: [t, phone x, y, tablet / desktop x, y, rotate].
   const rows: [number, number, number, number, number, number][] = [
-    // Phone / tablet: the desktop values × 55/77 (Bohoka 2026-10-30).
+    // Phone: the desktop values × 55/77 (Bohoka 2026-10-30).
     [0, -31.43, 90.71, -44, 127, 25],
     [90, -20.11, 58.06, -28.16, 81.28, 21.4],
     [180, -11.31, 32.66, -15.84, 45.72, 18.6],
@@ -132,14 +133,14 @@ test("A§7A after the slide the mascot sits exactly in its designed place", asyn
     );
   });
   // The rotated box of the Figma headers: desktop 1421:9315 (−33, −26.9, 129.76 × 136.44 at 1280),
-  // phone and tablet: the same composition scaled to the 55 px bar.
-  if (testInfo.project.name === "desktop") {
+  // the tablet the same (77 px bar, Bohoka 2026-10-31); the phone the composition scaled to the 55 px bar.
+  if (testInfo.project.name !== "phone") {
     expect(after[0]).toBeCloseTo(-33, 0);
     expect(after[1]).toBeCloseTo(-26.9, 0);
     expect(after[2]).toBeCloseTo(129.76, 0);
     expect(after[3]).toBeCloseTo(136.44, 0);
   } else {
-    // The desktop composition × 55/77 (Bohoka 2026-10-30).
+    // Phone: the desktop composition × 55/77 (Bohoka 2026-10-30).
     expect(after[0]).toBeCloseTo(-23.57, 0);
     expect(after[1]).toBeCloseTo(-19.21, 0);
     expect(after[2]).toBeCloseTo(92.69, 0);

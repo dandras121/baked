@@ -16,7 +16,7 @@ body {
   padding-bottom: var(--cookie-space, 0px);
 }
 
-@media (min-width: 1120px) {
+@media (min-width: 768px) {
   html {
     scroll-padding-top: var(--header-height);
   }

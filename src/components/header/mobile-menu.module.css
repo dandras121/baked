@@ -108,10 +108,11 @@
   }
 }
 
-/* Landscape tablet: the items start at y 106 (A§8.1). */
+/* Landscape tablet: the items start 51 px below the bar, as at y 106 under the drawn 55 px bar (A§8.1);
+   the bar is 77 px since 2026-10-31. */
 @media (min-width: 768px) and (max-width: 1119.98px) and (orientation: landscape) {
   .content {
-    --items-top: 106px;
+    --items-top: 128px;
   }
 }
 
@@ -241,6 +242,18 @@
 .noJsPanel a {
   color: var(--colour-display);
   text-decoration: none;
+}
+
+/* Tablet: the 77 px bar (Bohoka 2026-10-31); the button keeps its place relative to the bar's middle. */
+@media (min-width: 768px) {
+  .button,
+  .noJs {
+    top: 33.22px;
+  }
+
+  .noJsPanel {
+    inset: 77px 0 0;
+  }
 }
 
 @media (min-width: 1120px) {

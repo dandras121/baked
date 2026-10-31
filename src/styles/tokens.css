@@ -207,8 +207,8 @@
   /* @group Layout (RESPONSIVE §1–4) */
   --page-max: 1280px; /* content width cap; backgrounds still run edge to edge · RESPONSIVE §4 */
   --gutter-phone: 24; /* phone side margin in phone design px (× --u) · drawn phone states, SITE-FLOWS §2.1 */
-  --header-height: 77px; /* desktop header bar · Nav / Header — v3 1421:9315 */
-  --header-height-compact: 55px; /* phone and tablet header bar · 1461:9222, 1549:10272 */
+  --header-height: 77px; /* tablet and desktop header bar · Nav / Header — v3 1421:9315 */
+  --header-height-compact: 55px; /* phone header bar · 1461:9222 (tablet uses --header-height since 2026-10-31) */
 
   /* @group Shadows */
   --shadow-card: 0 14px 34px 0 rgb(46 27 69 / 0.12); /* testimonial drop shadow · 701:4792 */

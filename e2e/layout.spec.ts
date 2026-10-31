@@ -121,7 +121,8 @@ test("R§1 the header slot is sticky on every band", async ({ page }) => {
       .locator("header")
       .first()
       .evaluate((el) => parseFloat(getComputedStyle(el).minHeight));
-    expect(height).toBe(width >= 1120 ? 77 : 55);
+    // The tablet has the 77 px desktop bar since Bohoka 2026-10-31.
+    expect(height).toBe(width >= 768 ? 77 : 55);
   }
 });
 

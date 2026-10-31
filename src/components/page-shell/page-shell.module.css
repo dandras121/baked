@@ -18,7 +18,7 @@
   min-height: var(--header-height-compact);
 }
 
-@media (min-width: 1120px) {
+@media (min-width: 768px) {
   .header {
     min-height: var(--header-height);
   }

@@ -40,9 +40,9 @@
   margin-inline: auto;
 }
 
-/* Logo mark, tilted 15° (Figma −15°), turned around its bottom centre (A§7A). Phone and tablet use
-   the desktop composition scaled to the 55 px bar (× 55/77; Bohoka 2026-10-30, DEVIATIONS):
-   74.25 × 81 at left −24.84, top −12.37. The first-visit slide-in is in mascot.css. */
+/* Logo mark, tilted 15° (Figma −15°), turned around its bottom centre (A§7A). The phone uses the desktop
+   composition scaled to the 55 px bar (× 55/77; Bohoka 2026-10-30, DEVIATIONS): 74.25 × 81 at left −24.84,
+   top −12.37. The first-visit slide-in is in mascot.css. */
 .mark {
   position: absolute;
   left: -24.84px;
@@ -85,22 +85,34 @@
   display: none;
 }
 
-@media (min-width: 1120px) {
+/* Tablet: the 77 px desktop bar with the desktop emblem and wordmark at their 1280 sizes and places
+   (Bohoka 2026-10-31, DEVIATIONS); the “menu ›” button stays. */
+@media (min-width: 768px) {
   .bar {
     height: var(--header-height);
   }
 
   .mark {
-    left: calc(-34.77 * var(--u));
+    left: -34.77px;
     top: -17.32px;
     width: 103.95px;
     height: 113.4px;
   }
 
   .wordmark {
-    left: calc(96.39 * var(--u));
+    left: 96.39px;
     top: 15.73px;
     width: 375px;
+  }
+}
+
+@media (min-width: 1120px) {
+  .mark {
+    left: calc(-34.77 * var(--u));
+  }
+
+  .wordmark {
+    left: calc(96.39 * var(--u));
   }
 
   /* The group's right edge at x 1243 of the 1280 header (A§8). */
