@@ -37,9 +37,9 @@ Branch per phase (`phase-00-foundations`, …), one commit per accepted slice, t
 | 2.4 | About Linda | ☑ | f729564 | 2026-10-31 “mehet” |
 | 2.5 | FAQ | ☑ | eca244d | 2026-10-31 “mehet tovább” |
 | 2.6 | Legal pages and Allergen information | ☑ | 850e42e | 2026-10-31 “menj tovább” |
-| 2.7 | Contact and Message sent | ◐ built, waiting for Bohoka | 3297269 | |
-| 2.8a | Gallery: grid, Show the next, photo fade-in (split, CLAUDE.md §4.4) | ◐ built, waiting for Bohoka | d5c0eb4 | |
-| 2.8b | Gallery lightbox (ANIM-14) | ◐ built, waiting for Bohoka | | |
+| 2.7 | Contact and Message sent | ☑ | 3297269 | 2026-10-31 “mehet” |
+| 2.8a | Gallery: grid, Show the next, photo fade-in (split, CLAUDE.md §4.4) | ☑ | d5c0eb4 | 2026-10-31 “mehet” |
+| 2.8b | Gallery lightbox (ANIM-14) | ☑ | a0a2973 | 2026-10-31 “mehet” |
 
 ## Phase 3 — Catalogue and cake page
 
@@ -139,17 +139,23 @@ Branch per phase (`phase-00-foundations`, …), one commit per accepted slice, t
 ## Current slice
 
 - Phase 1 closed 2026-10-30 (gate in the commit “phase 1 review gate”; tag `phase-01-done` local, the git proxy refuses tag pushes).
+- **Phase 2 review gate, 2026-10-31** (Bohoka “mehet” on 2.7, 2.8a, 2.8b):
+  - Tests: lint, format, typecheck clean; 450 unit and database tests; 504 end-to-end (phone, tablet, desktop) green — the hero timer test once flaky under full load, 9 / 9 alone (→ 10.1). CI green on every phase-2 commit.
+  - axe: 0 violations on every page built so far (Home, About, FAQ, the seven legal pages, Contact, Message sent, Gallery and its lightbox, 404, the header, menu, footer and cookie panel).
+  - Lighthouse (local production build; performance · accessibility · best practices · SEO): Home phone 78 · 100 · 100 · 100, desktop 99 · 100 · 100 · 100; About 93 / 100; FAQ 95 / 100; Terms 91 / 100; Contact 92 / 100; Gallery 94 / 100 (phone / desktop performance; the other three 100 everywhere). Home phone below 90: fonts and hero image weight (Later → 10.5).
+  - ANIMATIONS §9, phase-2 lines: UI-06 crossfade 400 ms, pause on hover / focus, incoming above outgoing, placeholders only in development and previews ✓; ANIM-10 one indicator style (hero, reviews, About phone, cake row, lightbox), ≤ 5 dashes, 360 ms ✓; ANIM-09 FAQ rows 360 ms, exact reverse, one open ✓; UI-07 snap card by card, arrows only on desktop ✓; ANIM-05 on the Contact fields ✓; ANIM-07 on every new pressable (tiles, links, buttons, ‹ ›) ✓; ANIM-14 zoom from the tile ✓; ANIM-17 stagger ✓; ANIM-19 errors ✓; ANIM-23 photo fade ✓; reduced motion = no motion ✓; no layout shift (reviews CLS < 0.01) ✓. Two §9 lines changed by Bohoka's decisions: the tablet ANIM-04 uses the desktop values with the 77 px bar, and the landscape tablet menu items start at y 128 (DEVIATIONS 2026-10-31). UI-08 (gallery videos) has no videos yet (9.2).
+  - Tag `phase-02-done` local (the git proxy refuses tag pushes).
 - Phase 2 on branch `phase-02-content`. 2.1–2.3 accepted 2026-10-31. Bohoka 2026-10-30: 2.1 stays one slice; on Vercel previews the hero shows the three slides (placeholders 2–3), `?hero=live` shows the live hero alone; production never shows the placeholders.
 - Bohoka 2026-10-31: “ha kész menj tovább a következő lépésekre amíg tartanak a tokenek” — 2.6 accepted; the next slices are built one after another, each reported and committed on its own, and Bohoka checks them as they come.
 - Tablet header 77 px (Bohoka 2026-10-31, DEVIATIONS); the read-only Figma tools run without a prompt (`.claude/settings.json`).
 - **2.8 split in two** (CLAUDE.md §4.4: the whole slice would be well over 600 lines): 2.8a the page, 2.8b the lightbox.
-- **2.8b Gallery lightbox (ANIM-14)** — built, waiting for Bohoka.
+- **2.8b Gallery lightbox (ANIM-14)** — accepted 2026-10-31.
   - Files: `src/components/gallery/lightbox.{tsx,module.css}` (native modal dialog; WAAPI open / close / next; swipe), `src/components/gallery/gallery-grid.tsx` (tiles are buttons; `?photo=` push / replace / Back / Forward; past the loaded tiles), `src/lib/gallery.ts` (photoIndex, stepPhoto, shownFor), tokens (+1 type).
   - Tests: `src/lib/gallery.test.ts` (+3), `e2e/gallery.spec.ts` (+12: open, Esc / ×, Back / Forward, ‹ › and keys without new history entries, ends, dashes ≤ 5 and “Photo n of 30”, past the loaded page, shared link and unknown id, focus never behind, ANIM-14 timings, reduced motion, phone swipe and 44 px hint arrows, axe).
-- **2.8a Gallery: grid, Show the next, photo fade-in** — built, waiting for Bohoka.
+- **2.8a Gallery: grid, Show the next, photo fade-in** — accepted 2026-10-31.
   - Files: `src/lib/gallery.ts` (tiles, paging, intro, 30 sample captions), `src/lib/constants.ts` (OCCASIONS), `src/db/schema.ts` + `drizzle/0006_*` (gallery occasion), `src/db/gallery-repo.ts` (tiles, sample gallery for dev and previews), seed and preview setup, `src/components/gallery/` (page, grid, photo, CSS), `src/app/(site)/gallery/page.tsx`, `/dev/components` (ANIM-23 demo), tokens (+5 type).
   - Tests: `src/lib/gallery.test.ts` (showing only, order, alt, occasion, `?shown=` rules, next N, samples), `e2e/gallery.spec.ts` (title and description, 12 tiles, squares on lilac, one-line captions, 2 / 4 columns, Show the next with focus and no scroll, the end, ANIM-17 timing, reduced motion, shared `?shown=`, ANIM-23 wait and fade, axe, without JavaScript); `e2e/home.spec.ts` (gallery link now shows: the seed has photos), `e2e/mobile-menu.spec.ts` (gallery heading).
-- **2.7 Contact and Message sent** — built, waiting for Bohoka.
+- **2.7 Contact and Message sent** — accepted 2026-10-31.
   - Files: `src/lib/contact.ts` (rules, copy, the e-mail to Linda), `src/lib/phone.ts` (E.164, libphonenumber-js), `src/lib/email/adapter.ts` (log only until phase 5), `src/db/schema.ts` + `drizzle/0005_*` (contact_messages, form_sends), `src/db/contact-repo.ts`, `src/app/(site)/contact/{page,actions}.ts(x)`, `src/app/(site)/contact/sent/page.tsx`, `src/components/contact/`, `src/proxy.ts` (Message sent only after a send), `TextArea` counter under the box, tokens (+5 type), `countCharacters` moved to `src/lib/words.ts`.
   - Tests: `src/lib/phone.test.ts`, `src/lib/contact.test.ts` (every rule, copy, the e-mail in London time), `src/db/contact-repo.test.ts` (5 per hour per connection and form, one message per form key, 30-day deletion, hashed connection), `e2e/contact.spec.ts` (details from Settings, empty send, wrong values, live clearing, stored message, sent page, direct opening, honeypot, limit, lost connection, reduced motion, axe, without JavaScript), `e2e/seo.spec.ts` (sent page noindex on its own answer).
   - New dependency: `libphonenumber-js` (phone numbers only; no money, auth, e-mail or uploads).
@@ -177,7 +183,7 @@ Branch per phase (`phase-00-foundations`, …), one commit per accepted slice, t
 
 ## Later (noticed, belongs to another slice)
 
-- Phase 2 review gate (CLAUDE.md §4.3: full suite, axe on every page, Lighthouse, ANIMATIONS §9, phase summary) once Bohoka has looked at 2.7, 2.8a and 2.8b.
+- Home on the phone, Lighthouse performance 78 (LCP 5.0 s on the simulated slow 4G): the two full Fraunces files (normal 118 KB + italic 146 KB) and the 86 KB placeholder hero → subset the fonts (latin, the used axes) and weigh the final hero images → 10.5.
 - Flaky under full parallel load (passes alone, 9 / 9): the hero timer test “advances every 6 s” on the tablet project → 10.1.
 - Gallery photo upload, focal point crop and the large version → 9.2 / 9.5.
 
@@ -199,7 +205,7 @@ Branch per phase (`phase-00-foundations`, …), one commit per accepted slice, t
 - The legacy “Coming soon” files on `main` (`index.html`, `backgrnd.jpg`, `CNAME`, the GitHub Pages workflow and the stray copies in `.github/workflows/`) stay untouched until launch → slice 11.1–11.3 decides how the domain moves to the app.
 - Phone type sizes are set per component from the phone frames → each UI slice (1.x onwards).
 - The admin does not use the tablet rule (R§5): its layout must set `--type-scale: 1` on `:root` → slice 8.2.
-- The mobile menu (1.2) and the lightbox (2.8) are overlays too: use the browser top layer (`<dialog>` / popover) or portal them outside `.shell`, because the shell is a size container.
+- (Done for the lightbox in 2.8b: a native `<dialog>` in the top layer.) The mobile menu (1.2) is an overlay too: use the browser top layer (`<dialog>` / popover) or portal them outside `.shell`, because the shell is a size container. → 10.4 if the menu needs it.
 - The FAQ page uses DropDownGroup / DropDownRow with the stored answers → slice 2.5.
 - Favicon and home-screen icons from the logo mark (Lighthouse: /favicon.ico 404) → slice 1.1 (logo SVG export) / 1.6.
 - Meta descriptions per page (Lighthouse SEO 90 on /) → slice 1.6 / 10.3.
