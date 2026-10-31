@@ -191,3 +191,26 @@ test("/api/reviews returns six text-only cards and the next cursor", async ({
   expect(body.reviews[0].id).toBe(withText[6].reviewId);
   expect(body.next).toBe("12");
 });
+
+test("a text of exactly four lines is not cut", async ({ page }) => {
+  await page.goto("/?hero=live");
+  await expect(page.getByTestId("hero")).toHaveCount(1);
+  const card = section(page)
+    .locator("[data-review-card]", {
+      hasText: "Linda listened to every detail",
+    })
+    .first();
+  await card.scrollIntoViewIfNeeded();
+  const lines = await card
+    .locator("p")
+    .first()
+    .evaluate((el) => {
+      const lh = parseFloat(getComputedStyle(el).lineHeight);
+      el.style.webkitLineClamp = "unset";
+      const n = Math.round(el.scrollHeight / lh);
+      el.style.webkitLineClamp = "";
+      return n;
+    });
+  if (lines <= 4) await expect(card).not.toHaveAttribute("data-cut", "");
+  else await expect(card).toHaveAttribute("data-cut", "");
+});

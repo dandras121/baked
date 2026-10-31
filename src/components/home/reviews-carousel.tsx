@@ -230,7 +230,9 @@ const Review = memo(function Review({
     if (!q || !a) return;
     const measure = () => {
       delete a.dataset.cut;
-      if (q.scrollHeight > q.clientHeight + 1) a.dataset.cut = "";
+      // Half a line of tolerance: rounding of the 1.52 line height must not count as a fifth line.
+      const half = parseFloat(getComputedStyle(q).lineHeight) / 2 || 8;
+      if (q.scrollHeight > q.clientHeight + half) a.dataset.cut = "";
     };
     measure();
     let live = true;
