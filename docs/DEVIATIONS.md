@@ -50,3 +50,4 @@ Anything built differently from the docs or Figma, and why. Bohoka’s decision 
 | 2.7 | Contact details “Delivery — Edinburgh and the Lothians” | The delivery area from Settings (“Edinburgh & the Lothians”) | Rule 11: business facts come from Settings. | Spec |
 | 2.8a | Gallery title band 1633:11659 (“Cakes,⏎I have made.” at 155 px overflows its 291 px band) | The title takes its full height; the intro starts at its drawn place (y 385 + 52) | The drawn band is shorter than its two title lines; the positions of the title and the intro are kept. | Spec |
 | 2.8a | BUILD-PLAN 2.8 | Split into 2.8a (page) and 2.8b (lightbox) | CLAUDE.md §4.4: a slice past ~600 hand-written lines is split. | Waiting for Bohoka |
+| 2.8b | Phone hint ‹ › (1637:11798, 14 px icons) | 44 × 44 hit areas that reach down and sideways only | §10.13 hit areas; a centred one would cover the dashes 12 px above. | Spec |

@@ -190,6 +190,7 @@
   --type-lead-phone-tall: 300 16px/24px var(--font-ui); /* gallery intro on the phone, accent · 1636:11725 */
   --type-count-phone: 400 12px/16px var(--font-ui); /* “Showing 12 of 30” on the phone · 1636:11772 */
   --type-cta-text: 400 max(calc(15px * var(--type-scale)), min(15px, 14px))/normal var(--font-ui); /* CTA band line “Tell me about it — …” · 1633:11711 */
+  --type-lightbox-caption: 400 max(calc(21px * var(--type-scale)), min(21px, 14px))/normal var(--font-display); /* lightbox caption “Rosette wedding · 2025” · 1633:12091 */
   --type-legal-body: 400 max(calc(15px * var(--type-scale)), min(15px, 14px))/calc(26px * var(--type-scale)) var(--font-ui); /* legal section text · 664:4192 */
   --type-toc-phone: 400 12px/18px var(--font-ui); /* “On this page” links on the phone · 844:7228 */
   --type-questions-phone: 400 12px/17px var(--font-ui); /* “Questions? Email … or call …” on the phone · 844:7228 */

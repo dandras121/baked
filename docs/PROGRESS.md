@@ -38,8 +38,8 @@ Branch per phase (`phase-00-foundations`, …), one commit per accepted slice, t
 | 2.5 | FAQ | ☑ | eca244d | 2026-10-31 “mehet tovább” |
 | 2.6 | Legal pages and Allergen information | ☑ | 850e42e | 2026-10-31 “menj tovább” |
 | 2.7 | Contact and Message sent | ◐ built, waiting for Bohoka | 3297269 | |
-| 2.8a | Gallery: grid, Show the next, photo fade-in (split, CLAUDE.md §4.4) | ◐ built, waiting for Bohoka | | |
-| 2.8b | Gallery lightbox (ANIM-14) | ☐ | | |
+| 2.8a | Gallery: grid, Show the next, photo fade-in (split, CLAUDE.md §4.4) | ◐ built, waiting for Bohoka | d5c0eb4 | |
+| 2.8b | Gallery lightbox (ANIM-14) | ◐ built, waiting for Bohoka | | |
 
 ## Phase 3 — Catalogue and cake page
 
@@ -143,6 +143,9 @@ Branch per phase (`phase-00-foundations`, …), one commit per accepted slice, t
 - Bohoka 2026-10-31: “ha kész menj tovább a következő lépésekre amíg tartanak a tokenek” — 2.6 accepted; the next slices are built one after another, each reported and committed on its own, and Bohoka checks them as they come.
 - Tablet header 77 px (Bohoka 2026-10-31, DEVIATIONS); the read-only Figma tools run without a prompt (`.claude/settings.json`).
 - **2.8 split in two** (CLAUDE.md §4.4: the whole slice would be well over 600 lines): 2.8a the page, 2.8b the lightbox.
+- **2.8b Gallery lightbox (ANIM-14)** — built, waiting for Bohoka.
+  - Files: `src/components/gallery/lightbox.{tsx,module.css}` (native modal dialog; WAAPI open / close / next; swipe), `src/components/gallery/gallery-grid.tsx` (tiles are buttons; `?photo=` push / replace / Back / Forward; past the loaded tiles), `src/lib/gallery.ts` (photoIndex, stepPhoto, shownFor), tokens (+1 type).
+  - Tests: `src/lib/gallery.test.ts` (+3), `e2e/gallery.spec.ts` (+12: open, Esc / ×, Back / Forward, ‹ › and keys without new history entries, ends, dashes ≤ 5 and “Photo n of 30”, past the loaded page, shared link and unknown id, focus never behind, ANIM-14 timings, reduced motion, phone swipe and 44 px hint arrows, axe).
 - **2.8a Gallery: grid, Show the next, photo fade-in** — built, waiting for Bohoka.
   - Files: `src/lib/gallery.ts` (tiles, paging, intro, 30 sample captions), `src/lib/constants.ts` (OCCASIONS), `src/db/schema.ts` + `drizzle/0006_*` (gallery occasion), `src/db/gallery-repo.ts` (tiles, sample gallery for dev and previews), seed and preview setup, `src/components/gallery/` (page, grid, photo, CSS), `src/app/(site)/gallery/page.tsx`, `/dev/components` (ANIM-23 demo), tokens (+5 type).
   - Tests: `src/lib/gallery.test.ts` (showing only, order, alt, occasion, `?shown=` rules, next N, samples), `e2e/gallery.spec.ts` (title and description, 12 tiles, squares on lilac, one-line captions, 2 / 4 columns, Show the next with focus and no scroll, the end, ANIM-17 timing, reduced motion, shared `?shown=`, ANIM-23 wait and fade, axe, without JavaScript); `e2e/home.spec.ts` (gallery link now shows: the seed has photos), `e2e/mobile-menu.spec.ts` (gallery heading).
@@ -174,7 +177,9 @@ Branch per phase (`phase-00-foundations`, …), one commit per accepted slice, t
 
 ## Later (noticed, belongs to another slice)
 
-- Gallery tiles become buttons that open the lightbox → 2.8b; photo upload, focal point crop and the large version → 9.2 / 9.5.
+- Phase 2 review gate (CLAUDE.md §4.3: full suite, axe on every page, Lighthouse, ANIMATIONS §9, phase summary) once Bohoka has looked at 2.7, 2.8a and 2.8b.
+- Flaky under full parallel load (passes alone, 9 / 9): the hero timer test “advances every 6 s” on the tablet project → 10.1.
+- Gallery photo upload, focal point crop and the large version → 9.2 / 9.5.
 
 - The daily job (10.1 / §12) must call `purgeContactMessages` (contact messages after 30 days, send counts after a day); Postmark sending of the contact e-mail and its retries → 5.1; `/admin/messages/[id]` → 9.8.
 - Production needs `RATE_LIMIT_SALT` set (a long random string) → 11.2.

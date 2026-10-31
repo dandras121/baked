@@ -53,16 +53,25 @@
   display: none;
 }
 
-.tile:focus {
-  outline: none;
+/* The whole tile is the button that opens the lightbox (§4.8); the photo grows on hover / press (ANIM-07). */
+.tileButton {
+  display: block;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
 }
 
-.tile:focus-visible {
+.tileButton:focus-visible {
   outline: 2px solid var(--colour-focus-ring);
   outline-offset: 4px;
 }
 
 .frame {
+  display: block;
   position: relative;
   aspect-ratio: 1;
   overflow: hidden;
@@ -87,6 +96,7 @@
 }
 
 .caption {
+  display: block;
   margin: 8px 0 0;
   overflow: hidden;
   color: var(--colour-meta);

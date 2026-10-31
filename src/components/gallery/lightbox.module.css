@@ -1,0 +1,273 @@
+/*
+ * Gallery lightbox (§4.8, ANIM-14). Desktop 1633:12049: a 560 card (photo + caption bar) centred on an ink 88 %
+ * scrim, ‹ › 56 px circles 56 px outside it, × 44 px top right, the slider indicator 24 px under the card; tablet ×
+ * 0.8 (--u). Phone 1637:11792: the photo full width, the indicator and “Swipe for the next cake” under it, the
+ * caption sheet at the bottom.
+ */
+.dialog {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  max-width: none;
+  height: 100%;
+  max-height: none;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  border: 0;
+  background: transparent;
+  color: var(--colour-paper);
+}
+
+.dialog::backdrop {
+  background: transparent;
+}
+
+:global(html:has(dialog[open])) {
+  overflow: hidden;
+}
+
+.scrim {
+  position: absolute;
+  inset: 0;
+  background: var(--colour-scrim-lightbox);
+}
+
+.stage {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  height: 100%;
+  padding-top: 60px; /* the row of × (1637:11793: 16 + 44) */
+}
+
+.card {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.photo {
+  position: relative;
+  flex: none;
+  width: 100%;
+  aspect-ratio: 1;
+  margin-top: auto;
+  background: var(--colour-lilac);
+  touch-action: pan-y;
+  user-select: none;
+}
+
+.photo img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  -webkit-user-drag: none;
+}
+
+/* Circles on the dark surface. */
+.close,
+.arrow {
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 1px solid var(--colour-paper);
+  border-radius: 50%;
+  background: transparent;
+  color: var(--colour-paper);
+  cursor: pointer;
+}
+
+.close svg,
+.arrow svg,
+.hintArrow svg {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.close {
+  position: absolute;
+  z-index: 1;
+  top: 16px;
+  right: calc(24 * var(--u));
+  width: 44px;
+  height: 44px;
+}
+
+.close svg {
+  width: 18px;
+  height: 18px;
+}
+
+.arrow {
+  display: none;
+}
+
+.arrow:disabled,
+.hintArrow:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.under {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  margin: 24px 0 auto;
+}
+
+.hint {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--colour-lilac);
+  font: var(--type-count-phone);
+}
+
+.hintArrow {
+  display: grid;
+  place-items: center;
+  width: 14px;
+  height: 14px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--colour-lilac);
+  cursor: pointer;
+}
+
+.hintArrow svg {
+  width: 14px;
+  height: 14px;
+}
+
+/* 44 × 44 hit area (§10.13) that reaches down and sideways only, so it never covers the dashes just above. */
+.hintArrow {
+  position: relative;
+}
+
+.hintArrow::after {
+  content: "";
+  position: absolute;
+  top: -4px;
+  left: -15px;
+  width: 44px;
+  height: 44px;
+}
+
+.captionBar {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 20px calc(24 * var(--u)) 36px;
+  background: var(--colour-paper);
+}
+
+.text {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.caption {
+  margin: 0;
+  color: var(--colour-ink);
+  font: var(--type-lightbox-caption);
+  font-variation-settings: var(--font-display-axes);
+  overflow-wrap: anywhere;
+}
+
+.occasion {
+  margin: 0;
+  color: var(--colour-meta);
+  font: var(--type-meta);
+}
+
+.inspired {
+  box-sizing: border-box;
+  width: 100%;
+}
+
+@media (min-width: 768px) {
+  .stage {
+    align-items: center;
+    justify-content: center;
+    padding-top: 48px;
+  }
+
+  /* The photo is as large as the screen allows, up to 560 design px. */
+  .card {
+    --s: min(
+      calc(560 * var(--u)),
+      calc(100dvh - 48px - 90px * var(--type-scale) - 80px)
+    );
+    position: relative;
+    flex: none;
+    width: var(--s);
+  }
+
+  .photo {
+    width: var(--s);
+    height: var(--s);
+    margin-top: 0;
+  }
+
+  .captionBar {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    order: 1;
+    padding: calc(20px * var(--type-scale)) calc(24px * var(--type-scale));
+  }
+
+  .under {
+    order: 2;
+    margin: 24px 0 0;
+  }
+
+  .hint {
+    display: none;
+  }
+
+  .inspired {
+    flex: none;
+    width: auto;
+  }
+
+  .close {
+    position: fixed;
+    top: 32px;
+    right: calc(80 * var(--u));
+  }
+
+  .arrow {
+    position: absolute;
+    top: calc(var(--s) / 2 - 28px);
+    display: grid;
+    width: 56px;
+    height: 56px;
+  }
+
+  .arrow svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  .prev {
+    left: calc(-56px - 56 * var(--u));
+  }
+
+  .next {
+    right: calc(-56px - 56 * var(--u));
+  }
+}

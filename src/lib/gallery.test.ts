@@ -3,6 +3,9 @@ import {
   GALLERY_INTRO,
   galleryTiles,
   nextCount,
+  photoIndex,
+  shownFor,
+  stepPhoto,
   SAMPLE_GALLERY,
   shownCount,
   type GalleryPhotoRow,
@@ -80,5 +83,31 @@ describe("§4.8 copy and samples", () => {
     expect(SAMPLE_GALLERY[11].caption).toBe("Anniversary · 2023");
     for (const p of SAMPLE_GALLERY)
       expect(p.caption.length).toBeLessThanOrEqual(80);
+  });
+});
+
+describe("§4.8 lightbox address and steps", () => {
+  const tiles = galleryTiles([
+    row(5),
+    row(7),
+    row(9, { showing: false }),
+    row(11),
+  ]);
+  it("?photo=<id> → its place; unknown, hidden or nonsense → nothing", () => {
+    expect(photoIndex(tiles, "7")).toBe(1);
+    expect(photoIndex(tiles, "9")).toBeNull();
+    expect(photoIndex(tiles, "404")).toBeNull();
+    expect(photoIndex(tiles, "7abc")).toBeNull();
+    expect(photoIndex(tiles, null)).toBeNull();
+  });
+  it("‹ › stop at the ends", () => {
+    expect(stepPhoto(0, -1, 3)).toBeNull();
+    expect(stepPhoto(0, 1, 3)).toBe(1);
+    expect(stepPhoto(2, 1, 3)).toBeNull();
+  });
+  it("moving past the loaded tiles loads the next page", () => {
+    expect(shownFor(11, 12, 30)).toBe(12);
+    expect(shownFor(12, 12, 30)).toBe(24);
+    expect(shownFor(29, 12, 30)).toBe(30);
   });
 });

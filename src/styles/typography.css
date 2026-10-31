@@ -513,3 +513,8 @@
 .type-cta-text {
   font: var(--type-cta-text);
 }
+
+.type-lightbox-caption {
+  font: var(--type-lightbox-caption);
+  font-variation-settings: var(--font-display-axes);
+}

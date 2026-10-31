@@ -87,3 +87,24 @@ export const SAMPLE_GALLERY: {
     occasion: null,
   })),
 ];
+
+/** `?photo=<id>` → the index of that showing photo, or null for an unknown or hidden id (§4.8 Lightbox). */
+export function photoIndex(
+  tiles: GalleryTile[],
+  param: string | null | undefined,
+): number | null {
+  if (!param || !/^\d+$/.test(param)) return null;
+  const i = tiles.findIndex((t) => t.id === Number(param));
+  return i < 0 ? null : i;
+}
+
+/** ‹ › in the lightbox: the neighbour, or null at either end (no wrapping). */
+export function stepPhoto(index: number, dir: 1 | -1, total: number) {
+  const next = index + dir;
+  return next < 0 || next >= total ? null : next;
+}
+
+/** The tiles that must be on the page for the lightbox photo `index` (whole pages of 12, §4.8). */
+export function shownFor(index: number, shown: number, total: number) {
+  return index < shown ? shown : shownCount(String(index + 1), total);
+}

@@ -28,11 +28,11 @@ test("title, intro, bespoke link and the first 12 tiles with one-line captions",
   await expect(tiles(page)).toHaveCount(12);
   await expect(tiles(page).first()).toContainText("Digger birthday · 2025");
   // Square tiles on the lilac base; a caption is one line.
-  const frame = tiles(page).first().locator("div").first();
+  const frame = tiles(page).first().locator("button > span").first();
   const box = (await frame.boundingBox())!;
   expect(Math.abs(box.width - box.height)).toBeLessThan(1);
   await expect(frame).toHaveCSS("background-color", "rgb(201, 167, 232)");
-  await expect(tiles(page).first().locator("p")).toHaveCSS(
+  await expect(tiles(page).first().locator("button > span").nth(1)).toHaveCSS(
     "text-overflow",
     "ellipsis",
   );
@@ -57,7 +57,7 @@ test("Show the next: 12 more rise in, focus on the first new tile, ?shown= kept,
   await more(page).click();
   await expect(tiles(page)).toHaveCount(24);
   await expect(page).toHaveURL(/\/gallery\?shown=24$/);
-  await expect(tiles(page).nth(12)).toBeFocused();
+  await expect(tiles(page).nth(12).getByRole("button")).toBeFocused();
   expect(await page.evaluate(() => window.scrollY)).toBe(scroll);
   await expect(page.getByText("Showing 24 of 30")).toBeVisible();
   await expect(more(page)).toHaveText("Show the next 6");
@@ -177,5 +177,244 @@ test.describe("without JavaScript", () => {
     await expect(page.locator("main ul[aria-label] > li").last()).toBeVisible();
     await expect(more(page)).toBeHidden();
     await expect(page.getByText(/^Showing/)).toBeHidden();
+  });
+});
+
+// Slice 2.8b: the lightbox (§4.8, ANIM-14).
+const dialog = (page: Page) => page.locator("dialog[open]");
+const caption = (page: Page) => page.locator("#lightbox-caption");
+const openTile = async (page: Page, name: string) => {
+  await page.getByRole("button", { name, exact: true }).click();
+  await expect(dialog(page)).toHaveCount(1);
+};
+const photoId = (page: Page) => new URL(page.url()).searchParams.get("photo");
+
+test("a tile opens the lightbox: ?photo=, caption, occasion, I’d like one like this → bespoke", async ({
+  page,
+}) => {
+  await page.goto("/gallery");
+  const tile = page.getByRole("button", { name: "Rosette wedding · 2025" });
+  await expect(tile).toHaveAttribute("aria-haspopup", "dialog");
+  await openTile(page, "Rosette wedding · 2025");
+  const id = photoId(page);
+  expect(id).toMatch(/^\d+$/);
+  await expect(caption(page)).toHaveText("Rosette wedding · 2025");
+  await expect(dialog(page)).toContainText("Weddings");
+  await expect(
+    dialog(page).getByRole("link", { name: "I’d like one like this →" }),
+  ).toHaveAttribute("href", `/bespoke?inspired=${id}`);
+  await expect(dialog(page)).toHaveAccessibleName("Rosette wedding · 2025");
+});
+
+test("Esc and × close it, focus returns to the tile, the address loses ?photo=", async ({
+  page,
+}) => {
+  await page.goto("/gallery");
+  await openTile(page, "Muddy pigs · 2025");
+  await page.keyboard.press("Escape");
+  await expect(dialog(page)).toHaveCount(0);
+  await expect(page).toHaveURL(/\/gallery$/);
+  await expect(
+    page.getByRole("button", { name: "Muddy pigs · 2025" }),
+  ).toBeFocused();
+  await openTile(page, "Muddy pigs · 2025");
+  await dialog(page).getByRole("button", { name: "Close" }).click();
+  await expect(dialog(page)).toHaveCount(0);
+  await expect(page).toHaveURL(/\/gallery$/);
+});
+
+test("browser Back closes the lightbox and stays on the gallery; Forward opens it again", async ({
+  page,
+}) => {
+  await page.goto("/faq");
+  await page.goto("/gallery");
+  await openTile(page, "Engagement · 2024");
+  await page.goBack();
+  await expect(dialog(page)).toHaveCount(0);
+  await expect(page).toHaveURL(/\/gallery$/);
+  await page.goForward();
+  await expect(dialog(page)).toHaveCount(1);
+  await expect(caption(page)).toHaveText("Engagement · 2024");
+});
+
+test("‹ › and the arrow keys move between photos, replacing the address; the ends stop", async ({
+  page,
+}) => {
+  await page.goto("/gallery");
+  await openTile(page, "Digger birthday · 2025");
+  const length = await page.evaluate(() => history.length);
+  const prev = dialog(page).getByRole("button", { name: "Previous cake" });
+  const next = dialog(page).getByRole("button", { name: "Next cake" });
+  await expect(prev).toBeDisabled();
+  await next.click();
+  await expect(caption(page)).toHaveText("First birthday · 2025");
+  await page.keyboard.press("ArrowRight");
+  await expect(caption(page)).toHaveText("Rosette wedding · 2025");
+  await page.keyboard.press("ArrowLeft");
+  await expect(caption(page)).toHaveText("First birthday · 2025");
+  expect(await page.evaluate(() => history.length)).toBe(length);
+  // Back still closes it (one entry for the whole visit).
+  await page.goBack();
+  await expect(dialog(page)).toHaveCount(0);
+});
+
+test("ANIM-10 on the dark surface: at most 5 dashes, named “Photo n of 30”", async ({
+  page,
+}) => {
+  await page.goto("/gallery");
+  await openTile(page, "Rosette wedding · 2025");
+  const dashes = dialog(page).getByRole("button", {
+    name: /^Photo \d+ of 30$/,
+  });
+  expect(await dashes.count()).toBeLessThanOrEqual(5);
+  await dialog(page).getByRole("button", { name: "Photo 5 of 30" }).click();
+  await expect(caption(page)).toHaveText("Farmyard 60th · 2024");
+  await expect(dialog(page).locator("#lightbox-position")).toHaveText(
+    "Photo 5 of 30",
+  );
+});
+
+test("moving past the loaded tiles loads the next page", async ({ page }) => {
+  await page.goto("/gallery");
+  await openTile(page, "Anniversary · 2023");
+  await page.keyboard.press("ArrowRight");
+  await expect(caption(page)).toHaveText("Sample photo 13 · 2023");
+  await page.keyboard.press("Escape");
+  await expect(dialog(page)).toHaveCount(0);
+  await expect(tiles(page)).toHaveCount(24);
+  await expect(
+    page.getByRole("button", { name: "Sample photo 13 · 2023" }),
+  ).toBeFocused();
+});
+
+test("a shared ?photo= opens it; × removes the id; an unknown id opens the page alone", async ({
+  page,
+}) => {
+  await page.goto("/gallery");
+  await openTile(page, "Rosette wedding · 2025");
+  const shared = page.url();
+  await page.goto(shared);
+  await expect(dialog(page)).toHaveCount(1);
+  await expect(caption(page)).toHaveText("Rosette wedding · 2025");
+  await dialog(page).getByRole("button", { name: "Close" }).click();
+  await expect(dialog(page)).toHaveCount(0);
+  await expect(page).toHaveURL(/\/gallery$/);
+  await page.goto("/gallery?photo=999999");
+  await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
+  await expect(dialog(page)).toHaveCount(0);
+});
+
+test("focus never reaches the page behind the open lightbox", async ({
+  page,
+}) => {
+  await page.goto("/gallery");
+  await openTile(page, "First birthday · 2025");
+  for (let i = 0; i < 14; i++) {
+    await page.keyboard.press("Tab");
+    // Inside the dialog, or out to the browser itself (a modal dialog allows that) — never the page.
+    expect(
+      await page.evaluate(
+        () =>
+          document.activeElement === document.body ||
+          !!document.activeElement?.closest("dialog"),
+      ),
+    ).toBe(true);
+  }
+});
+
+test("ANIM-14 open: photo 320 ms from the tile, scrim 240 ms linear, controls 200–320 ms", async ({
+  page,
+}, testInfo) => {
+  test.skip(testInfo.project.name !== "desktop", "one browser is enough");
+  await page.goto("/gallery");
+  await page.getByRole("button", { name: "Muddy pigs · 2025" }).click();
+  const timing = await page.evaluate(() =>
+    document
+      .querySelector("dialog")!
+      .getAnimations({ subtree: true })
+      .map((a) => {
+        const t = a.effect!.getComputedTiming();
+        const k = (a.effect as KeyframeEffect).getKeyframes();
+        return [t.duration, t.delay, t.easing, String(k[0].transform ?? "")];
+      }),
+  );
+  expect(timing).toContainEqual([
+    320,
+    0,
+    "cubic-bezier(0.33, 1, 0.68, 1)",
+    expect.stringMatching(/^translate\(.*scale/),
+  ]);
+  expect(timing).toContainEqual([240, 0, "linear", ""]);
+  expect(timing).toContainEqual([
+    120,
+    200,
+    "cubic-bezier(0.33, 1, 0.68, 1)",
+    "",
+  ]);
+});
+
+test("ANIM-14 reduced motion: opens and closes at once", async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.goto("/gallery");
+  await page.getByRole("button", { name: "Muddy pigs · 2025" }).click();
+  expect(
+    await page.evaluate(
+      () =>
+        document.querySelector("dialog")!.getAnimations({ subtree: true })
+          .length,
+    ),
+  ).toBe(0);
+  await page.keyboard.press("Escape");
+  await expect(dialog(page)).toHaveCount(0);
+});
+
+test("phone: a swipe moves to the next cake; the ‹ › beside the hint are 44 px buttons", async ({
+  page,
+}, testInfo) => {
+  test.skip(testInfo.project.name !== "phone", "phone only");
+  await page.goto("/gallery");
+  await openTile(page, "Digger birthday · 2025");
+  await expect(dialog(page).getByText("Swipe for the next cake")).toBeVisible();
+  const box = (await dialog(page)
+    .getByRole("button", { name: "Next cake" })
+    .boundingBox())!;
+  expect(box.width).toBeGreaterThanOrEqual(14);
+  const hit = await dialog(page)
+    .getByRole("button", { name: "Next cake" })
+    .evaluate((el) => {
+      const r = el.getBoundingClientRect();
+      return !!document
+        .elementFromPoint(r.left + r.width / 2, r.top + r.height / 2 + 18)
+        ?.closest("button[aria-label='Next cake']");
+    });
+  expect(hit).toBe(true);
+  const photo = dialog(page).locator("[class*='photo']").first();
+  const r = (await photo.boundingBox())!;
+  const at = (x: number) => ({
+    pointerId: 1,
+    pointerType: "touch",
+    clientX: x,
+    clientY: r.y + r.height / 2,
+    bubbles: true,
+  });
+  await photo.dispatchEvent("pointerdown", at(r.x + 300));
+  await photo.dispatchEvent("pointermove", at(r.x + 200));
+  await photo.dispatchEvent("pointerup", at(r.x + 150));
+  await expect(caption(page)).toHaveText("First birthday · 2025");
+  // A short drag springs back.
+  await photo.dispatchEvent("pointerdown", at(r.x + 200));
+  await photo.dispatchEvent("pointerup", at(r.x + 180));
+  await expect(caption(page)).toHaveText("First birthday · 2025");
+});
+
+test("axe: no violations with the lightbox open", async ({
+  page,
+}, testInfo) => {
+  await page.goto("/gallery");
+  await openTile(page, "Rosette wedding · 2025");
+  await page.waitForTimeout(400);
+  expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
+  await page.screenshot({
+    path: testInfo.outputPath(`${testInfo.project.name}_lightbox.png`),
   });
 });
