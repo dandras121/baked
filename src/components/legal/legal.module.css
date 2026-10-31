@@ -1,0 +1,224 @@
+/*
+ * Legal pages (§4.5). Phone 844:7228 (24 side margins; “On this page” in a paper box at the top); tablet and
+ * desktop 664:4192 in desktop design px × --u (tablet × 0.8): “On this page” in the left column (80, 280 wide),
+ * the sections on the right (440, 760 wide).
+ */
+.page {
+  width: calc(402 * var(--u));
+  margin-inline: auto;
+  padding: 34px calc(24 * var(--u)) 60px;
+  background: var(--colour-white);
+}
+
+.updated,
+.tocTitle {
+  margin: 0;
+  color: var(--colour-meta);
+  font: var(--type-label-sm);
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.title {
+  margin: 9px 0 0;
+  color: var(--colour-display);
+  font: var(--type-legal-title-phone);
+  font-variation-settings: var(--font-display-axes);
+}
+
+.intro {
+  margin: 11px 0 0;
+  color: var(--colour-body);
+  font: var(--type-legal-intro-phone);
+}
+
+/* The rule under the intro runs edge to edge. */
+.top {
+  position: relative;
+  padding-bottom: 28px;
+}
+
+.top::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: calc(-24 * var(--u));
+  right: calc(-24 * var(--u));
+  height: 1px;
+  background: var(--colour-line-rule);
+}
+
+.toc {
+  margin-top: 27px;
+  padding: 16px;
+  border-radius: var(--radius-field);
+  background: var(--colour-paper);
+}
+
+.tocList {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  margin: 7px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.tocLink,
+.inlineLink,
+.inlineButton {
+  color: var(--colour-accent);
+}
+
+.tocLink {
+  font: var(--type-toc-phone);
+  text-decoration: none;
+}
+
+.tocLink:hover,
+.tocLink:focus-visible {
+  text-decoration: underline;
+}
+
+.inlineLink,
+.inlineButton {
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
+}
+
+.inlineButton {
+  display: inline;
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  cursor: pointer;
+}
+
+.sections {
+  margin-top: 28px;
+}
+
+.section {
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--colour-line-rule);
+}
+
+.section + .section {
+  padding-top: 17px;
+}
+
+.heading {
+  margin: 0;
+  color: var(--colour-ink);
+  font: var(--type-question-phone);
+  font-variation-settings: var(--font-display-axes);
+  scroll-margin-top: var(--header-height-compact);
+}
+
+.paragraph,
+.list {
+  margin: 6px 0 0;
+  color: var(--colour-body);
+  font: var(--type-answer-phone);
+}
+
+.list {
+  padding-left: 1.2em;
+}
+
+.paragraph strong,
+.list strong {
+  color: var(--colour-ink);
+  font-weight: 600;
+}
+
+.questions {
+  margin: 21px 0 0;
+  color: var(--colour-meta);
+  font: var(--type-questions-phone);
+}
+
+@media (min-width: 768px) {
+  .page {
+    width: calc(1280 * var(--u));
+    padding: calc(81 * var(--u)) calc(80 * var(--u)) calc(84 * var(--u));
+  }
+
+  .updated,
+  .tocTitle {
+    font: var(--type-label);
+  }
+
+  .title {
+    margin-top: calc(14px * var(--type-scale));
+    font: var(--type-legal-title);
+  }
+
+  .intro {
+    max-width: calc(720 * var(--u));
+    margin-top: calc(18px * var(--type-scale));
+    font: var(--type-body);
+  }
+
+  .top {
+    padding-bottom: calc(44 * var(--u));
+  }
+
+  .top::after {
+    left: calc(-80 * var(--u));
+    right: calc(-80 * var(--u));
+  }
+
+  .columns {
+    display: grid;
+    grid-template-columns: calc(360 * var(--u)) 1fr;
+    align-items: start;
+    margin-top: calc(53 * var(--u));
+  }
+
+  .toc {
+    width: calc(280 * var(--u));
+    margin: 0;
+    padding: 0;
+    background: none;
+  }
+
+  .tocList {
+    gap: calc(11px * var(--type-scale));
+    margin-top: calc(28px * var(--type-scale));
+  }
+
+  .tocLink {
+    font: var(--type-footer-legal);
+  }
+
+  .sections {
+    max-width: calc(760 * var(--u));
+    margin-top: 0;
+  }
+
+  .section {
+    padding-bottom: calc(26px * var(--type-scale));
+  }
+
+  .section + .section {
+    padding-top: calc(27px * var(--type-scale));
+  }
+
+  .heading {
+    font: var(--type-legal-heading);
+    scroll-margin-top: var(--header-height);
+  }
+
+  .paragraph,
+  .list {
+    margin-top: calc(10px * var(--type-scale));
+    font: var(--type-legal-body);
+  }
+
+  .questions {
+    margin-top: calc(33px * var(--type-scale));
+    font: var(--type-meta);
+  }
+}

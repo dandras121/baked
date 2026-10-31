@@ -225,3 +225,26 @@ export const faqQuestions = pgTable(
     ),
   ],
 );
+
+/**
+ * Legal page revisions (§4.5, §9.12): every save of a legal page is a new revision, never changed or deleted;
+ * the newest is the page. Orders and e-mail 1 point to the revisions accepted (§5.3, §8.1).
+ * `body` is the small format of the editor: "## " section headings, paragraphs, "- " lists, **bold**,
+ * [links](href), and {placeholders} (§11.8).
+ */
+export const legalRevisions = pgTable(
+  "legal_revisions",
+  {
+    id: serial("id").primaryKey(),
+    slug: text("slug").notNull(),
+    title: text("title").notNull(),
+    intro: text("intro").notNull(),
+    body: text("body").notNull(),
+    /** “Last updated”, a London calendar date, set when the page is saved. */
+    updatedOn: date("updated_on").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [index("legal_slug_newest").on(t.slug, t.createdAt)],
+);

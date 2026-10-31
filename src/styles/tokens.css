@@ -176,6 +176,13 @@
   --type-intro-sm-phone: 400 13px/24px var(--font-ui); /* FAQ introduction on the phone · 803:5741 */
   --type-ask: 300 max(calc(44px * var(--type-scale)), min(44px, 14px))/normal var(--font-display); /* “Ask me directly” · 658:4150 */
   --type-ask-phone: 300 34px/40px var(--font-display); /* “Ask me directly” on the phone · 803:5741 */
+  --type-legal-title: 300 max(calc(72px * var(--type-scale)), min(72px, 14px))/normal var(--font-display); /* legal page title · 664:4192 */
+  --type-legal-title-phone: 300 36px/52px var(--font-display); /* legal page title on the phone · 844:7228 */
+  --type-legal-intro-phone: 400 12px/20px var(--font-ui); /* legal page intro on the phone · 844:7228 */
+  --type-legal-heading: 400 max(calc(19px * var(--type-scale)), min(19px, 14px))/normal var(--font-display); /* legal section heading · 664:4192 */
+  --type-legal-body: 400 max(calc(15px * var(--type-scale)), min(15px, 14px))/calc(26px * var(--type-scale)) var(--font-ui); /* legal section text · 664:4192 */
+  --type-toc-phone: 400 12px/18px var(--font-ui); /* “On this page” links on the phone · 844:7228 */
+  --type-questions-phone: 400 12px/17px var(--font-ui); /* “Questions? Email … or call …” on the phone · 844:7228 */
   --colour-about-card: rgb(224 224 224 / 0.24); /* phone “What do we offer?” card · 1173:9142 */
   --type-label-ls: calc(1.98px * max(var(--type-scale), min(1, calc(14 / 11)))); /* field label letter spacing (18 %) · input 630:3005 */
   --type-footer-heading: 700 max(calc(10px * var(--type-scale)), min(10px, 14px))/normal var(--font-ui); /* footer column heading · style guide Quicksand Bold 10 */

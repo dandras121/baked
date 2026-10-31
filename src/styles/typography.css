@@ -438,3 +438,34 @@
   font: var(--type-ask-phone);
   font-variation-settings: var(--font-display-axes);
 }
+
+.type-legal-title {
+  font: var(--type-legal-title);
+  font-variation-settings: var(--font-display-axes);
+}
+
+.type-legal-title-phone {
+  font: var(--type-legal-title-phone);
+  font-variation-settings: var(--font-display-axes);
+}
+
+.type-legal-intro-phone {
+  font: var(--type-legal-intro-phone);
+}
+
+.type-legal-heading {
+  font: var(--type-legal-heading);
+  font-variation-settings: var(--font-display-axes);
+}
+
+.type-legal-body {
+  font: var(--type-legal-body);
+}
+
+.type-toc-phone {
+  font: var(--type-toc-phone);
+}
+
+.type-questions-phone {
+  font: var(--type-questions-phone);
+}

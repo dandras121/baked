@@ -1,9 +1,8 @@
-import type { Metadata } from "next";
-import { BuildStub } from "@/components/stub/build-stub";
+import { LegalRoute, legalMetadata } from "../legal-route";
 
-export const metadata: Metadata = { title: "Terms and conditions" };
+// terms (§4.5): the newest saved revision.
+export const generateMetadata = () => legalMetadata("terms");
 
-// Temporary stand-in; the real page is slice 2.6.
 export default function Page() {
-  return <BuildStub title="Terms and conditions" slice="2.6" />;
+  return <LegalRoute slug="terms" />;
 }

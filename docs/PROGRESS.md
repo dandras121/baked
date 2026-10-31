@@ -139,6 +139,10 @@ Branch per phase (`phase-00-foundations`, …), one commit per accepted slice, t
 
 - Phase 1 closed 2026-10-30 (gate in the commit “phase 1 review gate”; tag `phase-01-done` local, the git proxy refuses tag pushes).
 - Phase 2 on branch `phase-02-content`. 2.1–2.3 accepted 2026-10-31. Bohoka 2026-10-30: 2.1 stays one slice; on Vercel previews the hero shows the three slides (placeholders 2–3), `?hero=live` shows the live hero alone; production never shows the placeholders.
+- **2.6 Legal pages and Allergen information** — built, waiting for Bohoka.
+  - Files: `src/db/schema.ts` + `drizzle/0004_*` (legal_revisions), `src/db/legal-repo.ts`, `src/lib/legal.ts`, `src/lib/legal-seed.ts`, `src/components/legal/`, `src/app/(site)/legal-route.tsx` and the seven routes, tokens (+7 type).
+  - Tests: `src/lib/legal.test.ts` (sections, anchors, format, placeholders, Appendix A), `src/db/legal-repo.test.ts` (seed once, a save is a new revision, the old one kept), `e2e/legal.spec.ts` (every page, On this page jump, cookie panel, ICO links, axe).
+  - Still with Linda (§14.1 item 5): the Privacy policy revisions, the analytics provider, the final allergen wording.
 - **2.5 FAQ** — accepted 2026-10-31.
   - Files: `src/db/schema.ts` + `drizzle/0003_*` (faq_questions), `src/db/faq-repo.ts`, `src/lib/faq.ts`, `src/components/faq/`, `src/components/ui/drop-down.*` (now `<details>`), `src/app/(site)/faq/page.tsx`, `src/lib/placeholders.ts` (“free”), tokens (+7 type).
   - Tests: `src/lib/faq.test.ts`, `e2e/faq.spec.ts` (order, one open, placeholders, keyboard, #anchor, mailto, axe, without JavaScript), `e2e/slider-dropdown.spec.ts` updated for `<details>`.
