@@ -523,3 +523,21 @@
   font: var(--type-catalogue-title-phone);
   font-variation-settings: var(--font-display-axes);
 }
+
+.type-cake-name {
+  font: var(--type-cake-name);
+  font-variation-settings: var(--font-display-axes);
+}
+
+.type-cake-name-phone {
+  font: var(--type-cake-name-phone);
+  font-variation-settings: var(--font-display-axes);
+}
+
+.type-cake-desc {
+  font: var(--type-cake-desc);
+}
+
+.type-cake-from {
+  font: var(--type-cake-from);
+}

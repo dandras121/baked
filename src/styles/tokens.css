@@ -69,6 +69,7 @@
   --colour-arrow-wash: rgb(255 255 255 / 0.05); /* carousel arrow pill fill on the pink band · 1363:10096 */
   --colour-arrow-wash-strong: rgb(255 255 255 / 0.35); /* testimonial arrow pill fill · 1373:10004 */
   --colour-glass: rgb(255 255 255 / 0.62); /* testimonial card glass (62 % white over a 17 px blur) · 701:4791 */
+  --colour-line-play: rgb(201 167 232 / 0.6); /* play-video button edge · 1281:9618 */
 
   /* @group Font families */
   --font-display: "Fraunces", Georgia, "Times New Roman", serif; /* headings, card titles, quotes, field values · style guide 02 */
@@ -179,6 +180,10 @@
   --type-ask-phone: 300 34px/40px var(--font-display); /* “Ask me directly” on the phone · 803:5741 */
   --type-legal-title: 300 max(calc(72px * var(--type-scale)), min(72px, 14px))/normal var(--font-display); /* legal page title · 664:4192 */
   --type-legal-title-phone: 300 36px/52px var(--font-display); /* legal page title on the phone · 844:7228 */
+  --type-cake-name: 400 max(calc(72px * var(--type-scale)), min(72px, 14px))/normal var(--font-display); /* cake page name · 609:2943 */
+  --type-cake-name-phone: 300 40px/44px var(--font-display); /* cake page name on the phone · 815:5885 */
+  --type-cake-desc: 400 max(calc(16px * var(--type-scale)), min(16px, 14px))/calc(27px * var(--type-scale)) var(--font-ui); /* cake page description · 609:2945 */
+  --type-cake-from: 600 max(calc(15px * var(--type-scale)), min(15px, 14px))/normal var(--font-ui); /* cake page “From £185” · 609:2947 */
   --type-legal-intro-phone: 400 12px/20px var(--font-ui); /* legal page intro on the phone · 844:7228 */
   --type-legal-heading: 400 max(calc(19px * var(--type-scale)), min(19px, 14px))/normal var(--font-display); /* legal section heading · 664:4192 */
   --type-contact-detail: 400 max(calc(16px * var(--type-scale)), min(16px, 14px))/normal var(--font-display); /* Contact “THE DETAILS” item heading (Email, Phone …) · 656:3904 */

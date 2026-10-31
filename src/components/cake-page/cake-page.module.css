@@ -1,0 +1,322 @@
+/*
+ * The cake page, step 1 (§5.1). Phone 815:5841 (402 wide); tablet and desktop 609:2889 in desktop design px × --u
+ * (the tablet = × 0.8). Media: desktop 1282:9599, phone 815:5879 / 1281:9621. The stepper above comes in 4.1.
+ */
+.page {
+  width: calc(402 * var(--u));
+  margin-inline: auto;
+  padding-top: 16px;
+  background: var(--colour-white);
+}
+
+/* ---- Media ---- */
+.media {
+  position: relative;
+}
+
+.stage,
+.thumbs {
+  display: none;
+}
+
+.row {
+  display: flex;
+  gap: calc(18 * var(--u));
+  padding-inline: calc(9 * var(--u));
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scroll-snap-type: x mandatory;
+  scroll-padding-inline: calc(9 * var(--u));
+  scrollbar-width: none;
+}
+
+.row::-webkit-scrollbar {
+  display: none;
+}
+
+.slide {
+  flex: none;
+  width: calc(384 * var(--u));
+  height: calc(471 * var(--u));
+  overflow: hidden;
+  border-radius: var(--radius-frame);
+  background: var(--colour-placeholder);
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
+}
+
+.slide:only-child {
+  margin-inline: auto;
+}
+
+.placeholder {
+  width: 100%;
+  height: 100%;
+  background: var(--colour-placeholder);
+}
+
+.photo {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.videoButton {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+}
+
+/* The play glyph: a 26 px ink circle on a thumbnail; 56 px glass on the main picture (reduced motion). */
+.play {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: var(--colour-ink);
+  translate: -50% -50%;
+}
+
+.play::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  width: 9px;
+  height: 10px;
+  translate: 1px 0;
+  background: var(--colour-white);
+  clip-path: polygon(0 0, 100% 50%, 0 100%);
+}
+
+.playBig {
+  width: 56px;
+  height: 56px;
+  border: 1px solid var(--colour-line-play);
+  background: var(--colour-glass);
+}
+
+.playBig::after {
+  width: 14px;
+  height: 16px;
+  background: var(--colour-ink);
+}
+
+.dashes {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  height: 70px;
+  padding-top: 22px;
+}
+
+.hint {
+  margin: 0;
+  padding-inline: 24px;
+  color: var(--colour-meta);
+  font: var(--type-caption-phone);
+  text-align: center;
+}
+
+/* ---- Text ---- */
+.content {
+  padding: 26px 24px 40px;
+}
+
+.back {
+  display: inline-block;
+  color: var(--colour-accent);
+  font: var(--type-social);
+  line-height: 18px;
+  text-decoration: none;
+}
+
+.tierLine {
+  margin: 20px 0 0;
+  color: var(--colour-accent);
+  font: var(--type-category-phone);
+  letter-spacing: 0.18em;
+}
+
+.name {
+  margin: 8px 0 0;
+  color: var(--colour-display);
+  font: var(--type-cake-name-phone);
+  font-variation-settings: var(--font-display-axes);
+}
+
+.whatItIs {
+  margin: 14px 0 0;
+  color: var(--colour-body);
+  font: var(--type-answer-phone);
+}
+
+.from {
+  margin: 14px 0 0;
+  color: var(--colour-ink);
+  font: var(--type-price);
+  line-height: 22px;
+}
+
+@media (min-width: 768px) {
+  .page {
+    display: grid;
+    grid-template-columns: calc(540 * var(--u)) calc(740 * var(--u));
+    align-items: start;
+    width: calc(1280 * var(--u));
+    padding: calc(44 * var(--u)) 0 calc(96 * var(--u));
+  }
+
+  .media {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: calc(20 * var(--u));
+    margin-top: calc(95 * var(--u));
+  }
+
+  .row,
+  .dashes {
+    display: none;
+  }
+
+  .stage {
+    position: relative;
+    display: block;
+    width: calc(384 * var(--u));
+    height: calc(516 * var(--u));
+  }
+
+  .item,
+  .stage > .placeholder {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    border-radius: var(--radius-frame);
+    background: var(--colour-placeholder);
+  }
+
+  .item[hidden] {
+    display: none;
+  }
+
+  /* Thin violet chevrons either side of the picture; the hit area is 44 wide. */
+  .arrow {
+    position: absolute;
+    top: 50%;
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: calc(56 * var(--u));
+    min-height: 44px;
+    padding: 0;
+    border: 0;
+    background: none;
+    color: var(--colour-display);
+    cursor: pointer;
+    translate: 0 -50%;
+  }
+
+  .arrow svg {
+    width: calc(10 * var(--u));
+    height: calc(46 * var(--u));
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.5;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    overflow: visible;
+  }
+
+  .prev {
+    left: calc(-10.6 * var(--u) - 22px);
+  }
+
+  .next {
+    left: calc(414.5 * var(--u) - 22px);
+  }
+
+  .arrow:disabled {
+    opacity: 0.35;
+    cursor: default;
+  }
+
+  .thumbs {
+    display: flex;
+    gap: calc(10 * var(--u));
+    width: calc(492 * var(--u));
+    padding: 4px 1px;
+    margin-block: -4px;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .thumbs::-webkit-scrollbar {
+    display: none;
+  }
+
+  .thumb {
+    position: relative;
+    flex: none;
+    width: calc(90 * var(--u));
+    height: calc(90 * var(--u));
+    min-width: 44px;
+    min-height: 44px;
+    padding: 0;
+    overflow: hidden;
+    border: 1px solid var(--colour-line-field);
+    border-radius: var(--radius-field);
+    background: var(--colour-placeholder);
+    cursor: pointer;
+  }
+
+  .thumb[aria-current] {
+    border: 1.5px solid var(--colour-display);
+  }
+
+  .thumb img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .content {
+    padding: calc(64 * var(--u)) calc(80 * var(--u)) 0 calc(60 * var(--u));
+  }
+
+  .back {
+    font: var(--type-meta);
+  }
+
+  .tierLine {
+    margin-top: calc(28 * var(--u));
+    color: var(--colour-meta);
+    font: var(--type-label);
+    letter-spacing: var(--type-label-ls);
+  }
+
+  .name {
+    margin-top: calc(10 * var(--u));
+    font: var(--type-cake-name);
+  }
+
+  .whatItIs {
+    margin-top: calc(20 * var(--u));
+    font: var(--type-cake-desc);
+  }
+
+  .from {
+    margin-top: calc(18 * var(--u));
+    font: var(--type-cake-from);
+  }
+}

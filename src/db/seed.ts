@@ -4,7 +4,11 @@
 import type { ApiReviewPage } from "@/lib/reviews";
 import { INITIAL_SETTINGS } from "@/lib/settings";
 import fixture from "./fixtures/google-reviews.json";
-import { ensureSampleCardVideos, ensureSampleCatalogue } from "./cake-repo";
+import {
+  ensureSampleCardVideos,
+  ensureSampleCatalogue,
+  ensureSampleMedia,
+} from "./cake-repo";
 import { ensureFaq } from "./faq-repo";
 import { ensureSampleGallery } from "./gallery-repo";
 import { ensureLegalPages } from "./legal-repo";
@@ -48,6 +52,7 @@ export async function seed(url?: string) {
     await db.delete(cakes);
     await ensureSampleCatalogue(db);
     await ensureSampleCardVideos(db);
+    await ensureSampleMedia(db);
     await importSampleReviews(db);
     await db.delete(faqQuestions);
     await ensureFaq(db);

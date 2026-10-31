@@ -11,6 +11,7 @@ import { ensureLegalPages } from "./legal-repo";
 import {
   ensureSampleCardVideos,
   ensureSampleCatalogue,
+  ensureSampleMedia,
   replaceOldSamples,
 } from "./cake-repo";
 import { importSampleReviews } from "./seed";
@@ -42,6 +43,8 @@ async function main() {
         console.log(`deploy-setup: ${cakes} preview sample cakes added`);
       if (await ensureSampleCardVideos(db))
         console.log("deploy-setup: preview sample card videos added");
+      if (await ensureSampleMedia(db))
+        console.log("deploy-setup: preview sample cake media added");
       if (await ensureSampleGallery(db))
         console.log("deploy-setup: preview sample gallery added");
       const [review] = await db

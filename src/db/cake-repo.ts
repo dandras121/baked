@@ -7,6 +7,7 @@ import { slugify } from "@/lib/slug";
 import type { connect } from "./client";
 import {
   cakeCardVideos,
+  cakeMedia,
   cakeOptionChoices,
   cakeOptions,
   cakeSizes,
@@ -166,4 +167,69 @@ export async function ensureSampleCardVideos(db: Db): Promise<number> {
     .onConflictDoNothing()
     .returning({ id: cakeCardVideos.cakeId });
   return added.length;
+}
+
+/** Sample cake-page media (dev and previews): three photos and a video on The Lothian, one photo on Bramble & Cream. */
+export async function ensureSampleMedia(db: Db): Promise<number> {
+  const plan: Record<
+    string,
+    { kind: "photo" | "video"; path: string; poster?: string; alt: string }[]
+  > = {
+    "The Lothian": [
+      {
+        kind: "photo",
+        path: "/samples/cake-photos/sample-1.webp",
+        alt: "Sample photo 1 of The Lothian",
+      },
+      {
+        kind: "photo",
+        path: "/samples/cake-photos/sample-2.webp",
+        alt: "Sample photo 2 of The Lothian",
+      },
+      {
+        kind: "video",
+        path: SAMPLE_CARD_VIDEO.path1080,
+        poster: SAMPLE_CARD_VIDEO.stillPath,
+        alt: "",
+      },
+      {
+        kind: "photo",
+        path: "/samples/cake-photos/sample-3.webp",
+        alt: "Sample photo 3 of The Lothian",
+      },
+    ],
+    "Bramble & Cream": [
+      {
+        kind: "photo",
+        path: "/samples/cake-photos/sample-2.webp",
+        alt: "Sample photo of Bramble & Cream",
+      },
+    ],
+  };
+  let added = 0;
+  for (const [name, items] of Object.entries(plan)) {
+    const [cake] = await db
+      .select({ id: cakes.id })
+      .from(cakes)
+      .where(and(eq(cakes.name, name), isNull(cakes.deletedAt)));
+    if (!cake) continue;
+    const [any] = await db
+      .select({ id: cakeMedia.id })
+      .from(cakeMedia)
+      .where(eq(cakeMedia.cakeId, cake.id))
+      .limit(1);
+    if (any) continue;
+    await db.insert(cakeMedia).values(
+      items.map((m, i) => ({
+        cakeId: cake.id,
+        kind: m.kind,
+        position: i + 1,
+        path: m.path,
+        posterPath: m.poster ?? null,
+        altText: m.alt,
+      })),
+    );
+    added += items.length;
+  }
+  return added;
 }
