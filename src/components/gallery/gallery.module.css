@@ -1,0 +1,302 @@
+/*
+ * Gallery (§4.8). Phone 1636:11699 (402 wide, 24 side margins); tablet and desktop: 1633:11617 in desktop design
+ * px × --u (the tablet 1638:11793 = × 0.8). Tile: V2 · Gallery tile 1633:11616.
+ */
+.page {
+  width: calc(402 * var(--u));
+  margin-inline: auto;
+  background: var(--colour-white);
+}
+
+.title {
+  margin: 0 0 0 calc(24 * var(--u));
+  padding: 32px 0 12px;
+  color: var(--colour-display);
+  font: var(--type-gallery-title-phone);
+  font-variation-settings: var(--font-display-axes);
+}
+
+.body {
+  padding: 32px calc(24 * var(--u)) 0;
+}
+
+.intro {
+  margin: 0;
+  color: var(--colour-accent);
+  font: var(--type-lead-phone-tall);
+}
+
+.start {
+  margin-top: 20px;
+}
+
+/* Two columns on the phone, four on tablet and desktop; square photos on the lilac base. */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 24px calc(10 * var(--u));
+  margin: 36px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.tile {
+  min-width: 0;
+}
+
+/* Tiles past “Showing x”: hidden with JavaScript; without it every photo shows and there is no paging. */
+:global(html.js) .tile[data-later] {
+  display: none;
+}
+
+:global(html:not(.js)) .paging {
+  display: none;
+}
+
+.tile:focus {
+  outline: none;
+}
+
+.tile:focus-visible {
+  outline: 2px solid var(--colour-focus-ring);
+  outline-offset: 4px;
+}
+
+.frame {
+  position: relative;
+  aspect-ratio: 1;
+  overflow: hidden;
+  background: var(--colour-lilac);
+}
+
+.photo {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* ANIM-23: hidden on the lilac base until decoded, then 240 ms in; cached images show at once. */
+:global(html.js) .photo[data-photo="waiting"] {
+  opacity: 0;
+}
+
+:global(html.js) .photo[data-photo="shown"] {
+  transition: opacity var(--duration-240) var(--ease-out);
+}
+
+.caption {
+  margin: 8px 0 0;
+  overflow: hidden;
+  color: var(--colour-meta);
+  font: var(--type-meta);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+/* ANIM-17: new tiles rise 12 px and fade in, 240 ms, 40 ms apart (at most 6 staggered). */
+.rise {
+  animation: gallery-rise var(--duration-240) var(--ease-out) both;
+}
+
+@keyframes gallery-rise {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rise {
+    animation-delay: 0s !important;
+  }
+}
+
+:global(html[data-motion="reduce"]) .rise {
+  animation-delay: 0s !important;
+}
+
+.paging {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  padding: 28px 0 36px;
+}
+
+.count {
+  margin: 0;
+  color: var(--colour-meta);
+  font: var(--type-count-phone);
+}
+
+/* Phone: an outline button 160 × 36 (1636:11773). */
+.more {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  min-width: 160px;
+  height: 36px;
+  padding: 0 16px;
+  border: 1px solid var(--colour-ink);
+  border-radius: var(--radius-pill);
+  background: var(--colour-white);
+  color: var(--colour-ink);
+  font: var(--type-button);
+  letter-spacing: var(--type-button-ls);
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.cta {
+  padding: 44px calc(24 * var(--u)) 52px;
+}
+
+.eyebrow {
+  margin: 0;
+  color: var(--colour-meta);
+  font: var(--type-label-sm);
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.ctaTitle {
+  margin: 10px 0 0;
+  color: var(--colour-display);
+  font: var(--type-ask-phone);
+  font-variation-settings: var(--font-display-axes);
+}
+
+.ctaText {
+  margin: 8px 0 0;
+  color: var(--colour-body);
+  font: var(--type-answer-phone);
+}
+
+.ctaButton {
+  margin-top: 20px;
+}
+
+/* No showing photos (1633:12222). */
+.empty {
+  padding: 32px calc(24 * var(--u)) 72px;
+}
+
+.emptyTitle {
+  margin: 0;
+  color: var(--colour-display);
+  font: var(--type-ask-phone);
+  font-variation-settings: var(--font-display-axes);
+}
+
+.emptyText {
+  margin: 12px 0 0;
+  color: var(--colour-body);
+  font: var(--type-answer-phone);
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 28px;
+}
+
+@media (min-width: 768px) {
+  .page {
+    width: calc(1280 * var(--u));
+  }
+
+  .title {
+    max-width: calc(1136 * var(--u));
+    margin-left: calc(72 * var(--u));
+    padding: calc(29.5 * var(--u)) 0 0;
+    font: var(--type-gallery-title);
+    font-size: min(calc(155px * var(--type-scale)), calc(155 * var(--u)));
+  }
+
+  .body {
+    padding: calc(23.5 * var(--u)) calc(80 * var(--u)) calc(24 * var(--u));
+  }
+
+  .intro {
+    max-width: calc(720 * var(--u));
+    font: var(--type-lead);
+  }
+
+  .start {
+    margin-top: calc(28px * var(--type-scale));
+  }
+
+  .grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: calc(40 * var(--u)) calc(16 * var(--u));
+    margin-top: calc(56px * var(--type-scale));
+  }
+
+  .caption {
+    margin-top: calc(10px * var(--type-scale));
+  }
+
+  .paging {
+    gap: calc(19px * var(--type-scale));
+    padding: calc(31 * var(--u)) 0 calc(28 * var(--u));
+  }
+
+  .count {
+    font: var(--type-meta);
+  }
+
+  /* Desktop and tablet: a text button in Fraunces Light (1633:11707). */
+  .more {
+    min-width: 0;
+    height: auto;
+    padding: 0;
+    border: 0;
+    background: none;
+    font: var(--type-button-serif);
+    font-variation-settings: var(--font-display-axes);
+    letter-spacing: var(--type-button-serif-ls);
+  }
+
+  .cta {
+    padding: calc(80 * var(--u)) calc(80 * var(--u)) calc(88 * var(--u));
+  }
+
+  .eyebrow {
+    font: var(--type-label);
+    letter-spacing: var(--type-label-ls);
+  }
+
+  .ctaTitle {
+    margin-top: calc(12px * var(--type-scale));
+    font: var(--type-ask);
+  }
+
+  .ctaText {
+    margin-top: calc(10px * var(--type-scale));
+    font: var(--type-cta-text);
+  }
+
+  .ctaButton {
+    margin-top: calc(24px * var(--type-scale));
+  }
+
+  .empty {
+    padding: calc(75.5 * var(--u)) calc(80 * var(--u)) calc(144 * var(--u));
+  }
+
+  .emptyTitle {
+    font: var(--type-ask);
+  }
+
+  .emptyText {
+    font: var(--type-body);
+  }
+
+  .actions {
+    margin-top: calc(32px * var(--type-scale));
+  }
+}

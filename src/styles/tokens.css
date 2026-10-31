@@ -185,6 +185,11 @@
   --type-contact-value: 400 max(calc(14px * var(--type-scale)), min(14px, 14px))/1.571 var(--font-ui); /* Contact details value (address, e-mail) · 656:3906 */
   --type-contact-note: 400 max(calc(13px * var(--type-scale)), min(13px, 14px))/1.615 var(--font-ui); /* Contact privacy line and kitchen note · 656:3900 */
   --type-contact-note-phone: 400 11px/18px var(--font-ui); /* Contact notes and counter on the phone · 839:6670 */
+  --type-gallery-title: 400 max(calc(155px * var(--type-scale)), min(155px, 14px))/0.99 var(--font-display); /* “Cakes, I have made.” · 1633:11659 */
+  --type-gallery-title-phone: 400 64px/70px var(--font-display); /* gallery title on the phone · 1636:11722 */
+  --type-lead-phone-tall: 300 16px/24px var(--font-ui); /* gallery intro on the phone, accent · 1636:11725 */
+  --type-count-phone: 400 12px/16px var(--font-ui); /* “Showing 12 of 30” on the phone · 1636:11772 */
+  --type-cta-text: 400 max(calc(15px * var(--type-scale)), min(15px, 14px))/normal var(--font-ui); /* CTA band line “Tell me about it — …” · 1633:11711 */
   --type-legal-body: 400 max(calc(15px * var(--type-scale)), min(15px, 14px))/calc(26px * var(--type-scale)) var(--font-ui); /* legal section text · 664:4192 */
   --type-toc-phone: 400 12px/18px var(--font-ui); /* “On this page” links on the phone · 844:7228 */
   --type-questions-phone: 400 12px/17px var(--font-ui); /* “Questions? Email … or call …” on the phone · 844:7228 */

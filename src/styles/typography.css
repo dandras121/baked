@@ -491,3 +491,25 @@
 .type-contact-note-phone {
   font: var(--type-contact-note-phone);
 }
+
+.type-gallery-title {
+  font: var(--type-gallery-title);
+  font-variation-settings: var(--font-display-axes);
+}
+
+.type-gallery-title-phone {
+  font: var(--type-gallery-title-phone);
+  font-variation-settings: var(--font-display-axes);
+}
+
+.type-lead-phone-tall {
+  font: var(--type-lead-phone-tall);
+}
+
+.type-count-phone {
+  font: var(--type-count-phone);
+}
+
+.type-cta-text {
+  font: var(--type-cta-text);
+}

@@ -37,8 +37,9 @@ Branch per phase (`phase-00-foundations`, …), one commit per accepted slice, t
 | 2.4 | About Linda | ☑ | f729564 | 2026-10-31 “mehet” |
 | 2.5 | FAQ | ☑ | eca244d | 2026-10-31 “mehet tovább” |
 | 2.6 | Legal pages and Allergen information | ☑ | 850e42e | 2026-10-31 “menj tovább” |
-| 2.7 | Contact and Message sent | ◐ built, waiting for Bohoka | | |
-| 2.8 | Gallery, lightbox, Show more, photo fade-in | ☐ | | |
+| 2.7 | Contact and Message sent | ◐ built, waiting for Bohoka | 3297269 | |
+| 2.8a | Gallery: grid, Show the next, photo fade-in (split, CLAUDE.md §4.4) | ◐ built, waiting for Bohoka | | |
+| 2.8b | Gallery lightbox (ANIM-14) | ☐ | | |
 
 ## Phase 3 — Catalogue and cake page
 
@@ -141,6 +142,10 @@ Branch per phase (`phase-00-foundations`, …), one commit per accepted slice, t
 - Phase 2 on branch `phase-02-content`. 2.1–2.3 accepted 2026-10-31. Bohoka 2026-10-30: 2.1 stays one slice; on Vercel previews the hero shows the three slides (placeholders 2–3), `?hero=live` shows the live hero alone; production never shows the placeholders.
 - Bohoka 2026-10-31: “ha kész menj tovább a következő lépésekre amíg tartanak a tokenek” — 2.6 accepted; the next slices are built one after another, each reported and committed on its own, and Bohoka checks them as they come.
 - Tablet header 77 px (Bohoka 2026-10-31, DEVIATIONS); the read-only Figma tools run without a prompt (`.claude/settings.json`).
+- **2.8 split in two** (CLAUDE.md §4.4: the whole slice would be well over 600 lines): 2.8a the page, 2.8b the lightbox.
+- **2.8a Gallery: grid, Show the next, photo fade-in** — built, waiting for Bohoka.
+  - Files: `src/lib/gallery.ts` (tiles, paging, intro, 30 sample captions), `src/lib/constants.ts` (OCCASIONS), `src/db/schema.ts` + `drizzle/0006_*` (gallery occasion), `src/db/gallery-repo.ts` (tiles, sample gallery for dev and previews), seed and preview setup, `src/components/gallery/` (page, grid, photo, CSS), `src/app/(site)/gallery/page.tsx`, `/dev/components` (ANIM-23 demo), tokens (+5 type).
+  - Tests: `src/lib/gallery.test.ts` (showing only, order, alt, occasion, `?shown=` rules, next N, samples), `e2e/gallery.spec.ts` (title and description, 12 tiles, squares on lilac, one-line captions, 2 / 4 columns, Show the next with focus and no scroll, the end, ANIM-17 timing, reduced motion, shared `?shown=`, ANIM-23 wait and fade, axe, without JavaScript); `e2e/home.spec.ts` (gallery link now shows: the seed has photos), `e2e/mobile-menu.spec.ts` (gallery heading).
 - **2.7 Contact and Message sent** — built, waiting for Bohoka.
   - Files: `src/lib/contact.ts` (rules, copy, the e-mail to Linda), `src/lib/phone.ts` (E.164, libphonenumber-js), `src/lib/email/adapter.ts` (log only until phase 5), `src/db/schema.ts` + `drizzle/0005_*` (contact_messages, form_sends), `src/db/contact-repo.ts`, `src/app/(site)/contact/{page,actions}.ts(x)`, `src/app/(site)/contact/sent/page.tsx`, `src/components/contact/`, `src/proxy.ts` (Message sent only after a send), `TextArea` counter under the box, tokens (+5 type), `countCharacters` moved to `src/lib/words.ts`.
   - Tests: `src/lib/phone.test.ts`, `src/lib/contact.test.ts` (every rule, copy, the e-mail in London time), `src/db/contact-repo.test.ts` (5 per hour per connection and form, one message per form key, 30-day deletion, hashed connection), `e2e/contact.spec.ts` (details from Settings, empty send, wrong values, live clearing, stored message, sent page, direct opening, honeypot, limit, lost connection, reduced motion, axe, without JavaScript), `e2e/seo.spec.ts` (sent page noindex on its own answer).
@@ -168,6 +173,8 @@ Branch per phase (`phase-00-foundations`, …), one commit per accepted slice, t
   - Proposals: pause button, keyboard-only focus pause, swipe loop, carousel semantics, photo alt, band top without the cake row.
 
 ## Later (noticed, belongs to another slice)
+
+- Gallery tiles become buttons that open the lightbox → 2.8b; photo upload, focal point crop and the large version → 9.2 / 9.5.
 
 - The daily job (10.1 / §12) must call `purgeContactMessages` (contact messages after 30 days, send counts after a day); Postmark sending of the contact e-mail and its retries → 5.1; `/admin/messages/[id]` → 9.8.
 - Production needs `RATE_LIMIT_SALT` set (a long random string) → 11.2.

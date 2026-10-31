@@ -1,0 +1,2 @@
+ALTER TABLE "gallery_photos" ADD COLUMN "occasion" text;--> statement-breakpoint
+ALTER TABLE "gallery_photos" ADD CONSTRAINT "gallery_occasion" CHECK ("gallery_photos"."occasion" in ('birthdays', 'kids', 'weddings', 'corporate'));

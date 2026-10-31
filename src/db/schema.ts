@@ -142,6 +142,8 @@ export const galleryPhotos = pgTable(
     caption: text("caption").notNull().default(""),
     altText: text("alt_text").notNull().default(""),
     imagePath: text("image_path"),
+    /** One of the four occasions (§4.8 lightbox line), or null. */
+    occasion: text("occasion"),
     showing: boolean("showing").notNull().default(false),
     position: integer("position").notNull(),
     /** Linda's Home pick, 1–4 in her order; null = not on Home. */
@@ -152,6 +154,10 @@ export const galleryPhotos = pgTable(
   },
   (t) => [
     check("caption_length", sql`char_length(${t.caption}) <= 80`),
+    check(
+      "gallery_occasion",
+      sql`${t.occasion} in ('birthdays', 'kids', 'weddings', 'corporate')`,
+    ),
     check("home_order_range", sql`${t.homeOrder} between 1 and 4`),
     uniqueIndex("home_order_unique")
       .on(t.homeOrder)

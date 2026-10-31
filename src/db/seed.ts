@@ -5,6 +5,7 @@ import type { ApiReviewPage } from "@/lib/reviews";
 import { INITIAL_SETTINGS } from "@/lib/settings";
 import fixture from "./fixtures/google-reviews.json";
 import { ensureFaq } from "./faq-repo";
+import { ensureSampleGallery } from "./gallery-repo";
 import { ensureLegalPages } from "./legal-repo";
 import { importReviews } from "./reviews-repo";
 import { connect } from "./client";
@@ -91,6 +92,7 @@ export async function seed(url?: string) {
     // The Home row (2.3): the five names drawn on Home (518:2687); every card carries the one drawn sample
     // (flavour, two tiers, serves 24, £185) — Bohoka 2026-10-30: "Lothian-minta, más névvel".
     await db.delete(galleryPhotos);
+    await ensureSampleGallery(db);
     await db.delete(cakes);
     await insertSampleCakes(db);
     await importSampleReviews(db);
@@ -107,7 +109,7 @@ if (process.argv[1]?.endsWith("seed.ts")) {
   seed()
     .then(() =>
       console.log(
-        "Seeded: settings, closed days, Home cakes, sample reviews, FAQ, legal pages",
+        "Seeded: settings, closed days, gallery, Home cakes, sample reviews, FAQ, legal pages",
       ),
     )
     .catch((e) => {

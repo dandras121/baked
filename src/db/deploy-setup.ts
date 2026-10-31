@@ -6,6 +6,7 @@ import { INITIAL_SETTINGS } from "@/lib/settings";
 import { connect, databaseUrl } from "./client";
 import { googleReviews } from "./schema";
 import { ensureFaq } from "./faq-repo";
+import { ensureSampleGallery } from "./gallery-repo";
 import { ensureLegalPages } from "./legal-repo";
 import { importSampleReviews, insertSampleCakes } from "./seed";
 import { ensureSettings } from "./settings-repo";
@@ -31,6 +32,8 @@ async function main() {
     if (process.env.VERCEL_ENV === "preview") {
       await insertSampleCakes(db);
       console.log("deploy-setup: preview sample cakes in place");
+      if (await ensureSampleGallery(db))
+        console.log("deploy-setup: preview sample gallery added");
       const [review] = await db
         .select({ id: googleReviews.id })
         .from(googleReviews)

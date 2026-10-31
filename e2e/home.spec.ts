@@ -379,7 +379,7 @@ test("cake row: desktop arrows stop at the ends; phone and tablet swipe without 
   await expect(prev).not.toHaveAttribute("aria-disabled", "true");
 });
 
-test("Special idea: four squares, no gallery link while the gallery has no showing photo", async ({
+test("Special idea: four squares and the gallery link (the seed gallery has showing photos; empty: unit test)", async ({
   page,
 }) => {
   await page.goto("/?hero=live");
@@ -391,7 +391,7 @@ test("Special idea: four squares, no gallery link while the gallery has no showi
   await expect(section.locator("li")).toHaveCount(4);
   await expect(
     section.getByRole("link", { name: /previous works gallery/ }),
-  ).toHaveCount(0);
+  ).toHaveAttribute("href", "/gallery");
   await expect(
     section.getByRole("link", { name: "Start enquiry" }),
   ).toHaveAttribute("href", "/bespoke");

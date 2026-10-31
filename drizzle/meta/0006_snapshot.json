@@ -1,0 +1,948 @@
+{
+  "id": "5c094c7f-0810-44fd-841f-bb4e670e853b",
+  "prevId": "24be4480-87fb-4b24-a6ee-faa566809522",
+  "version": "7",
+  "dialect": "postgresql",
+  "tables": {
+    "public.cake_sizes": {
+      "name": "cake_sizes",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "cake_id": {
+          "name": "cake_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "serves": {
+          "name": "serves",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "tiers": {
+          "name": "tiers",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "price_pence": {
+          "name": "price_pence",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "cake_sizes_cake_id_cakes_id_fk": {
+          "name": "cake_sizes_cake_id_cakes_id_fk",
+          "tableFrom": "cake_sizes",
+          "tableTo": "cakes",
+          "columnsFrom": ["cake_id"],
+          "columnsTo": ["id"],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "cake_size_serves_unique": {
+          "name": "cake_size_serves_unique",
+          "nullsNotDistinct": false,
+          "columns": ["cake_id", "serves"]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {
+        "size_serves_range": {
+          "name": "size_serves_range",
+          "value": "\"cake_sizes\".\"serves\" between 1 and 500"
+        },
+        "size_tiers_positive": {
+          "name": "size_tiers_positive",
+          "value": "\"cake_sizes\".\"tiers\" >= 1"
+        },
+        "size_price_range": {
+          "name": "size_price_range",
+          "value": "\"cake_sizes\".\"price_pence\" between 100 and 500000"
+        }
+      },
+      "isRLSEnabled": false
+    },
+    "public.cakes": {
+      "name": "cakes",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "slug": {
+          "name": "slug",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "what_it_is": {
+          "name": "what_it_is",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "''"
+        },
+        "flavour": {
+          "name": "flavour",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "visible": {
+          "name": "visible",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "position": {
+          "name": "position",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "deleted_at": {
+          "name": "deleted_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "cake_name_unique_live": {
+          "name": "cake_name_unique_live",
+          "columns": [
+            {
+              "expression": "lower(\"name\")",
+              "asc": true,
+              "isExpression": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "where": "\"cakes\".\"deleted_at\" is null",
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "cake_position": {
+          "name": "cake_position",
+          "columns": [
+            {
+              "expression": "position",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "cakes_slug_unique": {
+          "name": "cakes_slug_unique",
+          "nullsNotDistinct": false,
+          "columns": ["slug"]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {
+        "cake_name_length": {
+          "name": "cake_name_length",
+          "value": "char_length(\"cakes\".\"name\") between 2 and 60"
+        },
+        "cake_flavour_length": {
+          "name": "cake_flavour_length",
+          "value": "char_length(\"cakes\".\"flavour\") between 1 and 60"
+        },
+        "cake_what_it_is_length": {
+          "name": "cake_what_it_is_length",
+          "value": "char_length(\"cakes\".\"what_it_is\") <= 300"
+        }
+      },
+      "isRLSEnabled": false
+    },
+    "public.closed_days": {
+      "name": "closed_days",
+      "schema": "",
+      "columns": {
+        "day": {
+          "name": "day",
+          "type": "date",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "note": {
+          "name": "note",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.contact_messages": {
+      "name": "contact_messages",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "form_key": {
+          "name": "form_key",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "email": {
+          "name": "email",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "phone": {
+          "name": "phone",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "message": {
+          "name": "message",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "page": {
+          "name": "page",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "contact_created": {
+          "name": "contact_created",
+          "columns": [
+            {
+              "expression": "created_at",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "contact_form_key": {
+          "name": "contact_form_key",
+          "nullsNotDistinct": false,
+          "columns": ["form_key"]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {
+        "contact_message_length": {
+          "name": "contact_message_length",
+          "value": "char_length(\"contact_messages\".\"message\") between 1 and 2000"
+        }
+      },
+      "isRLSEnabled": false
+    },
+    "public.faq_questions": {
+      "name": "faq_questions",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "category": {
+          "name": "category",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "question": {
+          "name": "question",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "answer": {
+          "name": "answer",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "position": {
+          "name": "position",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {
+        "faq_category": {
+          "name": "faq_category",
+          "value": "\"faq_questions\".\"category\" in ('ordering', 'paying', 'food', 'delivery', 'after', 'kitchen')"
+        },
+        "faq_question_length": {
+          "name": "faq_question_length",
+          "value": "char_length(\"faq_questions\".\"question\") between 1 and 140"
+        },
+        "faq_answer_length": {
+          "name": "faq_answer_length",
+          "value": "char_length(\"faq_questions\".\"answer\") between 1 and 2000"
+        }
+      },
+      "isRLSEnabled": false
+    },
+    "public.form_sends": {
+      "name": "form_sends",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "form": {
+          "name": "form",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "connection": {
+          "name": "connection",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "at": {
+          "name": "at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "form_sends_lookup": {
+          "name": "form_sends_lookup",
+          "columns": [
+            {
+              "expression": "form",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "connection",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "at",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.gallery_photos": {
+      "name": "gallery_photos",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "caption": {
+          "name": "caption",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "''"
+        },
+        "alt_text": {
+          "name": "alt_text",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "''"
+        },
+        "image_path": {
+          "name": "image_path",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "occasion": {
+          "name": "occasion",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "showing": {
+          "name": "showing",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "position": {
+          "name": "position",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "home_order": {
+          "name": "home_order",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "home_order_unique": {
+          "name": "home_order_unique",
+          "columns": [
+            {
+              "expression": "home_order",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "where": "\"gallery_photos\".\"home_order\" is not null",
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {
+        "caption_length": {
+          "name": "caption_length",
+          "value": "char_length(\"gallery_photos\".\"caption\") <= 80"
+        },
+        "gallery_occasion": {
+          "name": "gallery_occasion",
+          "value": "\"gallery_photos\".\"occasion\" in ('birthdays', 'kids', 'weddings', 'corporate')"
+        },
+        "home_order_range": {
+          "name": "home_order_range",
+          "value": "\"gallery_photos\".\"home_order\" between 1 and 4"
+        }
+      },
+      "isRLSEnabled": false
+    },
+    "public.google_rating": {
+      "name": "google_rating",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true,
+          "default": 1
+        },
+        "rating_tenths": {
+          "name": "rating_tenths",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "review_count": {
+          "name": "review_count",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "reviews_url": {
+          "name": "reviews_url",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "fetched_at": {
+          "name": "fetched_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {
+        "rating_single_row": {
+          "name": "rating_single_row",
+          "value": "\"google_rating\".\"id\" = 1"
+        },
+        "rating_range": {
+          "name": "rating_range",
+          "value": "\"google_rating\".\"rating_tenths\" between 10 and 50"
+        },
+        "review_count_positive": {
+          "name": "review_count_positive",
+          "value": "\"google_rating\".\"review_count\" >= 0"
+        }
+      },
+      "isRLSEnabled": false
+    },
+    "public.google_reviews": {
+      "name": "google_reviews",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "stars": {
+          "name": "stars",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "reviewer_name": {
+          "name": "reviewer_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "text": {
+          "name": "text",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {
+        "review_newest": {
+          "name": "review_newest",
+          "columns": [
+            {
+              "expression": "created_at",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {
+        "review_stars_range": {
+          "name": "review_stars_range",
+          "value": "\"google_reviews\".\"stars\" between 1 and 5"
+        }
+      },
+      "isRLSEnabled": false
+    },
+    "public.legal_revisions": {
+      "name": "legal_revisions",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "slug": {
+          "name": "slug",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "title": {
+          "name": "title",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "intro": {
+          "name": "intro",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "body": {
+          "name": "body",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "updated_on": {
+          "name": "updated_on",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "legal_slug_newest": {
+          "name": "legal_slug_newest",
+          "columns": [
+            {
+              "expression": "slug",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "created_at",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.settings": {
+      "name": "settings",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true,
+          "default": 1
+        },
+        "trading_name": {
+          "name": "trading_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "legal_name": {
+          "name": "legal_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "phone": {
+          "name": "phone",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "email": {
+          "name": "email",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "address_line": {
+          "name": "address_line",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "postcode": {
+          "name": "postcode",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "town": {
+          "name": "town",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "council": {
+          "name": "council",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "hygiene_rating": {
+          "name": "hygiene_rating",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "instagram": {
+          "name": "instagram",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "facebook": {
+          "name": "facebook",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "delivery_area": {
+          "name": "delivery_area",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "postcode_districts": {
+          "name": "postcode_districts",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "beyond_the_area": {
+          "name": "beyond_the_area",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "delivery_charge_pence": {
+          "name": "delivery_charge_pence",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "second_attempt_fee_pence": {
+          "name": "second_attempt_fee_pence",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "bespoke_minimum_pence": {
+          "name": "bespoke_minimum_pence",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "kitchen_handles": {
+          "name": "kitchen_handles",
+          "type": "text[]",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "daily_cap": {
+          "name": "daily_cap",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "weekly_cap": {
+          "name": "weekly_cap",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "lead_time_days": {
+          "name": "lead_time_days",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "bespoke_lead_time_weeks": {
+          "name": "bespoke_lead_time_weeks",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {
+        "settings_single_row": {
+          "name": "settings_single_row",
+          "value": "\"settings\".\"id\" = 1"
+        },
+        "lead_time_range": {
+          "name": "lead_time_range",
+          "value": "\"settings\".\"lead_time_days\" between 3 and 60"
+        },
+        "bespoke_lead_time_range": {
+          "name": "bespoke_lead_time_range",
+          "value": "\"settings\".\"bespoke_lead_time_weeks\" between 1 and 26"
+        },
+        "delivery_charge_not_negative": {
+          "name": "delivery_charge_not_negative",
+          "value": "\"settings\".\"delivery_charge_pence\" >= 0"
+        },
+        "second_attempt_fee_rule": {
+          "name": "second_attempt_fee_rule",
+          "value": "\"settings\".\"second_attempt_fee_pence\" = 0 or \"settings\".\"second_attempt_fee_pence\" >= 30"
+        },
+        "bespoke_minimum_range": {
+          "name": "bespoke_minimum_range",
+          "value": "\"settings\".\"bespoke_minimum_pence\" between 100 and 500000"
+        },
+        "caps_positive": {
+          "name": "caps_positive",
+          "value": "\"settings\".\"daily_cap\" >= 0 and \"settings\".\"weekly_cap\" >= 0"
+        }
+      },
+      "isRLSEnabled": false
+    }
+  },
+  "enums": {},
+  "schemas": {},
+  "sequences": {},
+  "roles": {},
+  "policies": {},
+  "views": {},
+  "_meta": {
+    "columns": {},
+    "schemas": {},
+    "tables": {}
+  }
+}

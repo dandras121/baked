@@ -35,3 +35,12 @@ export const UK_ALLERGENS = [
   "sulphites",
 ] as const;
 export type Allergen = (typeof UK_ALLERGENS)[number];
+
+/** The four occasions (§4.2 filter pills; a gallery photo's occasion line, §4.8). Fixed. */
+export const OCCASIONS = [
+  { key: "birthdays", label: "Birthdays" },
+  { key: "kids", label: "Kids’ parties" },
+  { key: "weddings", label: "Weddings" },
+  { key: "corporate", label: "Corporate" },
+] as const;
+export type Occasion = (typeof OCCASIONS)[number]["key"];

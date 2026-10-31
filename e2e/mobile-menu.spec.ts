@@ -226,7 +226,7 @@ test("A§3.4 browser Back only closes the menu and stays on the page", async ({
   await expect(overlay(page)).toBeHidden();
   await expect(page).toHaveURL(/\/gallery$/);
   await expect(
-    page.getByRole("heading", { level: 1, name: "Gallery" }),
+    page.getByRole("heading", { level: 1, name: /Cakes,\s*I have made\./ }),
   ).toBeVisible();
   await page.goBack();
   await expect(page).toHaveURL(/\/faq$/);

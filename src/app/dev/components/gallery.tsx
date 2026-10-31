@@ -1,5 +1,6 @@
 "use client";
 
+import { GalleryPhoto } from "@/components/gallery/gallery-photo";
 import { useState, type ReactNode } from "react";
 import { Button, ButtonLink } from "@/components/ui/button";
 import { Checkbox, Radio } from "@/components/ui/choice";
@@ -423,6 +424,22 @@ export function ComponentsGallery() {
               run it out again the next day for £15.
             </DropDownRow>
           </DropDownGroup>
+        </div>
+      </Group>
+      <Group title="Gallery photo fade-in (ANIM-23)" figma="1804:13056">
+        <div style={{ width: 200 }} data-testid="photo-demo">
+          <div
+            style={{
+              position: "relative",
+              aspectRatio: "1",
+              background: "var(--colour-lilac)",
+            }}
+          >
+            <GalleryPhoto
+              src="/brand/menu-texture.webp?demo"
+              alt="Pink texture (demo)"
+            />
+          </div>
         </div>
       </Group>
     </div>
