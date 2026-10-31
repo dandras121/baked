@@ -141,9 +141,8 @@ test("a failed request retries once after 3 s; while it fails the arrows stop at
   for (let i = 0; i < 3; i++) await next.click();
   await expect.poll(() => calls, { timeout: 10_000 }).toBe(2);
   // The first six are loaded: the arrow stops at card 6.
-  for (let i = 0; i < 4; i++)
-    if ((await next.getAttribute("aria-disabled")) !== "true")
-      await next.click();
+  // A disabled arrow does nothing when pressed (force: aria-disabled is not the disabled attribute).
+  for (let i = 0; i < 4; i++) await next.click({ force: true });
   await expect(next).toHaveAttribute("aria-disabled", "true");
   expect(await activeDash(page)).toBe(`Review 6 of ${withText.length}`);
   // An empty slot keeps the card's size (no jump).
