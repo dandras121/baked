@@ -50,8 +50,8 @@ Branch per phase (`phase-00-foundations`, …), one commit per accepted slice, t
 | 3.3 | Search field and the result motion | ◐ built, waiting for Bohoka | e7e1751 | |
 | 3.4a | Cake card open / close (ANIM-11) | ◐ built, waiting for Bohoka | 7e2c6a5 | |
 | 3.4b | Card video | ◐ built, waiting for Bohoka | | |
-| 3.5 | Cake page: media | ◐ built, waiting for Bohoka | | |
-| 3.6a | Cake page: sizes, options, price, allergens | ☐ | | |
+| 3.5 | Cake page: media | ◐ built, waiting for Bohoka | ca16ef4 | |
+| 3.6a | Cake page: sizes, options, price, allergens | ◐ built, waiting for Bohoka | | |
 | 3.6b | Cake page: inscription, add to order, edit mode, limit | ☐ | | |
 
 ## Phase 4 — Checkout (Stripe test mode)
@@ -144,6 +144,7 @@ Branch per phase (`phase-00-foundations`, …), one commit per accepted slice, t
 - **Phase 3 started 2026-10-31** on branch `phase-03-catalogue`. Bohoka's answers: 3.4 and 3.6 are split up front (3.4a card open / close, 3.4b card video; 3.6a sizes, options, price, allergens; 3.6b inscription, add to order, edit mode, limit); the sample catalogue uses the Figma names and drawn values (The Lothian's values where nothing is drawn), 2–3 cakes with options, development and previews only.
 - **3.4b Card video** — built, waiting for Bohoka.
 - **3.5 Cake page: media** — built, waiting for Bohoka. Files: `src/components/cake-page/*`, `src/lib/cake-page.ts`, `src/db/cake-page-repo.ts`, `src/app/(site)/cakes/[slug]/page.tsx`, sample photos in `public/samples/cake-photos/` (seed: The Lothian 3 photos + the test video, Bramble & Cream 1 photo). Tests: `e2e/cake-page.spec.ts` (arrows stop at the ends, thumbnails, ANIM-22 240 ms, video muted loop / tap to unmute / moving on stops it, reduced motion play button, phone swipe moves the dashes, one-photo and no-photo cakes have no controls, axe). Later: the stepper (4.1); sizes, options, price, allergens (3.6a); the second phone “← Back to the range” at the bottom (3.6b).
+- **3.6a Cake page: sizes, options, price, allergens** — built, waiting for Bohoka. Files: `src/lib/cake-config.ts` (+ tests: sizes against the smallest, tier words, price in pence, Includes line, picking rules, allergen line with options and kitchen list), `src/components/cake-page/{cake-page,price-figure}.tsx`, `src/db/cake-page-repo.ts` (options and choices). Tests: `e2e/cake-config.spec.ts`. Later (3.6b): the inscription and its preview, Add to your order with the option checks (“Choose a sponge.”), the draft, edit mode, the 5-cake cap; without JavaScript the price does not update (the order form posts in 3.6b).
   - Files: `src/components/cake-card/card-video.tsx` (fetched on the first open only, 1080 / 1440, starts at 500 ms or when it can play through, loops muted inline without controls, pauses off screen and in a hidden tab, closing cross-fades it to the still in 120 ms and rewinds; reduced motion never starts it), `cake-card.tsx` / CSS (still and video share the crop transform).
   - Tests: `src/lib/card-test-clip.test.ts` (ffprobe: square, 30 fps, 150 frames, key frame at 0, start 0, no audio), `e2e/cake-card.spec.ts` (+4: nothing fetched before the first open, plays only when fully open, loop / muted / no controls / 5 s / the right size, closing stops at frame 0, pauses off screen and resumes, reduced motion never loads).
 - **3.4a Cake card open / close (ANIM-11)** — built, waiting for Bohoka.

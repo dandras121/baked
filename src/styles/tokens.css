@@ -184,6 +184,11 @@
   --type-cake-name-phone: 300 40px/44px var(--font-display); /* cake page name on the phone · 815:5885 */
   --type-cake-desc: 400 max(calc(16px * var(--type-scale)), min(16px, 14px))/calc(27px * var(--type-scale)) var(--font-ui); /* cake page description · 609:2945 */
   --type-cake-from: 600 max(calc(15px * var(--type-scale)), min(15px, 14px))/normal var(--font-ui); /* cake page “From £185” · 609:2947 */
+  --type-pill-name-phone: 400 14px/18px var(--font-display); /* size / choice pill name on the phone · 815:5896 */
+  --type-pill-extra-phone: 400 10px/13px var(--font-ui); /* “included” / “+£55” on the phone · 815:5896 */
+  --type-price-lg: 300 max(calc(46px * var(--type-scale)), min(46px, 14px))/normal var(--font-ui); /* cake page price · 611:2961 */
+  --type-price-lg-phone: 300 34px/38px var(--font-ui); /* cake page price on the phone · 815:5919 */
+  --type-allergen-line: 400 max(calc(14px * var(--type-scale)), min(14px, 14px))/calc(23px * var(--type-scale)) var(--font-ui); /* cake page allergen line · 611:2973 */
   --type-legal-intro-phone: 400 12px/20px var(--font-ui); /* legal page intro on the phone · 844:7228 */
   --type-legal-heading: 400 max(calc(19px * var(--type-scale)), min(19px, 14px))/normal var(--font-display); /* legal section heading · 664:4192 */
   --type-contact-detail: 400 max(calc(16px * var(--type-scale)), min(16px, 14px))/normal var(--font-display); /* Contact “THE DETAILS” item heading (Email, Phone …) · 656:3904 */

@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { CakePage } from "@/components/cake-page/cake-page";
 import { getCakePage } from "@/db/cake-page-repo";
 import { getVisibleSlugs } from "@/db/home-repo";
+import { getSiteSettings } from "@/db/site-settings";
 
 // The cake page (§5.1). Hidden and deleted cakes are 404 (§11.3).
 
@@ -27,7 +28,10 @@ export default async function Page({
 }: {
   params: Promise<{ slug: string }>;
 }) {
-  const cake = await getCakePage((await params).slug);
+  const [cake, settings] = await Promise.all([
+    getCakePage((await params).slug),
+    getSiteSettings(),
+  ]);
   if (!cake) notFound();
-  return <CakePage cake={cake} />;
+  return <CakePage cake={cake} kitchen={settings?.kitchenHandles ?? []} />;
 }

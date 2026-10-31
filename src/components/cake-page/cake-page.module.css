@@ -129,7 +129,7 @@
 
 /* ---- Text ---- */
 .content {
-  padding: 26px 24px 40px;
+  padding: 26px 24px 0;
 }
 
 .back {
@@ -165,6 +165,174 @@
   color: var(--colour-ink);
   font: var(--type-price);
   line-height: 22px;
+}
+
+/* ---- Size, options, price (3.6a) ---- */
+.rule {
+  height: 1px;
+  margin: 26px 0 0;
+  border: 0;
+  background: var(--colour-line-rule);
+}
+
+.section {
+  min-inline-size: 0;
+  margin: 24px 0 0;
+  padding: 0;
+  border: 0;
+}
+
+.rule + .section {
+  margin-top: 24px;
+}
+
+.sectionLabel {
+  padding: 0;
+  margin: 0;
+  color: var(--colour-accent);
+  font: var(--type-category-phone);
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.help {
+  margin: 6px 0 0;
+  color: var(--colour-body);
+  font: var(--type-answer-phone);
+}
+
+.pills,
+.boxes {
+  margin-top: 12px;
+}
+
+.pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 9px;
+}
+
+.boxes {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.pill {
+  position: relative;
+  display: flex;
+  flex: 1 1 calc((100% - 27px) / 4);
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+  min-height: 44px;
+  padding: 12px;
+  border: 1px solid var(--colour-ink);
+  border-radius: var(--radius-field);
+  cursor: pointer;
+}
+
+.pills[data-kind="choice"] .pill {
+  flex: 0 0 calc((100% - 18px) / 3);
+}
+
+.pill[data-checked] {
+  background: var(--colour-selected-wash);
+  box-shadow: inset 0 0 0 0.5px var(--colour-ink);
+}
+
+.pill:has(:focus-visible) {
+  outline: 2px solid var(--colour-focus-ring);
+  outline-offset: 2px;
+}
+
+.pillName {
+  overflow: hidden;
+  color: var(--colour-ink);
+  font: var(--type-pill-name-phone);
+  font-variation-settings: var(--font-display-axes);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pillExtra {
+  color: var(--colour-body);
+  font: var(--type-pill-extra-phone);
+}
+
+.pill[data-checked] .pillExtra {
+  color: var(--colour-accent);
+}
+
+.boxPrice {
+  color: var(--colour-body);
+}
+
+.oneSize {
+  margin: 12px 0 0;
+  color: var(--colour-ink);
+  font: var(--type-pill-name-phone);
+  font-variation-settings: var(--font-display-axes);
+}
+
+.price {
+  margin-top: 22px;
+}
+
+.amount {
+  color: var(--colour-ink);
+  font: var(--type-price-lg-phone);
+}
+
+.figure {
+  position: relative;
+  display: inline-block;
+  min-width: 3.5ch;
+  font-variant-numeric: tabular-nums;
+}
+
+.figure > span {
+  display: inline-block;
+}
+
+.figureOld {
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+.detail {
+  margin: 4px 0 0;
+  color: var(--colour-meta);
+  font: var(--type-caption-phone);
+  line-height: 16px;
+}
+
+.includes {
+  margin: 6px 0 0;
+  color: var(--colour-meta);
+  font: var(--type-caption-phone);
+  line-height: 16px;
+}
+
+/* ---- Allergens (phone: after the price; desktop: under the photos) ---- */
+.allergens {
+  margin: 26px 24px 0;
+  padding: 22px 0 40px;
+  border-top: 1px solid var(--colour-line-rule);
+}
+
+.allergenLine {
+  margin: 10px 0 0;
+  color: var(--colour-body);
+  font: var(--type-answer-phone);
+}
+
+.allergenLink {
+  margin-top: 6px;
+  color: var(--colour-accent);
+  font: var(--type-social);
+  line-height: 18px;
 }
 
 @media (min-width: 768px) {
@@ -318,5 +486,127 @@
   .from {
     margin-top: calc(18 * var(--u));
     font: var(--type-cake-from);
+  }
+
+  .page {
+    grid-template-areas:
+      "media content"
+      "allergens content";
+    grid-template-rows: auto 1fr;
+  }
+
+  .media {
+    grid-area: media;
+  }
+
+  .content {
+    grid-area: content;
+  }
+
+  .rule {
+    margin-top: calc(36 * var(--u));
+  }
+
+  .section,
+  .rule + .section {
+    margin-top: calc(34 * var(--u));
+  }
+
+  .sectionLabel {
+    color: var(--colour-meta);
+    font: var(--type-label);
+    letter-spacing: var(--type-label-ls);
+  }
+
+  .help {
+    margin-top: calc(6 * var(--u));
+    font: var(--type-meta);
+    line-height: 20px;
+  }
+
+  .pills,
+  .boxes {
+    margin-top: calc(16 * var(--u));
+  }
+
+  .help + .pills,
+  .help + .boxes {
+    margin-top: calc(14 * var(--u));
+  }
+
+  .pills {
+    gap: calc(12 * var(--u));
+  }
+
+  .boxes {
+    gap: calc(12 * var(--u));
+  }
+
+  .pill {
+    flex-basis: calc((100% - 36 * var(--u)) / 4);
+    gap: calc(6 * var(--u));
+    padding: calc(16 * var(--u)) calc(18 * var(--u));
+    border-color: var(--colour-line-field);
+  }
+
+  .pills[data-kind="choice"] .pill {
+    flex: 0 0 calc(192 * var(--u));
+  }
+
+  .pill[data-checked] {
+    border-color: var(--colour-ink);
+  }
+
+  .pillName,
+  .oneSize {
+    font: var(--type-field-lg);
+  }
+
+  .oneSize {
+    margin-top: calc(16 * var(--u));
+  }
+
+  .pillExtra {
+    font: var(--type-caption);
+  }
+
+  .price {
+    display: flex;
+    gap: calc(20 * var(--u));
+    align-items: baseline;
+    margin-top: calc(28 * var(--u));
+  }
+
+  .amount {
+    font: var(--type-price-lg);
+  }
+
+  .detail {
+    margin: 0;
+    font: var(--type-meta);
+  }
+
+  .includes {
+    margin-top: calc(8 * var(--u));
+    font: var(--type-meta);
+    line-height: 18px;
+  }
+
+  .allergens {
+    grid-area: allergens;
+    width: calc(418.6 * var(--u));
+    margin: calc(109 * var(--u)) 0 0 calc(24 * var(--u));
+    padding: 0;
+    border: 0;
+  }
+
+  .allergenLine {
+    margin-top: calc(10 * var(--u));
+    font: var(--type-allergen-line);
+  }
+
+  .allergenLink {
+    margin-top: calc(10 * var(--u));
+    font: var(--type-meta);
   }
 }

@@ -541,3 +541,24 @@
 .type-cake-from {
   font: var(--type-cake-from);
 }
+
+.type-pill-name-phone {
+  font: var(--type-pill-name-phone);
+  font-variation-settings: var(--font-display-axes);
+}
+
+.type-pill-extra-phone {
+  font: var(--type-pill-extra-phone);
+}
+
+.type-price-lg {
+  font: var(--type-price-lg);
+}
+
+.type-price-lg-phone {
+  font: var(--type-price-lg-phone);
+}
+
+.type-allergen-line {
+  font: var(--type-allergen-line);
+}

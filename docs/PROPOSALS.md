@@ -114,3 +114,9 @@ Bohoka’s decision is added when he gives it (“jó” = keep, “ne legyen”
 | 3.5 | §5.1 thumbnails over five | The strip scrolls sideways (up to 10 items); the active thumbnail has the 1.5 px violet edge | `src/components/cake-page/cake-page.module.css` | Waiting for Bohoka |
 | 3.5 | §5.1 cake without photos | The drawn placeholder box and no controls | `src/components/cake-page/cake-media.tsx` | Waiting for Bohoka |
 | 3.5 | §10.12 description | The cake page description is the cake's own “what it is” line | `src/app/(site)/cakes/[slug]/page.tsx` | Waiting for Bohoka |
+| 3.6a | §5.8 allergens from options | Allergens only a chosen option brings are named after a dash: “— the soya comes with the chocolate sponge” (Choice: “{choice} {option}”, Choices: the choice, Yes/no: the option label), lower case | `src/lib/cake-config.ts` | Waiting for Bohoka |
+| 3.6a | §5.1 allergen names | “gluten (wheat)”, “tree nuts (almonds)” as in §9.13; the kitchen list in Linda's Settings order; gluten / nut kinds of the cake and its options are merged | `src/lib/cake-config.ts` | Waiting for Bohoka |
+| 3.6a | §5.8 Includes line | Every paid add-on, Choice included (“Includes Chocolate +£5, Fresh berries +£6 and Gift box +£8.”); a Yes/no is named by its label | `src/lib/cake-config.ts` | Waiting for Bohoka |
+| 3.6a | §5.1 sizes over four | Four to a row; a fifth wraps to the next row | `src/components/cake-page/cake-page.module.css` | Waiting for Bohoka |
+| 3.6a | §5.1 size names for screen readers | Each size is read with its tiers (“Serves 24, included, Two tiers”) | `src/components/cake-page/cake-page.tsx` | Waiting for Bohoka |
+| 3.6a | §5.1 price line before the inscription exists | “Serves 24 · plain” (the inscription starts empty; it comes in 3.6b) | `src/components/cake-page/cake-page.tsx` | Waiting for Bohoka |
