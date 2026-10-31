@@ -279,10 +279,13 @@
   }
 
   /* The white curve reaches 27 design px into the band; never less than the collection link (17 px)
-     plus the desktop gap of 10, so on narrower tablets the link keeps clear of the pink (Bohoka 2026-10-31). */
+     plus the desktop gap of 10, so on narrower tablets the link keeps clear of the pink (Bohoka 2026-10-31).
+     Its middle stays where it is drawn (2.05 design px below the band's top) and the ellipse grows taller
+     instead, so at both sides it still runs into the white above (no pink corners). */
   .band::before {
-    top: calc(max(27.06 * var(--u), 17px + 10 * var(--u)) - 50.03 * var(--u));
-    height: calc(50.03 * var(--u));
+    --bite: max(27.06 * var(--u), 17px + 10 * var(--u));
+    top: calc(4.09 * var(--u) - var(--bite));
+    height: calc(2 * (var(--bite) - 2.045 * var(--u)));
   }
 
   .band::after {
