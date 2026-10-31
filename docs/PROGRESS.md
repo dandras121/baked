@@ -31,9 +31,9 @@ Branch per phase (`phase-00-foundations`, …), one commit per accepted slice, t
 
 | Slice | Title | Status | Commit | Accepted by Bohoka |
 |---|---|---|---|---|
-| 2.1 | Home: hero and fixed sections | ☐ | | |
-| 2.2 | Home testimonials = Google reviews | ☐ | | |
-| 2.3 | Home cake row and Special idea | ☐ | | |
+| 2.1 | Home: hero and fixed sections | ☑ | ac869c7 | 2026-10-31 “mehet” |
+| 2.2 | Home testimonials = Google reviews | ☑ | ac869c7 | 2026-10-31 “mehet” (row starts with the newest in the centre) |
+| 2.3 | Home cake row and Special idea | ☑ | ac869c7 | 2026-10-31 “mehet” (ten cakes, indicator under the row) |
 | 2.4 | About Linda | ☐ | | |
 | 2.5 | FAQ | ☐ | | |
 | 2.6 | Legal pages and Allergen information | ☐ | | |
@@ -138,15 +138,15 @@ Branch per phase (`phase-00-foundations`, …), one commit per accepted slice, t
 ## Current slice
 
 - Phase 1 closed 2026-10-30 (gate in the commit “phase 1 review gate”; tag `phase-01-done` local, the git proxy refuses tag pushes).
-- Phase 2 on branch `phase-02-content`. Bohoka 2026-10-30: 2.1 stays one slice; on Vercel previews the hero shows the three slides (placeholders 2–3), `?hero=live` shows the live hero alone; production never shows the placeholders.
-- **2.2 Home testimonials = Google reviews** — built, waiting for Bohoka.
+- Phase 2 on branch `phase-02-content`. 2.1–2.3 accepted 2026-10-31; next: **2.4 About Linda**. Bohoka 2026-10-30: 2.1 stays one slice; on Vercel previews the hero shows the three slides (placeholders 2–3), `?hero=live` shows the live hero alone; production never shows the placeholders.
+- **2.2 Home testimonials = Google reviews** — accepted 2026-10-31.
   - Files: `src/db/schema.ts` + `drizzle/0002_*` (google_reviews, google_rating), `src/db/reviews-repo.ts`, `src/db/fixtures/google-reviews.json`, `src/lib/reviews.ts`, `src/app/api/reviews/route.ts`, `src/components/home/reviews*.{tsx,css}`, seed and preview setup, tokens (+3 type, 2 colour).
   - Tests: `src/lib/reviews.test.ts` (stars, translation dropped, no text, London month, rating format and 30-day rule, cursor / limit, ANIM-10 window with 200), `src/db/reviews-repo.test.ts` (newest first, only with text, every rating, pages without gaps, deleted at next sync), `e2e/reviews.spec.ts` (order, rating name, cut text + Read on Google, ≤ 5 dashes, six per request, one at a time, CLS < 0.01, retry once after 3 s, arrows stop at the last loaded card, empty shape same size, centre on click, API shape).
   - Not in this slice: the daily sync from Google and Check now (12.x / 9.12).
-- **2.3 Home cake row and Special idea** — built, waiting for Bohoka (brought forward by Bohoka's answer “Hiányzó blokkok”, 2026-10-30).
+- **2.3 Home cake row and Special idea** — accepted 2026-10-31 (brought forward by Bohoka's answer “Hiányzó blokkok”, 2026-10-30).
   - Files: `src/db/schema.ts` + `drizzle/0001_*` (cakes, cake_sizes, gallery_photos), `src/db/home-repo.ts`, `src/db/seed.ts`, `src/lib/home-content.ts`, `src/components/cake-card/`, `src/components/home/{home-band,cake-carousel,special-idea}.*`, `src/app/(site)/cakes/[slug]/page.tsx` (stand-in), `src/proxy.ts`, tokens (+7 type, 1 colour).
   - Tests: `src/lib/home-content.test.ts` (first five visible in order, smallest size tier line, From = smallest price, picks then newest, hidden never, empty squares, link hidden, alt), `src/db/home-repo.test.ts` (seed, hidden cake, unique live names, size limits, slugs), `e2e/home.spec.ts` (row order and text, View → cake page, arrows / swipe, Special idea), `e2e/seo.spec.ts` (unknown cake = 404).
-- **2.1 Home: hero and fixed sections** — built, waiting for Bohoka. Fix 1 (Bohoka: “el van csúszva … hero telefonon”): the phone hero text shrinks with the width below 402, so it stays two lines above the supporting line (test at 360 / 375 / 390 / 402). Fix 2 (Bohoka): header wordmark shrinks below 402 so it keeps clear of “menu ›”; “We got you.” / “Local, home baked.” stay one line on iPad; tablet portrait hero is square (Figma 1852:14415, 1852:14437, 1852:14444 added by Claude at Bohoka's request). Next, by Bohoka's answer “Hiányzó blokkok”: the cake row and Special idea (2.3) and the Google reviews (2.2) on Home.
+- **2.1 Home: hero and fixed sections** — accepted 2026-10-31. Fix 1 (Bohoka: “el van csúszva … hero telefonon”): the phone hero text shrinks with the width below 402, so it stays two lines above the supporting line (test at 360 / 375 / 390 / 402). Fix 2 (Bohoka): header wordmark shrinks below 402 so it keeps clear of “menu ›”; “We got you.” / “Local, home baked.” stay one line on iPad; tablet portrait hero is square (Figma 1852:14415, 1852:14437, 1852:14444 added by Claude at Bohoka's request). Next, by Bohoka's answer “Hiányzó blokkok”: the cake row and Special idea (2.3) and the Google reviews (2.2) on Home.
   - Files: `src/components/home/` (hero, hero-slider, home-sections), `src/lib/hero.ts`, `src/app/(site)/page.tsx`, `public/home/*.webp`, tokens (+10 type, 1 colour, 1 shadow), `src/components/ui/social-icons.tsx` (moved out of the mobile menu).
   - Tests: `src/lib/hero.test.ts` (flag, loop, ease samples); `e2e/home.spec.ts` (3 slides, `?hero=live`, 6 s loop, hover / keyboard-focus pause, pause button, reduced motion, crossfade samples 0 / 0.409 / 0.802 / 0.96 / 1 with the incoming slide on top, swipe, Settings town, social band, axe, no side scroll). A production build (`VERCEL_ENV=production`) prerenders the hero with one slide.
   - Proposals: pause button, keyboard-only focus pause, swipe loop, carousel semantics, photo alt, band top without the cake row.
