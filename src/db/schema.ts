@@ -198,3 +198,30 @@ export const googleRating = pgTable(
     check("review_count_positive", sql`${t.reviewCount} >= 0`),
   ],
 );
+
+/** FAQ (§4.4, §9.12): Linda's questions and answers; answers may hold {placeholders} (§11.8). */
+export const faqQuestions = pgTable(
+  "faq_questions",
+  {
+    id: serial("id").primaryKey(),
+    category: text("category").notNull(),
+    question: text("question").notNull(),
+    answer: text("answer").notNull(),
+    /** Order within its category (drag in the admin). */
+    position: integer("position").notNull(),
+  },
+  (t) => [
+    check(
+      "faq_category",
+      sql`${t.category} in ('ordering', 'paying', 'food', 'delivery', 'after', 'kitchen')`,
+    ),
+    check(
+      "faq_question_length",
+      sql`char_length(${t.question}) between 1 and 140`,
+    ),
+    check(
+      "faq_answer_length",
+      sql`char_length(${t.answer}) between 1 and 2000`,
+    ),
+  ],
+);

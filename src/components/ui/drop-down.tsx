@@ -4,28 +4,36 @@ import {
   createContext,
   useContext,
   useEffect,
-  useId,
-  useLayoutEffect,
   useRef,
   useState,
   type ReactNode,
 } from "react";
+import { isMotionReduced } from "@/motion/reduced-motion";
 import styles from "./drop-down.module.css";
 
-type Group = { openId: string | null; setOpenId: (id: string | null) => void };
+type Group = {
+  name: string;
+  openId: string | null;
+  setOpenId: (id: string | null) => void;
+};
 const GroupContext = createContext<Group | null>(null);
 
-/** One row open at a time: opening a row closes the open one at the same moment (ANIM-09 row D). */
+/**
+ * One row open at a time: opening a row closes the open one at the same moment (ANIM-09 row D).
+ * Without JavaScript the rows are native `<details name>`, which the browser keeps to one open too (§4.4).
+ */
 export function DropDownGroup({
   children,
+  name = "faq",
   defaultOpen = null,
 }: {
   children: ReactNode;
+  name?: string;
   defaultOpen?: string | null;
 }) {
   const [openId, setOpenId] = useState<string | null>(defaultOpen);
   return (
-    <GroupContext.Provider value={{ openId, setOpenId }}>
+    <GroupContext.Provider value={{ name, openId, setOpenId }}>
       {children}
     </GroupContext.Provider>
   );
@@ -39,9 +47,10 @@ type DropDownRowProps = {
 };
 
 /**
- * Drop-down row (ANIM-09; FAQ 1745:12629): the answer rolls out from the top in 360 ms and back the same way; the
- * chevron turns over around its horizontal axis. The answer is always in the page; closed, it is hidden="until-found"
- * so “find in page” opens it.
+ * Drop-down row (ANIM-09; FAQ 1745:12629) built as `<details><summary>` (§4.4), so it works without JavaScript and
+ * “find in page” opens it. With JavaScript the answer rolls out from the top in 360 ms and back the same way; the
+ * row stays a native open `<details>` until its roll back has finished. The chevron turns over around its
+ * horizontal axis.
  */
 export function DropDownRow({ id, question, children }: DropDownRowProps) {
   const group = useContext(GroupContext);
@@ -49,12 +58,32 @@ export function DropDownRow({ id, question, children }: DropDownRowProps) {
   const open = group ? group.openId === id : ownOpen;
   const setOpen = (next: boolean) =>
     group ? group.setOpenId(next ? id : null) : setOwnOpen(next);
-  const panelId = useId();
-  const panel = useRef<HTMLDivElement>(null);
-  // `findable`: hidden="until-found" once the closing roll has finished.
-  const [findable, setFindable] = useState(!open);
+  const details = useRef<HTMLDetailsElement>(null);
+  // `shown` is the native open attribute: on as soon as the row opens, off when the roll back has finished.
+  const [shown, setShown] = useState(open);
   const [instant, setInstant] = useState(false);
-  if (open && findable) setFindable(false);
+  if (open && !shown) setShown(true);
+  if (!open && shown && typeof window !== "undefined" && isMotionReduced())
+    setShown(false);
+
+  // With JavaScript the group keeps one row open itself; the browser's own `name` grouping would cut a
+  // closing row short, so it is dropped once the page is live (React does not put it back).
+  useEffect(() => {
+    details.current?.removeAttribute("name");
+  }, []);
+
+  // Desktop and tablet place the answer level with the question: the panel is pulled up by its height.
+  const summary = useRef<HTMLElement>(null);
+  useEffect(() => {
+    const s = summary.current;
+    const d = details.current;
+    if (!s || !d) return;
+    const ro = new ResizeObserver(() =>
+      d.style.setProperty("--question-h", `${s.offsetHeight}px`),
+    );
+    ro.observe(s);
+    return () => ro.disconnect();
+  }, []);
 
   // A #question link opens the row and scrolls to it, without animation — on load and when the hash changes.
   useEffect(() => {
@@ -79,34 +108,27 @@ export function DropDownRow({ id, question, children }: DropDownRowProps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // React writes `hidden` as a plain boolean, so the until-found value is set here.
-  useLayoutEffect(() => {
-    const el = panel.current;
-    if (!el) return;
-    if (findable && !open) el.setAttribute("hidden", "until-found");
-    else el.removeAttribute("hidden");
-  }, [findable, open]);
-
-  useEffect(() => {
-    const el = panel.current;
-    if (!el) return;
-    const onMatch = () => setOpen(true);
-    el.addEventListener("beforematch", onMatch);
-    return () => el.removeEventListener("beforematch", onMatch);
-  });
-
   return (
-    <div
+    <details
+      ref={details}
+      name={group?.name}
+      open={shown}
       className={`${styles.row} ${open ? styles.open : ""} ${instant ? styles.instant : ""}`}
       id={id}
+      data-open={open ? "" : undefined}
+      // “Find in page” opens a closed row by itself: follow it.
+      onToggle={(e) => {
+        if (e.currentTarget.open && !open) setOpen(true);
+      }}
     >
-      <button
-        type="button"
+      <summary
+        ref={summary}
         className={styles.question}
-        aria-expanded={open}
-        aria-controls={panelId}
         data-pressable="row"
-        onClick={() => setOpen(!open)}
+        onClick={(e) => {
+          e.preventDefault();
+          setOpen(!open);
+        }}
       >
         <span className={styles.content} data-pressable-content>
           <span className={styles.text}>{question}</span>
@@ -114,27 +136,23 @@ export function DropDownRow({ id, question, children }: DropDownRowProps) {
             <path d="M1 1 6 6 11 1" />
           </svg>
         </span>
-      </button>
+      </summary>
       <div
-        ref={panel}
-        id={panelId}
         className={styles.panel}
-        hidden={
-          findable && !open ? ("until-found" as unknown as boolean) : undefined
-        }
+        inert={!open}
         onTransitionEnd={(e) => {
           if (
             e.target === e.currentTarget &&
             e.propertyName === "grid-template-rows" &&
             !open
           )
-            setFindable(true);
+            setShown(false);
         }}
       >
         <div className={styles.clip}>
           <div className={styles.answer}>{children}</div>
         </div>
       </div>
-    </div>
+    </details>
   );
 }

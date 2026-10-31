@@ -139,6 +139,9 @@ Branch per phase (`phase-00-foundations`, …), one commit per accepted slice, t
 
 - Phase 1 closed 2026-10-30 (gate in the commit “phase 1 review gate”; tag `phase-01-done` local, the git proxy refuses tag pushes).
 - Phase 2 on branch `phase-02-content`. 2.1–2.3 accepted 2026-10-31. Bohoka 2026-10-30: 2.1 stays one slice; on Vercel previews the hero shows the three slides (placeholders 2–3), `?hero=live` shows the live hero alone; production never shows the placeholders.
+- **2.5 FAQ** — built, waiting for Bohoka.
+  - Files: `src/db/schema.ts` + `drizzle/0003_*` (faq_questions), `src/db/faq-repo.ts`, `src/lib/faq.ts`, `src/components/faq/`, `src/components/ui/drop-down.*` (now `<details>`), `src/app/(site)/faq/page.tsx`, `src/lib/placeholders.ts` (“free”), tokens (+7 type).
+  - Tests: `src/lib/faq.test.ts`, `e2e/faq.spec.ts` (order, one open, placeholders, keyboard, #anchor, mailto, axe, without JavaScript), `e2e/slider-dropdown.spec.ts` updated for `<details>`.
 - **2.4 About Linda** — accepted 2026-10-31.
   - Files: `src/components/about/` (page, cards, CSS), `src/app/(site)/about/page.tsx`, tokens (+10 type, 1 colour).
   - Tests: `e2e/about.spec.ts` (headings, description from Settings, phone row with indicator and centre on click, side by side and not pressable on tablet / desktop, axe, no side scroll).

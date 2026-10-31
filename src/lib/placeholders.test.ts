@@ -22,7 +22,7 @@ describe("§11.8 templates inside text", () => {
     ).toBe("Baked by Linda is run by Linda Dávid-Vágvölgyi in Winchburgh.");
   });
   it("money and words are generated, never typed", () => {
-    expect(values.delivery_charge).toBe("Free");
+    expect(values.delivery_charge).toBe("free"); // §4.4: “free” inside a sentence
     expect(values.second_attempt_fee).toBe("£15");
     expect(values.bespoke_minimum).toBe("£160");
     expect(values.lead_time_words).toBe("five days");

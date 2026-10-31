@@ -406,3 +406,35 @@
 .type-about-local-phone {
   font: var(--type-about-local-phone);
 }
+
+.type-page-title {
+  font: var(--type-page-title);
+  font-variation-settings: var(--font-display-axes);
+}
+
+.type-page-title-phone {
+  font: var(--type-page-title-phone);
+  font-variation-settings: var(--font-display-axes);
+}
+
+.type-category {
+  font: var(--type-category);
+}
+
+.type-category-phone {
+  font: var(--type-category-phone);
+}
+
+.type-intro-sm-phone {
+  font: var(--type-intro-sm-phone);
+}
+
+.type-ask {
+  font: var(--type-ask);
+  font-variation-settings: var(--font-display-axes);
+}
+
+.type-ask-phone {
+  font: var(--type-ask-phone);
+  font-variation-settings: var(--font-display-axes);
+}

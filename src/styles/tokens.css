@@ -169,6 +169,13 @@
   --type-about-name-phone: 400 96px/normal var(--font-display); /* “Linda” on the phone · 578:4982 */
   --type-about-intro-phone: 400 13px/27px var(--font-ui); /* About introduction on the phone · 578:4983 */
   --type-about-local-phone: 500 13px/25px var(--font-ui); /* “Based in West Lothian…” on the phone · 482:2691 */
+  --type-page-title: 400 max(calc(145px * var(--type-scale)), min(145px, 14px))/0.9 var(--font-display); /* page title on a white band, e.g. “We have all the answers.” · 658:4023 */
+  --type-page-title-phone: 400 64px/60px var(--font-display); /* page title on the phone · 803:5741 */
+  --type-category: 600 max(calc(11px * var(--type-scale)), min(11px, 14px))/normal var(--font-ui); /* FAQ category label (caps, 18 % spacing), accent · 658:4027 */
+  --type-category-phone: 600 10px/14px var(--font-ui); /* FAQ category label on the phone · 803:5741 */
+  --type-intro-sm-phone: 400 13px/24px var(--font-ui); /* FAQ introduction on the phone · 803:5741 */
+  --type-ask: 300 max(calc(44px * var(--type-scale)), min(44px, 14px))/normal var(--font-display); /* “Ask me directly” · 658:4150 */
+  --type-ask-phone: 300 34px/40px var(--font-display); /* “Ask me directly” on the phone · 803:5741 */
   --colour-about-card: rgb(224 224 224 / 0.24); /* phone “What do we offer?” card · 1173:9142 */
   --type-label-ls: calc(1.98px * max(var(--type-scale), min(1, calc(14 / 11)))); /* field label letter spacing (18 %) · input 630:3005 */
   --type-footer-heading: 700 max(calc(10px * var(--type-scale)), min(10px, 14px))/normal var(--font-ui); /* footer column heading · style guide Quicksand Bold 10 */

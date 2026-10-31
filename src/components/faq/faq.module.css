@@ -1,0 +1,141 @@
+/*
+ * FAQ (§4.4). Phone 803:5741 (402 wide, 24 side margins); tablet and desktop: 658:3996 in desktop design px × --u
+ * (the tablet 1559:11372 = × 0.8). The rows themselves are the shared drop-down rows (ANIM-09).
+ */
+.page {
+  width: calc(402 * var(--u));
+  margin-inline: auto;
+  padding: 32px calc(24 * var(--u)) 0;
+  background: var(--colour-white);
+}
+
+.title {
+  max-width: calc(354 * var(--u));
+  margin: 0;
+  color: var(--colour-display);
+  font: var(--type-page-title-phone);
+  font-variation-settings: var(--font-display-axes);
+}
+
+.body {
+  padding: 64px 0 60px;
+}
+
+.intro {
+  margin: 0;
+  color: var(--colour-body);
+  font: var(--type-intro-sm-phone);
+}
+
+.inlineLink {
+  color: var(--colour-accent);
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
+}
+
+.group {
+  margin-top: 28px;
+}
+
+.group + .group {
+  margin-top: 33px;
+}
+
+.category {
+  margin: 0;
+  color: var(--colour-accent);
+  font: var(--type-category-phone);
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.stuck {
+  margin-top: 33px;
+}
+
+.stuckLabel {
+  margin: 0;
+  color: var(--colour-meta);
+  font: var(--type-label-sm);
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.ask {
+  margin: 10px 0 0;
+  color: var(--colour-display);
+  font: var(--type-ask-phone);
+  font-variation-settings: var(--font-display-axes);
+}
+
+.stuckText {
+  margin: 6px 0 0;
+  color: var(--colour-body);
+  font: var(--type-answer-phone);
+}
+
+.stuck .getInTouch {
+  min-height: 36px;
+  margin-top: 22px;
+  padding-block: 0;
+}
+
+@media (min-width: 768px) {
+  .page {
+    width: calc(1280 * var(--u));
+    padding: calc(40 * var(--u)) 0 0;
+  }
+
+  .title {
+    max-width: calc(764.68 * var(--u));
+    margin-left: calc(65.51 * var(--u));
+    font: var(--type-page-title);
+    font-size: min(calc(145px * var(--type-scale)), calc(145 * var(--u)));
+  }
+
+  .body {
+    padding: calc(68 * var(--u)) calc(80 * var(--u)) calc(80 * var(--u));
+  }
+
+  .intro {
+    max-width: calc(640 * var(--u));
+    font: var(--type-body);
+  }
+
+  .group {
+    margin-top: calc(44px * var(--type-scale));
+  }
+
+  .group + .group {
+    margin-top: calc(48px * var(--type-scale));
+  }
+
+  .category {
+    margin-bottom: -2px;
+    font: var(--type-category);
+  }
+
+  .stuck {
+    margin-top: calc(54px * var(--type-scale));
+  }
+
+  .stuckLabel {
+    font: var(--type-label);
+  }
+
+  .ask {
+    margin-top: calc(12px * var(--type-scale));
+    font: var(--type-ask);
+  }
+
+  .stuckText {
+    margin-top: calc(10px * var(--type-scale));
+    font: var(--type-answer);
+  }
+
+  .stuck .getInTouch {
+    min-height: calc(50px * var(--type-scale));
+    margin-top: calc(24px * var(--type-scale));
+    padding-block: calc(15px * var(--type-scale));
+  }
+}

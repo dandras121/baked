@@ -4,9 +4,16 @@
 import type { ApiReviewPage } from "@/lib/reviews";
 import { INITIAL_SETTINGS } from "@/lib/settings";
 import fixture from "./fixtures/google-reviews.json";
+import { ensureFaq } from "./faq-repo";
 import { importReviews } from "./reviews-repo";
 import { connect } from "./client";
-import { cakeSizes, cakes, closedDays, galleryPhotos } from "./schema";
+import {
+  cakeSizes,
+  cakes,
+  closedDays,
+  faqQuestions,
+  galleryPhotos,
+} from "./schema";
 import { writeSettings } from "./settings-repo";
 
 /** "Bramble & Cream" → "bramble-and-cream". */
@@ -85,6 +92,8 @@ export async function seed(url?: string) {
     await db.delete(cakes);
     await insertSampleCakes(db);
     await importSampleReviews(db);
+    await db.delete(faqQuestions);
+    await ensureFaq(db);
   } finally {
     await close();
   }
@@ -93,7 +102,9 @@ export async function seed(url?: string) {
 if (process.argv[1]?.endsWith("seed.ts")) {
   seed()
     .then(() =>
-      console.log("Seeded: settings, closed days, Home cakes, sample reviews"),
+      console.log(
+        "Seeded: settings, closed days, Home cakes, sample reviews, FAQ",
+      ),
     )
     .catch((e) => {
       console.error(e);

@@ -102,67 +102,68 @@ test("§10.13 every dash has a 44 × 44 hit area", async ({ page }) => {
   expect(hit).toBe("Slide 3 of 8");
 });
 
+// The rows are <details><summary> (§4.4); `data-open` is the row's state (the native open attribute stays on
+// while a closing row rolls back).
+const row = (page: import("@playwright/test").Page, id: string) =>
+  page.locator(`details#${id}`);
+
 test("ANIM-09: the first row is open; opening another closes it at the same time; the chevron turns over", async ({
   page,
 }) => {
-  const faq = page.getByTestId("faq");
-  const first = faq.getByRole("button", { name: "Where do you deliver?" });
-  const third = faq.getByRole("button", { name: "What if I am not in?" });
-  await expect(first).toHaveAttribute("aria-expanded", "true");
-  await third.click();
-  await expect(third).toHaveAttribute("aria-expanded", "true");
-  await expect(first).toHaveAttribute("aria-expanded", "false");
+  const first = row(page, "where-do-you-deliver");
+  const third = row(page, "what-if-i-am-not-in");
+  await expect(first).toHaveAttribute("data-open", "");
+  await third.locator("summary").click();
+  await expect(third).toHaveAttribute("data-open", "");
+  await expect(first).not.toHaveAttribute("data-open", "");
   await page.waitForTimeout(450);
-  await expect(faq.getByText("Someone needs to be in.")).toBeVisible();
+  await expect(page.getByText("Someone needs to be in.")).toBeVisible();
   const rotation = await third
     .locator("svg")
     .evaluate((el) => getComputedStyle(el).transform);
   expect(rotation).toMatch(/matrix3d\(1, 0, 0, 0, 0, -1/); // rotateX(180deg)
-  const closedPanel = faq.locator(
-    `#${await first.getAttribute("aria-controls")}`.replace(/:/g, "\\:"),
-  );
-  await expect(closedPanel).toHaveAttribute("hidden", "until-found");
+  // The closed row has rolled back and is a closed <details> again.
+  await expect(first).not.toHaveAttribute("open", "");
 });
 
 test("ANIM-09: keyboard Enter opens and closes; 360 ms each way; reduced motion is instant", async ({
   page,
 }) => {
-  const faq = page.getByTestId("faq");
-  const row = faq.getByRole("button", { name: "Can I collect instead?" });
-  await row.focus();
+  const r = row(page, "can-i-collect-instead");
+  await r.locator("summary").focus();
   await page.keyboard.press("Enter");
-  await expect(row).toHaveAttribute("aria-expanded", "true");
-  const panelId = (await row.getAttribute("aria-controls"))!;
-  const duration = await page.evaluate(
-    (id) => getComputedStyle(document.getElementById(id)!).transitionDuration,
-    panelId,
-  );
+  await expect(r).toHaveAttribute("data-open", "");
+  await expect(r).toHaveAttribute("open", "");
+  const duration = await r
+    .locator("summary + div")
+    .evaluate((el) => getComputedStyle(el).transitionDuration);
   expect(duration).toBe("0.36s");
   await page.keyboard.press("Enter");
-  await expect(row).toHaveAttribute("aria-expanded", "false");
+  await expect(r).not.toHaveAttribute("data-open", "");
+  await expect(r).not.toHaveAttribute("open", ""); // after the 360 ms roll back
 
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.reload();
-  const again = page
-    .getByTestId("faq")
-    .getByRole("button", { name: "Can I collect instead?" });
-  await again.click();
-  const id = (await again.getAttribute("aria-controls"))!;
+  const again = row(page, "can-i-collect-instead");
+  await again.locator("summary").click({ position: { x: 20, y: 20 } });
   expect(
-    await page.evaluate(
-      (i) => getComputedStyle(document.getElementById(i)!).transitionDuration,
-      id,
-    ),
+    await again
+      .locator("summary + div")
+      .evaluate((el) => getComputedStyle(el).transitionDuration),
   ).toBe("0s");
+  // Click the question itself (the open answer sits to its right on desktop and tablet).
+  await again.locator("summary").click({ position: { x: 20, y: 20 } });
+  await expect(again).not.toHaveAttribute("open", ""); // at once
 });
 
 test("ANIM-09: a #question link opens that row (on the same page)", async ({
   page,
 }) => {
   await page.goto("/dev/components#what-if-i-am-not-in");
-  await expect(
-    page.getByRole("button", { name: "What if I am not in?" }),
-  ).toHaveAttribute("aria-expanded", "true");
+  await expect(row(page, "what-if-i-am-not-in")).toHaveAttribute(
+    "data-open",
+    "",
+  );
 });
 
 test("ANIM-09: a #question link opens that row (arriving from another page)", async ({
@@ -170,7 +171,8 @@ test("ANIM-09: a #question link opens that row (arriving from another page)", as
 }) => {
   await page.goto("/dev");
   await page.goto("/dev/components#can-i-collect-instead");
-  await expect(
-    page.getByRole("button", { name: "Can I collect instead?" }),
-  ).toHaveAttribute("aria-expanded", "true");
+  await expect(row(page, "can-i-collect-instead")).toHaveAttribute(
+    "data-open",
+    "",
+  );
 });

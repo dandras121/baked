@@ -5,6 +5,7 @@ import { migrate } from "drizzle-orm/postgres-js/migrator";
 import { INITIAL_SETTINGS } from "@/lib/settings";
 import { connect, databaseUrl } from "./client";
 import { googleReviews } from "./schema";
+import { ensureFaq } from "./faq-repo";
 import { importSampleReviews, insertSampleCakes } from "./seed";
 import { ensureSettings } from "./settings-repo";
 
@@ -19,6 +20,8 @@ async function main() {
   try {
     await migrate(db, { migrationsFolder: "drizzle" });
     const added = await ensureSettings(db, INITIAL_SETTINGS);
+    // The starting FAQ (§4.4) on every site, once; afterwards Linda's edits are kept.
+    if (await ensureFaq(db)) console.log("deploy-setup: starting FAQ added");
     // Previews only: the Home sample cakes (missing ones added), so the Home row can be checked.
     // Never on the live site (launch: production gets its own database, PROGRESS “Later”).
     if (process.env.VERCEL_ENV === "preview") {

@@ -30,8 +30,8 @@ export function listInWords(items: readonly string[]): string {
   return `${items.slice(0, -1).join(", ")} and ${items[items.length - 1]}`;
 }
 
-/** Delivery charge in copy: “Free” at £0 (§11.1). The bespoke minimum is never shown as “Free”. */
-const charge = (pence: number) => (pence === 0 ? "Free" : formatPrice(pence));
+/** Delivery charge in copy: “free” at £0, otherwise “£{x}” (§4.4). The bespoke minimum is never shown as free. */
+const charge = (pence: number) => (pence === 0 ? "free" : formatPrice(pence));
 
 export function placeholderValues(s: Settings): Record<Placeholder, string> {
   return {
