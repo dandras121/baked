@@ -4,8 +4,8 @@
 import { migrate } from "drizzle-orm/postgres-js/migrator";
 import { INITIAL_SETTINGS } from "@/lib/settings";
 import { connect, databaseUrl } from "./client";
-import { cakes } from "./schema";
-import { insertSampleCakes } from "./seed";
+import { cakes, googleReviews } from "./schema";
+import { importSampleReviews, insertSampleCakes } from "./seed";
 import { ensureSettings } from "./settings-repo";
 
 async function main() {
@@ -26,6 +26,14 @@ async function main() {
       if (!any) {
         await insertSampleCakes(db);
         console.log("deploy-setup: preview sample cakes added");
+      }
+      const [review] = await db
+        .select({ id: googleReviews.id })
+        .from(googleReviews)
+        .limit(1);
+      if (!review) {
+        await importSampleReviews(db);
+        console.log("deploy-setup: preview sample reviews added");
       }
     }
     console.log(

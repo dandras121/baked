@@ -158,3 +158,43 @@ export const galleryPhotos = pgTable(
       .where(sql`${t.homeOrder} is not null`),
   ],
 );
+
+/**
+ * Linda's Google reviews (§11.4, Decided 2026-10-22): a copy of what the Business Profile API returns, synced
+ * daily (slice 12.x) — until then filled from a fixture in development and on previews only. Only the
+ * listed fields are kept. Reviews without text count in the rating line but are not cards.
+ */
+export const googleReviews = pgTable(
+  "google_reviews",
+  {
+    id: text("id").primaryKey(),
+    stars: integer("stars").notNull(),
+    reviewerName: text("reviewer_name").notNull(),
+    text: text("text"),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull(),
+  },
+  (t) => [
+    check("review_stars_range", sql`${t.stars} between 1 and 5`),
+    index("review_newest").on(t.createdAt, t.id),
+  ],
+);
+
+/** The Google score and count (§11.4): one row, with the time of the last successful fetch. */
+export const googleRating = pgTable(
+  "google_rating",
+  {
+    id: integer("id").primaryKey().default(1),
+    /** The average in tenths: 4.9 → 49. */
+    ratingTenths: integer("rating_tenths").notNull(),
+    reviewCount: integer("review_count").notNull(),
+    /** Linda's reviews on Google (new tab); null until her profile is connected (§14.1). */
+    reviewsUrl: text("reviews_url"),
+    fetchedAt: timestamp("fetched_at", { withTimezone: true }).notNull(),
+  },
+  (t) => [
+    check("rating_single_row", sql`${t.id} = 1`),
+    check("rating_range", sql`${t.ratingTenths} between 10 and 50`),
+    check("review_count_positive", sql`${t.reviewCount} >= 0`),
+  ],
+);

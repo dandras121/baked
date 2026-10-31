@@ -1,0 +1,249 @@
+/*
+ * “Thoughts on my work.” — desktop 522:2731 (1280 × 463), tablet 1562:12233 (1024 × 388), phone 686:4785
+ * (402 × 399). Cards 327 × 240 (tablet 262 × 201, phone 288 × 230). The row has side padding of
+ * (row − card) / 2, so every card can reach the centre (ANIM-10); it starts at the newest review.
+ */
+.section {
+  position: relative;
+  width: calc(402 * var(--u));
+  margin-inline: auto;
+  padding: 14px 0 25px;
+  text-align: center;
+}
+
+.title {
+  margin: 0;
+  color: var(--colour-display);
+  font: var(--type-heading-md);
+  font-variation-settings: var(--font-display-axes);
+}
+
+.rating {
+  display: block;
+  width: fit-content;
+  margin: 7px auto 0;
+  color: var(--colour-meta);
+  font: var(--type-review-meta-phone);
+  text-decoration: none;
+}
+
+.ratingLink:hover {
+  color: var(--colour-display);
+}
+
+.carousel {
+  position: relative;
+  margin-top: 1px;
+}
+
+.track {
+  --card-w: calc(288 * var(--u));
+  display: flex;
+  gap: calc(12 * var(--u));
+  margin: 0;
+  padding: 16px calc(50% - var(--card-w) / 2) 44px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+  list-style: none;
+  overscroll-behavior-x: contain;
+  text-align: left;
+}
+
+.track::-webkit-scrollbar {
+  display: none;
+}
+
+.slot {
+  flex: none;
+  width: var(--card-w);
+  scroll-snap-align: center;
+}
+
+.card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: calc(18 * var(--u));
+  height: calc(230 * var(--u));
+  padding: calc(28 * var(--u));
+  overflow: hidden;
+  border: 1px solid var(--colour-line-glass);
+  border-radius: calc(27 * var(--u));
+  background: var(--colour-glass);
+  box-shadow: var(--shadow-card), var(--shadow-card-inner);
+  backdrop-filter: blur(var(--blur-glass));
+  cursor: pointer;
+}
+
+/* A card whose data has not arrived (or is far from the view): the same shape, empty. */
+.shape {
+  cursor: default;
+}
+
+/* A card that arrives after the page loaded fades in; reduced motion: at once (interaction.css). */
+.fresh {
+  animation: review-in var(--duration-200) var(--ease-out) both;
+}
+
+@keyframes review-in {
+  from {
+    opacity: 0;
+  }
+}
+
+.quote {
+  display: -webkit-box;
+  margin: 0;
+  overflow: hidden;
+  color: var(--colour-ink);
+  font: var(--type-quote-phone);
+  font-variation-settings: var(--font-display-axes);
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 4;
+}
+
+.readMore {
+  display: none;
+  align-self: flex-start;
+  margin-top: calc(-18 * var(--u));
+  color: var(--colour-accent);
+  font: var(--type-review-author-phone);
+  text-decoration: none;
+}
+
+.card[data-cut] .quote {
+  -webkit-line-clamp: 3;
+}
+
+.card[data-cut] .readMore {
+  display: block;
+}
+
+.author {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  margin-top: auto;
+}
+
+.name {
+  margin: 0;
+  color: var(--colour-ink);
+  font: var(--type-review-author-phone);
+}
+
+.meta {
+  margin: 0;
+  color: var(--colour-meta);
+  font: var(--type-review-meta-phone);
+}
+
+.arrow {
+  display: none;
+}
+
+.indicator {
+  margin-top: -5px;
+}
+
+@media (min-width: 768px) {
+  .section {
+    width: calc(1280 * var(--u));
+    padding: 5px 0 28px;
+  }
+
+  .title {
+    font: var(--type-wordmark);
+  }
+
+  .rating {
+    margin-top: 17px;
+    font: var(--type-review-meta);
+  }
+
+  .carousel {
+    margin-top: 0;
+  }
+
+  .track {
+    --card-w: calc(327.5 * var(--u));
+    gap: calc(30.6 * var(--u));
+  }
+
+  .card {
+    height: calc(251.25 * var(--u));
+    border-radius: calc(27 * var(--u));
+  }
+
+  .quote {
+    font: var(--type-quote);
+  }
+
+  .readMore {
+    font: var(--type-review-author);
+  }
+
+  .name {
+    font: var(--type-review-author);
+  }
+
+  .meta {
+    font: var(--type-review-meta);
+  }
+}
+
+@media (min-width: 1120px) {
+  .section {
+    padding: 7px 0 57px;
+  }
+
+  .rating {
+    margin-top: 10px;
+  }
+
+  .track {
+    --card-w: calc(327 * var(--u));
+    gap: calc(32 * var(--u));
+    padding-top: 10px;
+  }
+
+  .card {
+    height: calc(240 * var(--u));
+  }
+
+  /* Desktop arrows, level with the cards' middle (1373:10004 / 1373:10007). */
+  .arrow {
+    position: absolute;
+    top: calc(10px + 120 * var(--u) - 13.67 * var(--u));
+    display: grid;
+    place-items: center;
+    width: calc(49.36 * var(--u));
+    height: calc(27.33 * var(--u));
+    padding: 0;
+    border: 1px solid var(--colour-display);
+    border-radius: var(--radius-pill);
+    background: var(--colour-arrow-wash-strong);
+    color: var(--colour-display);
+    cursor: pointer;
+  }
+
+  .prev {
+    left: calc(36.64 * var(--u));
+  }
+
+  .next {
+    right: calc(35.64 * var(--u));
+  }
+
+  .arrow[aria-disabled="true"] {
+    opacity: 0.4;
+    cursor: default;
+  }
+
+  .chevron {
+    width: calc(7.39 * var(--u));
+    height: calc(14.78 * var(--u));
+    overflow: visible;
+  }
+}

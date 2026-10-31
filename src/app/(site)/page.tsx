@@ -8,6 +8,7 @@ import {
 } from "@/components/home/home-sections";
 import styles from "@/components/home/home-sections.module.css";
 import { CakeRowInBand, RecipesHeading } from "@/components/home/home-band";
+import { Reviews } from "@/components/home/reviews";
 import { SpecialIdea } from "@/components/home/special-idea";
 import { getHomeCakes, getHomeSquares } from "@/db/home-repo";
 import { getSiteSettings } from "@/db/site-settings";
@@ -63,7 +64,7 @@ export default async function Home({ searchParams }: PageProps<"/">) {
         squares={gallery.squares}
         galleryLink={gallery.galleryLink}
       />
-      {/* Slice 2.2: “Thoughts on my work.” (Google reviews) */}
+      <Reviews />
       {settings && (
         <SocialBand
           instagram={settings.instagram}

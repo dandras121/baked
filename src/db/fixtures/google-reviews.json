@@ -1,0 +1,632 @@
+{
+  "_note": "Development and preview fixture in the Business Profile API shape (CLAUDE.md §7). Sample content, never shown on the live site.",
+  "reviews": [
+    {
+      "reviewId": "fixture-001",
+      "reviewer": {
+        "displayName": "Mairi S."
+      },
+      "starRating": "FIVE",
+      "createTime": "2026-10-28T15:12:00Z",
+      "updateTime": "2026-10-28T15:12:00Z",
+      "comment": "Lovely cake, thank you!"
+    },
+    {
+      "reviewId": "fixture-002",
+      "reviewer": {
+        "displayName": "Iona F."
+      },
+      "starRating": "FIVE",
+      "createTime": "2026-10-17T10:12:00Z",
+      "updateTime": "2026-10-17T10:12:00Z",
+      "comment": "Linda listened to every detail and the cake was perfect for our daughter's birthday. The sponge was so light."
+    },
+    {
+      "reviewId": "fixture-003",
+      "reviewer": {
+        "displayName": "Callum M."
+      },
+      "starRating": "FIVE",
+      "createTime": "2026-10-06T14:12:00Z",
+      "updateTime": "2026-10-06T14:12:00Z",
+      "comment": "Honestly the best cake I've had in years. The buttercream was smooth and not sickly, the sponge was moist all the way through and the decoration was so neat. It travelled well in the box too, which matters when you've got a forty-minute drive with three children in the back."
+    },
+    {
+      "reviewId": "fixture-004",
+      "reviewer": {
+        "displayName": "Fiona C."
+      },
+      "starRating": "FIVE",
+      "createTime": "2026-09-25T09:12:00Z",
+      "updateTime": "2026-09-25T09:12:00Z",
+      "comment": "Gorgeous cake, everyone loved it."
+    },
+    {
+      "reviewId": "fixture-005",
+      "reviewer": {
+        "displayName": "Euan G."
+      },
+      "starRating": "FIVE",
+      "createTime": "2026-09-13T13:12:00Z",
+      "updateTime": "2026-09-13T13:12:00Z",
+      "comment": "Second time ordering and it was just as good. Lovely to deal with and very clear about allergens."
+    },
+    {
+      "reviewId": "fixture-006",
+      "reviewer": {
+        "displayName": "Isla B."
+      },
+      "starRating": "FIVE",
+      "createTime": "2026-09-02T08:12:00Z",
+      "updateTime": "2026-09-02T08:12:00Z",
+      "comment": "It arrived looking better than the sketch. Half the guests photographed it before anyone dared cut it."
+    },
+    {
+      "reviewId": "fixture-007",
+      "reviewer": {
+        "displayName": "Ross D."
+      },
+      "starRating": "FIVE",
+      "createTime": "2026-08-22T12:12:00Z",
+      "updateTime": "2026-08-22T12:12:00Z",
+      "comment": "Beautiful and delicious."
+    },
+    {
+      "reviewId": "fixture-008",
+      "reviewer": {
+        "displayName": "Kirsty R."
+      },
+      "starRating": "FOUR",
+      "createTime": "2026-08-10T07:12:00Z",
+      "updateTime": "2026-08-10T07:12:00Z"
+    },
+    {
+      "reviewId": "fixture-009",
+      "reviewer": {
+        "displayName": "Ewan H."
+      },
+      "starRating": "FIVE",
+      "createTime": "2026-07-30T11:12:00Z",
+      "updateTime": "2026-07-30T11:12:00Z",
+      "comment": "The dinosaur cake made my son's day. Moist sponge, not too sweet, and it fed the whole party."
+    },
+    {
+      "reviewId": "fixture-010",
+      "reviewer": {
+        "displayName": "Morag K."
+      },
+      "starRating": "FIVE",
+      "createTime": "2026-07-19T15:12:00Z",
+      "updateTime": "2026-07-19T15:12:00Z",
+      "comment": "Tasted as good as it looked."
+    },
+    {
+      "reviewId": "fixture-011",
+      "reviewer": {
+        "displayName": "Alasdair L."
+      },
+      "starRating": "ONE",
+      "createTime": "2026-07-07T10:12:00Z",
+      "updateTime": "2026-07-07T10:12:00Z",
+      "comment": "Not quite what I had pictured, the decoration was simpler than expected. The flavour was good."
+    },
+    {
+      "reviewId": "fixture-012",
+      "reviewer": {
+        "displayName": "Catriona T."
+      },
+      "starRating": "FIVE",
+      "createTime": "2026-06-26T14:12:00Z",
+      "updateTime": "2026-06-26T14:12:00Z",
+      "comment": "Honestly the best cake I've had in years. The buttercream was smooth and not sickly, the sponge was moist all the way through and the decoration was so neat. It travelled well in the box too, which matters when you've got a forty-minute drive with three children in the back."
+    },
+    {
+      "reviewId": "fixture-013",
+      "reviewer": {
+        "displayName": "Struan W."
+      },
+      "starRating": "FIVE",
+      "createTime": "2026-06-15T09:12:00Z",
+      "updateTime": "2026-06-15T09:12:00Z",
+      "comment": "(Translated by Google) The cake was wonderful, thank you so much!\n\n(Original)\nA torta csodálatos volt, nagyon köszönjük!"
+    },
+    {
+      "reviewId": "fixture-014",
+      "reviewer": {
+        "displayName": "Eilidh A."
+      },
+      "starRating": "FIVE",
+      "createTime": "2026-06-04T13:12:00Z",
+      "updateTime": "2026-06-04T13:12:00Z",
+      "comment": "The dinosaur cake made my son's day. Moist sponge, not too sweet, and it fed the whole party."
+    },
+    {
+      "reviewId": "fixture-015",
+      "reviewer": {
+        "displayName": "Fraser P."
+      },
+      "starRating": "FIVE",
+      "createTime": "2026-05-23T08:12:00Z",
+      "updateTime": "2026-05-23T08:12:00Z",
+      "comment": "Second time ordering and it was just as good. Lovely to deal with and very clear about allergens."
+    },
+    {
+      "reviewId": "fixture-016",
+      "reviewer": {
+        "displayName": "Skye S."
+      },
+      "starRating": "FIVE",
+      "createTime": "2026-05-12T12:12:00Z",
+      "updateTime": "2026-05-12T12:12:00Z",
+      "comment": "Lovely cake, thank you!"
+    },
+    {
+      "reviewId": "fixture-017",
+      "reviewer": {
+        "displayName": "Lachlan F."
+      },
+      "starRating": "FOUR",
+      "createTime": "2026-05-01T07:12:00Z",
+      "updateTime": "2026-05-01T07:12:00Z",
+      "comment": "Linda listened to every detail and the cake was perfect for our daughter's birthday. The sponge was so light."
+    },
+    {
+      "reviewId": "fixture-018",
+      "reviewer": {
+        "displayName": "Ailsa M."
+      },
+      "starRating": "FIVE",
+      "createTime": "2026-04-19T11:12:00Z",
+      "updateTime": "2026-04-19T11:12:00Z",
+      "comment": "Ordered for my mum's seventieth. Collection was easy and the flowers on top looked real."
+    },
+    {
+      "reviewId": "fixture-019",
+      "reviewer": {
+        "displayName": "Hamish C."
+      },
+      "starRating": "THREE",
+      "createTime": "2026-04-08T15:12:00Z",
+      "updateTime": "2026-04-08T15:12:00Z",
+      "comment": "Not quite what I had pictured, the decoration was simpler than expected. The flavour was good."
+    },
+    {
+      "reviewId": "fixture-020",
+      "reviewer": {
+        "displayName": "Rhona G."
+      },
+      "starRating": "FOUR",
+      "createTime": "2026-03-28T10:12:00Z",
+      "updateTime": "2026-03-28T10:12:00Z"
+    },
+    {
+      "reviewId": "fixture-021",
+      "reviewer": {
+        "displayName": "Mairi B."
+      },
+      "starRating": "FIVE",
+      "createTime": "2026-03-16T14:12:00Z",
+      "updateTime": "2026-03-16T14:12:00Z",
+      "comment": "Honestly the best cake I've had in years. The buttercream was smooth and not sickly, the sponge was moist all the way through and the decoration was so neat. It travelled well in the box too, which matters when you've got a forty-minute drive with three children in the back."
+    },
+    {
+      "reviewId": "fixture-022",
+      "reviewer": {
+        "displayName": "Iona D."
+      },
+      "starRating": "FIVE",
+      "createTime": "2026-03-05T09:12:00Z",
+      "updateTime": "2026-03-05T09:12:00Z",
+      "comment": "Beautiful and delicious."
+    },
+    {
+      "reviewId": "fixture-023",
+      "reviewer": {
+        "displayName": "Callum R."
+      },
+      "starRating": "FIVE",
+      "createTime": "2026-02-22T13:12:00Z",
+      "updateTime": "2026-02-22T13:12:00Z",
+      "comment": "Ordered for my mum's seventieth. Collection was easy and the flowers on top looked real."
+    },
+    {
+      "reviewId": "fixture-024",
+      "reviewer": {
+        "displayName": "Fiona H."
+      },
+      "starRating": "FIVE",
+      "createTime": "2026-02-11T08:12:00Z",
+      "updateTime": "2026-02-11T08:12:00Z",
+      "comment": "The dinosaur cake made my son's day. Moist sponge, not too sweet, and it fed the whole party."
+    },
+    {
+      "reviewId": "fixture-025",
+      "reviewer": {
+        "displayName": "Euan K."
+      },
+      "starRating": "FIVE",
+      "createTime": "2026-01-30T12:12:00Z",
+      "updateTime": "2026-01-30T12:12:00Z",
+      "comment": "Tasted as good as it looked."
+    },
+    {
+      "reviewId": "fixture-026",
+      "reviewer": {
+        "displayName": "Isla L."
+      },
+      "starRating": "FIVE",
+      "createTime": "2026-01-19T07:12:00Z",
+      "updateTime": "2026-01-19T07:12:00Z",
+      "comment": "It arrived looking better than the sketch. Half the guests photographed it before anyone dared cut it."
+    },
+    {
+      "reviewId": "fixture-027",
+      "reviewer": {
+        "displayName": "Ross T."
+      },
+      "starRating": "TWO",
+      "createTime": "2026-01-08T11:12:00Z",
+      "updateTime": "2026-01-08T11:12:00Z",
+      "comment": "Not quite what I had pictured, the decoration was simpler than expected. The flavour was good."
+    },
+    {
+      "reviewId": "fixture-028",
+      "reviewer": {
+        "displayName": "Kirsty W."
+      },
+      "starRating": "FIVE",
+      "createTime": "2025-12-27T15:12:00Z",
+      "updateTime": "2025-12-27T15:12:00Z",
+      "comment": "Exactly what we asked for."
+    },
+    {
+      "reviewId": "fixture-029",
+      "reviewer": {
+        "displayName": "Ewan A."
+      },
+      "starRating": "FIVE",
+      "createTime": "2025-12-16T10:12:00Z",
+      "updateTime": "2025-12-16T10:12:00Z",
+      "comment": "The dinosaur cake made my son's day. Moist sponge, not too sweet, and it fed the whole party."
+    },
+    {
+      "reviewId": "fixture-030",
+      "reviewer": {
+        "displayName": "Morag P."
+      },
+      "starRating": "FIVE",
+      "createTime": "2025-12-05T14:12:00Z",
+      "updateTime": "2025-12-05T14:12:00Z",
+      "comment": "Honestly the best cake I've had in years. The buttercream was smooth and not sickly, the sponge was moist all the way through and the decoration was so neat. It travelled well in the box too, which matters when you've got a forty-minute drive with three children in the back."
+    },
+    {
+      "reviewId": "fixture-031",
+      "reviewer": {
+        "displayName": "Alasdair S."
+      },
+      "starRating": "FIVE",
+      "createTime": "2025-11-23T09:12:00Z",
+      "updateTime": "2025-11-23T09:12:00Z",
+      "comment": "Lovely cake, thank you!"
+    },
+    {
+      "reviewId": "fixture-032",
+      "reviewer": {
+        "displayName": "Catriona F."
+      },
+      "starRating": "FIVE",
+      "createTime": "2025-11-12T13:12:00Z",
+      "updateTime": "2025-11-12T13:12:00Z",
+      "comment": "Linda listened to every detail and the cake was perfect for our daughter's birthday. The sponge was so light."
+    },
+    {
+      "reviewId": "fixture-033",
+      "reviewer": {
+        "displayName": "Struan M."
+      },
+      "starRating": "FOUR",
+      "createTime": "2025-11-01T08:12:00Z",
+      "updateTime": "2025-11-01T08:12:00Z",
+      "comment": "Ordered for my mum's seventieth. Collection was easy and the flowers on top looked real."
+    },
+    {
+      "reviewId": "fixture-034",
+      "reviewer": {
+        "displayName": "Eilidh C."
+      },
+      "starRating": "THREE",
+      "createTime": "2025-10-21T12:12:00Z",
+      "updateTime": "2025-10-21T12:12:00Z"
+    },
+    {
+      "reviewId": "fixture-035",
+      "reviewer": {
+        "displayName": "Fraser G."
+      },
+      "starRating": "FIVE",
+      "createTime": "2025-10-09T07:12:00Z",
+      "updateTime": "2025-10-09T07:12:00Z",
+      "comment": "Second time ordering and it was just as good. Lovely to deal with and very clear about allergens."
+    },
+    {
+      "reviewId": "fixture-036",
+      "reviewer": {
+        "displayName": "Skye B."
+      },
+      "starRating": "FIVE",
+      "createTime": "2025-09-28T11:12:00Z",
+      "updateTime": "2025-09-28T11:12:00Z",
+      "comment": "It arrived looking better than the sketch. Half the guests photographed it before anyone dared cut it."
+    },
+    {
+      "reviewId": "fixture-037",
+      "reviewer": {
+        "displayName": "Lachlan D."
+      },
+      "starRating": "FIVE",
+      "createTime": "2025-09-17T15:12:00Z",
+      "updateTime": "2025-09-17T15:12:00Z",
+      "comment": "Beautiful and delicious."
+    },
+    {
+      "reviewId": "fixture-038",
+      "reviewer": {
+        "displayName": "Ailsa R."
+      },
+      "starRating": "FIVE",
+      "createTime": "2025-09-05T10:12:00Z",
+      "updateTime": "2025-09-05T10:12:00Z",
+      "comment": "Ordered for my mum's seventieth. Collection was easy and the flowers on top looked real."
+    },
+    {
+      "reviewId": "fixture-039",
+      "reviewer": {
+        "displayName": "Hamish H."
+      },
+      "starRating": "FOUR",
+      "createTime": "2025-08-25T14:12:00Z",
+      "updateTime": "2025-08-25T14:12:00Z",
+      "comment": "Honestly the best cake I've had in years. The buttercream was smooth and not sickly, the sponge was moist all the way through and the decoration was so neat. It travelled well in the box too, which matters when you've got a forty-minute drive with three children in the back."
+    },
+    {
+      "reviewId": "fixture-040",
+      "reviewer": {
+        "displayName": "Rhona K."
+      },
+      "starRating": "FIVE",
+      "createTime": "2025-08-14T09:12:00Z",
+      "updateTime": "2025-08-14T09:12:00Z",
+      "comment": "Tasted as good as it looked."
+    },
+    {
+      "reviewId": "fixture-041",
+      "reviewer": {
+        "displayName": "Mairi L."
+      },
+      "starRating": "FIVE",
+      "createTime": "2025-08-02T13:12:00Z",
+      "updateTime": "2025-08-02T13:12:00Z",
+      "comment": "It arrived looking better than the sketch. Half the guests photographed it before anyone dared cut it."
+    },
+    {
+      "reviewId": "fixture-042",
+      "reviewer": {
+        "displayName": "Iona T."
+      },
+      "starRating": "FIVE",
+      "createTime": "2025-07-22T08:12:00Z",
+      "updateTime": "2025-07-22T08:12:00Z",
+      "comment": "Linda listened to every detail and the cake was perfect for our daughter's birthday. The sponge was so light."
+    },
+    {
+      "reviewId": "fixture-043",
+      "reviewer": {
+        "displayName": "Callum W."
+      },
+      "starRating": "FIVE",
+      "createTime": "2025-07-11T12:12:00Z",
+      "updateTime": "2025-07-11T12:12:00Z",
+      "comment": "Exactly what we asked for."
+    },
+    {
+      "reviewId": "fixture-044",
+      "reviewer": {
+        "displayName": "Fiona A."
+      },
+      "starRating": "FOUR",
+      "createTime": "2025-06-30T07:12:00Z",
+      "updateTime": "2025-06-30T07:12:00Z",
+      "comment": "The dinosaur cake made my son's day. Moist sponge, not too sweet, and it fed the whole party."
+    },
+    {
+      "reviewId": "fixture-045",
+      "reviewer": {
+        "displayName": "Euan P."
+      },
+      "starRating": "FIVE",
+      "createTime": "2025-06-18T11:12:00Z",
+      "updateTime": "2025-06-18T11:12:00Z",
+      "comment": "Second time ordering and it was just as good. Lovely to deal with and very clear about allergens."
+    },
+    {
+      "reviewId": "fixture-046",
+      "reviewer": {
+        "displayName": "Isla S."
+      },
+      "starRating": "FIVE",
+      "createTime": "2025-06-07T15:12:00Z",
+      "updateTime": "2025-06-07T15:12:00Z"
+    },
+    {
+      "reviewId": "fixture-047",
+      "reviewer": {
+        "displayName": "Ross F."
+      },
+      "starRating": "FIVE",
+      "createTime": "2025-05-27T10:12:00Z",
+      "updateTime": "2025-05-27T10:12:00Z",
+      "comment": "Linda listened to every detail and the cake was perfect for our daughter's birthday. The sponge was so light."
+    },
+    {
+      "reviewId": "fixture-048",
+      "reviewer": {
+        "displayName": "Kirsty M."
+      },
+      "starRating": "FIVE",
+      "createTime": "2025-05-15T14:12:00Z",
+      "updateTime": "2025-05-15T14:12:00Z",
+      "comment": "Honestly the best cake I've had in years. The buttercream was smooth and not sickly, the sponge was moist all the way through and the decoration was so neat. It travelled well in the box too, which matters when you've got a forty-minute drive with three children in the back."
+    },
+    {
+      "reviewId": "fixture-049",
+      "reviewer": {
+        "displayName": "Ewan C."
+      },
+      "starRating": "FIVE",
+      "createTime": "2025-05-04T09:12:00Z",
+      "updateTime": "2025-05-04T09:12:00Z",
+      "comment": "Gorgeous cake, everyone loved it."
+    },
+    {
+      "reviewId": "fixture-050",
+      "reviewer": {
+        "displayName": "Morag G."
+      },
+      "starRating": "FIVE",
+      "createTime": "2025-04-23T13:12:00Z",
+      "updateTime": "2025-04-23T13:12:00Z",
+      "comment": "Second time ordering and it was just as good. Lovely to deal with and very clear about allergens."
+    },
+    {
+      "reviewId": "fixture-051",
+      "reviewer": {
+        "displayName": "Alasdair B."
+      },
+      "starRating": "THREE",
+      "createTime": "2025-04-11T08:12:00Z",
+      "updateTime": "2025-04-11T08:12:00Z",
+      "comment": "Not quite what I had pictured, the decoration was simpler than expected. The flavour was good."
+    },
+    {
+      "reviewId": "fixture-052",
+      "reviewer": {
+        "displayName": "Catriona D."
+      },
+      "starRating": "FIVE",
+      "createTime": "2025-03-31T12:12:00Z",
+      "updateTime": "2025-03-31T12:12:00Z",
+      "comment": "Beautiful and delicious."
+    },
+    {
+      "reviewId": "fixture-053",
+      "reviewer": {
+        "displayName": "Struan R."
+      },
+      "starRating": "FIVE",
+      "createTime": "2025-03-20T07:12:00Z",
+      "updateTime": "2025-03-20T07:12:00Z",
+      "comment": "Ordered for my mum's seventieth. Collection was easy and the flowers on top looked real."
+    },
+    {
+      "reviewId": "fixture-054",
+      "reviewer": {
+        "displayName": "Eilidh H."
+      },
+      "starRating": "FIVE",
+      "createTime": "2025-03-09T11:12:00Z",
+      "updateTime": "2025-03-09T11:12:00Z",
+      "comment": "The dinosaur cake made my son's day. Moist sponge, not too sweet, and it fed the whole party."
+    },
+    {
+      "reviewId": "fixture-055",
+      "reviewer": {
+        "displayName": "Fraser K."
+      },
+      "starRating": "FIVE",
+      "createTime": "2025-02-25T15:12:00Z",
+      "updateTime": "2025-02-25T15:12:00Z",
+      "comment": "Tasted as good as it looked."
+    },
+    {
+      "reviewId": "fixture-056",
+      "reviewer": {
+        "displayName": "Skye L."
+      },
+      "starRating": "FOUR",
+      "createTime": "2025-02-14T10:12:00Z",
+      "updateTime": "2025-02-14T10:12:00Z",
+      "comment": "It arrived looking better than the sketch. Half the guests photographed it before anyone dared cut it."
+    },
+    {
+      "reviewId": "fixture-057",
+      "reviewer": {
+        "displayName": "Lachlan T."
+      },
+      "starRating": "FIVE",
+      "createTime": "2025-02-03T14:12:00Z",
+      "updateTime": "2025-02-03T14:12:00Z",
+      "comment": "Honestly the best cake I've had in years. The buttercream was smooth and not sickly, the sponge was moist all the way through and the decoration was so neat. It travelled well in the box too, which matters when you've got a forty-minute drive with three children in the back."
+    },
+    {
+      "reviewId": "fixture-058",
+      "reviewer": {
+        "displayName": "Ailsa W."
+      },
+      "starRating": "FIVE",
+      "createTime": "2025-01-22T09:12:00Z",
+      "updateTime": "2025-01-22T09:12:00Z",
+      "comment": "Exactly what we asked for."
+    },
+    {
+      "reviewId": "fixture-059",
+      "reviewer": {
+        "displayName": "Hamish A."
+      },
+      "starRating": "FIVE",
+      "createTime": "2025-01-11T13:12:00Z",
+      "updateTime": "2025-01-11T13:12:00Z"
+    },
+    {
+      "reviewId": "fixture-060",
+      "reviewer": {
+        "displayName": "Rhona P."
+      },
+      "starRating": "FIVE",
+      "createTime": "2024-12-31T08:12:00Z",
+      "updateTime": "2024-12-31T08:12:00Z",
+      "comment": "Second time ordering and it was just as good. Lovely to deal with and very clear about allergens."
+    },
+    {
+      "reviewId": "fixture-061",
+      "reviewer": {
+        "displayName": "Mairi S."
+      },
+      "starRating": "FIVE",
+      "createTime": "2024-12-19T12:12:00Z",
+      "updateTime": "2024-12-19T12:12:00Z",
+      "comment": "Lovely cake, thank you!"
+    },
+    {
+      "reviewId": "fixture-062",
+      "reviewer": {
+        "displayName": "Iona F."
+      },
+      "starRating": "TWO",
+      "createTime": "2024-12-08T07:12:00Z",
+      "updateTime": "2024-12-08T07:12:00Z",
+      "comment": "Tasty sponge, though the colour was a little paler than the photo I sent."
+    },
+    {
+      "reviewId": "fixture-063",
+      "reviewer": {
+        "displayName": "Callum M."
+      },
+      "starRating": "FIVE",
+      "createTime": "2024-11-27T11:12:00Z",
+      "updateTime": "2024-11-27T11:12:00Z",
+      "comment": "Ordered for my mum's seventieth. Collection was easy and the flowers on top looked real."
+    }
+  ],
+  "averageRating": 4.63,
+  "totalReviewCount": 63
+}

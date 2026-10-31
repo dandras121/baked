@@ -346,3 +346,16 @@
 .type-body-light {
   font: var(--type-body-light);
 }
+
+.type-quote-phone {
+  font: var(--type-quote-phone);
+  font-variation-settings: var(--font-display-axes);
+}
+
+.type-review-author-phone {
+  font: var(--type-review-author-phone);
+}
+
+.type-review-meta-phone {
+  font: var(--type-review-meta-phone);
+}

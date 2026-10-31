@@ -1,7 +1,10 @@
 // One command re-seeds the development database (CLAUDE.md §7): `pnpm db:seed`.
 // Slice 0.6 seeds the Settings; 2.3 the five Home cakes; the full Figma catalogue (3.1), orders (4.6) and
 // the rest join as their tables arrive.
+import type { ApiReviewPage } from "@/lib/reviews";
 import { INITIAL_SETTINGS } from "@/lib/settings";
+import fixture from "./fixtures/google-reviews.json";
+import { importReviews } from "./reviews-repo";
 import { connect } from "./client";
 import { cakeSizes, cakes, closedDays, galleryPhotos } from "./schema";
 import { writeSettings } from "./settings-repo";
@@ -50,6 +53,15 @@ export async function insertSampleCakes(db: Db) {
   );
 }
 
+/** Linda's Google reviews from the fixture (Business Profile API shape); development and previews only. */
+export async function importSampleReviews(db: Db) {
+  await importReviews(db, fixture as ApiReviewPage, SAMPLE_REVIEWS_URL);
+}
+
+/** A Google Maps search for the business, until Linda's profile link exists (§14.1). */
+export const SAMPLE_REVIEWS_URL =
+  "https://www.google.com/maps/search/?api=1&query=Baked+by+Linda+Winchburgh";
+
 export async function seed(url?: string) {
   const { db, close } = connect(url);
   try {
@@ -64,6 +76,7 @@ export async function seed(url?: string) {
     await db.delete(galleryPhotos);
     await db.delete(cakes);
     await insertSampleCakes(db);
+    await importSampleReviews(db);
   } finally {
     await close();
   }
@@ -71,7 +84,9 @@ export async function seed(url?: string) {
 
 if (process.argv[1]?.endsWith("seed.ts")) {
   seed()
-    .then(() => console.log("Seeded: settings, closed days, Home cakes"))
+    .then(() =>
+      console.log("Seeded: settings, closed days, Home cakes, sample reviews"),
+    )
     .catch((e) => {
       console.error(e);
       process.exit(1);

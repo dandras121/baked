@@ -66,6 +66,8 @@
   --colour-grabber: rgb(36 27 51 / 0.18); /* sheet grabber on the cookie sheet · 1004:9106 */
   --colour-slide-placeholder: #756c82; /* development-only hero placeholder slides 2–3 · Placeholder-hero slide 2|3 1817:13581 */
   --colour-arrow-wash: rgb(255 255 255 / 0.05); /* carousel arrow pill fill on the pink band · 1363:10096 */
+  --colour-arrow-wash-strong: rgb(255 255 255 / 0.35); /* testimonial arrow pill fill · 1373:10004 */
+  --colour-glass: rgb(255 255 255 / 0.62); /* testimonial card glass (62 % white over a 17 px blur) · 701:4791 */
 
   /* @group Font families */
   --font-display: "Fraunces", Georgia, "Times New Roman", serif; /* headings, card titles, quotes, field values · style guide 02 */
@@ -154,6 +156,9 @@
   --type-link-sm-phone: 300 12px/normal var(--font-display); /* “View the whole collection” on the phone · 1385:10050 */
   --type-price-phone: 400 12px/normal var(--font-ui); /* card price on the phone Home card · 1381:10019 */
   --type-body-light: 300 max(calc(14px * var(--type-scale)), min(14px, 14px))/normal var(--font-ui); /* “take a look at my previous works gallery”, phone Special idea text · 1588:10489, 1588:10523 */
+  --type-quote-phone: italic 300 18px/1.52 var(--font-display); /* review quote on the phone · 701:4810 */
+  --type-review-author-phone: 600 13px/normal var(--font-quote); /* review author on the phone · 701:4810 */
+  --type-review-meta-phone: 300 11px/normal var(--font-quote); /* review stars and month, rating line on the phone · 701:4810, 1614:11113 */
   --type-label-ls: calc(1.98px * max(var(--type-scale), min(1, calc(14 / 11)))); /* field label letter spacing (18 %) · input 630:3005 */
   --type-footer-heading: 700 max(calc(10px * var(--type-scale)), min(10px, 14px))/normal var(--font-ui); /* footer column heading · style guide Quicksand Bold 10 */
   --type-footer-heading-ls: calc(0.18px * max(var(--type-scale), min(1, calc(14 / 10)))); /* footer heading letter spacing (1.8 %) · style guide */
