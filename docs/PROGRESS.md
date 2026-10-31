@@ -35,7 +35,7 @@ Branch per phase (`phase-00-foundations`, …), one commit per accepted slice, t
 | 2.2 | Home testimonials = Google reviews | ☑ | ac869c7 | 2026-10-31 “mehet” (row starts with the newest in the centre) |
 | 2.3 | Home cake row and Special idea | ☑ | ac869c7 | 2026-10-31 “mehet” (ten cakes, indicator under the row) |
 | 2.4 | About Linda | ☑ | f729564 | 2026-10-31 “mehet” |
-| 2.5 | FAQ | ☐ | | |
+| 2.5 | FAQ | ☑ | eca244d | 2026-10-31 “mehet tovább” |
 | 2.6 | Legal pages and Allergen information | ☐ | | |
 | 2.7 | Contact and Message sent | ☐ | | |
 | 2.8 | Gallery, lightbox, Show more, photo fade-in | ☐ | | |
@@ -139,7 +139,7 @@ Branch per phase (`phase-00-foundations`, …), one commit per accepted slice, t
 
 - Phase 1 closed 2026-10-30 (gate in the commit “phase 1 review gate”; tag `phase-01-done` local, the git proxy refuses tag pushes).
 - Phase 2 on branch `phase-02-content`. 2.1–2.3 accepted 2026-10-31. Bohoka 2026-10-30: 2.1 stays one slice; on Vercel previews the hero shows the three slides (placeholders 2–3), `?hero=live` shows the live hero alone; production never shows the placeholders.
-- **2.5 FAQ** — built, waiting for Bohoka.
+- **2.5 FAQ** — accepted 2026-10-31.
   - Files: `src/db/schema.ts` + `drizzle/0003_*` (faq_questions), `src/db/faq-repo.ts`, `src/lib/faq.ts`, `src/components/faq/`, `src/components/ui/drop-down.*` (now `<details>`), `src/app/(site)/faq/page.tsx`, `src/lib/placeholders.ts` (“free”), tokens (+7 type).
   - Tests: `src/lib/faq.test.ts`, `e2e/faq.spec.ts` (order, one open, placeholders, keyboard, #anchor, mailto, axe, without JavaScript), `e2e/slider-dropdown.spec.ts` updated for `<details>`.
 - **2.4 About Linda** — accepted 2026-10-31.
