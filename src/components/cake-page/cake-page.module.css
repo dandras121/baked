@@ -421,9 +421,10 @@
   .thumbs {
     display: flex;
     gap: calc(10 * var(--u));
-    width: calc(492 * var(--u));
-    padding: 4px 1px;
-    margin-block: -4px;
+    width: calc(492 * var(--u) + 12px);
+    /* Room for a thumbnail growing 10 % (ANIM-07) inside the scrolling strip. */
+    padding: 6px;
+    margin: -6px;
     overflow-x: auto;
     scrollbar-width: none;
   }

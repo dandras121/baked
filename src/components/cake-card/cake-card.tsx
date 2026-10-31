@@ -126,7 +126,7 @@ export function CakeCard({
         </p>
         <div className={styles.buy}>
           <p className={styles.from}>{cake.from}</p>
-          <ButtonLink href={href} size="card" className={styles.view}>
+          <ButtonLink href={href} size="card" className={`${styles.view} hit-44`}>
             View<span className="visually-hidden"> {cake.name}</span>
           </ButtonLink>
         </div>

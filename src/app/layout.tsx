@@ -36,6 +36,11 @@ export const viewport: Viewport = {
 // in. The class is removed when the slide ends, so a header mounted later in the visit does not replay it.
 const MASCOT_INTRO = `document.documentElement.classList.add("js");try{if(!sessionStorage.getItem("bbl:mascot-seen")){sessionStorage.setItem("bbl:mascot-seen","1");var d=document.documentElement;d.classList.add("mascot-intro");document.addEventListener("animationend",function e(v){if(v.animationName.indexOf("bbl-mascot-in")===0){d.classList.remove("mascot-intro");document.removeEventListener("animationend",e)}})}}catch(e){}`;
 
+// iOS zooms the page in when a field under 16 px gets focus and leaves it zoomed, so the page looks cut off.
+// On iOS only, maximum-scale=1 stops that focus zoom; iOS still lets the visitor pinch-zoom (it ignores the limit
+// for pinching), so nothing is lost. Elsewhere the limit would block zooming (§10.13), so it is never set there. Next adds its own viewport tag again on the client, so every one is kept in step.
+const IOS_FOCUS_ZOOM = `try{var n=navigator;if(/iPad|iPhone|iPod/.test(n.userAgent)||(n.platform==="MacIntel"&&n.maxTouchPoints>1)){var f=function(){document.querySelectorAll('meta[name="viewport"]').forEach(function(m){if(m.content.indexOf("maximum-scale")<0)m.content+=", maximum-scale=1"})};f();new MutationObserver(f).observe(document.documentElement,{childList:true,subtree:true,attributes:true,attributeFilter:["content"]})}}catch(e){}`;
+
 // The two faces almost every page shows first; the rest load when used.
 const PRELOAD_FONTS = [
   "/fonts/quicksand-latin-wght-normal.woff2",
@@ -51,6 +56,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     <html lang="en-GB" suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: MASCOT_INTRO }} />
+        <script dangerouslySetInnerHTML={{ __html: IOS_FOCUS_ZOOM }} />
       </head>
       <body>
         {children}

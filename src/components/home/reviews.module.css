@@ -19,6 +19,8 @@
 }
 
 .rating {
+  position: relative;
+  z-index: 1;
   display: block;
   width: fit-content;
   margin: 7px auto 0;
@@ -215,7 +217,9 @@
   .track {
     --card-w: calc(327 * var(--u));
     gap: calc(32 * var(--u));
-    padding-top: 10px;
+    /* Room for a card growing 10 % on hover (ANIM-07); the -6 px keeps the drawn place. */
+    margin-top: -6px;
+    padding-top: 16px;
   }
 
   .card {

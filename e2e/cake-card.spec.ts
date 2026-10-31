@@ -292,3 +292,26 @@ test("reduced motion: the open card shows the still; the video never starts or l
   ).toBe(true);
   expect(mp4).toEqual([]);
 });
+
+// Bohoka 2026-10-31: the open picture covered the top of View on the phone.
+test("open card: nothing covers the price or View", async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.goto("/cakes");
+  await corner(page, "The Lothian").click();
+  await expect(card(page, "The Lothian")).toHaveAttribute("data-open", "");
+  const view = card(page, "The Lothian").locator(
+    "a[href='/cakes/the-lothian'][data-pressable]",
+  );
+  const covered = await view.evaluate((el) => {
+    const r = el.getBoundingClientRect();
+    return [
+      [r.left + r.width / 2, r.top + 1],
+      [r.left + 2, r.top + r.height / 2],
+      [r.left + r.width / 2, r.top + r.height / 2],
+    ].some(([x, y]) => {
+      const top = document.elementFromPoint(x, y);
+      return top !== null && !el.contains(top);
+    });
+  });
+  expect(covered).toBe(false);
+});

@@ -209,7 +209,10 @@
   -webkit-line-clamp: 2;
 }
 
+/* Above the picture: the open picture must never cover the price or View. */
 .bottom {
+  position: relative;
+  z-index: 2;
   display: flex;
   flex-wrap: wrap;
   align-items: center;
@@ -365,6 +368,14 @@
   }
 
   .card[data-variant="catalogue"] .from {
+    font-size: calc(12 * var(--c));
+  }
+
+  /* View as drawn: 52 × 28 (1777:12896); the 44 × 44 hit area reaches outside it. */
+  .card[data-variant="catalogue"] .view {
+    min-width: calc(52 * var(--c));
+    min-height: calc(28 * var(--c));
+    padding: 0 calc(14 * var(--c));
     font-size: calc(12 * var(--c));
   }
 }
