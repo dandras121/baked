@@ -123,3 +123,63 @@
     font: var(--type-price);
   }
 }
+
+/*
+ * Phone catalogue card (V2 · Card / Cake — mobil v3, 1777:12902): 196 × 323 design px, scaled to its column
+ * (two columns, 16 px gutters, 10 px gap, §4.2), so every length is a share of the card's own width (--c is read inside the card, where 100cqw is the card).
+ */
+@media (max-width: 767.98px) {
+  .card[data-variant="catalogue"] {
+    --c: calc(100cqw / 196);
+    container-type: inline-size;
+    width: 100%;
+    min-height: 0;
+    aspect-ratio: 196 / 323;
+    /* The card's own corner: its width is half the content row less the gap (cqw here is the page's). */
+    border-radius: calc((100cqw - 42px) / 2 * 19 / 196);
+  }
+
+  .card[data-variant="catalogue"] .picture {
+    height: calc(195 * var(--c));
+  }
+
+  .card[data-variant="catalogue"] .name {
+    margin: calc(10 * var(--c)) calc(10 * var(--c)) 0;
+    font-size: calc(18 * var(--c));
+    line-height: 1.18;
+  }
+
+  .card[data-variant="catalogue"] .nameLink {
+    display: block;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+
+  .card[data-variant="catalogue"] .flavour {
+    max-width: none;
+    margin: calc(4 * var(--c)) calc(10 * var(--c)) 0;
+    font-size: calc(11 * var(--c));
+    line-height: 1.6;
+  }
+
+  .card[data-variant="catalogue"] .bottom {
+    padding: 0 calc(10 * var(--c)) calc(10 * var(--c));
+  }
+
+  .card[data-variant="catalogue"] .tiers {
+    flex-direction: row;
+    gap: 0.9em;
+    font-size: calc(8 * var(--c));
+  }
+
+  .card[data-variant="catalogue"] .buy {
+    flex: 1;
+    justify-content: space-between;
+    margin-top: calc(6 * var(--c));
+  }
+
+  .card[data-variant="catalogue"] .from {
+    font-size: calc(12 * var(--c));
+  }
+}

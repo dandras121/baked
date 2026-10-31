@@ -257,7 +257,7 @@ test("ANIM-03: tapping another item opens the page under the circles and reveals
   await expect(page).toHaveURL(/\/cakes$/);
   await expect(overlay(page)).toBeHidden({ timeout: 3000 });
   await expect(
-    page.getByRole("heading", { level: 1, name: "The full range" }),
+    page.getByRole("heading", { level: 1, name: /Browse\s*my recipes\./ }),
   ).toBeVisible();
   await expect(page.locator("main#main")).toBeFocused();
   expect(await page.evaluate(() => window.scrollY)).toBe(0);

@@ -13,6 +13,9 @@ export type CakeRow = {
   deleted: boolean;
   position: number;
   sizes: CakeSize[];
+  /** The occasions (§4.2 filters) and the text the search looks in (§4.2, 3.3). */
+  categories?: string[];
+  whatItIs?: string;
 };
 
 export type CakeCardData = {

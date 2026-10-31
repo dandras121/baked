@@ -51,3 +51,5 @@ Anything built differently from the docs or Figma, and why. Bohoka’s decision 
 | 2.8a | Gallery title band 1633:11659 (“Cakes,⏎I have made.” at 155 px overflows its 291 px band) | The title takes its full height; the intro starts at its drawn place (y 385 + 52) | The drawn band is shorter than its two title lines; the positions of the title and the intro are kept. | Spec |
 | 2.8a | BUILD-PLAN 2.8 | Split into 2.8a (page) and 2.8b (lightbox) | CLAUDE.md §4.4: a slice past ~600 hand-written lines is split. | Keep (mehet), 2026-10-31 |
 | 2.8b | Phone hint ‹ › (1637:11798, 14 px icons) | 44 × 44 hit areas that reach down and sideways only | §10.13 hit areas; a centred one would cover the dashes 12 px above. | Spec |
+| 3.2 | Band images under `/cakes/…` | Served from `/range/…` | `/cakes/{slug}` is the cake page address (unknown slugs are a real 404, 2.3), so files cannot live under it. | Spec |
+| 3.2 | Phone grid (798:5605, cards at x 2.5 / 203.5, 196 wide) | Two columns with 16 px gutters and a 10 px gap; the card is 196 × 323 design px scaled to its column | §4.2 Phone grid (the drawn 3 px edges are a drawing error). | Spec |

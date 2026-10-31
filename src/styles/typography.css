@@ -518,3 +518,8 @@
   font: var(--type-lightbox-caption);
   font-variation-settings: var(--font-display-axes);
 }
+
+.type-catalogue-title-phone {
+  font: var(--type-catalogue-title-phone);
+  font-variation-settings: var(--font-display-axes);
+}

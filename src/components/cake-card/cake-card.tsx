@@ -13,7 +13,8 @@ export function CakeCard({
   variant = "home",
 }: {
   cake: CakeCardData;
-  variant?: "home";
+  /** home: the Home row (274 wide on the phone); catalogue: the full range (two columns on the phone, 1777:12902). */
+  variant?: "home" | "catalogue";
 }) {
   const href = `/cakes/${cake.slug}`;
   return (

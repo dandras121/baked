@@ -1,0 +1,375 @@
+/*
+ * The full range (§4.2). Phone 798:5566 (402 wide); tablet and desktop: 599:2721 in desktop design px × --u (the
+ * tablet 1557:11293 = × 0.8). The pink band behind the grid: the texture at its drawn height, never rescaled, its
+ * last pixel row continuing below for longer lists (§4.2 Texture band, 1830:13667).
+ */
+.page {
+  overflow-x: clip;
+  background: var(--colour-white);
+}
+
+/* Header: “Browse my recipes.” and the “cake from above” slots (§0.6). */
+.header {
+  position: relative;
+  width: calc(402 * var(--u));
+  height: calc(271 * var(--u));
+  margin-inline: auto;
+}
+
+.glow {
+  display: none;
+}
+
+.title {
+  position: absolute;
+  top: calc(48.69 * var(--u));
+  left: calc(21.56 * var(--u));
+  margin: 0;
+  color: var(--colour-display);
+  font: var(--type-catalogue-title-phone);
+  font-size: min(75px, calc(75 * var(--u)));
+  font-variation-settings: var(--font-display-axes);
+  white-space: nowrap;
+}
+
+.slot {
+  position: absolute;
+  border-radius: 50%;
+  background: var(--colour-placeholder);
+}
+
+.slot[data-slot="1"] {
+  top: calc(-16.75 * var(--u));
+  left: calc(326.27 * var(--u));
+  width: calc(100 * var(--u));
+  height: calc(100 * var(--u));
+}
+
+.slot[data-slot="2"] {
+  top: calc(187.96 * var(--u));
+  left: calc(274.03 * var(--u));
+  width: calc(78.89 * var(--u));
+  height: calc(76.02 * var(--u));
+}
+
+.slot[data-slot="3"] {
+  z-index: 1;
+  top: calc(187.96 * var(--u));
+  left: calc(-37.5 * var(--u));
+  width: calc(100 * var(--u));
+  height: calc(100 * var(--u));
+}
+
+.slot[data-slot="4"],
+.slot[data-slot="5"],
+.slot[data-slot="6"] {
+  display: none;
+}
+
+/* Pills: one row that scrolls sideways on the phone. */
+.pills {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  gap: 8px;
+  width: calc(402 * var(--u));
+  margin: calc(36 * var(--u)) auto 0;
+  padding: 0 calc(24 * var(--u));
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.pills::-webkit-scrollbar {
+  display: none;
+}
+
+.pills > * {
+  flex: none;
+}
+
+/* The band: the image at its drawn height on top, its last row below for longer lists. */
+.band {
+  position: relative;
+  min-height: 160px;
+  margin-top: calc(58 * var(--u));
+  padding: calc(39 * var(--u)) 16px calc(20 * var(--u));
+  background:
+    url("/range/band-phone.webp") top center / 100% calc(2372 * var(--u))
+      no-repeat,
+    url("/range/band-phone-row.png") top center / 100% 1px repeat-y;
+}
+
+/* The white curved top edge (Ellipse 44). */
+.band::before {
+  content: "";
+  position: absolute;
+  top: calc(-35.8 * var(--u));
+  left: calc(-47.7 * var(--u));
+  right: calc(-47.7 * var(--u));
+  height: calc(61.6 * var(--u));
+  border-radius: 50%;
+  background: var(--colour-white);
+}
+
+.grid {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+:global(html.js) .cell[data-hidden] {
+  display: none;
+}
+
+/* ANIM-17: new cards rise 12 px and fade in, 240 ms, 40 ms apart. */
+.rise {
+  animation: catalogue-rise var(--duration-240) var(--ease-out) both;
+}
+
+@keyframes catalogue-rise {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rise {
+    animation-delay: 0s !important;
+  }
+}
+
+:global(html[data-motion="reduce"]) .rise {
+  animation-delay: 0s !important;
+}
+
+/* Without JavaScript every card shows; the pills and paging need it. */
+:global(html:not(.js)) .pills,
+:global(html:not(.js)) .paging {
+  display: none;
+}
+
+.paging {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  padding: 28px 0 36px;
+}
+
+.count {
+  margin: 0;
+  color: var(--colour-meta);
+  font: var(--type-count-phone);
+}
+
+.more {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  min-width: 160px;
+  height: 36px;
+  padding: 0 16px;
+  border: 1px solid var(--colour-ink);
+  border-radius: var(--radius-pill);
+  background: var(--colour-white);
+  color: var(--colour-ink);
+  font: var(--type-button);
+  letter-spacing: var(--type-button-ls);
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+/* The empty and “none showing” notices (1108:9860, 1108:9884). */
+.notice,
+.empty {
+  position: relative;
+  padding: 24px calc(8 * var(--u)) 40px;
+}
+
+.empty {
+  padding: calc(48 * var(--u)) calc(24 * var(--u)) 72px;
+}
+
+.notice {
+  border-radius: var(--radius-card);
+  background: var(--colour-white);
+}
+
+.noticeTitle {
+  margin: 0;
+  color: var(--colour-display);
+  font: var(--type-ask-phone);
+  font-variation-settings: var(--font-display-axes);
+}
+
+.noticeText {
+  margin: 10px 0 0;
+  color: var(--colour-body);
+  font: var(--type-answer-phone);
+}
+
+.noticeActions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 16px 24px;
+  margin-top: 24px;
+}
+
+.showAll {
+  padding: 12px 24px;
+  border: 1px solid var(--colour-ink);
+  border-radius: var(--radius-pill);
+  background: var(--colour-ink);
+  color: var(--colour-paper);
+  font: var(--type-button);
+  cursor: pointer;
+}
+
+@media (min-width: 768px) {
+  .header {
+    width: calc(1280 * var(--u));
+    height: calc(530 * var(--u));
+  }
+
+  .glow {
+    display: block;
+    position: absolute;
+    top: calc(43.7 * var(--u));
+    left: calc(-295.23 * var(--u));
+    width: calc(770.6 * var(--u));
+    height: calc(315.16 * var(--u));
+    max-width: none;
+    pointer-events: none;
+  }
+
+  .title {
+    top: calc(46.3 * var(--u));
+    left: calc(46.29 * var(--u));
+    font: var(--type-hero);
+    font-size: min(calc(180px * var(--type-scale)), calc(180 * var(--u)));
+  }
+
+  .slot[data-slot="1"] {
+    top: calc(18.19 * var(--u));
+    left: calc(833.14 * var(--u));
+    width: calc(195.49 * var(--u));
+    height: calc(195.49 * var(--u));
+  }
+
+  .slot[data-slot="2"] {
+    top: calc(-41.88 * var(--u));
+    left: calc(1164.12 * var(--u));
+    width: calc(231.77 * var(--u));
+    height: calc(231.77 * var(--u));
+  }
+
+  .slot[data-slot="3"] {
+    z-index: auto;
+    top: calc(237 * var(--u));
+    left: calc(1073.97 * var(--u));
+    width: calc(243.71 * var(--u));
+    height: calc(243.71 * var(--u));
+  }
+
+  .slot[data-slot="4"],
+  .slot[data-slot="5"],
+  .slot[data-slot="6"] {
+    display: block;
+  }
+
+  .slot[data-slot="4"] {
+    top: calc(335.54 * var(--u));
+    left: calc(780.2 * var(--u));
+    width: calc(180.58 * var(--u));
+    height: calc(180.58 * var(--u));
+  }
+
+  .slot[data-slot="5"] {
+    top: calc(382.18 * var(--u));
+    left: calc(350.07 * var(--u));
+    width: calc(133.94 * var(--u));
+    height: calc(133.94 * var(--u));
+  }
+
+  .slot[data-slot="6"] {
+    top: calc(413.74 * var(--u));
+    left: calc(-20.69 * var(--u));
+    width: calc(133.94 * var(--u));
+    height: calc(133.94 * var(--u));
+  }
+
+  /* The pill row, centred under the header (599:2754). */
+  .pills {
+    justify-content: center;
+    gap: calc(10 * var(--u));
+    width: auto;
+    margin-top: calc(44.5 * var(--u));
+    padding: 0;
+    overflow: visible;
+  }
+
+  .band {
+    margin-top: calc(70.5 * var(--u));
+    padding: calc(50 * var(--u)) 0 calc(20 * var(--u));
+    background:
+      url("/range/band-desktop.webp") top center / 100% calc(1909 * var(--u))
+        no-repeat,
+      url("/range/band-desktop-row.png") top center / 100% 1px repeat-y;
+  }
+
+  .band::before {
+    top: calc(-28 * var(--u));
+    left: 0;
+    right: 0;
+    height: calc(56.17 * var(--u));
+  }
+
+  .grid {
+    grid-template-columns: repeat(3, calc(355 * var(--u)));
+    justify-content: center;
+    gap: calc(16 * var(--u)) calc(33 * var(--u));
+  }
+
+  .paging {
+    gap: calc(19px * var(--type-scale));
+    padding: calc(31 * var(--u)) 0 calc(28 * var(--u));
+  }
+
+  .count {
+    font: var(--type-meta);
+  }
+
+  /* Desktop and tablet: a text button in Fraunces Light (601:2867, as drawn). */
+  .more {
+    min-width: 0;
+    height: auto;
+    padding: 0;
+    border: 0;
+    background: none;
+    font: var(--type-button-serif);
+    font-variation-settings: var(--font-display-axes);
+    letter-spacing: var(--type-button-serif-ls);
+  }
+
+  .notice {
+    width: calc(760 * var(--u));
+    margin-inline: auto;
+    padding: calc(40 * var(--u)) calc(48 * var(--u));
+  }
+
+  .empty {
+    padding: calc(52 * var(--u)) calc(80 * var(--u)) calc(144 * var(--u));
+  }
+
+  .noticeTitle {
+    font: var(--type-ask);
+  }
+
+  .noticeText {
+    font: var(--type-body);
+  }
+}

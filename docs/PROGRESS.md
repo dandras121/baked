@@ -45,8 +45,8 @@ Branch per phase (`phase-00-foundations`, …), one commit per accepted slice, t
 
 | Slice | Title | Status | Commit | Accepted by Bohoka |
 |---|---|---|---|---|
-| 3.1 | Cake data model | ◐ built, waiting for Bohoka | | |
-| 3.2 | The full range: grid, filters, pages | ☐ | | |
+| 3.1 | Cake data model | ◐ built, waiting for Bohoka | 3b4a451 | |
+| 3.2 | The full range: grid, filters, pages | ◐ built, waiting for Bohoka | | |
 | 3.3 | Search field and the result motion | ☐ | | |
 | 3.4a | Cake card open / close (ANIM-11) | ☐ | | |
 | 3.4b | Card video | ☐ | | |
@@ -142,6 +142,10 @@ Branch per phase (`phase-00-foundations`, …), one commit per accepted slice, t
 
 - Phase 1 closed 2026-10-30 (gate in the commit “phase 1 review gate”; tag `phase-01-done` local, the git proxy refuses tag pushes).
 - **Phase 3 started 2026-10-31** on branch `phase-03-catalogue`. Bohoka's answers: 3.4 and 3.6 are split up front (3.4a card open / close, 3.4b card video; 3.6a sizes, options, price, allergens; 3.6b inscription, add to order, edit mode, limit); the sample catalogue uses the Figma names and drawn values (The Lothian's values where nothing is drawn), 2–3 cakes with options, development and previews only.
+- **3.2 The full range** — built, waiting for Bohoka.
+  - Files: `src/lib/catalogue.ts` (designs, offered pills, `?occasion=` / `?shown=`, count line, addresses), `src/db/home-repo.ts` (getCatalogue), `src/components/catalogue/` (page: title, glow, six / three placeholder slots; grid: pills, band, paging, notices), `src/components/cake-card/` (phone catalogue card, 196 × 323 scaled to its column), `public/range/` (band images and their last rows, exported from 1389:10203 and 1443:11132), `src/app/(site)/cakes/page.tsx`, tokens (+1 type).
+  - Tests: `src/lib/catalogue.test.ts` (visible / order / categories, offered pills, occasion keys, paging, count line in words and digits, addresses), `e2e/catalogue.spec.ts` (title, pills, 12 in order, 2 / 3 columns without side scroll, filter in place with `?occasion=`, Show the next with focus, ANIM-17 timing and `?shown=24`, shared address and Back from a cake page, unknown occasion, band never rescaled, axe, without JavaScript); `e2e/mobile-menu.spec.ts` (new heading).
+  - Not in this slice: the search field (3.3; its place under the pills is kept), the corner button and card video (3.4).
 - **3.1 Cake data model** — built, waiting for Bohoka.
   - Files: `src/db/schema.ts` + `drizzle/0007_*` (cakes: allergens, gluten / nut kinds, also contains, categories, inscription switch; cake_options, cake_option_choices, cake_media, cake_card_videos), `src/lib/cakes.ts` (From £, sizes, every rule of §9.13 / §5.8, allergen wording), `src/lib/sample-catalogue.ts` (14 Figma cakes), `src/lib/slug.ts`, `src/db/cake-repo.ts` (insert in one transaction, free slugs, soft delete, sample catalogue, preview replacement of the 2.3 samples), seed and preview setup.
   - Tests: `src/lib/cakes.test.ts` (From £, sorting, name / text / size / option / choice limits, gluten and nut kinds, wording, the catalogue keeps every rule), `src/db/cake-repo.test.ts` (14 in order with options and choices, a rejected cake saves nothing, the database refuses unknown allergens / categories and unnamed gluten / nuts, a deleted cake's address is never reused, hidden and deleted have no page); Home tests updated to the catalogue names.

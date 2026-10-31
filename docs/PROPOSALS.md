@@ -95,3 +95,8 @@ Bohoka’s decision is added when he gives it (“jó” = keep, “ne legyen”
 | 3.1 | §5.8 storage | A Yes/no option keeps its one tick as a choice (price add-on and allergens like any choice); a Text option has no choices | `src/db/schema.ts`, `src/lib/cakes.ts` | Waiting for Bohoka |
 | 3.1 | §9.13 tiers | 1–10 tiers per size (no limit is written; 10 keeps typing mistakes out) | `src/lib/cakes.ts` | Waiting for Bohoka |
 | 3.1 | Previews | The 2.3 Home samples (one size, no allergens, “Sample cake 6–10”) are replaced by the catalogue on the next preview deploy; nothing else is touched | `src/db/cake-repo.ts` (replaceOldSamples) | Waiting for Bohoka |
+| 3.2 | §4.2 page size on the server / without JavaScript | Every visible design is in the page (the page is static, the same for everyone); the browser shows the selected occasion 12 at a time from `?occasion=` / `?shown=`. Without JavaScript every card shows and the pills and paging are not offered (as the gallery, 2.8a) | `src/components/catalogue/catalogue-grid.tsx` | Waiting for Bohoka |
+| 3.2 | §4.2 count line | Under the grid: “Showing 12 of 14”; a page or less: “Seven designs” with “Or start a bespoke enquiry →” | `src/lib/catalogue.ts` | Waiting for Bohoka |
+| 3.2 | §4.2 address | `?shown=` in whole pages (13–24 cards → 24); an unknown `?occasion=` is All designs | `src/lib/catalogue.ts` | Waiting for Bohoka |
+| 3.2 | §10.12 description | “Linda's ready-made celebration cakes, baked to order — pick a design, a size and a date.” | `src/app/(site)/cakes/page.tsx` | Waiting for Bohoka |
+| 3.2 | §4.2 focus | After Show the next, focus goes to the first new card's name link, without scrolling | `src/components/catalogue/catalogue-grid.tsx` | Waiting for Bohoka |

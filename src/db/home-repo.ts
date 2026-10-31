@@ -7,6 +7,7 @@ import {
   type CakeRow,
   type GallerySquare,
 } from "@/lib/home-content";
+import { catalogueCakes, type CatalogueCake } from "@/lib/catalogue";
 import { connect, databaseUrl } from "./client";
 import { cakeSizes, cakes, galleryPhotos } from "./schema";
 
@@ -31,6 +32,8 @@ export async function readCakeRows(db: Db): Promise<CakeRow[]> {
     visible: c.visible,
     deleted: c.deletedAt !== null,
     position: c.position,
+    categories: c.categories,
+    whatItIs: c.whatItIs,
     sizes: sizes
       .filter((s) => s.cakeId === c.id)
       .map(({ serves, tiers, pricePence }) => ({ serves, tiers, pricePence })),
@@ -104,6 +107,19 @@ export async function getVisibleSlugs(): Promise<string[]> {
   const { db, close } = connect();
   try {
     return (await readCakeRows(db)).filter((c) => c.visible).map((c) => c.slug);
+  } finally {
+    await close();
+  }
+}
+
+/** The full range (§4.2): every visible design in Linda's order. Empty without a database. */
+export async function getCatalogue(): Promise<CatalogueCake[]> {
+  "use cache";
+  cacheTag(CAKES_TAG);
+  if (!databaseUrl()) return [];
+  const { db, close } = connect();
+  try {
+    return catalogueCakes(await readCakeRows(db));
   } finally {
     await close();
   }
