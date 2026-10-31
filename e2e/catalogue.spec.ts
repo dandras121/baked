@@ -183,3 +183,159 @@ test.describe("without JavaScript", () => {
     await expect(page.getByRole("group", { name: "Occasion" })).toBeHidden();
   });
 });
+
+// Slice 3.3: the search field and the result motion (§4.2, ANIM-05, ANIM-16).
+const field = (page: Page) =>
+  page.getByRole("searchbox", { name: "Search the cakes" });
+
+test("search: live from 2 characters, after 250 ms, ?q= kept, the count names the word", async ({
+  page,
+}) => {
+  await page.goto("/cakes");
+  await expect(page.getByRole("search")).toBeVisible();
+  await expect(field(page)).toHaveAttribute(
+    "placeholder",
+    "Search by name or flavour",
+  );
+  await field(page).fill("r");
+  await page.waitForTimeout(400);
+  await expect(cards(page)).toHaveCount(12);
+  await field(page).fill("rose");
+  await expect(names(page)).toHaveText(["Almond & Rose"]);
+  await expect(page).toHaveURL(/\/cakes\?q=rose$/);
+  await expect(page.getByText("1 design for “rose”")).toBeVisible();
+  await expect(
+    page.getByRole("link", { name: "Or start a bespoke enquiry →" }),
+  ).toBeVisible();
+});
+
+test("search: name matches first, then the rest; every word must match; accents ignored", async ({
+  page,
+}) => {
+  await page.goto("/cakes");
+  await field(page).fill("SEA salt");
+  await expect(names(page)).toHaveText(["Cocoa & Sea Salt"]);
+  await field(page).fill("raspberry lothian");
+  await expect(names(page)).toHaveText(["The Lothian"]);
+});
+
+test("search inside the pill; changing the pill keeps the text; × clears and keeps focus", async ({
+  page,
+}) => {
+  await page.goto("/cakes");
+  await pill(page, "Corporate").click();
+  await field(page).fill("ribbon");
+  await expect(names(page)).toHaveText(["Tartan Ribbon"]);
+  await expect(page).toHaveURL(/occasion=corporate&q=ribbon/);
+  await pill(page, "Kids’ parties").click();
+  await expect(field(page)).toHaveValue("ribbon");
+  await expect(
+    page.getByRole("heading", { name: "No designs match “ribbon”" }),
+  ).toBeVisible();
+  // Search all designs switches to All designs and keeps the text.
+  await page.getByRole("button", { name: "Search all designs" }).click();
+  await expect(pill(page, "All designs")).toHaveAttribute(
+    "aria-pressed",
+    "true",
+  );
+  await expect(names(page)).toHaveText(["Tartan Ribbon"]);
+  await page.getByRole("button", { name: "Clear the search" }).click();
+  await expect(field(page)).toHaveValue("");
+  await expect(field(page)).toBeFocused();
+  await expect(cards(page)).toHaveCount(12);
+});
+
+test("nothing found: the heading, the advice, no “Search all designs” under All designs, bespoke link; Esc clears", async ({
+  page,
+}) => {
+  await page.goto("/cakes");
+  await field(page).fill("zzz");
+  await expect(
+    page.getByRole("heading", { name: "No designs match “zzz”" }),
+  ).toBeVisible();
+  await expect(
+    page.getByText("Try another word, or ask me for it as a bespoke cake."),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Search all designs" }),
+  ).toHaveCount(0);
+  await expect(
+    page.getByRole("link", { name: "Start a bespoke enquiry" }).last(),
+  ).toHaveAttribute("href", "/bespoke");
+  await expect(
+    page.getByRole("status").filter({ hasText: "No designs match" }),
+  ).toHaveCount(1);
+  await field(page).press("Escape");
+  await expect(field(page)).toHaveValue("");
+  await expect(field(page)).toBeFocused();
+  await expect(cards(page)).toHaveCount(12);
+});
+
+test("a shared ?q= address opens with the result", async ({ page }) => {
+  await page.goto("/cakes?q=peony");
+  await expect(field(page)).toHaveValue("peony");
+  await expect(names(page)).toHaveText(["Sugar Peony"]);
+});
+
+test("ANIM-16: leaving cards fade 0–120, staying move 80–320, new fade in 160–320", async ({
+  page,
+}, testInfo) => {
+  test.skip(testInfo.project.name !== "desktop", "one browser is enough");
+  await page.goto("/cakes");
+  await pill(page, "Weddings").click();
+  const timings = await page.evaluate(() =>
+    document
+      .querySelector("[role=list][aria-label=Designs]")!
+      .getAnimations({ subtree: true })
+      .map((a) => {
+        const t = a.effect!.getComputedTiming();
+        return `${t.delay}+${t.duration}`;
+      }),
+  );
+  expect(timings).toContain("0+120"); // leaving
+  expect(timings).toContain("80+240"); // staying, moved
+  await pill(page, "All designs").click();
+  const back = await page.evaluate(() =>
+    document
+      .querySelector("[role=list][aria-label=Designs]")!
+      .getAnimations({ subtree: true })
+      .map(
+        (a) =>
+          `${a.effect!.getComputedTiming().delay}+${a.effect!.getComputedTiming().duration}`,
+      ),
+  );
+  expect(back).toContain("160+160"); // entering
+});
+
+test("ANIM-16 reduced motion: the result changes at once", async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.goto("/cakes");
+  await pill(page, "Weddings").click();
+  expect(
+    await page.evaluate(
+      () =>
+        document
+          .querySelector("[role=list][aria-label=Designs]")!
+          .getAnimations({ subtree: true }).length,
+    ),
+  ).toBe(0);
+  await expect(cards(page)).toHaveCount(7);
+});
+
+test("axe: no violations while searching and when nothing is found", async ({
+  page,
+}, testInfo) => {
+  await page.goto("/cakes");
+  await field(page).fill("choc");
+  await page.waitForTimeout(800);
+  expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
+  await page.screenshot({
+    path: testInfo.outputPath(`${testInfo.project.name}_search.png`),
+  });
+  await field(page).fill("zzz");
+  await page.waitForTimeout(800);
+  expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
+  await page.screenshot({
+    path: testInfo.outputPath(`${testInfo.project.name}_none.png`),
+  });
+});

@@ -100,3 +100,7 @@ Bohoka’s decision is added when he gives it (“jó” = keep, “ne legyen”
 | 3.2 | §4.2 address | `?shown=` in whole pages (13–24 cards → 24); an unknown `?occasion=` is All designs | `src/lib/catalogue.ts` | Waiting for Bohoka |
 | 3.2 | §10.12 description | “Linda's ready-made celebration cakes, baked to order — pick a design, a size and a date.” | `src/app/(site)/cakes/page.tsx` | Waiting for Bohoka |
 | 3.2 | §4.2 focus | After Show the next, focus goes to the first new card's name link, without scrolling | `src/components/catalogue/catalogue-grid.tsx` | Waiting for Bohoka |
+| 3.3 | §4.2 search matching | In the browser on the designs already in the page (the same address gives the same cards everywhere); “Crème” = “creme”, curly and straight quotes alike, every word must match in any of the three fields | `src/lib/catalogue-search.ts` | Waiting for Bohoka |
+| 3.3 | §4.2 count while searching | Above the band, centred: “3 designs for “choc””, “1 design for …”, more than a page “Showing 12 of 15 for …”; “Or start a bespoke enquiry →” stays under the grid | `src/components/catalogue/catalogue-grid.tsx` | Waiting for Bohoka |
+| 3.3 | §4.2 × | “Clear the search”, a 26 / 28 px circle with a 44 × 44 hit area; × and Esc clear and keep the focus | `src/components/catalogue/search-field.tsx` | Waiting for Bohoka |
+| 3.3 | §4.2 without JavaScript | The search is not offered (every card shows, as the pills and paging) | `src/components/catalogue/catalogue.module.css` | Waiting for Bohoka |

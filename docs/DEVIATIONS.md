@@ -53,3 +53,5 @@ Anything built differently from the docs or Figma, and why. Bohoka’s decision 
 | 2.8b | Phone hint ‹ › (1637:11798, 14 px icons) | 44 × 44 hit areas that reach down and sideways only | §10.13 hit areas; a centred one would cover the dashes 12 px above. | Spec |
 | 3.2 | Band images under `/cakes/…` | Served from `/range/…` | `/cakes/{slug}` is the cake page address (unknown slugs are a real 404, 2.3), so files cannot live under it. | Spec |
 | 3.2 | Phone grid (798:5605, cards at x 2.5 / 203.5, 196 wide) | Two columns with 16 px gutters and a 10 px gap; the card is 196 × 323 design px scaled to its column | §4.2 Phone grid (the drawn 3 px edges are a drawing error). | Spec |
+| 3.3 | BUILD-PLAN 3.3 and ANIMATIONS ANIM-16 (“150 ms after typing stops”) | 250 ms after the last key | SITE-FLOWS §4.2 (precedence 1) says 250 ms. | Spec |
+| 3.3 | V2 · Search field description (hover 1.10 in 220 ms, stays 1.10 while focused) | ANIM-05 as written in ANIMATIONS (a mouse press brings it back to 100 % and it stays so while typing) | ANIMATIONS wins over a Figma note; §4.2 names ANIM-05. | Spec |

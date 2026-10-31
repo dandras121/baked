@@ -81,13 +81,18 @@ export function countLine(shown: number, total: number): string {
   return `${word} ${total === 1 ? "design" : "designs"}`;
 }
 
-/** The address that keeps the state (§4.2 URL state): `/cakes?occasion=weddings&shown=24`. */
-export function catalogueHref(occasion: Occasion | null, shown: number | null) {
+/** The address that keeps the state (§4.2 URL state): `/cakes?occasion=weddings&q=choc&shown=24`. */
+export function catalogueHref(
+  occasion: Occasion | null,
+  shown: number | null,
+  q: string | null = null,
+) {
   const p = new URLSearchParams();
   if (occasion) p.set("occasion", occasion);
+  if (q) p.set("q", q);
   // Whole pages, as the address is read back (`?shown=24` for 13–24 cards).
   if (shown && shown > CATALOGUE_PAGE)
     p.set("shown", String(Math.ceil(shown / CATALOGUE_PAGE) * CATALOGUE_PAGE));
-  const q = p.toString();
-  return q ? `/cakes?${q}` : "/cakes";
+  const query = p.toString();
+  return query ? `/cakes?${query}` : "/cakes";
 }

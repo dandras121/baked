@@ -46,8 +46,8 @@ Branch per phase (`phase-00-foundations`, …), one commit per accepted slice, t
 | Slice | Title | Status | Commit | Accepted by Bohoka |
 |---|---|---|---|---|
 | 3.1 | Cake data model | ◐ built, waiting for Bohoka | 3b4a451 | |
-| 3.2 | The full range: grid, filters, pages | ◐ built, waiting for Bohoka | | |
-| 3.3 | Search field and the result motion | ☐ | | |
+| 3.2 | The full range: grid, filters, pages | ◐ built, waiting for Bohoka | 64bf8e9 | |
+| 3.3 | Search field and the result motion | ◐ built, waiting for Bohoka | | |
 | 3.4a | Cake card open / close (ANIM-11) | ☐ | | |
 | 3.4b | Card video | ☐ | | |
 | 3.5 | Cake page: media | ☐ | | |
@@ -142,6 +142,9 @@ Branch per phase (`phase-00-foundations`, …), one commit per accepted slice, t
 
 - Phase 1 closed 2026-10-30 (gate in the commit “phase 1 review gate”; tag `phase-01-done` local, the git proxy refuses tag pushes).
 - **Phase 3 started 2026-10-31** on branch `phase-03-catalogue`. Bohoka's answers: 3.4 and 3.6 are split up front (3.4a card open / close, 3.4b card video; 3.6a sizes, options, price, allergens; 3.6b inscription, add to order, edit mode, limit); the sample catalogue uses the Figma names and drawn values (The Lothian's values where nothing is drawn), 2–3 cakes with options, development and previews only.
+- **3.3 Search field and the result motion** — built, waiting for Bohoka.
+  - Files: `src/lib/catalogue-search.ts` (normalising, every word in name / flavour / what it is, name matches first, 2–60 characters, 250 ms, count line), `src/components/catalogue/search-field.tsx`, `use-result-motion.ts` (ANIM-16 with the Web Animations API: leave 0–120, move 80–320, enter 160–320, a newer result starts from where the cards are), `catalogue-grid.tsx` (search, `?q=`, nothing found, Search all designs), `catalogue.ts` (`q` in the address), tokens (+1 colour).
+  - Tests: `src/lib/catalogue-search.test.ts`, `e2e/catalogue.spec.ts` (+8: live from 2 characters with `?q=` and the count line, ranking and every word, inside the pill and keeping the text, × and Esc keep the focus, nothing found, shared `?q=`, ANIM-16 timings, reduced motion, axe).
 - **3.2 The full range** — built, waiting for Bohoka.
   - Files: `src/lib/catalogue.ts` (designs, offered pills, `?occasion=` / `?shown=`, count line, addresses), `src/db/home-repo.ts` (getCatalogue), `src/components/catalogue/` (page: title, glow, six / three placeholder slots; grid: pills, band, paging, notices), `src/components/cake-card/` (phone catalogue card, 196 × 323 scaled to its column), `public/range/` (band images and their last rows, exported from 1389:10203 and 1443:11132), `src/app/(site)/cakes/page.tsx`, tokens (+1 type).
   - Tests: `src/lib/catalogue.test.ts` (visible / order / categories, offered pills, occasion keys, paging, count line in words and digits, addresses), `e2e/catalogue.spec.ts` (title, pills, 12 in order, 2 / 3 columns without side scroll, filter in place with `?occasion=`, Show the next with focus, ANIM-17 timing and `?shown=24`, shared address and Back from a cake page, unknown occasion, band never rescaled, axe, without JavaScript); `e2e/mobile-menu.spec.ts` (new heading).
