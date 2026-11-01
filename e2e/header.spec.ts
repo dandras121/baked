@@ -185,7 +185,7 @@ test.describe("desktop navigation", () => {
     expect(hit).toBe("FAQ");
   });
 
-  test("keyboard: skip link first, then the logo and the seven items with a visible focus ring", async ({
+  test("keyboard: skip link first, then the logo and the seven items; focus shows as growth, never a ring", async ({
     page,
   }) => {
     await page.goto("/gallery");
@@ -210,7 +210,16 @@ test.describe("desktop navigation", () => {
     ]) {
       await page.keyboard.press("Tab");
       await expect(item(page, name)).toBeFocused();
-      await expect(item(page, name)).toHaveCSS("outline-style", "solid");
+      // Bohoka 2026-10-31: no extra frame around controls; Tab focus = hover (ANIM-07), the label grows.
+      await expect(item(page, name)).toHaveCSS("outline-style", "none");
+      await expect
+        .poll(() =>
+          item(page, name).evaluate((el) => {
+            const t = el.querySelector("[data-pressable-content]") ?? el;
+            return new DOMMatrix(getComputedStyle(t).transform).a;
+          }),
+        )
+        .toBeGreaterThan(1.05);
     }
     // The skip link moves focus to the page content.
     await page.goto("/gallery");

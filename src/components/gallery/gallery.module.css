@@ -66,8 +66,7 @@
 }
 
 .tileButton:focus-visible {
-  outline: 2px solid var(--colour-focus-ring);
-  outline-offset: 4px;
+  outline: none;
 }
 
 .frame {

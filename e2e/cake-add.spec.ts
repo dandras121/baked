@@ -182,6 +182,8 @@ test("axe: the form with errors, the sheet and the added panel; screenshots", as
   });
   await page.getByRole("button", { name: "Yes, keep it plain" }).click();
   await expect(added(page)).toBeFocused();
+  // Next puts the head back after the action's answer; axe reads the page once the title is there again.
+  await expect(page).toHaveTitle(/Bramble & Cream/);
   expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
   await page.screenshot({
     path: testInfo.outputPath(`${testInfo.project.name}_added.png`),

@@ -68,9 +68,16 @@ textarea {
   opacity: 1;
 }
 
+/* Keyboard focus. Pressables show it by growing (ANIM-07, Tab = hover) and fields by their own edge, so they get
+   no extra ring around them (Bohoka 2026-10-31: never a second violet frame). Anything else keeps a thin ink ring. */
 :focus-visible {
-  outline: 2px solid var(--colour-focus-ring);
-  outline-offset: 3px;
+  outline: 2px solid var(--colour-ink);
+  outline-offset: 2px;
+}
+
+[data-pressable]:focus-visible,
+[data-pressable] :focus-visible {
+  outline: none;
 }
 
 ::selection {

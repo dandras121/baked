@@ -117,8 +117,7 @@
 }
 
 .search:has(:focus-visible) {
-  outline: 2px solid var(--colour-focus-ring);
-  outline-offset: 3px;
+  border-color: var(--colour-ink);
 }
 
 .magnifier {
