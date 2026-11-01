@@ -666,8 +666,9 @@
 
 .afterTitle {
   margin: 0;
-  color: var(--colour-display);
-  font: var(--type-question-phone);
+  color: var(--colour-ink);
+  font: var(--type-option-phone);
+  font-variation-settings: var(--font-display-axes);
 }
 
 .afterTitle:focus {
@@ -785,7 +786,7 @@
   }
 
   .afterTitle {
-    font: var(--type-heading-sm);
+    font: var(--type-option);
   }
 
   .panel {

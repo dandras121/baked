@@ -580,3 +580,8 @@
   font: var(--type-option-phone);
   font-variation-settings: var(--font-display-axes);
 }
+
+.type-lightbox-caption-phone {
+  font: var(--type-lightbox-caption-phone);
+  font-variation-settings: var(--font-display-axes);
+}

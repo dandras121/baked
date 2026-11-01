@@ -168,7 +168,7 @@
   flex-direction: column;
   gap: 14px;
   padding: 20px calc(24 * var(--u)) 36px;
-  background: var(--colour-paper);
+  background: var(--colour-white);
 }
 
 .text {
@@ -178,12 +178,20 @@
   min-width: 0;
 }
 
+/* The cake's name: the cake page heading style, a little larger (Fraunces ExtraLight, Bohoka 2026-11-01). */
 .caption {
   margin: 0;
   color: var(--colour-ink);
-  font: var(--type-lightbox-caption);
+  font: var(--type-lightbox-caption-phone);
   font-variation-settings: var(--font-display-axes);
   overflow-wrap: anywhere;
+  text-wrap: balance;
+}
+
+@media (min-width: 768px) {
+  .caption {
+    font: var(--type-lightbox-caption);
+  }
 }
 
 .occasion {
@@ -221,13 +229,13 @@
     margin-top: 0;
   }
 
+  /* The larger cake name gets the whole width; the button sits under it (Bohoka 2026-11-01). */
   .captionBar {
-    flex-direction: row;
-    align-items: center;
-    justify-content: space-between;
-    gap: 16px;
+    align-items: flex-start;
+    gap: 14px;
     order: 1;
-    padding: calc(20px * var(--type-scale)) calc(24px * var(--type-scale));
+    padding: calc(22px * var(--type-scale)) calc(24px * var(--type-scale))
+      calc(24px * var(--type-scale));
   }
 
   .under {
