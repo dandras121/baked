@@ -431,6 +431,16 @@
     display: none;
   }
 
+  /* Fewer than five thumbnails: the row stays centred under the picture (auto margins keep a full row
+     scrollable from its first thumbnail). Bohoka 2026-11-01. */
+  .thumbs > :first-child {
+    margin-left: auto;
+  }
+
+  .thumbs > :last-child {
+    margin-right: auto;
+  }
+
   .thumb {
     position: relative;
     flex: none;
