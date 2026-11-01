@@ -12,7 +12,7 @@
   border: 1px solid var(--colour-ink);
   border-radius: var(--radius-pill);
   background: var(--colour-white);
-  box-shadow: 0 4px 16px rgb(36 27 51 / 0.12);
+  box-shadow: var(--shadow-header);
   color: var(--colour-ink);
   font: var(--type-pill-phone);
   cursor: pointer;
