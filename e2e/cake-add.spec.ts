@@ -125,7 +125,7 @@ test("with a draft, Continue to date and delivery opens step 2", async ({ page }
   await addLothian(page);
   await page.getByRole("link", { name: "Continue to date and delivery →" }).click();
   await expect(page).toHaveURL(/\/order\/when$/);
-  await expect(page.getByRole("heading", { level: 1 })).toHaveText("When & where");
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText("Name a day.");
 });
 
 test("a cake without an inscription: no field, no question, no “plain”", async ({

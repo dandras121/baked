@@ -1,7 +1,7 @@
 // The checkout draft (SITE-FLOWS §10.2): find it from the cookie, add a cake, list its lines.
 import { and, asc, count, eq, gt, sql } from "drizzle-orm";
 import type { Answers } from "@/lib/cake-config";
-import { linePricePence } from "@/lib/cake-config";
+import { linePricePence, tierWords } from "@/lib/cake-config";
 import { MAX_CAKES, lineTitle, optionsLine } from "@/lib/order-line";
 import { readCakePage } from "./cake-page-repo";
 import type { connect } from "./client";
@@ -19,9 +19,16 @@ const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 export type LineView = {
   id: number;
+  /** “The Lothian · serves 24 · “Happy 30th, Mairi”” (the cake page's Added panel). */
   title: string;
   options: string;
   pricePence: number;
+  /** For the order summary (1674:11944): the cake's name and address, “Two tiers · serves 24”, the message. */
+  name: string;
+  slug: string;
+  sizeLine: string;
+  /** The inscription as it goes on the cake, “” for none; null when the cake offers none. */
+  message: string | null;
 };
 
 /** The live draft for this cookie value, or null (none, unknown, not a draft any more, or 24 hours idle). */
@@ -143,6 +150,10 @@ export async function draftLineViews(
       }),
       options: optionsLine(cake.options, answers),
       pricePence: linePricePence(size, cake.options, answers),
+      name: cake.name,
+      slug: cake.slug,
+      sizeLine: `${tierWords(size.tiers)} · serves ${size.serves}`,
+      message: cake.offerInscription ? line.inscription : null,
     });
   }
   return views;
@@ -223,4 +234,33 @@ export async function updateLine(
     .set({ lastActivityAt: now })
     .where(eq(drafts.id, d.id));
   return true;
+}
+
+/** Remove a cake from the draft (§5.4 Line Remove); false when the line is not in this draft. */
+export async function removeLine(
+  db: Db,
+  draftId: string | undefined,
+  lineId: number,
+  now = new Date(),
+): Promise<boolean> {
+  const d = await liveDraft(db, draftId, now);
+  if (!d || !Number.isInteger(lineId)) return false;
+  const gone = await db
+    .delete(draftLines)
+    .where(and(eq(draftLines.id, lineId), eq(draftLines.draftId, d.id)))
+    .returning({ id: draftLines.id });
+  if (!gone.length) return false;
+  await db
+    .update(drafts)
+    .set({ lastActivityAt: now })
+    .where(eq(drafts.id, d.id));
+  return true;
+}
+
+/** The last line added (step 2's “← Back to the cake” opens it in edit mode, §5.2). */
+export function lastAdded(lines: LineView[]): LineView | null {
+  return lines.reduce<LineView | null>(
+    (a, l) => (!a || l.id > a.id ? l : a),
+    null,
+  );
 }

@@ -1,13 +1,14 @@
 import type { Metadata } from "next";
-import { BuildStub } from "@/components/stub/build-stub";
+import { CheckoutStep } from "@/components/checkout/checkout-step";
 
-// Temporary stand-in so “Continue to date and delivery →” can be followed (3.6b); the real step 2 is slice 4.2.
-// Opened without a draft it goes to /cakes (src/proxy.ts, §10.2 Opening a step directly).
+// Checkout step (§5). It reads the visitor's draft, so it is rendered for each visit.
+export const instant = false;
+
 export const metadata: Metadata = {
   title: "When & where",
   robots: { index: false },
 };
 
 export default function Page() {
-  return <BuildStub title="When & where" slice="4.2" />;
+  return <CheckoutStep step="when" />;
 }

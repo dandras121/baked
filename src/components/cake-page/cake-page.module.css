@@ -339,7 +339,7 @@
     grid-template-columns: calc(540 * var(--u)) calc(740 * var(--u));
     align-items: start;
     width: calc(1280 * var(--u));
-    padding: calc(44 * var(--u)) 0 calc(96 * var(--u));
+    padding: 0 0 calc(96 * var(--u));
   }
 
   .media {

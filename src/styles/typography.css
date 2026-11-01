@@ -585,3 +585,8 @@
   font: var(--type-lightbox-caption-phone);
   font-variation-settings: var(--font-display-axes);
 }
+
+.type-summary-name {
+  font: var(--type-summary-name);
+  font-variation-settings: var(--font-display-axes);
+}

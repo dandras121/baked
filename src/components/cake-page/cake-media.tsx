@@ -242,14 +242,18 @@ function MediaVideo({
   onTap: () => void;
 }) {
   const el = useRef<HTMLVideoElement>(null);
-  const [reduced] = useState(
-    () => typeof window !== "undefined" && isMotionReduced(),
-  );
+  // Read after hydration: the server cannot know it, and the first render must match the server's.
+  const [reduced, setReduced] = useState(false);
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setReduced(isMotionReduced());
+  }, []);
   useEffect(() => {
     const v = el.current;
     if (!v) return;
     const visible = v.offsetParent !== null;
-    if (active && visible && (!reduced || started))
+    // The setting itself, not the state: the state is still false on the first run after hydration.
+    if (active && visible && (!isMotionReduced() || started))
       void v.play().catch(() => {});
     else {
       v.pause();

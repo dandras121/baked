@@ -38,6 +38,7 @@ import type { Allergen } from "@/lib/constants";
 import { formatPrice } from "@/lib/money";
 import { inscriptionError, LINE_COPY, optionErrors } from "@/lib/order-line";
 import { AddedPanel, CapPanel, InscriptionBlock } from "./cake-order";
+import { Stepper } from "@/components/checkout/stepper";
 import { CakeMedia } from "./cake-media";
 import styles from "./cake-page.module.css";
 import { PriceFigure } from "./price-figure";
@@ -174,213 +175,222 @@ export function CakePage({
   const done = state.kind === "added" || state.kind === "cap";
 
   return (
-    <div className={styles.page}>
-      <CakeMedia items={cake.media} name={cake.name} />
-      <div className={styles.content}>
-        <Link href="/cakes" className={styles.back}>
-          ← Back to the range
-        </Link>
-        <h1 className={styles.name}>{cake.name}</h1>
-        <p className={styles.whatItIs}>{cake.whatItIs}</p>
-        {cake.from && <p className={styles.from}>{cake.from}</p>}
+    <>
+      <Stepper current={1} />
+      <div className={styles.page}>
+        <CakeMedia items={cake.media} name={cake.name} />
+        <div className={styles.content}>
+          <Link href="/cakes" className={styles.back}>
+            ← Back to the range
+          </Link>
+          <h1 className={styles.name}>{cake.name}</h1>
+          <p className={styles.whatItIs}>{cake.whatItIs}</p>
+          {cake.from && <p className={styles.from}>{cake.from}</p>}
 
-        {state.kind === "added" && (
-          <AddedPanel lines={state.lines} cleared={state.cleared} />
-        )}
-        {state.kind === "cap" && <CapPanel />}
-
-        <form
-          ref={formRef}
-          action={postAction}
-          noValidate
-          hidden={done}
-          onSubmit={(e) => {
-            e.preventDefault();
-            const found: Record<string, string> = {};
-            for (const [id, m] of Object.entries(
-              optionErrors(cake.options, answers),
-            ))
-              found[`option-${id}`] = m;
-            const ins = cake.offerInscription
-              ? inscriptionError(inscription)
-              : null;
-            if (ins) found.inscription = ins;
-            setErrors(found);
-            // The cap is the server's to check first; with errors here it still asks, so the cap notice wins.
-            if (Object.keys(found).length) setFocusFirst((n) => n + 1);
-            submit(false);
-          }}
-        >
-          <input type="hidden" name="slug" value={cake.slug} />
-          {editing && (
-            <>
-              <input type="hidden" name="line" value={editing.line} />
-              <input type="hidden" name="from" value={editing.from} />
-            </>
+          {state.kind === "added" && (
+            <AddedPanel lines={state.lines} cleared={state.cleared} />
           )}
-          <input ref={plainRef} type="hidden" name="plain" defaultValue="" />
-          {size && (
-            <fieldset className={styles.section}>
-              <legend className={styles.sectionLabel}>Size</legend>
-              {sizes.length === 1 ? (
-                <>
-                  <input type="hidden" name="size" value={size.id} />
-                  <p className={styles.oneSize}>
-                    Serves {size.serves} · {tierWords(size.tiers)}
-                  </p>
-                </>
-              ) : (
-                <div className={styles.pills} data-kind="size">
-                  {sizes.map((s) => (
-                    <Pill
-                      key={s.id}
-                      name="size"
-                      value={s.id}
-                      checked={s.id === size.id}
-                      title={s.name}
-                      extra={s.extra}
-                      detail={tierWords(s.tiers)}
-                      onChange={() => setSizeId(s.id)}
-                    />
-                  ))}
-                </div>
-              )}
-            </fieldset>
-          )}
+          {state.kind === "cap" && <CapPanel />}
 
-          {cake.options.map((o) => (
-            <OptionBlock
-              key={o.id}
-              option={o}
-              answers={answers}
-              error={errors[`option-${o.id}`]}
-              onChange={(a) => {
-                setAnswers(a);
-                recheck(a, inscription);
-              }}
-            />
-          ))}
-
-          {cake.offerInscription && (
-            <InscriptionBlock
-              value={inscription}
-              error={errors.inscription}
-              onChange={(t) => {
-                setInscription(t);
-                recheck(answers, t);
-              }}
-            />
-          )}
-
-          <div className={styles.price}>
-            <PriceFigure text={formatPrice(price)} className={styles.amount} />
+          <form
+            ref={formRef}
+            action={postAction}
+            noValidate
+            hidden={done}
+            onSubmit={(e) => {
+              e.preventDefault();
+              const found: Record<string, string> = {};
+              for (const [id, m] of Object.entries(
+                optionErrors(cake.options, answers),
+              ))
+                found[`option-${id}`] = m;
+              const ins = cake.offerInscription
+                ? inscriptionError(inscription)
+                : null;
+              if (ins) found.inscription = ins;
+              setErrors(found);
+              // The cap is the server's to check first; with errors here it still asks, so the cap notice wins.
+              if (Object.keys(found).length) setFocusFirst((n) => n + 1);
+              submit(false);
+            }}
+          >
+            <input type="hidden" name="slug" value={cake.slug} />
+            {editing && (
+              <>
+                <input type="hidden" name="line" value={editing.line} />
+                <input type="hidden" name="from" value={editing.from} />
+              </>
+            )}
+            <input ref={plainRef} type="hidden" name="plain" defaultValue="" />
             {size && (
-              <p className={styles.detail}>
-                {priceDetail(size, {
-                  offered: cake.offerInscription,
-                  text: inscription,
-                })}
+              <fieldset className={styles.section}>
+                <legend className={styles.sectionLabel}>Size</legend>
+                {sizes.length === 1 ? (
+                  <>
+                    <input type="hidden" name="size" value={size.id} />
+                    <p className={styles.oneSize}>
+                      Serves {size.serves} · {tierWords(size.tiers)}
+                    </p>
+                  </>
+                ) : (
+                  <div className={styles.pills} data-kind="size">
+                    {sizes.map((s) => (
+                      <Pill
+                        key={s.id}
+                        name="size"
+                        value={s.id}
+                        checked={s.id === size.id}
+                        title={s.name}
+                        extra={s.extra}
+                        detail={tierWords(s.tiers)}
+                        onChange={() => setSizeId(s.id)}
+                      />
+                    ))}
+                  </div>
+                )}
+              </fieldset>
+            )}
+
+            {cake.options.map((o) => (
+              <OptionBlock
+                key={o.id}
+                option={o}
+                answers={answers}
+                error={errors[`option-${o.id}`]}
+                onChange={(a) => {
+                  setAnswers(a);
+                  recheck(a, inscription);
+                }}
+              />
+            ))}
+
+            {cake.offerInscription && (
+              <InscriptionBlock
+                value={inscription}
+                error={errors.inscription}
+                onChange={(t) => {
+                  setInscription(t);
+                  recheck(answers, t);
+                }}
+              />
+            )}
+
+            <div className={styles.price}>
+              <PriceFigure
+                text={formatPrice(price)}
+                className={styles.amount}
+              />
+              {size && (
+                <p className={styles.detail}>
+                  {priceDetail(size, {
+                    offered: cake.offerInscription,
+                    text: inscription,
+                  })}
+                </p>
+              )}
+            </div>
+            {includes && <p className={styles.includes}>{includes}</p>}
+
+            {/* Without JavaScript the plain question comes back from the server as part of the page (only a
+              JavaScript-free post fills `posted`; with JavaScript the sheet asks instead). */}
+            {posted.kind === "plain" && (
+              <Notice title={LINE_COPY.plainTitle}>
+                {LINE_COPY.plainText}{" "}
+                <button
+                  type="submit"
+                  name="plain"
+                  value="1"
+                  className={styles.noJsButton}
+                >
+                  Yes, keep it plain
+                </button>
+              </Notice>
+            )}
+
+            <Button
+              type="submit"
+              block
+              className={styles.add}
+              busy={pending}
+              busyLabel={editing ? "Saving" : "Adding"}
+            >
+              {editing ? "Save this cake" : "Add to your order"}
+            </Button>
+            {state.kind === "failed" && state.notice && (
+              <div className={styles.addNotice}>
+                <Notice
+                  tone="error"
+                  urgent
+                  title={editing ? "Nothing was saved" : "Nothing was added"}
+                >
+                  {state.notice}
+                </Notice>
+              </div>
+            )}
+            {!editing && (
+              <p className={styles.addNote}>
+                Nothing is charged yet — add another cake if you need one, then
+                pick a date for the whole order.
               </p>
             )}
-          </div>
-          {includes && <p className={styles.includes}>{includes}</p>}
+          </form>
+        </div>
 
-          {/* Without JavaScript the plain question comes back from the server as part of the page (only a
-              JavaScript-free post fills `posted`; with JavaScript the sheet asks instead). */}
-          {posted.kind === "plain" && (
-            <Notice title={LINE_COPY.plainTitle}>
-              {LINE_COPY.plainText}{" "}
-              <button
-                type="submit"
-                name="plain"
-                value="1"
-                className={styles.noJsButton}
-              >
-                Yes, keep it plain
-              </button>
-            </Notice>
-          )}
-
-          <Button
-            type="submit"
-            block
-            className={styles.add}
-            busy={pending}
-            busyLabel={editing ? "Saving" : "Adding"}
-          >
-            {editing ? "Save this cake" : "Add to your order"}
-          </Button>
-          {state.kind === "failed" && state.notice && (
-            <div className={styles.addNotice}>
-              <Notice
-                tone="error"
-                urgent
-                title={editing ? "Nothing was saved" : "Nothing was added"}
-              >
-                {state.notice}
-              </Notice>
-            </div>
-          )}
-          {!editing && (
-            <p className={styles.addNote}>
-              Nothing is charged yet — add another cake if you need one, then
-              pick a date for the whole order.
-            </p>
-          )}
-        </form>
-      </div>
-
-      <section className={styles.allergens} aria-labelledby="allergens-heading">
-        <h2 id="allergens-heading" className={styles.sectionLabel}>
-          Allergens
-        </h2>
-        <p className={styles.allergenLine} aria-live="polite">
-          {allergenLine(cake.allergens, cake.options, answers, kitchen)}
-        </p>
-        <Link href="/allergens" className={styles.allergenLink}>
-          See full allergen information →
-        </Link>
-      </section>
-
-      <Overlay
-        open={askPlain}
-        title={LINE_COPY.plainTitle}
-        description={LINE_COPY.plainText}
-        onClose={() => {
-          // Esc = Add a message: back to the field.
-          afterSheet.current = "field";
-          setAskPlain(false);
-        }}
-        returnFocus={() =>
-          afterSheet.current === "added"
-            ? document.getElementById("added-heading")
-            : (formRef.current?.querySelector<HTMLInputElement>(
-                '[name="inscription"]',
-              ) ?? null)
-        }
-      >
-        <Button
-          size="compact"
-          onClick={() => {
-            afterSheet.current = "added";
-            setAskPlain(false);
-            submit(true);
-          }}
+        <section
+          className={styles.allergens}
+          aria-labelledby="allergens-heading"
         >
-          Yes, keep it plain
-        </Button>
-        <Button
-          size="compact"
-          variant="outline"
-          onClick={() => {
+          <h2 id="allergens-heading" className={styles.sectionLabel}>
+            Allergens
+          </h2>
+          <p className={styles.allergenLine} aria-live="polite">
+            {allergenLine(cake.allergens, cake.options, answers, kitchen)}
+          </p>
+          <Link href="/allergens" className={styles.allergenLink}>
+            See full allergen information →
+          </Link>
+        </section>
+
+        <Overlay
+          open={askPlain}
+          title={LINE_COPY.plainTitle}
+          description={LINE_COPY.plainText}
+          onClose={() => {
+            // Esc = Add a message: back to the field.
             afterSheet.current = "field";
             setAskPlain(false);
           }}
+          returnFocus={() =>
+            afterSheet.current === "added"
+              ? document.getElementById("added-heading")
+              : (formRef.current?.querySelector<HTMLInputElement>(
+                  '[name="inscription"]',
+                ) ?? null)
+          }
         >
-          Add a message
-        </Button>
-      </Overlay>
-    </div>
+          <Button
+            size="compact"
+            onClick={() => {
+              afterSheet.current = "added";
+              setAskPlain(false);
+              submit(true);
+            }}
+          >
+            Yes, keep it plain
+          </Button>
+          <Button
+            size="compact"
+            variant="outline"
+            onClick={() => {
+              afterSheet.current = "field";
+              setAskPlain(false);
+            }}
+          >
+            Add a message
+          </Button>
+        </Overlay>
+      </div>
+    </>
   );
 }
 

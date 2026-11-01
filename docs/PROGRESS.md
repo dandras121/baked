@@ -59,11 +59,13 @@ Branch per phase (`phase-00-foundations`, …), one commit per accepted slice, t
 
 | Slice | Title | Status | Commit | Accepted by Bohoka |
 |---|---|---|---|---|
-| 4.1 | Draft, routing, stepper | ☐ | | |
-| 4.2 | Step 2: date, window, delivery or collection | ☐ | | |
+| 4.1 | Draft, routing, stepper | ◐ built, waiting for Bohoka | | |
+| 4.2a | Step 2: calendar, capacity, the 20-minute hold | ☐ | | |
+| 4.2b | Step 2: delivery or collection, windows, postcode | ☐ | | |
 | 4.3 | Step 3: your details | ☐ | | |
 | 4.4 | Step 4: review and the payment element | ☐ | | |
-| 4.5 | Every payment outcome | ☐ | | |
+| 4.5a | Payment outcomes on the page (decline, 3D Secure, processing, expired hold) | ☐ | | |
+| 4.5b | Stripe webhook and reconciliation | ☐ | | |
 | 4.6 | Order confirmed and the mascot | ☐ | | |
 
 ## Phase 5 — E-mails
@@ -140,6 +142,10 @@ Branch per phase (`phase-00-foundations`, …), one commit per accepted slice, t
 | 11.3 | Content and go-live | ☐ | | |
 
 ## Current slice
+
+- **Phase 3 accepted 2026-11-01** (Bohoka “haladj”, then the phase-4 answers); tag `phase-03-done` (local).
+- **Phase 4 started 2026-11-01** on branch `phase-04-checkout`. Bohoka's answers: (1a) he makes a Stripe test account and puts `STRIPE_SECRET_KEY` and `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` into Vercel (Preview + Development) — needed from 4.4; (2a) on previews the date hold is 2 minutes, live stays 20; (3a) 4.2 and 4.5 split up front (4.2a / 4.2b, 4.5a / 4.5b); (4a) the checkout uses the plain heading style (thin Fraunces, no capitals, no violet frame), not the drawn caps labels.
+- **4.1 Draft, routing, stepper** — built, waiting for Bohoka. `/order/when`, `/order/details`, `/order/pay` (per visit, `instant = false` + `connection()`): no draft → /cakes, a cleared one → /cakes with the message (proxy); 0 cakes → “There is nothing in your order” (1096:9106 · C); a later step before step 2 is complete → step 2 (`src/lib/checkout.ts` allowedStep + tests). The stepper on every step and on the cake page (step 1): completed steps carry a tick and are links (step 1 = edit mode for the last cake added), the current one `aria-current="step"`; phone: four dots and “Step 2 of 4 · When & where”. The order summary column (desktop and tablet) with Edit / Remove (a form, works without JavaScript), “Date · Not chosen yet” and the total. Heading band “Name a day.” / “A few details left.” / “One last look.”; ← back links; ANIM-18 rise on load. The steps' own forms: 4.2a–4.4. Also fixed: the cake page video read reduced motion during hydration (React #418 with reduced motion on). Files: `src/components/checkout/*`, `src/app/(site)/order/{when,details,pay}/page.tsx`, `src/app/(site)/order/actions.ts`, `src/db/draft-repo.ts` (removeLine, lastAdded, summary fields). Tests: `src/lib/checkout.test.ts`, `e2e/checkout-steps.spec.ts`. Later: the phone summary bar and panel (4.2b); the summary's handover row and the hold shrinking on Remove (4.2a/b); the full ANIM-18 cross-step motion and the connector fill with client navigation (4.2a, once a step has a Continue).
 
 - Phase 1 closed 2026-10-30 (gate in the commit “phase 1 review gate”; tag `phase-01-done` local, the git proxy refuses tag pushes).
 - **Phase 3 started 2026-10-31** on branch `phase-03-catalogue`. Bohoka's answers: 3.4 and 3.6 are split up front (3.4a card open / close, 3.4b card video; 3.6a sizes, options, price, allergens; 3.6b inscription, add to order, edit mode, limit); the sample catalogue uses the Figma names and drawn values (The Lothian's values where nothing is drawn), 2–3 cakes with options, development and previews only.
