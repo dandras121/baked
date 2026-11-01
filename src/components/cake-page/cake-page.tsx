@@ -23,7 +23,6 @@ import {
   NO_ANSWERS,
   priceDetail,
   sizeChoices,
-  tierLine,
   tierWords,
   togglePick,
   type Answers,
@@ -37,8 +36,6 @@ import { AddedPanel, CapPanel, InscriptionBlock } from "./cake-order";
 import { CakeMedia } from "./cake-media";
 import styles from "./cake-page.module.css";
 import { PriceFigure } from "./price-figure";
-
-const two = (n: number) => String(n).padStart(2, "0");
 
 const ERROR_ORDER = (cake: CakePageData) => [
   ...cake.options.map((o) => `option-${o.id}`),
@@ -157,7 +154,6 @@ export function CakePage({
         <Link href="/cakes" className={styles.back}>
           ← Back to the range
         </Link>
-        {size && <p className={styles.tierLine}>{tierLine(size)}</p>}
         <h1 className={styles.name}>{cake.name}</h1>
         <p className={styles.whatItIs}>{cake.whatItIs}</p>
         {cake.from && <p className={styles.from}>{cake.from}</p>}
@@ -192,7 +188,7 @@ export function CakePage({
           <input ref={plainRef} type="hidden" name="plain" defaultValue="" />
           {size && (
             <fieldset className={styles.section}>
-              <legend className={styles.sectionLabel}>01 · Size</legend>
+              <legend className={styles.sectionLabel}>Size</legend>
               {sizes.length === 1 ? (
                 <>
                   <input type="hidden" name="size" value={size.id} />
@@ -219,10 +215,9 @@ export function CakePage({
             </fieldset>
           )}
 
-          {cake.options.map((o, i) => (
+          {cake.options.map((o) => (
             <OptionBlock
               key={o.id}
-              number={i + 2}
               option={o}
               answers={answers}
               error={errors[`option-${o.id}`]}
@@ -235,7 +230,6 @@ export function CakePage({
 
           {cake.offerInscription && (
             <InscriptionBlock
-              number={cake.options.length + 2}
               value={inscription}
               error={errors.inscription}
               onChange={(t) => {
@@ -300,7 +294,7 @@ export function CakePage({
 
       <section className={styles.allergens} aria-labelledby="allergens-heading">
         <h2 id="allergens-heading" className={styles.sectionLabel}>
-          Allergens in this cake
+          Allergens
         </h2>
         <p className={styles.allergenLine} aria-live="polite">
           {allergenLine(cake.allergens, cake.options, answers, kitchen)}
@@ -388,30 +382,26 @@ function Pill({
         className="visually-hidden"
       />
       <span className={styles.pillName}>{title}</span>
-      <span className={styles.pillExtra}>
-        {extra}
-        {detail && <span className="visually-hidden">, {detail}</span>}
-      </span>
+      {extra !== "included" && <span className={styles.pillExtra}>{extra}</span>}
+      {detail && <span className="visually-hidden">, {detail}</span>}
     </label>
   );
 }
 
 /** One of Linda's options (§5.8): Choice pills, Choices boxes, a Text field or one Yes/no box. */
 function OptionBlock({
-  number,
   option: o,
   answers,
   onChange,
   error,
 }: {
-  number: number;
   option: OptionView;
   answers: Answers;
   onChange: (a: Answers) => void;
   error?: string;
 }) {
   const errorId = `option-${o.id}-error`;
-  const label = `${two(number)} · ${o.label}`;
+  const label = o.label;
   const picks = answers.picks[o.id] ?? [];
   const pick = (choiceId: number) => onChange(togglePick(o, answers, choiceId));
 
@@ -421,11 +411,11 @@ function OptionBlock({
         <input type="hidden" name={`kind-${o.id}`} value="text" />
         <TextField
           label={label}
+          labelStyle="heading"
           error={error}
           name={`option-${o.id}`}
           max={o.maxLength}
           counterMode="always"
-          hint={o.help || undefined}
           value={answers.texts[o.id] ?? ""}
           onChange={(e) =>
             onChange({

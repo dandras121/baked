@@ -6,14 +6,14 @@ import { expect, test, type Page } from "@playwright/test";
 // a Gift box (+£8); every cake has The Lothian's sizes 24 / 32 / 40 at £185 / £240 / £305.
 const price = (page: Page) => page.locator("[class*=amount] [aria-live]");
 const allergens = (page: Page) =>
-  page.getByRole("region", { name: "Allergens in this cake" }).locator("p");
+  page.getByRole("region", { name: "Allergens" }).locator("p");
 
 test("the smallest size is pre-selected; another size moves the tier line and the price, not From", async ({
   page,
 }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto("/cakes/the-lothian");
-  const sizes = page.getByRole("group", { name: "01 · Size" });
+  const sizes = page.getByRole("group", { name: "Size" });
   await expect(sizes.getByRole("radio")).toHaveCount(3);
   await expect(
     sizes.getByRole("radio", { name: /^Serves 24/ }),
@@ -22,7 +22,6 @@ test("the smallest size is pre-selected; another size moves the tier line and th
   await expect(page.getByText("Serves 24 · plain")).toBeVisible();
   await sizes.getByText("Serves 40").click();
   await expect(price(page)).toHaveText("£305");
-  await expect(page.getByText("THREE TIERS · SERVES 40")).toBeVisible();
   await expect(page.getByText("From £185")).toBeVisible();
   await expect(sizes.getByText("+£120")).toBeVisible();
 });
@@ -62,15 +61,15 @@ test("options add to the price and list what they add; the allergen line follows
   await expect(price(page)).toHaveText("£191");
 });
 
-test("options are numbered on from the size, in Linda's order", async ({
+test("plain headings, no numbers: the size, then Linda's options in her order", async ({
   page,
 }) => {
   await page.goto("/cakes/bramble-and-cream");
   await expect(page.locator("legend")).toHaveText([
-    "01 · Size",
-    "02 · Sponge",
-    "03 · Toppings",
-    "04 · Gift box",
+    "Size",
+    "Sponge",
+    "Toppings",
+    "Gift box",
   ]);
 });
 

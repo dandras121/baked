@@ -570,3 +570,13 @@
 .type-preview-phone {
   font: var(--type-preview-phone);
 }
+
+.type-option {
+  font: var(--type-option);
+  font-variation-settings: var(--font-display-axes);
+}
+
+.type-option-phone {
+  font: var(--type-option-phone);
+  font-variation-settings: var(--font-display-axes);
+}

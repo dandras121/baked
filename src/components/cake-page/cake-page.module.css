@@ -820,3 +820,81 @@
     font: var(--type-cta-text);
   }
 }
+
+/*
+ * Simple and clean (Bohoka 2026-11-01): plain headings in a slightly heavier Fraunces, in ink, no numbers or
+ * capitals; the choices are the site's own round buttons (outline; the chosen one solid ink), no extra colour.
+ */
+.sectionLabel,
+.panel .sectionLabel {
+  color: var(--colour-ink);
+  font: var(--type-option-phone);
+  font-variation-settings: var(--font-display-axes);
+  letter-spacing: normal;
+  text-transform: none;
+}
+
+.pills[data-kind] {
+  gap: 8px;
+}
+
+.pills[data-kind] .pill {
+  flex: 0 0 auto;
+  flex-direction: row;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+  padding: 0 18px;
+  border: 1px solid var(--colour-ink);
+  border-radius: var(--radius-pill);
+  background: var(--colour-white);
+  box-shadow: none;
+}
+
+.pills[data-kind] .pill[data-checked] {
+  background: var(--colour-ink);
+}
+
+.pills[data-kind] .pill .pillName {
+  font: var(--type-pill-phone);
+}
+
+.pills[data-kind] .pill .pillExtra {
+  color: var(--colour-body);
+  font: var(--type-pill-phone);
+  font-weight: 400;
+}
+
+.pills[data-kind] .pill[data-checked] .pillName,
+.pills[data-kind] .pill[data-checked] .pillExtra {
+  color: var(--colour-paper);
+}
+
+.panel {
+  border-color: var(--colour-line-field);
+}
+
+@media (min-width: 768px) {
+  .sectionLabel,
+  .panel .sectionLabel {
+    font: var(--type-option);
+  }
+
+  .pills[data-kind] {
+    gap: calc(10 * var(--u));
+  }
+
+  .pills[data-kind] .pill {
+    min-height: max(44px, calc(47px * var(--type-scale)));
+    padding: 0 calc(22px * var(--type-scale));
+  }
+
+  .pills[data-kind] .pill .pillName,
+  .pills[data-kind] .pill .pillExtra {
+    font: var(--type-nav);
+  }
+
+  .pills[data-kind] .pill .pillExtra {
+    font-weight: 400;
+  }
+}

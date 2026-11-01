@@ -19,19 +19,15 @@ async function addLothian(page: Page, text = "Happy 30th, Mairi") {
   await expect(added(page)).toBeFocused();
 }
 
-test("the inscription: live counter and preview; the price line says with inscription", async ({
+test("the inscription: a plain heading, the field and its live counter; the price line says with inscription", async ({
   page,
 }) => {
   await page.goto("/cakes/the-lothian");
-  await expect(
-    page.getByText("No message — the cake goes out plain"),
-  ).toBeVisible();
+  // Bohoka 2026-11-01: no preview block and no hint line under the field.
+  await expect(page.getByText("How it will look")).toHaveCount(0);
   await expect(page.getByText("Serves 24 · plain")).toBeVisible();
   await field(page).fill("Happy 30th, Mairi");
   await expect(page.getByText("17 / 24")).toBeVisible();
-  await expect(
-    page.getByText("Happy 30th, Mairi", { exact: true }).last(),
-  ).toBeVisible();
   await expect(page.getByText("Serves 24 · with inscription")).toBeVisible();
 });
 

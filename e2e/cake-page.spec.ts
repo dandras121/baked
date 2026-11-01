@@ -6,14 +6,13 @@ import { expect, test, type Page } from "@playwright/test";
 const isPhone = (name: string) => name === "phone";
 const stage = (page: Page) => page.locator("[data-item]:not([hidden])");
 
-test("the cake's own lines: back link, tier line, name, description, From", async ({
+test("the cake's own lines: back link, name, description, From", async ({
   page,
 }) => {
   await page.goto("/cakes/the-lothian");
   await expect(page.getByRole("heading", { level: 1 })).toHaveText(
     "The Lothian",
   );
-  await expect(page.getByText("TWO TIERS · SERVES 24")).toBeVisible();
   await expect(page.getByText("From £185")).toBeVisible();
   await expect(
     page.getByRole("link", { name: "← Back to the range" }),

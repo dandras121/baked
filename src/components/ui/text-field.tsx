@@ -26,7 +26,7 @@ export function counterVisible(
 type FrameProps = {
   label: string;
   /** caps: “YOUR NAME” (V2 · Input 630:3004); plain: “Card number” (checkout fields). */
-  labelStyle?: "caps" | "plain";
+  labelStyle?: "caps" | "plain" | "heading";
   hint?: ReactNode;
   error?: string | null;
   counter?: ReactNode;
@@ -114,7 +114,7 @@ const describedBy = (id: string, hint: unknown, error: unknown) =>
 
 type Shared = {
   label: string;
-  labelStyle?: "caps" | "plain";
+  labelStyle?: "caps" | "plain" | "heading";
   hint?: ReactNode;
   error?: string | null;
 };

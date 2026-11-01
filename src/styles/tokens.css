@@ -184,6 +184,8 @@
   --type-cake-name-phone: 300 40px/44px var(--font-display); /* cake page name on the phone · 815:5885 */
   --type-cake-desc: 400 max(calc(16px * var(--type-scale)), min(16px, 14px))/calc(27px * var(--type-scale)) var(--font-ui); /* cake page description · 609:2945 */
   --type-cake-from: 600 max(calc(15px * var(--type-scale)), min(15px, 14px))/normal var(--font-ui); /* cake page “From £185” · 609:2947 */
+  --type-option: 500 max(calc(18px * var(--type-scale)), min(18px, 14px))/1.3 var(--font-display); /* cake page headings “Size”, “Sponge”, “Allergens” · Fraunces a little heavier, Bohoka 2026-11-01 */
+  --type-option-phone: 500 16px/1.3 var(--font-display); /* the same on the phone · Bohoka 2026-11-01 */
   --type-pill-name-phone: 400 14px/18px var(--font-display); /* size / choice pill name on the phone · 815:5896 */
   --type-pill-extra-phone: 400 10px/13px var(--font-ui); /* “included” / “+£55” on the phone · 815:5896 */
   --type-price-lg: 300 max(calc(46px * var(--type-scale)), min(46px, 14px))/normal var(--font-ui); /* cake page price · 611:2961 */

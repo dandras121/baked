@@ -22,6 +22,19 @@
   color: var(--colour-body);
 }
 
+/* A plain heading over the field (the cake page, Bohoka 2026-11-01). */
+.heading {
+  color: var(--colour-ink);
+  font: var(--type-option-phone);
+  font-variation-settings: var(--font-display-axes);
+}
+
+@media (min-width: 768px) {
+  .heading {
+    font: var(--type-option);
+  }
+}
+
 .labelError {
   color: var(--colour-error);
 }
