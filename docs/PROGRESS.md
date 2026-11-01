@@ -53,7 +53,7 @@ Branch per phase (`phase-00-foundations`, …), one commit per accepted slice, t
 | 3.5 | Cake page: media | ✅ accepted 2026-10-31 | ca16ef4 | |
 | 3.6a | Cake page: sizes, options, price, allergens | ✅ accepted 2026-10-31 | 1f46868 | |
 | 3.6b | Cake page: inscription, Add to your order, the draft, the 5-cake cap | ✅ accepted 2026-11-01 | c9682f6 | |
-| 3.6c | Cake page: edit mode `?line=`, Save this cake, “Your order was cleared” | ◐ built, waiting for Bohoka | | |
+| 3.6c | Cake page: edit mode `?line=`, Save this cake, “Your order was cleared” | ◐ built, waiting for Bohoka | c52ad30 | |
 
 ## Phase 4 — Checkout (Stripe test mode)
 
