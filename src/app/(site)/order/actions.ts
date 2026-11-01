@@ -4,8 +4,20 @@ import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { connect, databaseUrl } from "@/db/client";
 import { connectionKey } from "@/db/contact-repo";
-import { DRAFT_COOKIE, liveDraft, removeLine } from "@/db/draft-repo";
+import {
+  DRAFT_COOKIE,
+  liveDraft,
+  removeLine,
+  saveHandover,
+} from "@/db/draft-repo";
 import { extendHold, takeHold } from "@/db/hold-repo";
+import { readSettings } from "@/db/settings-repo";
+import {
+  handoverErrors,
+  normalisePostcode,
+  type HandoverErrors,
+  type HandoverInput,
+} from "@/lib/handover";
 import type { CalendarDate } from "@/lib/london-time";
 
 const STEPS = ["when", "details", "pay"];
@@ -31,7 +43,10 @@ export async function removeFromOrder(form: FormData): Promise<void> {
 }
 
 export type WhenState = {
+  /** pick: the answers are not complete (`errors`, and no date when `date` is null). */
   kind: "idle" | "pick" | "taken" | "connection";
+  /** The handover errors on Continue (§5.2); “outside” = the postcode is outside the delivery area. */
+  errors?: HandoverErrors;
   /** The date the customer chose, kept so the page shows it again. */
   date: CalendarDate | null;
   /** B · the nearest free dates (§5.2). */
@@ -59,16 +74,36 @@ export async function holdDate(
   // A chip names its date; otherwise the calendar's chosen day.
   const date = String(form.get("chip") || form.get("date") || "");
   const next = String(form.get("next") ?? "details");
-  if (!DATE.test(date)) return { kind: "pick", date: null, chips: [] };
+  // Step 2's own form carries the handover; a chip on steps 3–4 does not (it was saved on step 2).
+  const withHandover = form.has("withHandover");
+  const h: HandoverInput = {
+    handover: String(form.get("handover") ?? ""),
+    address: String(form.get("address") ?? ""),
+    town: String(form.get("town") ?? ""),
+    postcode: String(form.get("postcode") ?? ""),
+    window: String(form.get("window") ?? ""),
+  };
+  const dateOk = DATE.test(date);
   if (!databaseUrl()) return { ...prev, kind: "taken", date, chips: [] };
   const { db, close } = connect();
   let ok = false;
   try {
+    const errors = withHandover
+      ? handoverErrors(h, (await readSettings(db)).postcodeDistricts)
+      : {};
+    if (!dateOk || Object.keys(errors).length)
+      return { kind: "pick", date: dateOk ? date : null, chips: [], errors };
     const d = await liveDraft(db, (await cookies()).get(DRAFT_COOKIE)?.value);
     if (!d) redirect("/cakes");
     const r = await takeHold(db, d.id, date, await connectionOf());
     if (r.kind === "taken") return { kind: "taken", date, chips: r.chips };
     if (r.kind === "connection") return { kind: "connection", date, chips: [] };
+    if (withHandover)
+      await saveHandover(db, d.id, {
+        ...h,
+        handover: h.handover as "delivery" | "collection",
+        postcode: h.postcode.trim() ? normalisePostcode(h.postcode) : "",
+      });
     ok = true;
   } finally {
     await close();

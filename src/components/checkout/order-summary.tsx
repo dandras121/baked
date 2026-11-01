@@ -13,17 +13,32 @@ export function OrderSummary({
   lines,
   step,
   date,
+  handover,
+  chargePence = 0,
+  panel = false,
 }: {
   lines: LineView[];
   step: "when" | "details" | "pay";
   date: string | null;
+  /** The handover row (§5.2), once chosen. */
+  handover?: { label: string; value: string } | null;
+  /** The delivery charge in the total (0 for collection). */
+  chargePence?: number;
+  /** Inside the phone's summary sheet: no column, no own heading (the sheet has the title). */
+  panel?: boolean;
 }) {
-  const total = lines.reduce((sum, l) => sum + l.pricePence, 0);
+  const total = orderTotal(lines, chargePence);
+  const Box = panel ? "div" : "aside";
   return (
-    <aside className={styles.summary} aria-labelledby="summary-heading">
-      <h2 id="summary-heading" className={styles.summaryTitle}>
-        Your order
-      </h2>
+    <Box
+      className={panel ? styles.summaryPanel : styles.summary}
+      aria-labelledby={panel ? undefined : "summary-heading"}
+    >
+      {!panel && (
+        <h2 id="summary-heading" className={styles.summaryTitle}>
+          Your order
+        </h2>
+      )}
       <ul className={styles.summaryLines}>
         {lines.map((l) => (
           <li key={l.id} className={styles.summaryLine} data-line={l.id}>
@@ -67,11 +82,21 @@ export function OrderSummary({
           <dt>Date</dt>
           <dd>{date ?? "Not chosen yet"}</dd>
         </div>
+        {handover && (
+          <div>
+            <dt>{handover.label}</dt>
+            <dd>{handover.value}</dd>
+          </div>
+        )}
       </dl>
       <p className={styles.summaryTotal}>
         <span>Total</span>
         <span className={styles.summaryTotalAmount}>{formatPrice(total)}</span>
       </p>
-    </aside>
+    </Box>
   );
 }
+
+/** The cakes plus the delivery charge, in pence. */
+export const orderTotal = (lines: LineView[], chargePence = 0) =>
+  lines.reduce((sum, l) => sum + l.pricePence, 0) + chargePence;

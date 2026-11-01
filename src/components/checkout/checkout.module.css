@@ -133,6 +133,118 @@
   display: none;
 }
 
+/* The summary's content: the desktop/tablet column and the phone's summary sheet (1102:9148). */
+.summaryLines {
+  margin: calc(20 * var(--u)) 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.summaryLine {
+  display: flex;
+  gap: calc(20 * var(--u));
+  justify-content: space-between;
+  padding-bottom: calc(24 * var(--u));
+}
+
+.summaryLine + .summaryLine {
+  padding-top: calc(20 * var(--u));
+  border-top: 1px solid var(--colour-line-rule);
+}
+
+.summaryText {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.summaryName {
+  margin: 0;
+  color: var(--colour-ink);
+  font: var(--type-summary-name);
+  font-variation-settings: var(--font-display-axes);
+}
+
+.summaryDetail {
+  margin: 0;
+  color: var(--colour-body);
+  font: var(--type-meta);
+}
+
+.summaryActions {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+}
+
+.summaryActions form {
+  display: contents;
+}
+
+.summaryAction {
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--colour-accent);
+  font: var(--type-meta);
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.summaryPrice {
+  margin: 0;
+  color: var(--colour-ink);
+  font: var(--type-cake-from);
+  white-space: nowrap;
+}
+
+.summaryRows {
+  display: flex;
+  flex-direction: column;
+  gap: calc(10 * var(--u));
+  margin: 0;
+  padding: calc(20 * var(--u)) 0;
+  border-top: 1px solid var(--colour-line-rule);
+  border-bottom: 1px solid var(--colour-line-rule);
+}
+
+.summaryRows > div {
+  display: flex;
+  gap: calc(20 * var(--u));
+  justify-content: space-between;
+  color: var(--colour-ink);
+  font: var(--type-meta);
+}
+
+.summaryRows dd {
+  margin: 0;
+}
+
+.summaryTotal {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin: calc(22 * var(--u)) 0 0;
+  color: var(--colour-ink);
+  font: var(--type-cake-from);
+}
+
+.summaryTotalAmount {
+  font: var(--type-price-lg);
+}
+
+.summaryPanel .summaryLines {
+  margin-top: 0;
+}
+
+.summaryPanel .summaryTotalAmount {
+  font: var(--type-price-lg-phone);
+}
+
 /* ---- Nothing in the order ---- */
 .empty {
   padding: 48px 24px 64px;
@@ -286,106 +398,6 @@
     color: var(--colour-ink);
     font: var(--type-option-phone);
     font-variation-settings: var(--font-display-axes);
-  }
-
-  .summaryLines {
-    margin: calc(20 * var(--u)) 0 0;
-    padding: 0;
-    list-style: none;
-  }
-
-  .summaryLine {
-    display: flex;
-    gap: calc(20 * var(--u));
-    justify-content: space-between;
-    padding-bottom: calc(24 * var(--u));
-  }
-
-  .summaryLine + .summaryLine {
-    padding-top: calc(20 * var(--u));
-    border-top: 1px solid var(--colour-line-rule);
-  }
-
-  .summaryText {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-    min-width: 0;
-  }
-
-  .summaryName {
-    margin: 0;
-    color: var(--colour-ink);
-    font: var(--type-summary-name);
-    font-variation-settings: var(--font-display-axes);
-  }
-
-  .summaryDetail {
-    margin: 0;
-    color: var(--colour-body);
-    font: var(--type-meta);
-  }
-
-  .summaryActions {
-    display: flex;
-    gap: 16px;
-    align-items: center;
-  }
-
-  .summaryActions form {
-    display: contents;
-  }
-
-  .summaryAction {
-    display: inline-flex;
-    align-items: center;
-    min-height: 24px;
-    padding: 0;
-    border: 0;
-    background: none;
-    color: var(--colour-accent);
-    font: var(--type-meta);
-    text-decoration: none;
-    cursor: pointer;
-  }
-
-  .summaryPrice {
-    margin: 0;
-    color: var(--colour-ink);
-    font: var(--type-cake-from);
-    white-space: nowrap;
-  }
-
-  .summaryRows {
-    margin: 0;
-    padding: calc(20 * var(--u)) 0;
-    border-top: 1px solid var(--colour-line-rule);
-    border-bottom: 1px solid var(--colour-line-rule);
-  }
-
-  .summaryRows > div {
-    display: flex;
-    gap: calc(20 * var(--u));
-    justify-content: space-between;
-    color: var(--colour-ink);
-    font: var(--type-meta);
-  }
-
-  .summaryRows dd {
-    margin: 0;
-  }
-
-  .summaryTotal {
-    display: flex;
-    align-items: baseline;
-    justify-content: space-between;
-    margin: calc(22 * var(--u)) 0 0;
-    color: var(--colour-ink);
-    font: var(--type-cake-from);
-  }
-
-  .summaryTotalAmount {
-    font: var(--type-price-lg);
   }
 
   .empty {
@@ -662,5 +674,275 @@
 
   .holdBox {
     margin-top: calc(20 * var(--u));
+  }
+}
+
+/* ---- Step 2: delivery or collection (§5.2; 637:3274 ff., phone 828:6108) ---- */
+.whereColumn {
+  display: flex;
+  flex-direction: column;
+  margin-top: 32px;
+}
+
+.handover {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
+.group {
+  min-inline-size: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.cards {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 14px 16px;
+  border: 1px solid var(--colour-line-field);
+  border-radius: var(--radius-field);
+  background: var(--colour-white);
+  cursor: pointer;
+}
+
+.card[data-checked] {
+  border-color: var(--colour-ink);
+  background: var(--colour-selected-wash);
+  box-shadow: inset 0 0 0 0.5px var(--colour-ink);
+}
+
+/* Keyboard focus: the card's own edge darkens (no extra ring). */
+.card:has(:focus-visible) {
+  border-color: var(--colour-ink);
+}
+
+.cardTitle {
+  color: var(--colour-ink);
+  font: var(--type-summary-name);
+  font-variation-settings: var(--font-display-axes);
+}
+
+.cardText {
+  color: var(--colour-body);
+  font: var(--type-meta);
+  line-height: 20px;
+}
+
+/* The address and the windows only while Delivery is chosen (also without JavaScript). */
+.deliveryOnly {
+  display: none;
+  flex-direction: column;
+  gap: 28px;
+}
+
+.handover:has(input[name="handover"][value="delivery"]:checked) .deliveryOnly {
+  display: flex;
+}
+
+.address {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-top: 12px;
+}
+
+.townRow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 12px;
+}
+
+/* The two fields share the row: each field's own grid may shrink below the input's natural width. */
+.townRow > * {
+  grid-template-columns: minmax(0, 1fr);
+  min-width: 0;
+}
+
+/* Typed answers in Quicksand, like the cake page's inscription (Bohoka 2026-10-30: mostly Quicksand). */
+.handover input {
+  font-family: var(--font-ui);
+}
+
+.outside {
+  margin-top: 12px;
+}
+
+.windows {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.window {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0 18px;
+  border: 1px solid var(--colour-ink);
+  border-radius: var(--radius-pill);
+  background: var(--colour-white);
+  color: var(--colour-ink);
+  font: var(--type-pill-phone);
+  cursor: pointer;
+}
+
+.windowNote {
+  margin: 16px 0 0;
+  color: var(--colour-body);
+  font: var(--type-caption-phone);
+  line-height: 18px;
+}
+
+.window[data-checked] {
+  background: var(--colour-ink);
+  color: var(--colour-white);
+}
+
+.window:has(:focus-visible) {
+  box-shadow: 0 0 0 1px var(--colour-ink);
+}
+
+/* ---- The phone's sticky summary bar and sheet (§5 Phone; 1102:9148) ---- */
+.barSpace {
+  height: calc(76px + env(safe-area-inset-bottom));
+}
+
+.bar {
+  position: fixed;
+  z-index: 20;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px calc(12px + env(safe-area-inset-bottom));
+  border-top: 1px solid var(--colour-line-rule);
+  background: var(--colour-white);
+  transition: transform var(--duration-200) var(--ease-out);
+}
+
+.bar[data-hidden] {
+  transform: translateY(110%);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bar {
+    transition: none;
+  }
+}
+
+.barSummary {
+  display: flex;
+  flex: 1 1 0;
+  flex-direction: column;
+  gap: 2px;
+  align-items: flex-start;
+  min-width: 0;
+  min-height: 44px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--colour-ink);
+  text-align: left;
+  cursor: pointer;
+}
+
+.barTotal {
+  font: var(--type-cta-text);
+  font-weight: 600;
+}
+
+.barLine {
+  overflow: hidden;
+  max-width: 100%;
+  color: var(--colour-body);
+  font: var(--type-caption-phone);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.barHeld {
+  font-variant-numeric: tabular-nums;
+}
+
+.barContinue {
+  flex: none;
+  min-height: 44px;
+  padding: 0 22px;
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: var(--colour-ink);
+  color: var(--colour-white);
+  font: var(--type-button);
+  cursor: pointer;
+}
+
+.sheet {
+  max-height: 85dvh;
+}
+
+.sheetBody {
+  overflow-y: auto;
+  margin-top: 12px;
+}
+
+@media (min-width: 768px) {
+  .when {
+    display: grid;
+    grid-template-columns: minmax(0, 440fr) minmax(0, 370fr);
+    gap: calc(40 * var(--u));
+    max-width: none;
+  }
+
+  .whereColumn {
+    margin-top: 0;
+  }
+
+  .handover,
+  .deliveryOnly {
+    gap: calc(32 * var(--u));
+  }
+
+  .cards {
+    flex-direction: row;
+    margin-top: calc(16 * var(--u));
+  }
+
+  .card {
+    flex: 1 1 0;
+    min-height: calc(174 * var(--u));
+    padding: calc(20 * var(--u));
+  }
+
+  .windows {
+    margin-top: calc(16 * var(--u));
+  }
+
+  .window {
+    font: var(--type-meta);
+  }
+
+  .windowNote {
+    margin-top: calc(24 * var(--u));
+    font: var(--type-meta);
+    line-height: 20px;
+  }
+
+  .barSpace,
+  .bar {
+    display: none;
   }
 }

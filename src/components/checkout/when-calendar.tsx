@@ -1,14 +1,23 @@
 "use client";
 
-import { useActionState, useRef, useState, type KeyboardEvent } from "react";
+import {
+  startTransition,
+  useActionState,
+  useEffect,
+  useRef,
+  useState,
+  type KeyboardEvent,
+} from "react";
 import { holdDate, type WhenState } from "@/app/(site)/order/actions";
 import { Button, ButtonLink } from "@/components/ui/button";
 import { FieldError } from "@/components/ui/field-error";
 import { Notice } from "@/components/ui/notice";
 import { STATE_WORDS, type CalendarMonth } from "@/lib/capacity";
+import type { HandoverInput } from "@/lib/handover";
 import { HOLD_COPY } from "@/lib/hold";
 import styles from "./checkout.module.css";
 import { DateChips } from "./date-chips";
+import { HandoverFields, type HandoverPlace } from "./handover-fields";
 
 const WEEKDAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
@@ -27,6 +36,8 @@ export function WhenCalendar({
   minutes,
   caption,
   phone,
+  handover,
+  place,
 }: {
   months: CalendarMonth[];
   start: number;
@@ -35,6 +46,9 @@ export function WhenCalendar({
   minutes: number;
   caption: string;
   phone: string | null;
+  /** The handover answers saved in the draft (empty strings when none). */
+  handover: HandoverInput;
+  place: HandoverPlace;
 }) {
   const [state, action, pending] = useActionState<WhenState, FormData>(
     holdDate,
@@ -46,7 +60,23 @@ export function WhenCalendar({
   );
   const [shown, setShown] = useState(start);
   const [chosen, setChosen] = useState<string | null>(initial);
+  const [answers, setAnswers] = useState<HandoverInput>(handover);
   const grid = useRef<HTMLDivElement>(null);
+  const formRef = useRef<HTMLFormElement>(null);
+  // Errors on Continue: the focus goes to the first group with one (§5.2).
+  useEffect(() => {
+    if (state.kind !== "pick") return;
+    const f = formRef.current;
+    const first = !state.date
+      ? f?.querySelector<HTMLElement>('input[name="date"][tabindex="0"]')
+      : state.errors?.postcode === "outside"
+        ? f?.querySelector<HTMLElement>('input[name="postcode"]')
+        : f?.querySelector<HTMLElement>(
+            '[aria-invalid="true"], [data-invalid]',
+          );
+    first?.focus();
+  }, [state]);
+  const errors = state.kind === "pick" ? (state.errors ?? {}) : {};
   const month = months[shown];
   const last = shown === months.length - 1;
   const nextOpen = months.findIndex((m, i) => i > shown && m.open);
@@ -86,8 +116,25 @@ export function WhenCalendar({
   };
 
   return (
-    <form action={action} className={styles.when} noValidate>
+    <form
+      ref={formRef}
+      id="step-form"
+      action={action}
+      // With JavaScript the answers post without React's form reset, which would untick the chosen radios while the
+      // page still shows them chosen (every answer is kept, §5.2). Without JavaScript the action posts as usual.
+      onSubmit={(e) => {
+        e.preventDefault();
+        const data = new FormData(
+          e.currentTarget,
+          (e.nativeEvent as SubmitEvent).submitter,
+        );
+        startTransition(() => action(data));
+      }}
+      className={styles.when}
+      noValidate
+    >
       <input type="hidden" name="next" value="details" />
+      <input type="hidden" name="withHandover" value="1" />
       <fieldset className={styles.calendar} aria-describedby="calendar-caption">
         <legend className={styles.sectionHeading}>Date</legend>
         <div className={styles.monthBar}>
@@ -226,39 +273,48 @@ export function WhenCalendar({
         />
       </fieldset>
 
-      {state.kind === "taken" && state.date && (
-        <div className={styles.stateNotice}>
-          <Notice
-            tone="error"
-            urgent
-            title={HOLD_COPY.takenTitle(longDates[state.date] ?? state.date)}
-          >
-            {state.chips.length ? HOLD_COPY.takenText : HOLD_COPY.noDates}
-          </Notice>
-          <DateChips dates={state.chips} next="details" />
-        </div>
-      )}
+      <div className={styles.whereColumn}>
+        <HandoverFields
+          values={answers}
+          onChange={setAnswers}
+          errors={errors}
+          place={place}
+        />
 
-      <Button
-        type="submit"
-        block
-        className={styles.continue}
-        busy={pending}
-        busyLabel="Holding your date"
-      >
-        <span className={styles.wideDay}>Continue to your details</span>
-        <span className={styles.narrowDay}>Your details</span>
-      </Button>
-      {state.kind === "connection" && (
-        <p className={styles.holdNote} role="alert">
-          {HOLD_COPY.connection(phone)}
-        </p>
-      )}
-      {chosen && state.kind !== "connection" && (
-        <p className={styles.holdNote}>
-          {HOLD_COPY.before(longDates[chosen] ?? chosen, minutes)}
-        </p>
-      )}
+        {state.kind === "taken" && state.date && (
+          <div className={styles.stateNotice}>
+            <Notice
+              tone="error"
+              urgent
+              title={HOLD_COPY.takenTitle(longDates[state.date] ?? state.date)}
+            >
+              {state.chips.length ? HOLD_COPY.takenText : HOLD_COPY.noDates}
+            </Notice>
+            <DateChips dates={state.chips} next="details" />
+          </div>
+        )}
+
+        <Button
+          type="submit"
+          block
+          className={styles.continue}
+          busy={pending}
+          busyLabel="Holding your date"
+        >
+          <span className={styles.wideDay}>Continue to your details</span>
+          <span className={styles.narrowDay}>Your details</span>
+        </Button>
+        {state.kind === "connection" && (
+          <p className={styles.holdNote} role="alert">
+            {HOLD_COPY.connection(phone)}
+          </p>
+        )}
+        {chosen && state.kind !== "connection" && (
+          <p className={styles.holdNote}>
+            {HOLD_COPY.before(longDates[chosen] ?? chosen, minutes)}
+          </p>
+        )}
+      </div>
     </form>
   );
 }

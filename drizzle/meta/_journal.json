@@ -71,6 +71,13 @@
       "when": 1793527163461,
       "tag": "0009_date_hold",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1793530785601,
+      "tag": "0010_handover",
+      "breakpoints": true
     }
   ]
 }

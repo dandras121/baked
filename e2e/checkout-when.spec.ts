@@ -18,6 +18,9 @@ const available = (page: Page) =>
 const cont = (page: Page) =>
   page.getByRole("button", { name: /Continue to your details|Your details/ });
 
+/** Step 2 also asks delivery or collection (4.2b); collection asks nothing more. */
+const collect = (page: Page) => page.getByText("Collect from me").click();
+
 async function addCakes(page: Page, n = 1) {
   for (let i = 0; i < n; i++) {
     await page.goto("/cakes/the-lothian");
@@ -51,6 +54,7 @@ async function freeDay(page: Page, n: number) {
 async function holdSomeDay(page: Page, n = 1) {
   const { label } = await freeDay(page, n);
   await label.click();
+  await collect(page);
   await cont(page).click();
   const chip = page
     .getByRole("group", { name: "Free dates" })
@@ -124,6 +128,7 @@ test("Continue holds the day: step 3 counts down from 20 minutes; the summary an
     ",",
   )[0];
   await day.click();
+  await collect(page);
   await cont(page).click();
   await expect(page).toHaveURL(/order\/details$/);
   await expect(
@@ -232,6 +237,7 @@ test("the day went while this visitor was choosing: B with three nearest dates; 
   await day.click();
   // Someone else holds the same day with two cakes (the daily cap is 2).
   await otherVisitorHolds(browser, value);
+  await collect(page);
   await cont(page).click();
   await expect(page.getByText(/has just gone$/)).toBeVisible();
   const chips = page
@@ -255,6 +261,7 @@ async function otherVisitorHolds(browser: Browser, date: string) {
   for (let i = 0; i < 13 && !(await target.isVisible()); i++)
     await other.getByRole("button", { name: "Next month" }).click();
   await target.click();
+  await collect(other);
   await other
     .getByRole("button", { name: /Continue to your details|Your details/ })
     .click();

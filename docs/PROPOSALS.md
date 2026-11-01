@@ -139,3 +139,10 @@ Bohoka’s decision is added when he gives it (“jó” = keep, “ne legyen”
 | 4.2a | §5.2 without JavaScript | Every month shows as a list of day radios; Continue posts the chosen one | `src/components/checkout/checkout.module.css` | Waiting for Bohoka |
 | 4.2a | §10.3 hold copy on previews | The words follow the real length (“for 2 minutes”, “Your two minutes are up”) | `src/lib/hold.ts` | Waiting for Bohoka |
 | 4.2a | §10.3 connection | The connection is a salted hash of the IP address (as the contact form's send limit) | `src/app/(site)/order/actions.ts` | Waiting for Bohoka |
+| 4.2b | §5.2 Address fields | Address 3–100, Town 2–50, Postcode in UK format, normalised to upper case with one space | `src/lib/handover.ts` | Waiting for Bohoka |
+| 4.2b | §5.2 Postcode check | On blur and on Continue; the outward code against Settings → postcode districts (ranges of the same letters, numbers inclusive); “I do not deliver to {code} — it is outside {area}.” + “Collection is still open — or a courier for boxed single tiers.” | `src/lib/handover.ts`, `src/components/checkout/handover-fields.tsx` | Waiting for Bohoka |
+| 4.2b | §5.2 Errors on Continue | The six error lines under their groups; the focus goes to the first | `src/components/checkout/when-calendar.tsx` | Waiting for Bohoka |
+| 4.2b | §5.2 Window pills on the phone | Names only; the times in each pill's accessible name | `src/components/checkout/handover-fields.tsx` | Waiting for Bohoka |
+| 4.2b | §5.2 Delivery-area text | “{Free / £x} across {delivery area}.” from Settings | `src/lib/handover.ts` | Waiting for Bohoka |
+| 4.2b | §5 Phone bar | Hides while the on-screen keyboard is open; the page keeps room for it; the sheet has Edit / Remove per line | `src/components/checkout/summary-bar.tsx` | Waiting for Bohoka |
+| 4.2b | §5.2 Summary handover row | Follows the saved answers: it changes after Continue, not while typing | `src/components/checkout/checkout-step.tsx` | Waiting for Bohoka |

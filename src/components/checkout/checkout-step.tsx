@@ -21,13 +21,22 @@ import {
   type CapacityInput,
 } from "@/lib/capacity";
 import { allowedStep, STEP_TITLES, stepPath, STEPS } from "@/lib/checkout";
+import {
+  barLine,
+  handoverCharge,
+  handoverRow,
+  type Handover,
+} from "@/lib/handover";
 import { holdMinutes, MAX_EXTENSIONS } from "@/lib/hold";
 import { formatLongDate } from "@/lib/london-time";
+import { formatPrice } from "@/lib/money";
+import type { Settings } from "@/lib/settings";
 import { HoldLine } from "./hold-line";
 import { WhenCalendar } from "./when-calendar";
 import styles from "./checkout.module.css";
-import { OrderSummary } from "./order-summary";
+import { OrderSummary, orderTotal } from "./order-summary";
 import { Stepper } from "./stepper";
+import { SummaryBar } from "./summary-bar";
 
 type Key = "when" | "details" | "pay";
 
@@ -38,8 +47,7 @@ const BACK: Record<Key, { label: string; href: (cake: string) => string }> = {
 };
 
 /** What a step builds in its own slice (4.1 makes the frame around it). */
-const BUILT_IN: Record<Key, string> = {
-  when: "4.2b",
+const BUILT_IN: Record<"details" | "pay", string> = {
   details: "4.3",
   pay: "4.4",
 };
@@ -80,11 +88,11 @@ export async function CheckoutStep({ step }: { step: Key }) {
   if (!found) redirect("/cakes");
   const { draft, lines, cap } = found;
   if (lines.length === 0) return <EmptyOrder />;
-  // Step 2 is done once a date was held (the handover joins in 4.2b; step 3's details in 4.3). A hold that ran out
+  // Step 2 is done once a date was held and the handover saved (step 3's details join in 4.3). A hold that ran out
   // still counts: steps 3–4 show “your minutes are up” with chips rather than sending the customer back (§5.5).
   const allowed = allowedStep(step, {
     cakes: lines.length,
-    whenDone: draft.holdDate !== null,
+    whenDone: draft.holdDate !== null && draft.handover !== null,
     detailsDone: false,
   });
   if (allowed !== step) redirect(stepPath(allowed));
@@ -92,6 +100,24 @@ export async function CheckoutStep({ step }: { step: Key }) {
   const hold = liveHold(draft, now);
   const long = (d: string) => formatLongDate(d, cap.today);
   const minutes = holdMinutes();
+  const settings = await getSiteSettings();
+  const charge = handoverCharge(
+    draft.handover,
+    settings?.deliveryChargePence ?? 0,
+  );
+  const handover = draft.handover
+    ? handoverRow(draft.handover as Handover, draft.deliveryWindow, charge)
+    : null;
+  const summary = (panel: boolean) => (
+    <OrderSummary
+      lines={lines}
+      step={step}
+      date={hold ? long(hold.date) : null}
+      handover={handover}
+      chargePence={charge}
+      panel={panel}
+    />
+  );
 
   const last = lastAdded(lines)!;
   const cakeHref = `/cakes/${last.slug}?line=${last.id}&from=${step}`;
@@ -110,7 +136,13 @@ export async function CheckoutStep({ step }: { step: Key }) {
             {BACK[step].label}
           </Link>
           {step === "when" ? (
-            <WhenStep cap={cap} long={long} minutes={minutes} />
+            <WhenStep
+              cap={cap}
+              long={long}
+              minutes={minutes}
+              settings={settings}
+              draft={draft}
+            />
           ) : (
             <HoldLine
               dateLabel={long(draft.holdDate!)}
@@ -126,19 +158,28 @@ export async function CheckoutStep({ step }: { step: Key }) {
               chips={ranOutChips(draft.holdDate!, cap)}
             />
           )}
-          <p className={styles.stub}>
-            {step === "when" ? "Delivery or collection" : "This step"} is built
-            in slice {BUILT_IN[step]}.
-          </p>
+          {step !== "when" && (
+            <p className={styles.stub}>
+              This step is built in slice {BUILT_IN[step]}.
+            </p>
+          )}
         </div>
-        {step !== "pay" && (
-          <OrderSummary
-            lines={lines}
-            step={step}
-            date={hold ? long(hold.date) : null}
-          />
-        )}
+        {step !== "pay" && summary(false)}
       </div>
+      {step !== "pay" && (
+        <SummaryBar
+          total={formatPrice(orderTotal(lines, charge))}
+          line={barLine(
+            lines.length,
+            draft.handover,
+            settings?.deliveryChargePence ?? 0,
+          )}
+          expiresAt={hold ? hold.expiresAt.toISOString() : null}
+          form={step === "when" ? "step-form" : null}
+        >
+          {summary(true)}
+        </SummaryBar>
+      )}
     </div>
   );
 }
@@ -177,17 +218,20 @@ function ranOutChips(date: string, cap: CapacityInput): string[] {
   return [...same, ...nearestDates(date, free, 3 - same.length)].slice(0, 3);
 }
 
-async function WhenStep({
+function WhenStep({
   cap,
   long,
   minutes,
+  settings,
+  draft,
 }: {
   cap: CapacityInput;
   long: (d: string) => string;
   minutes: number;
+  settings: Settings | null;
+  draft: Draft;
 }) {
   const { months, start } = buildCalendar(cap);
-  const settings = await getSiteSettings();
   const longDates = Object.fromEntries(
     months.flatMap((m) => m.days.map((d) => [d.date, long(d.date)])),
   );
@@ -200,6 +244,19 @@ async function WhenStep({
       minutes={minutes}
       caption={calendarCaption(cap.leadTimeDays)}
       phone={settings?.phone ?? null}
+      handover={{
+        handover: draft.handover ?? "",
+        address: draft.address ?? "",
+        town: draft.town ?? "",
+        postcode: draft.postcode ?? "",
+        window: draft.deliveryWindow ?? "",
+      }}
+      place={{
+        area: settings?.deliveryArea ?? "",
+        districts: settings?.postcodeDistricts ?? "",
+        chargePence: settings?.deliveryChargePence ?? 0,
+        address: settings?.addressLine ?? "",
+      }}
     />
   );
 }

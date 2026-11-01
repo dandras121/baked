@@ -279,3 +279,34 @@ export function lastAdded(lines: LineView[]): LineView | null {
     null,
   );
 }
+
+/**
+ * Saves step 2's handover (§5.2). Typed address fields stay in the draft when Collect is chosen (switching back
+ * finds them again); the order made from a collection draft never takes them.
+ */
+export async function saveHandover(
+  db: Db,
+  draftId: string,
+  h: {
+    handover: "delivery" | "collection";
+    address: string;
+    town: string;
+    postcode: string;
+    window: string;
+  },
+): Promise<void> {
+  const keep = (s: string) => s.trim() || null;
+  await db
+    .update(drafts)
+    .set({
+      handover: h.handover,
+      address: keep(h.address),
+      town: keep(h.town),
+      postcode: keep(h.postcode),
+      deliveryWindow: ["morning", "afternoon", "evening"].includes(h.window)
+        ? h.window
+        : null,
+      lastActivityAt: new Date(),
+    })
+    .where(eq(drafts.id, draftId));
+}

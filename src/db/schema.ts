@@ -486,6 +486,13 @@ export const drafts = pgTable(
     holdExpiresAt: timestamp("hold_expires_at", { withTimezone: true }),
     holdExtensions: integer("hold_extensions").notNull().default(0),
     holdConnection: text("hold_connection"),
+    /** Step 2's handover (§5.2): delivery or collection; for delivery the address, the postcode (normalised) and the
+     *  window (morning / afternoon / evening). Not chosen yet: all null. */
+    handover: text("handover"),
+    address: text("address"),
+    town: text("town"),
+    postcode: text("postcode"),
+    deliveryWindow: text("delivery_window"),
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
       .defaultNow(),
@@ -500,6 +507,14 @@ export const drafts = pgTable(
     ),
     check("draft_step", sql`${t.furthestStep} between 1 and 4`),
     check("draft_hold_extensions", sql`${t.holdExtensions} between 0 and 2`),
+    check(
+      "draft_handover",
+      sql`${t.handover} is null or ${t.handover} in ('delivery', 'collection')`,
+    ),
+    check(
+      "draft_window",
+      sql`${t.deliveryWindow} is null or ${t.deliveryWindow} in ('morning', 'afternoon', 'evening')`,
+    ),
     index("draft_hold").on(t.holdDate, t.holdExpiresAt),
     index("draft_activity").on(t.lastActivityAt),
   ],
