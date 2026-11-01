@@ -329,6 +329,7 @@
   .summaryActions {
     display: flex;
     gap: 16px;
+    align-items: center;
   }
 
   .summaryActions form {
@@ -336,6 +337,8 @@
   }
 
   .summaryAction {
+    display: inline-flex;
+    align-items: center;
     min-height: 24px;
     padding: 0;
     border: 0;
