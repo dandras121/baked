@@ -17,6 +17,32 @@
   cursor: pointer;
 }
 
+/* When it appears: it grows to 200 % and comes quickly back to its size, so the eye catches it (Bohoka
+   2026-11-01). 560 ms in all, transform and opacity only; from its bottom left corner so it stays on screen. */
+.button {
+  transform-origin: left bottom;
+  animation: my-order-in 560ms backwards;
+}
+
+@keyframes my-order-in {
+  0% {
+    opacity: 0;
+    transform: scale(0.6);
+    animation-timing-function: cubic-bezier(0.33, 1, 0.68, 1);
+  }
+
+  57% {
+    opacity: 1;
+    transform: scale(2);
+    animation-timing-function: cubic-bezier(0.65, 0, 0.35, 1);
+  }
+
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
 .panel {
   width: min(440px, 100%);
 }
@@ -141,5 +167,6 @@
   .button,
   .button[data-away] {
     transition: none;
+    animation: none;
   }
 }
