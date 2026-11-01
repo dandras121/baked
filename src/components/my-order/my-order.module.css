@@ -1,0 +1,156 @@
+/* “My order” (slice 4.2c): a plain round outline button at the bottom left, as the site's own buttons. */
+.button {
+  position: fixed;
+  z-index: 30;
+  bottom: calc(16px + env(safe-area-inset-bottom));
+  left: 16px;
+  display: inline-flex;
+  gap: 8px;
+  align-items: center;
+  min-height: 44px;
+  padding: 0 18px 0 14px;
+  border: 1px solid var(--colour-ink);
+  border-radius: var(--radius-pill);
+  background: var(--colour-white);
+  box-shadow: 0 4px 16px rgb(36 27 51 / 0.12);
+  color: var(--colour-ink);
+  font: var(--type-pill-phone);
+  cursor: pointer;
+}
+
+.icon {
+  width: 18px;
+  height: 18px;
+  fill: none;
+  stroke: currentcolor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.4;
+}
+
+.panel {
+  width: min(440px, 100%);
+}
+
+.body {
+  display: flex;
+  flex-direction: column;
+  max-height: 60dvh;
+  margin-top: 16px;
+  overflow-y: auto;
+}
+
+.lines {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.line {
+  display: flex;
+  gap: 20px;
+  justify-content: space-between;
+  padding: 16px 0;
+  border-top: 1px solid var(--colour-line-rule);
+}
+
+.line:first-child {
+  padding-top: 0;
+  border-top: 0;
+}
+
+.text {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.name {
+  margin: 0;
+  color: var(--colour-ink);
+  font: var(--type-summary-name);
+  font-variation-settings: var(--font-display-axes);
+}
+
+.detail {
+  margin: 0;
+  color: var(--colour-body);
+  font: var(--type-meta);
+}
+
+.actions {
+  display: flex;
+  gap: 16px;
+}
+
+/* Text links with a 44 px hit area. */
+.action {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  margin: -10px 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--colour-accent);
+  font: var(--type-meta);
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.price {
+  margin: 0;
+  color: var(--colour-ink);
+  font: var(--type-cake-from);
+  white-space: nowrap;
+}
+
+.total {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin: 0 0 20px;
+  padding-top: 16px;
+  border-top: 1px solid var(--colour-line-rule);
+  color: var(--colour-ink);
+  font: var(--type-cake-from);
+}
+
+.totalAmount {
+  font: var(--type-price-lg-phone);
+}
+
+@media (min-width: 768px) {
+  .button {
+    /* px, not --u: the button sits outside the page's size container. */
+    bottom: calc(24px + env(safe-area-inset-bottom));
+    left: 24px;
+    font: var(--type-meta);
+  }
+}
+
+/* At the very bottom of the page it fades away, so the footer's last row (“Cookie preferences”) stays free. */
+.button[data-away] {
+  visibility: hidden;
+  opacity: 0;
+}
+
+.button {
+  transition:
+    opacity var(--duration-200) var(--ease-out),
+    visibility 0s linear;
+}
+
+.button[data-away] {
+  transition:
+    opacity var(--duration-200) var(--ease-out),
+    visibility 0s linear var(--duration-200);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .button,
+  .button[data-away] {
+    transition: none;
+  }
+}

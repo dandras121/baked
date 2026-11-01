@@ -6,6 +6,7 @@ import { connect, databaseUrl } from "@/db/client";
 import { connectionKey } from "@/db/contact-repo";
 import {
   DRAFT_COOKIE,
+  draftLineViews,
   liveDraft,
   removeLine,
   saveHandover,
@@ -19,6 +20,7 @@ import {
   type HandoverInput,
 } from "@/lib/handover";
 import type { CalendarDate } from "@/lib/london-time";
+import { EMPTY_ORDER, myOrder, type MyOrder } from "@/lib/my-order";
 
 const STEPS = ["when", "details", "pay"];
 const DATE = /^\d{4}-\d{2}-\d{2}$/;
@@ -131,4 +133,18 @@ export async function keepHolding(form: FormData): Promise<void> {
 export async function holdDateAndGo(form: FormData): Promise<void> {
   const r = await holdDate({ kind: "idle", date: null, chips: [] }, form);
   if (r.kind !== "idle") redirect("/order/when");
+}
+
+/** Remove from the “My order” panel (slice 4.2c): the same rule as the summary's Remove, and the order as it is now. */
+export async function removeFromMyOrder(lineId: number): Promise<MyOrder> {
+  if (!databaseUrl()) return EMPTY_ORDER;
+  const { db, close } = connect();
+  try {
+    const id = (await cookies()).get(DRAFT_COOKIE)?.value;
+    await removeLine(db, id, lineId);
+    const d = await liveDraft(db, id);
+    return d ? myOrder(await draftLineViews(db, d.id)) : EMPTY_ORDER;
+  } finally {
+    await close();
+  }
 }

@@ -36,6 +36,7 @@ import {
 import type { CakePageData } from "@/lib/cake-page";
 import type { Allergen } from "@/lib/constants";
 import { formatPrice } from "@/lib/money";
+import { ORDER_CHANGED } from "@/lib/my-order";
 import { inscriptionError, LINE_COPY, optionErrors } from "@/lib/order-line";
 import { AddedPanel, CapPanel, InscriptionBlock } from "./cake-order";
 import { Stepper } from "@/components/checkout/stepper";
@@ -173,6 +174,10 @@ export function CakePage({
   };
 
   const done = state.kind === "added" || state.kind === "cap";
+  // The “My order” button reads the order again once a cake was added (slice 4.2c).
+  useEffect(() => {
+    if (state.kind === "added") window.dispatchEvent(new Event(ORDER_CHANGED));
+  }, [state]);
 
   return (
     <>
