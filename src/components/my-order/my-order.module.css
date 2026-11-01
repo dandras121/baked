@@ -20,7 +20,7 @@
   cursor: pointer;
 }
 
-/* When it appears: it grows to 200 % and comes quickly back to its size, so the eye catches it (Bohoka
+/* When it appears: it grows to 300 % and comes quickly back to its size, so the eye catches it (Bohoka
    2026-11-01). 560 ms in all, transform and opacity only; from its bottom left corner so it stays on screen. */
 .button {
   transform-origin: left bottom;
@@ -36,7 +36,7 @@
 
   57% {
     opacity: 1;
-    transform: scale(2);
+    transform: scale(3);
     animation-timing-function: cubic-bezier(0.65, 0, 0.35, 1);
   }
 
