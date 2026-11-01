@@ -309,13 +309,13 @@ test("A§3.4 the logo in the open menu goes Home like the Home item", async ({
   await openMenu(page);
   await page
     .getByTestId("site-header")
-    .getByRole("link", { name: "Baked by Linda" })
+    .getByRole("link", { name: "Baked by Linda", exact: true })
     .click();
   await expect(page).toHaveURL(/\/$/);
   await expect(overlay(page)).toBeHidden({ timeout: 3000 });
 });
 
-test("§3.1 social links come from Settings: Instagram opens in a new tab; an empty Facebook address is hidden", async ({
+test("§3.1 social links come from Settings: Instagram and Facebook open in a new tab", async ({
   page,
 }) => {
   await page.goto("/gallery");
@@ -327,9 +327,12 @@ test("§3.1 social links come from Settings: Instagram opens in a new tab; an em
   );
   await expect(ig).toHaveAttribute("target", "_blank");
   await expect(ig).toHaveAttribute("rel", "noopener");
-  await expect(
-    overlay(page).getByRole("link", { name: /Facebook/ }),
-  ).toHaveCount(0);
+  const fb = overlay(page).getByRole("link", { name: /Facebook/ });
+  await expect(fb).toHaveAttribute(
+    "href",
+    "https://www.facebook.com/share/1Mbri3RQMk/?mibextid=wwXIfr",
+  );
+  await expect(fb).toHaveAttribute("target", "_blank");
 });
 
 test("A§3.4 resizing to 1120 px or wider closes the menu at once", async ({

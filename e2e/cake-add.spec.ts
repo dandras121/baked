@@ -121,11 +121,17 @@ test("a second cake joins the same order", async ({ page }) => {
   await expect(panel).toContainText("Sugar Peony · serves 24 · “Isla”");
 });
 
-test("with a draft, Continue to date and delivery opens step 2", async ({ page }) => {
+test("with a draft, Continue to date and delivery opens step 2", async ({
+  page,
+}) => {
   await addLothian(page);
-  await page.getByRole("link", { name: "Continue to date and delivery →" }).click();
+  await page
+    .getByRole("link", { name: "Continue to date and delivery →" })
+    .click();
   await expect(page).toHaveURL(/\/order\/when$/);
-  await expect(page.getByRole("heading", { level: 1 })).toHaveText("Name a day.");
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText(
+    "Name a day.",
+  );
 });
 
 test("a cake without an inscription: no field, no question, no “plain”", async ({

@@ -42,7 +42,11 @@ export const INITIAL_SETTINGS: Settings = {
     url: "https://www.instagram.com/bakedbylinda",
     label: "@bakedbylinda",
   },
-  facebook: { url: "", label: "Baked by Linda" }, // the page address comes from Linda (§14.1)
+  facebook: {
+    // Linda's page, given by Bohoka 2026-11-01; Linda can change it in Settings.
+    url: "https://www.facebook.com/share/1Mbri3RQMk/?mibextid=wwXIfr",
+    label: "Baked by Linda",
+  },
   deliveryArea: "Edinburgh & the Lothians",
   postcodeDistricts: "EH1–EH42, EH47–EH55",
   beyondTheArea: "Collection or courier",

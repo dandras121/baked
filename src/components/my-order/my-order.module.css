@@ -205,3 +205,9 @@
     animation: none;
   }
 }
+
+/* Not over the phone and tablet menu: while it is open the button steps aside (Bohoka 2026-11-01). */
+:global(body:has([data-menu-button][aria-expanded="true"])) .button {
+  visibility: hidden;
+  opacity: 0;
+}

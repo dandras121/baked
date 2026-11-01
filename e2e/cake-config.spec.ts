@@ -15,9 +15,7 @@ test("the smallest size is pre-selected; another size moves the tier line and th
   await page.goto("/cakes/the-lothian");
   const sizes = page.getByRole("group", { name: "Size" });
   await expect(sizes.getByRole("radio")).toHaveCount(3);
-  await expect(
-    sizes.getByRole("radio", { name: /^Serves 24/ }),
-  ).toBeChecked();
+  await expect(sizes.getByRole("radio", { name: /^Serves 24/ })).toBeChecked();
   await expect(price(page)).toHaveText("£185");
   await expect(page.getByText("Serves 24 · plain")).toBeVisible();
   await sizes.getByText("Serves 40").click();

@@ -97,3 +97,24 @@ test("at the very bottom the button steps aside, so the footer's last row stays 
   await page.evaluate(() => window.scrollTo(0, 0));
   await expect(myOrder(page)).toBeVisible();
 });
+
+test("the phone and tablet menu: the button steps aside while it is open", async ({
+  page,
+}, testInfo) => {
+  test.skip(testInfo.project.name === "desktop", "the desktop has no menu");
+  await addLothian(page);
+  await page.goto("/faq");
+  await expect(myOrder(page)).toBeVisible();
+  await page.locator("[data-menu-button]").click();
+  await expect(page.locator("#site-menu")).toHaveAttribute(
+    "data-state",
+    "open",
+  );
+  await expect(myOrder(page)).toBeHidden();
+  await page.locator("[data-menu-button]").click();
+  await expect(page.locator("[data-menu-button]")).toHaveAttribute(
+    "aria-expanded",
+    "false",
+  );
+  await expect(myOrder(page)).toBeVisible();
+});

@@ -15,7 +15,7 @@ import {
   replaceOldSamples,
 } from "./cake-repo";
 import { importSampleReviews } from "./seed";
-import { ensureSettings } from "./settings-repo";
+import { ensureSettings, fillEmptyFacebook } from "./settings-repo";
 
 async function main() {
   if (!databaseUrl()) {
@@ -28,6 +28,8 @@ async function main() {
   try {
     await migrate(db, { migrationsFolder: "drizzle" });
     const added = await ensureSettings(db, INITIAL_SETTINGS);
+    if (await fillEmptyFacebook(db, INITIAL_SETTINGS.facebook))
+      console.log("deploy-setup: the Facebook page added to Settings");
     // The starting FAQ (§4.4) on every site, once; afterwards Linda's edits are kept.
     if (await ensureFaq(db)) console.log("deploy-setup: starting FAQ added");
     // The starting legal pages (§4.5) on every site, once per page; saved revisions are kept.

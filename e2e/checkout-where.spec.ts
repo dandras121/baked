@@ -11,7 +11,9 @@ test.beforeEach(async ({ page }) => {
 });
 
 const cont = (page: Page) =>
-  page.getByRole("button", { name: /^(Continue to your details|Your details)$/ });
+  page.getByRole("button", {
+    name: /^(Continue to your details|Your details)$/,
+  });
 const field = (page: Page, name: string) =>
   page.getByRole("textbox", { name, exact: true });
 

@@ -214,7 +214,7 @@ test("swipe changes the slide on touch screens", async ({ page }, info) => {
   await expect.poll(() => activeIndex(page)).toBe(0);
 });
 
-test("fixed sections: town from Settings, the cake slot, the social band without an empty Facebook", async ({
+test("fixed sections: town from Settings, the cake slot, the social band with Instagram and Facebook", async ({
   page,
 }) => {
   await page.goto("/");
@@ -230,9 +230,13 @@ test("fixed sections: town from Settings, the cake slot, the social band without
     page.getByText(`based in ${S.town}, West Lothian`),
   ).toBeVisible();
   const band = page.locator("section[aria-labelledby='social-media']");
-  await expect(band.getByRole("link")).toHaveCount(1); // Facebook URL is empty in the seed
-  await expect(band.getByRole("link")).toHaveAttribute("href", S.instagram.url);
-  await expect(band.getByRole("link")).toHaveAttribute("target", "_blank");
+  await expect(band.getByRole("link")).toHaveCount(2);
+  const ig = band.getByRole("link", { name: /Instagram/ });
+  await expect(ig).toHaveAttribute("href", S.instagram.url);
+  await expect(ig).toHaveAttribute("target", "_blank");
+  const fb = band.getByRole("link", { name: /Facebook/ });
+  await expect(fb).toHaveAttribute("href", S.facebook.url);
+  await expect(fb).toHaveAttribute("target", "_blank");
 });
 
 test("no horizontal scroll and no axe violations", async ({ page }) => {

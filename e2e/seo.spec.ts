@@ -36,10 +36,7 @@ test("§4.6 an unknown address returns HTTP 404 with the 404 page, the header an
 test("§4.6 deeper unknown addresses are 404 too (a cake that does not exist, a token page)", async ({
   page,
 }) => {
-  for (const path of [
-    "/cakes/not-a-cake",
-    "/my-order/unknown-token",
-  ]) {
+  for (const path of ["/cakes/not-a-cake", "/my-order/unknown-token"]) {
     expect((await page.goto(path))?.status(), path).toBe(404);
   }
 });

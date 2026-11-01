@@ -60,3 +60,17 @@ export async function ensureSettings(
     .returning({ id: settings.id });
   return inserted.length > 0;
 }
+
+/**
+ * Fills the Facebook page only where it is still empty (Bohoka gave the address 2026-11-01). An address saved in
+ * Settings is never touched. True when it filled it.
+ */
+export async function fillEmptyFacebook(
+  db: Db,
+  facebook: Settings["facebook"],
+): Promise<boolean> {
+  const [row] = await db.select().from(settings).where(eq(settings.id, 1));
+  if (!row || row.facebook.url) return false;
+  await db.update(settings).set({ facebook }).where(eq(settings.id, 1));
+  return true;
+}
