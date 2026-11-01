@@ -3,7 +3,7 @@ import { expect, test, type Page } from "@playwright/test";
 
 // Slice 4.2c (Bohoka 2026-11-01): the floating “My order” button and its panel.
 const myOrder = (page: Page) =>
-  page.getByRole("button", { name: /^My order · \d/ });
+  page.getByRole("button", { name: /^My order\s*, \d+ cakes?$/ });
 
 async function addLothian(page: Page, text = "Happy 30th") {
   await page.goto("/cakes/the-lothian");
@@ -21,7 +21,7 @@ test("no cake: no button; after Add it shows at once, also on Home; never on the
   await expect(page.getByRole("heading", { level: 1 }).first()).toBeVisible();
   await expect(myOrder(page)).toHaveCount(0);
   await addLothian(page);
-  await expect(myOrder(page)).toHaveText(/My order · 1/);
+  await expect(myOrder(page)).toHaveAccessibleName(/^My order\s*, 1 cake$/);
   await page.goto("/");
   await expect(myOrder(page)).toBeVisible();
   await page.goto("/order/when");
@@ -62,7 +62,7 @@ test("Remove takes a cake out at once; the last one hides the button", async ({
     .first()
     .click();
   await expect(panel.getByText(/“(One|Two)”/)).toHaveCount(1);
-  await expect(myOrder(page)).toHaveText(/My order · 1/);
+  await expect(myOrder(page)).toHaveAccessibleName(/^My order\s*, 1 cake$/);
   await panel.getByRole("button", { name: "Remove The Lothian" }).click();
   await expect(panel).toBeHidden();
   await expect(myOrder(page)).toHaveCount(0);

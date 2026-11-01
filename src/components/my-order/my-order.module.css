@@ -5,10 +5,9 @@
   bottom: calc(16px + env(safe-area-inset-bottom));
   left: 16px;
   display: inline-flex;
-  gap: 8px;
   align-items: center;
   min-height: 44px;
-  padding: 0 18px 0 14px;
+  padding: 0 20px;
   border: 1px solid var(--colour-ink);
   border-radius: var(--radius-pill);
   background: var(--colour-white);
@@ -16,16 +15,6 @@
   color: var(--colour-ink);
   font: var(--type-pill-phone);
   cursor: pointer;
-}
-
-.icon {
-  width: 18px;
-  height: 18px;
-  fill: none;
-  stroke: currentcolor;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-  stroke-width: 1.4;
 }
 
 .panel {

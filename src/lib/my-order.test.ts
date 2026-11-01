@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { buttonLabel, editHref, myOrder, showsButton } from "./my-order";
+import { editHref, myOrder, showsButton } from "./my-order";
 import type { LineView } from "@/db/draft-repo";
 
 const line = (id: number, pricePence: number): LineView => ({
@@ -28,7 +28,6 @@ describe("slice 4.2c My order", () => {
       detail: "Two tiers · serves 24 · Sponge: Chocolate",
       message: "Happy 30th",
     });
-    expect(buttonLabel(2)).toBe("My order · 2");
     expect(editHref(o.lines[1])).toBe("/cakes/the-lothian?line=2&from=when");
   });
 });

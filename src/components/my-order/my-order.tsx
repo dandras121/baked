@@ -8,7 +8,6 @@ import { ButtonLink } from "@/components/ui/button";
 import { Overlay } from "@/components/ui/overlay";
 import { formatPrice } from "@/lib/money";
 import {
-  buttonLabel,
   editHref,
   EMPTY_ORDER,
   ORDER_CHANGED,
@@ -100,13 +99,10 @@ export function MyOrderButton() {
           data-pressable
           onClick={() => setOpen(true)}
         >
-          <svg viewBox="0 0 20 20" aria-hidden className={styles.icon}>
-            <path d="M4 7h12l-1 10H5L4 7Z" />
-            <path d="M7.5 7V5.5a2.5 2.5 0 0 1 5 0V7" />
-          </svg>
-          {buttonLabel(n)}
+          My order
+          {/* The number of cakes for screen readers only; the button itself says just “My order” (Bohoka). */}
           <span className="visually-hidden">
-            {n === 1 ? " cake" : " cakes"}
+            , {n === 1 ? "1 cake" : `${n} cakes`}
           </span>
         </button>
       )}

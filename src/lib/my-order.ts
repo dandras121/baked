@@ -28,9 +28,6 @@ export function myOrder(lines: LineView[]): MyOrder {
   };
 }
 
-/** The button's label: “My order · 2” (the number of cakes). */
-export const buttonLabel = (n: number) => `My order · ${n}`;
-
 /** The button never shows on the checkout steps, which have their own summary. */
 export const showsButton = (pathname: string, cakes: number) =>
   cakes > 0 && !pathname.startsWith("/order/");
