@@ -59,7 +59,7 @@ Branch per phase (`phase-00-foundations`, …), one commit per accepted slice, t
 
 | Slice | Title | Status | Commit | Accepted by Bohoka |
 |---|---|---|---|---|
-| 4.1 | Draft, routing, stepper | ◐ built, waiting for Bohoka | | |
+| 4.1 | Draft, routing, stepper | ◐ built, waiting for Bohoka | 3a1fda8 | |
 | 4.2a | Step 2: calendar, capacity, the 20-minute hold | ☐ | | |
 | 4.2b | Step 2: delivery or collection, windows, postcode | ☐ | | |
 | 4.3 | Step 3: your details | ☐ | | |
