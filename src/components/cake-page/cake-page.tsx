@@ -321,10 +321,12 @@ export function CakePage({
               </Notice>
             </div>
           )}
-          <p className={styles.addNote}>
-            Nothing is charged yet — add another cake if you need one, then pick
-            a date for the whole order.
-          </p>
+          {!editing && (
+            <p className={styles.addNote}>
+              Nothing is charged yet — add another cake if you need one, then
+              pick a date for the whole order.
+            </p>
+          )}
         </form>
       </div>
 

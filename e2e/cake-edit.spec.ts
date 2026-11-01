@@ -26,6 +26,8 @@ test("edit mode loads the line, says Save this cake, saves in place and returns 
   await expect(field(page)).toHaveValue("First");
   const save = page.getByRole("button", { name: "Save this cake" });
   await expect(save).toBeVisible();
+  // The “add another cake” note belongs to adding, not to editing.
+  await expect(page.getByText("Nothing is charged yet")).toHaveCount(0);
   await page.getByText("Serves 40").click();
   await field(page).fill("First, changed");
   await save.click();
