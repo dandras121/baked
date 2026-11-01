@@ -287,7 +287,7 @@ export function Lightbox({
               active={index}
               onSelect={(i) => go(i)}
               label={(i, n) => `Photo ${i + 1} of ${n}`}
-              surface="dark"
+              surface="light"
             />
             <p
               id="lightbox-position"

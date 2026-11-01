@@ -16,7 +16,7 @@
   overflow: hidden;
   border: 0;
   background: transparent;
-  color: var(--colour-paper);
+  color: var(--colour-ink);
 }
 
 .dialog::backdrop {
@@ -27,10 +27,13 @@
   overflow: hidden;
 }
 
+/* The page blurred under a light white veil, like every dialog (Bohoka 2026-11-01), instead of ink 88 %. */
 .scrim {
   position: absolute;
   inset: 0;
-  background: var(--colour-scrim-lightbox);
+  background: var(--colour-white-40);
+  -webkit-backdrop-filter: blur(24px);
+  backdrop-filter: blur(24px);
 }
 
 .stage {
@@ -69,16 +72,16 @@
   -webkit-user-drag: none;
 }
 
-/* Circles on the dark surface. */
+/* Circles on the light, blurred surface. */
 .close,
 .arrow {
   display: grid;
   place-items: center;
   padding: 0;
-  border: 1px solid var(--colour-paper);
+  border: 1px solid var(--colour-ink);
   border-radius: 50%;
   background: transparent;
-  color: var(--colour-paper);
+  color: var(--colour-ink);
   cursor: pointer;
 }
 
@@ -128,7 +131,7 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  color: var(--colour-lilac);
+  color: var(--colour-accent);
   font: var(--type-count-phone);
 }
 
@@ -140,7 +143,7 @@
   padding: 0;
   border: 0;
   background: none;
-  color: var(--colour-lilac);
+  color: var(--colour-accent);
   cursor: pointer;
 }
 
@@ -217,7 +220,7 @@
   .card {
     --s: min(
       calc(560 * var(--u)),
-      calc(100dvh - 48px - 186px * var(--type-scale) - 80px)
+      calc(100dvh - 48px - 186px * var(--type-scale) - 12px - 80px)
     );
     position: relative;
     flex: none;
@@ -230,11 +233,20 @@
     margin-top: 0;
   }
 
+  /* The photo and, apart from it, the caption in its own small rounded box (Bohoka 2026-11-01). */
+  .photo {
+    overflow: hidden;
+    border-radius: var(--radius-frame);
+  }
+
   /* The larger cake name gets the whole width; the button sits under it (Bohoka 2026-11-01). */
   .captionBar {
     align-items: flex-start;
     gap: 14px;
     order: 1;
+    margin-top: 12px;
+    border-radius: var(--radius-frame);
+    box-shadow: var(--shadow-card);
     padding: calc(22px * var(--type-scale)) calc(24px * var(--type-scale))
       calc(24px * var(--type-scale));
   }
@@ -278,5 +290,24 @@
 
   .next {
     right: calc(-56px - 56 * var(--u));
+  }
+}
+
+/* Tablet: the photo about twice as large as the 0.8 × desktop card — as wide as the screen leaves beside the
+   arrows, and never taller than the screen allows (Bohoka 2026-11-01). */
+@media (min-width: 768px) and (max-width: 1119.98px) {
+  .card {
+    --s: min(
+      calc(100vw - 2 * (56px + 24px)),
+      calc(100dvh - 48px - 186px * var(--type-scale) - 12px - 80px)
+    );
+  }
+
+  .prev {
+    left: calc(-56px - 12px);
+  }
+
+  .next {
+    right: calc(-56px - 12px);
   }
 }

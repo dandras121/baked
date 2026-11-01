@@ -17,18 +17,24 @@
   background: transparent;
 }
 
+/* Behind every dialog and sheet the page is blurred under a light white veil, like the “My order” button
+   (Bohoka 2026-11-01), instead of a dark tint. */
 .scrim {
   position: absolute;
   inset: 0;
-  background: var(--colour-scrim);
+  background: var(--colour-white-40);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
 }
 
+/* The panel: white, no edge, a soft shadow (Bohoka 2026-11-01). */
 .panel {
   position: absolute;
   display: grid;
   gap: var(--space-8);
   background: var(--colour-white);
-  border: 1px solid var(--colour-line-overlay);
+  box-shadow: var(--shadow-card);
+  border: 0;
   overflow: auto;
 }
 
@@ -52,7 +58,6 @@
   max-height: 90%;
   padding: var(--space-24) var(--space-16)
     calc(var(--space-16) + env(safe-area-inset-bottom));
-  border-width: 1px 0 0;
   border-radius: var(--radius-field) var(--radius-field) 0 0;
   touch-action: pan-x;
 }
