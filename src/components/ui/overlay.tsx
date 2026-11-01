@@ -57,6 +57,12 @@ function current(el: HTMLElement) {
  * swipe down to close). A modal <dialog> in the browser's top layer: the page behind is inert (focus stays inside),
  * Esc closes, the page does not scroll, and focus goes back to the opener (SITE-FLOWS §0.6).
  */
+/** The page scrolls again once no overlay is open any more (two can be open, e.g. a confirm over a sheet). */
+function releaseScroll() {
+  if (!document.querySelector("dialog[data-overlay][open]"))
+    delete document.documentElement.dataset.overlayOpen;
+}
+
 export function Overlay({
   open,
   onClose,
@@ -81,6 +87,23 @@ export function Overlay({
   const descId = useId();
 
   if (open && !mounted) setMounted(true);
+
+  // Leaving the page while it is open (a link inside it, Back, or the page being hidden by the router): close the
+  // modal and give the page its scrolling back, or the page stays frozen and clicks can go nowhere.
+  const shown = useRef<HTMLDialogElement | null>(null);
+  const latest = useRef({ open, onClose });
+  useEffect(() => {
+    latest.current = { open, onClose };
+  });
+  useEffect(() => {
+    // Back on a page the router had hidden: a panel that was left open is closed now, so tell the parent — or
+    // the next press (open = true again) would change nothing.
+    if (latest.current.open && !ref.current?.open) latest.current.onClose();
+    return () => {
+      if (shown.current?.open) shown.current.close();
+      releaseScroll();
+    };
+  }, []);
 
   const parts = (): Part | null =>
     panelRef.current && scrimRef.current
@@ -140,6 +163,7 @@ export function Overlay({
     opener.current = document.activeElement;
     document.documentElement.dataset.overlayOpen = "";
     dialog.showModal();
+    shown.current = dialog;
     const p = parts();
     if (p) animateIn(p, which);
   }, [open, mounted, forced, animateIn]);
@@ -151,7 +175,7 @@ export function Overlay({
     const p = parts();
     const finish = () => {
       dialog.close();
-      delete document.documentElement.dataset.overlayOpen;
+      releaseScroll();
       const target = returnTo.current
         ? returnTo.current()
         : (opener.current as HTMLElement | null);
@@ -241,6 +265,7 @@ export function Overlay({
   return (
     <dialog
       ref={ref}
+      data-overlay
       className={`${styles.overlay} ${styles[kind]}`}
       data-kind={kind}
       aria-labelledby={titleId}
@@ -248,6 +273,11 @@ export function Overlay({
       onCancel={(e) => {
         e.preventDefault(); // Esc: run our own close
         onClose();
+      }}
+      // A link inside goes to another page: the panel closes on the way, so it is not found open on Back.
+      onClickCapture={(e) => {
+        const a = (e.target as Element).closest?.("a[href]");
+        if (a && !e.defaultPrevented && e.button === 0) onClose();
       }}
     >
       <div ref={scrimRef} className={styles.scrim} onClick={onClose} />
