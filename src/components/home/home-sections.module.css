@@ -342,9 +342,11 @@
     font: var(--type-highlight);
   }
 
+  /* The title in the middle of the page, the two links the same distance either side (Bohoka 2026-11-01). */
   .socialBand {
-    grid-template-columns: calc(470.5 * var(--u)) auto 1fr;
+    grid-template-columns: 1fr auto 1fr;
     grid-template-areas: "insta title fb";
+    column-gap: calc(90 * var(--u));
     width: calc(1280 * var(--u));
     min-height: calc(84 * var(--u));
     padding: calc(12 * var(--u)) 0 calc(33 * var(--u));
@@ -355,10 +357,10 @@
   }
 
   .socialInstagram {
-    margin-left: calc(213 * var(--u));
+    justify-self: end;
   }
 
   .socialFacebook {
-    margin-left: calc(98.5 * var(--u));
+    justify-self: start;
   }
 }
