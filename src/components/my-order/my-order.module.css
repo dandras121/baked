@@ -43,6 +43,34 @@
   }
 }
 
+/* During the pop it is violet with a white label, and it turns white as it shrinks back (Bohoka 2026-11-01):
+   a violet layer over the button that fades out — opacity only. Its text is hidden from screen readers. */
+.button::after {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: inherit;
+  background: var(--colour-accent);
+  color: var(--colour-white);
+  content: "My order" / "";
+  inset: 0;
+  opacity: 0;
+  pointer-events: none;
+  animation: my-order-violet 560ms;
+}
+
+@keyframes my-order-violet {
+  0%,
+  57% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0;
+  }
+}
+
 .panel {
   width: min(440px, 100%);
 }
@@ -167,6 +195,10 @@
   .button,
   .button[data-away] {
     transition: none;
+    animation: none;
+  }
+
+  .button::after {
     animation: none;
   }
 }
