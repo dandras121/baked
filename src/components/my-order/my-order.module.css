@@ -11,6 +11,9 @@
   border: 0;
   border-radius: var(--radius-pill);
   background: var(--colour-white-40);
+  /* A very light blur behind it, so the label reads over text and photos (Bohoka 2026-11-01). */
+  -webkit-backdrop-filter: blur(4px);
+  backdrop-filter: blur(4px);
   box-shadow: var(--shadow-header);
   color: var(--colour-ink);
   font: var(--type-pill-phone);
