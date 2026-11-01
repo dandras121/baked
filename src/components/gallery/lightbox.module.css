@@ -212,11 +212,12 @@
     padding-top: 48px;
   }
 
-  /* The photo is as large as the screen allows, up to 560 design px. */
+  /* The photo is as large as the screen allows, up to 560 design px; the caption bar under it (name, occasion and
+     the button, about 186 px) and the dashes always fit on the screen. */
   .card {
     --s: min(
       calc(560 * var(--u)),
-      calc(100dvh - 48px - 90px * var(--type-scale) - 80px)
+      calc(100dvh - 48px - 186px * var(--type-scale) - 80px)
     );
     position: relative;
     flex: none;

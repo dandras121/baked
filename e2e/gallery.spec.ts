@@ -418,3 +418,23 @@ test("axe: no violations with the lightbox open", async ({
     path: testInfo.outputPath(`${testInfo.project.name}_lightbox.png`),
   });
 });
+
+// Bohoka 2026-11-01: with the larger cake name the dashes were pushed off the desktop screen.
+test("lightbox: the caption bar and the dashes always fit on the screen", async ({
+  page,
+}) => {
+  for (const size of [
+    { width: 1280, height: 700 },
+    { width: 1366, height: 768 },
+    { width: 1280, height: 800 },
+  ]) {
+    await page.setViewportSize(size);
+    await page.goto("/gallery");
+    await page.locator("[data-pressable][class*=tileButton]").first().click();
+    const dialog = page.getByRole("dialog");
+    await expect(dialog).toBeVisible();
+    const last = dialog.locator("[data-index]").last();
+    const box = (await last.boundingBox())!;
+    expect(box.y + box.height).toBeLessThanOrEqual(size.height);
+  }
+});
