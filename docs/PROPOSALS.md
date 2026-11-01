@@ -134,3 +134,8 @@ Bohoka’s decision is added when he gives it (“jó” = keep, “ne legyen”
 | 4.1 | §5.4 / 1096:9106 · C empty order text | Without a held date: “Nothing was charged, and your details are still here if you come back.” (the drawn sentence about the released date comes when there is a hold, 4.2a) | `src/components/checkout/checkout-step.tsx` | Waiting for Bohoka |
 | 4.1 | §5 Back links | Above the step's form, left, under the heading band | `src/components/checkout/checkout-step.tsx` | Waiting for Bohoka |
 | 4.1 | §5.2 summary detail | “Two tiers · serves 24 · Sponge: Chocolate” on one line, the message on its own line (“No message” when empty) | `src/components/checkout/order-summary.tsx` | Waiting for Bohoka |
+| 4.2a | §5.2 full month notice | “{Month} is fully booked” with “Show me {Month} →” | `src/components/checkout/when-calendar.tsx` | Waiting for Bohoka |
+| 4.2a | §5.2 last month line | “For a date beyond {Month year}, tell me about it as a bespoke order. Start a bespoke enquiry →” | `src/components/checkout/when-calendar.tsx` | Waiting for Bohoka |
+| 4.2a | §5.2 without JavaScript | Every month shows as a list of day radios; Continue posts the chosen one | `src/components/checkout/checkout.module.css` | Waiting for Bohoka |
+| 4.2a | §10.3 hold copy on previews | The words follow the real length (“for 2 minutes”, “Your two minutes are up”) | `src/lib/hold.ts` | Waiting for Bohoka |
+| 4.2a | §10.3 connection | The connection is a salted hash of the IP address (as the contact form's send limit) | `src/app/(site)/order/actions.ts` | Waiting for Bohoka |

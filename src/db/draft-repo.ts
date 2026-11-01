@@ -250,9 +250,24 @@ export async function removeLine(
     .where(and(eq(draftLines.id, lineId), eq(draftLines.draftId, d.id)))
     .returning({ id: draftLines.id });
   if (!gone.length) return false;
+  const [{ n }] = await db
+    .select({ n: count() })
+    .from(draftLines)
+    .where(eq(draftLines.draftId, d.id));
+  // The hold counts the draft's cakes, so it shrinks by itself; the last cake removed releases it (§10.3).
   await db
     .update(drafts)
-    .set({ lastActivityAt: now })
+    .set(
+      n === 0
+        ? {
+            lastActivityAt: now,
+            holdDate: null,
+            holdExpiresAt: null,
+            holdExtensions: 0,
+            holdConnection: null,
+          }
+        : { lastActivityAt: now },
+    )
     .where(eq(drafts.id, d.id));
   return true;
 }

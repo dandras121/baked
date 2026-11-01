@@ -11,7 +11,20 @@ import {
   liveDraft,
   type LineView,
 } from "@/db/draft-repo";
+import { capacityFor, liveHold } from "@/db/hold-repo";
+import { getSiteSettings } from "@/db/site-settings";
+import {
+  buildCalendar,
+  calendarCaption,
+  canHold,
+  nearestDates,
+  type CapacityInput,
+} from "@/lib/capacity";
 import { allowedStep, STEP_TITLES, stepPath, STEPS } from "@/lib/checkout";
+import { holdMinutes, MAX_EXTENSIONS } from "@/lib/hold";
+import { formatLongDate } from "@/lib/london-time";
+import { HoldLine } from "./hold-line";
+import { WhenCalendar } from "./when-calendar";
 import styles from "./checkout.module.css";
 import { OrderSummary } from "./order-summary";
 import { Stepper } from "./stepper";
@@ -25,17 +38,32 @@ const BACK: Record<Key, { label: string; href: (cake: string) => string }> = {
 };
 
 /** What a step builds in its own slice (4.1 makes the frame around it). */
-const BUILT_IN: Record<Key, string> = { when: "4.2a and 4.2b", details: "4.3", pay: "4.4" };
+const BUILT_IN: Record<Key, string> = {
+  when: "4.2b",
+  details: "4.3",
+  pay: "4.4",
+};
 
-async function readDraft(): Promise<LineView[] | null> {
+type Draft = NonNullable<Awaited<ReturnType<typeof liveDraft>>>;
+
+async function readDraft(): Promise<{
+  draft: Draft;
+  lines: LineView[];
+  cap: CapacityInput;
+} | null> {
   // A per-visit render: nothing here may be prerendered (the database client draws random values).
   await connection();
   const id = (await cookies()).get(DRAFT_COOKIE)?.value;
   if (!databaseUrl()) return null;
   const { db, close } = connect();
   try {
-    const d = await liveDraft(db, id);
-    return d ? await draftLineViews(db, d.id) : null;
+    const draft = await liveDraft(db, id);
+    if (!draft) return null;
+    return {
+      draft,
+      lines: await draftLineViews(db, draft.id),
+      cap: await capacityFor(db, draft),
+    };
   } finally {
     await close();
   }
@@ -48,12 +76,22 @@ async function readDraft(): Promise<LineView[] | null> {
  * complete → the first incomplete step (§10.2).
  */
 export async function CheckoutStep({ step }: { step: Key }) {
-  const lines = await readDraft();
-  if (!lines) redirect("/cakes");
+  const found = await readDraft();
+  if (!found) redirect("/cakes");
+  const { draft, lines, cap } = found;
   if (lines.length === 0) return <EmptyOrder />;
-  // Steps 2 and 3 store nothing yet (4.2a–4.3), so every later step goes back to step 2 for now.
-  const allowed = allowedStep(step, { cakes: lines.length, whenDone: false, detailsDone: false });
+  // Step 2 is done once a date was held (the handover joins in 4.2b; step 3's details in 4.3). A hold that ran out
+  // still counts: steps 3–4 show “your minutes are up” with chips rather than sending the customer back (§5.5).
+  const allowed = allowedStep(step, {
+    cakes: lines.length,
+    whenDone: draft.holdDate !== null,
+    detailsDone: false,
+  });
   if (allowed !== step) redirect(stepPath(allowed));
+  const now = new Date();
+  const hold = liveHold(draft, now);
+  const long = (d: string) => formatLongDate(d, cap.today);
+  const minutes = holdMinutes();
 
   const last = lastAdded(lines)!;
   const cakeHref = `/cakes/${last.slug}?line=${last.id}&from=${step}`;
@@ -71,9 +109,35 @@ export async function CheckoutStep({ step }: { step: Key }) {
           <Link href={BACK[step].href(cakeHref)} className={styles.back}>
             {BACK[step].label}
           </Link>
-          <p className={styles.stub}>This step is built in slice {BUILT_IN[step]}.</p>
+          {step === "when" ? (
+            <WhenStep cap={cap} long={long} minutes={minutes} />
+          ) : (
+            <HoldLine
+              dateLabel={long(draft.holdDate!)}
+              expiresAt={hold ? hold.expiresAt.toISOString() : null}
+              serverLeft={hold ? hold.expiresAt.getTime() - now.getTime() : 0}
+              canKeep={
+                !!hold &&
+                hold.extensions < MAX_EXTENSIONS &&
+                canHold(hold.date, { ...cap, ownHold: null })
+              }
+              minutes={minutes}
+              step={step}
+              chips={ranOutChips(draft.holdDate!, cap)}
+            />
+          )}
+          <p className={styles.stub}>
+            {step === "when" ? "Delivery or collection" : "This step"} is built
+            in slice {BUILT_IN[step]}.
+          </p>
         </div>
-        {step !== "pay" && <OrderSummary lines={lines} step={step} date={null} />}
+        {step !== "pay" && (
+          <OrderSummary
+            lines={lines}
+            step={step}
+            date={hold ? long(hold.date) : null}
+          />
+        )}
       </div>
     </div>
   );
@@ -84,7 +148,12 @@ function EmptyOrder() {
   return (
     <div className={styles.page}>
       <section className={styles.empty} aria-labelledby="empty-heading">
-        <h1 id="empty-heading" className={styles.emptyTitle} tabIndex={-1} data-step-heading>
+        <h1
+          id="empty-heading"
+          className={styles.emptyTitle}
+          tabIndex={-1}
+          data-step-heading
+        >
           There is nothing in your order
         </h1>
         <p className={styles.emptyText}>
@@ -98,5 +167,39 @@ function EmptyOrder() {
         </div>
       </section>
     </div>
+  );
+}
+
+/** G's chips: the same date first if it is still free, then the nearest free dates (§5.5 Hold ran out). */
+function ranOutChips(date: string, cap: CapacityInput): string[] {
+  const free = { ...cap, ownHold: null };
+  const same = canHold(date, free) ? [date] : [];
+  return [...same, ...nearestDates(date, free, 3 - same.length)].slice(0, 3);
+}
+
+async function WhenStep({
+  cap,
+  long,
+  minutes,
+}: {
+  cap: CapacityInput;
+  long: (d: string) => string;
+  minutes: number;
+}) {
+  const { months, start } = buildCalendar(cap);
+  const settings = await getSiteSettings();
+  const longDates = Object.fromEntries(
+    months.flatMap((m) => m.days.map((d) => [d.date, long(d.date)])),
+  );
+  return (
+    <WhenCalendar
+      months={months}
+      start={start}
+      initial={cap.ownHold}
+      longDates={longDates}
+      minutes={minutes}
+      caption={calendarCaption(cap.leadTimeDays)}
+      phone={settings?.phone ?? null}
+    />
   );
 }

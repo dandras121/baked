@@ -8,7 +8,13 @@ import styles from "./checkout.module.css";
  * Phone: four dots and “Step 2 of 4 · When & where” (not links; the phone uses the ← back links).
  * `cakeHref` is step 1's link: edit mode for the last cake added.
  */
-export function Stepper({ current, cakeHref }: { current: 1 | 2 | 3 | 4; cakeHref?: string }) {
+export function Stepper({
+  current,
+  cakeHref,
+}: {
+  current: 1 | 2 | 3 | 4;
+  cakeHref?: string;
+}) {
   const here = STEPS[current - 1];
   return (
     <nav className={styles.stepper} aria-label="Checkout steps">
@@ -22,17 +28,25 @@ export function Stepper({ current, cakeHref }: { current: 1 | 2 | 3 | 4; cakeHre
                 {state === "done" ? "✓" : s.n}
               </span>
               <span className={styles.stepLabel}>{s.label}</span>
-              {state === "done" && <span className="visually-hidden"> (done)</span>}
+              {state === "done" && (
+                <span className="visually-hidden"> (done)</span>
+              )}
             </>
           );
           return (
             <li key={s.key} className={styles.step} data-state={state}>
               {state === "done" && href ? (
-                <NextLink href={href} className={styles.stepLink} data-pressable>
+                <NextLink
+                  href={href}
+                  className={styles.stepLink}
+                  data-pressable
+                >
                   {inner}
                 </NextLink>
               ) : (
-                <span aria-current={state === "current" ? "step" : undefined}>{inner}</span>
+                <span aria-current={state === "current" ? "step" : undefined}>
+                  {inner}
+                </span>
               )}
             </li>
           );
@@ -41,7 +55,11 @@ export function Stepper({ current, cakeHref }: { current: 1 | 2 | 3 | 4; cakeHre
       <div className={styles.dots} aria-hidden>
         <div className={styles.dotRow}>
           {STEPS.map((s) => (
-            <span key={s.key} className={styles.dot} data-state={stepState(s.n, current)} />
+            <span
+              key={s.key}
+              className={styles.dot}
+              data-state={stepState(s.n, current)}
+            />
           ))}
         </div>
         <p className={styles.dotLabel}>

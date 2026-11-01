@@ -33,7 +33,9 @@ export function OrderSummary({
                 {[l.sizeLine, l.options].filter(Boolean).join(" · ")}
               </p>
               {l.message !== null && (
-                <p className={styles.summaryDetail}>{l.message ? `“${l.message}”` : "No message"}</p>
+                <p className={styles.summaryDetail}>
+                  {l.message ? `“${l.message}”` : "No message"}
+                </p>
               )}
               <div className={styles.summaryActions}>
                 <NextLink
@@ -46,7 +48,11 @@ export function OrderSummary({
                 <form action={removeFromOrder}>
                   <input type="hidden" name="line" value={l.id} />
                   <input type="hidden" name="step" value={step} />
-                  <button type="submit" className={styles.summaryAction} data-pressable>
+                  <button
+                    type="submit"
+                    className={styles.summaryAction}
+                    data-pressable
+                  >
                     Remove<span className="visually-hidden"> {l.name}</span>
                   </button>
                 </form>

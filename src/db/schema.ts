@@ -480,6 +480,12 @@ export const drafts = pgTable(
     status: text("status").notNull().default("draft"),
     /** 1 the cake · 2 when & where · 3 your details · 4 review & pay (§5). */
     furthestStep: integer("furthest_step").notNull().default(1),
+    /** The date hold (§10.3): the held day, until when, how often it was extended (at most twice), from which
+     *  connection (a hash; deleted with the draft). No hold: all null / 0. */
+    holdDate: date("hold_date"),
+    holdExpiresAt: timestamp("hold_expires_at", { withTimezone: true }),
+    holdExtensions: integer("hold_extensions").notNull().default(0),
+    holdConnection: text("hold_connection"),
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
       .defaultNow(),
@@ -493,6 +499,8 @@ export const drafts = pgTable(
       sql`${t.status} in ('draft', 'pending', 'confirmed', 'abandoned')`,
     ),
     check("draft_step", sql`${t.furthestStep} between 1 and 4`),
+    check("draft_hold_extensions", sql`${t.holdExtensions} between 0 and 2`),
+    index("draft_hold").on(t.holdDate, t.holdExpiresAt),
     index("draft_activity").on(t.lastActivityAt),
   ],
 );

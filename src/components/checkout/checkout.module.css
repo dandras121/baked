@@ -405,3 +405,262 @@
     gap: calc(20 * var(--u));
   }
 }
+
+/* ---- Step 2: the calendar (§5.2; 637:3207, phone 828:6169; day states 636:3143) ---- */
+.when {
+  margin-top: 24px;
+}
+
+.calendar {
+  min-inline-size: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.sectionHeading {
+  padding: 0;
+  color: var(--colour-ink);
+  font: var(--type-option-phone);
+  font-variation-settings: var(--font-display-axes);
+}
+
+.monthBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 12px;
+}
+
+.monthName {
+  margin: 0;
+  color: var(--colour-ink);
+  font: var(--type-cta-text);
+  font-weight: 600;
+}
+
+.monthButtons {
+  display: flex;
+  gap: 8px;
+}
+
+.monthButton {
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  border: 1px solid var(--colour-line-field);
+  border-radius: 50%;
+  background: var(--colour-white);
+  color: var(--colour-ink);
+  cursor: pointer;
+}
+
+.monthButton:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.monthButton svg {
+  width: 8px;
+  height: 12px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.weekdays,
+.days {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 3px;
+}
+
+.weekdays {
+  margin-top: 12px;
+  color: var(--colour-meta);
+  font: var(--type-caption-phone);
+  text-align: center;
+}
+
+.wideDay {
+  display: none;
+}
+
+.days {
+  margin-top: 6px;
+}
+
+/* One month at a time with JavaScript; every month as a list without it. */
+:global(html.js) .month:not([data-shown]) {
+  display: none;
+}
+
+.noJsMonth {
+  margin: 16px 0 4px;
+  color: var(--colour-ink);
+  font: var(--type-meta);
+  font-weight: 600;
+}
+
+:global(html.js) .noJsMonth {
+  display: none;
+}
+
+.day {
+  position: relative;
+  display: grid;
+  place-items: center;
+  aspect-ratio: 1;
+  min-height: 44px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-field);
+  color: var(--colour-meta);
+  font: var(--type-meta);
+  cursor: default;
+}
+
+.day[data-state="available"] {
+  border-color: var(--colour-line-field);
+  color: var(--colour-ink);
+  cursor: pointer;
+}
+
+.day[data-state="selected"] {
+  background: var(--colour-ink);
+  color: var(--colour-paper);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.day[data-state="full"] {
+  background: var(--colour-selected-wash);
+}
+
+.day[data-state="past"],
+.day[data-state="too-soon"] {
+  opacity: 0.45;
+}
+
+.day:has(:focus-visible) {
+  border-color: var(--colour-ink);
+}
+
+.caption {
+  margin: 14px 0 0;
+  color: var(--colour-body);
+  font: var(--type-caption-phone);
+  line-height: 18px;
+}
+
+.beyond {
+  margin: 12px 0 0;
+  color: var(--colour-body);
+  font: var(--type-caption-phone);
+  line-height: 18px;
+}
+
+.inlineAction {
+  margin-top: 6px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--colour-accent);
+  font: var(--type-meta);
+  cursor: pointer;
+}
+
+.stateNotice {
+  margin-top: 20px;
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.chip {
+  min-height: 44px;
+  padding: 0 16px;
+  border: 1px solid var(--colour-line-checkbox);
+  border-radius: var(--radius-pill);
+  background: var(--colour-white);
+  color: var(--colour-ink);
+  font: var(--type-pill-phone);
+  cursor: pointer;
+}
+
+.continue {
+  margin-top: 24px;
+}
+
+.holdNote {
+  margin: 12px 0 0;
+  color: var(--colour-meta);
+  font: var(--type-caption-phone);
+  line-height: 16px;
+}
+
+/* ---- Steps 3–4: the hold line (§5.3) ---- */
+.holdBox {
+  margin-top: 16px;
+}
+
+.holdLine {
+  margin: 0;
+  color: var(--colour-ink);
+  font: var(--type-meta);
+  font-variant-numeric: tabular-nums;
+}
+
+@media (min-width: 768px) {
+  .when {
+    max-width: calc(440 * var(--u));
+    margin-top: calc(28 * var(--u));
+  }
+
+  .sectionHeading {
+    font: var(--type-option);
+  }
+
+  .monthBar {
+    margin-top: calc(16 * var(--u));
+  }
+
+  .weekdays,
+  .days {
+    gap: calc(8 * var(--u));
+  }
+
+  .wideDay {
+    display: inline;
+  }
+
+  .narrowDay {
+    display: none;
+  }
+
+  .weekdays {
+    font: var(--type-caption);
+  }
+
+  .day {
+    font: var(--type-cta-text);
+  }
+
+  .caption,
+  .beyond,
+  .holdNote {
+    font: var(--type-meta);
+    line-height: 20px;
+  }
+
+  .holdBox {
+    margin-top: calc(20 * var(--u));
+  }
+}
