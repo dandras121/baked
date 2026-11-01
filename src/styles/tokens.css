@@ -184,8 +184,8 @@
   --type-cake-name-phone: 300 40px/44px var(--font-display); /* cake page name on the phone · 815:5885 */
   --type-cake-desc: 400 max(calc(16px * var(--type-scale)), min(16px, 14px))/calc(27px * var(--type-scale)) var(--font-ui); /* cake page description · 609:2945 */
   --type-cake-from: 600 max(calc(15px * var(--type-scale)), min(15px, 14px))/normal var(--font-ui); /* cake page “From £185” · 609:2947 */
-  --type-option: 300 max(calc(44px * var(--type-scale)), min(44px, 14px))/1.15 var(--font-display); /* cake page headings “Size”, “Sponge”, “Allergens” · Fraunces Light, Bohoka 2026-11-01 */
-  --type-option-phone: 300 38px/1.15 var(--font-display); /* the same on the phone · Bohoka 2026-11-01 */
+  --type-option: 200 max(calc(31px * var(--type-scale)), min(31px, 14px))/1.2 var(--font-display); /* cake page headings “Size”, “Sponge”, “Allergens” · Fraunces ExtraLight, Bohoka 2026-11-01 */
+  --type-option-phone: 200 27px/1.2 var(--font-display); /* the same on the phone · Bohoka 2026-11-01 */
   --type-pill-name-phone: 400 14px/18px var(--font-display); /* size / choice pill name on the phone · 815:5896 */
   --type-pill-extra-phone: 400 10px/13px var(--font-ui); /* “included” / “+£55” on the phone · 815:5896 */
   --type-price-lg: 300 max(calc(46px * var(--type-scale)), min(46px, 14px))/normal var(--font-ui); /* cake page price · 611:2961 */
