@@ -22,8 +22,13 @@
 
 /* When it appears: it grows to 300 % and comes quickly back to its size, so the eye catches it (Bohoka
    2026-11-01). 560 ms in all, transform and opacity only; from its bottom left corner so it stays on screen. */
-.button {
+/* [data-pressable] sets a centre origin for every button (ANIM-07); this one must grow from its corner, or at
+   300 % it runs off the left and bottom edges (Bohoka 2026-11-01). */
+.button[data-pressable] {
   transform-origin: left bottom;
+}
+
+.button {
   animation: my-order-in 560ms backwards;
 }
 
