@@ -7,7 +7,7 @@ import { Link } from "@/components/ui/link";
 import { Notice } from "@/components/ui/notice";
 import { TextField } from "@/components/ui/text-field";
 import { formatPrice } from "@/lib/money";
-import { capCopy, INSCRIPTION_MAX } from "@/lib/order-line";
+import { capCopy, INSCRIPTION_MAX, LINE_COPY } from "@/lib/order-line";
 import styles from "./cake-page.module.css";
 
 /** The inscription (V2 · Inscription field 606:2895): a plain heading, the field and its counter (Bohoka 2026-11-01: no preview, no hint line). */
@@ -38,7 +38,14 @@ export function InscriptionBlock({
 }
 
 /** “Added to your order” (1096:9111 · A): the draft so far and the two ways on. Focus goes to its heading. */
-export function AddedPanel({ lines }: { lines: LineView[] }) {
+export function AddedPanel({
+  lines,
+  cleared = false,
+}: {
+  lines: LineView[];
+  /** The old order had been cleared after a day without changes (§10.2); this cake started a new one. */
+  cleared?: boolean;
+}) {
   const heading = useRef<HTMLHeadingElement>(null);
   useEffect(() => heading.current?.focus(), []);
   return (
@@ -51,11 +58,12 @@ export function AddedPanel({ lines }: { lines: LineView[] }) {
       >
         Added to your order
       </h2>
+      {cleared && <Notice title={LINE_COPY.cleared} />}
       <div className={styles.panel}>
         <h3 className={styles.sectionLabel}>Your order so far</h3>
         <ul className={styles.lines}>
           {lines.map((l) => (
-            <li key={l.id} className={styles.line}>
+            <li key={l.id} className={styles.line} data-line={l.id}>
               <span className={styles.lineTitle}>
                 {l.title}
                 {l.options && (

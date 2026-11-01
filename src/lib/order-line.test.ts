@@ -9,6 +9,7 @@ import {
   normaliseText,
   optionErrors,
   optionsLine,
+  returnStep,
 } from "./order-line";
 
 const opt = (
@@ -178,5 +179,15 @@ describe("the order line", () => {
       most: "Five is the most one order can hold.",
     });
     expect(capCopy().why).toContain("orders stop at five");
+  });
+});
+
+describe("edit mode returns to the step it came from (§5.1)", () => {
+  it("when, details or pay; anything else is step 2", () => {
+    expect(returnStep("pay")).toBe("/order/pay");
+    expect(returnStep("details")).toBe("/order/details");
+    expect(returnStep("when")).toBe("/order/when");
+    expect(returnStep("https://evil.example")).toBe("/order/when");
+    expect(returnStep(null)).toBe("/order/when");
   });
 });

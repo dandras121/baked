@@ -7,7 +7,12 @@ import {
   useRef,
   useState,
 } from "react";
-import { addToOrder, type AddState } from "@/app/(site)/cakes/[slug]/actions";
+import { unstable_rethrow } from "next/navigation";
+import {
+  addToOrder,
+  loadLine,
+  type AddState,
+} from "@/app/(site)/cakes/[slug]/actions";
 import { Button } from "@/components/ui/button";
 import { Notice } from "@/components/ui/notice";
 import { Overlay } from "@/components/ui/overlay";
@@ -74,7 +79,8 @@ export function CakePage({
     async (previous, form) => {
       try {
         return await addToOrder(previous, form);
-      } catch {
+      } catch (error) {
+        unstable_rethrow(error); // Save this cake goes back to the step it came from
         return {
           ...previous,
           kind: "failed",
@@ -96,6 +102,26 @@ export function CakePage({
   const plainRef = useRef<HTMLInputElement>(null);
   // Where the focus goes when the sheet closes: the field (Add a message, Esc) or the added panel (Yes).
   const afterSheet = useRef<"field" | "added">("field");
+  // Edit mode (§5.1): /cakes/{slug}?line={id}&from={step} loads that line; the button saves it in place.
+  const [editing, setEditing] = useState<{ line: number; from: string } | null>(
+    null,
+  );
+  useEffect(() => {
+    const q = new URLSearchParams(window.location.search);
+    const line = Number(q.get("line"));
+    if (!Number.isInteger(line) || line <= 0) return;
+    let live = true;
+    void loadLine(cake.slug, line).then((found) => {
+      if (!live || !found) return;
+      setSizeId(found.size);
+      setAnswers(found.answers);
+      setInscription(found.inscription);
+      setEditing({ line, from: q.get("from") ?? "" });
+    });
+    return () => {
+      live = false;
+    };
+  }, [cake.slug]);
   const size = sizes.find((s) => s.id === sizeId) ?? sizes[0];
   const price = size ? linePricePence(size, cake.options, answers) : 0;
   const includes = includesLine(cake.options, answers);
@@ -158,7 +184,9 @@ export function CakePage({
         <p className={styles.whatItIs}>{cake.whatItIs}</p>
         {cake.from && <p className={styles.from}>{cake.from}</p>}
 
-        {state.kind === "added" && <AddedPanel lines={state.lines} />}
+        {state.kind === "added" && (
+          <AddedPanel lines={state.lines} cleared={state.cleared} />
+        )}
         {state.kind === "cap" && <CapPanel />}
 
         <form
@@ -184,6 +212,12 @@ export function CakePage({
           }}
         >
           <input type="hidden" name="slug" value={cake.slug} />
+          {editing && (
+            <>
+              <input type="hidden" name="line" value={editing.line} />
+              <input type="hidden" name="from" value={editing.from} />
+            </>
+          )}
           <input ref={plainRef} type="hidden" name="plain" defaultValue="" />
           {size && (
             <fieldset className={styles.section}>
@@ -272,13 +306,17 @@ export function CakePage({
             block
             className={styles.add}
             busy={pending}
-            busyLabel="Adding"
+            busyLabel={editing ? "Saving" : "Adding"}
           >
-            Add to your order
+            {editing ? "Save this cake" : "Add to your order"}
           </Button>
           {state.kind === "failed" && state.notice && (
             <div className={styles.addNotice}>
-              <Notice tone="error" urgent title="Nothing was added">
+              <Notice
+                tone="error"
+                urgent
+                title={editing ? "Nothing was saved" : "Nothing was added"}
+              >
                 {state.notice}
               </Notice>
             </div>
@@ -380,7 +418,9 @@ function Pill({
         className="visually-hidden"
       />
       <span className={styles.pillName}>{title}</span>
-      {extra !== "included" && <span className={styles.pillExtra}>{extra}</span>}
+      {extra !== "included" && (
+        <span className={styles.pillExtra}>{extra}</span>
+      )}
       {detail && <span className="visually-hidden">, {detail}</span>}
     </label>
   );

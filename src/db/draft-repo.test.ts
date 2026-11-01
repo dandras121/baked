@@ -7,6 +7,9 @@ import { connect } from "./client";
 import {
   addLine,
   DRAFT_IDLE_MS,
+  draftStatus,
+  readLine,
+  updateLine,
   draftIsFull,
   draftLineViews,
   liveDraft,
@@ -102,5 +105,46 @@ describe.skipIf(!url)("database: the checkout draft (§5.1, §10.2)", () => {
     expect(
       await liveDraft(conn!.db, "00000000-0000-4000-8000-000000000000"),
     ).toBeNull();
+  });
+
+  it("a draft idle for 24 hours is reported as cleared (and marked abandoned) — once a step looks", async () => {
+    const db = conn!.db;
+    const t0 = new Date("2026-11-03T10:00:00Z");
+    const a = await addLine(db, undefined, line, t0);
+    expect(await draftStatus(db, a.draftId, t0)).toBe("live");
+    const later = new Date(t0.getTime() + DRAFT_IDLE_MS + 60_000);
+    expect(await draftStatus(db, a.draftId, later)).toBe("cleared");
+    const [d] = await db.select().from(drafts).where(eq(drafts.id, a.draftId));
+    expect(d.status).toBe("abandoned");
+    expect(await draftStatus(db, a.draftId, later)).toBe("cleared");
+    expect(await draftStatus(db, undefined)).toBe("none");
+  });
+
+  it("edit mode: a line is read and saved in place, keeping its position; another draft's line is not", async () => {
+    const db = conn!.db;
+    const a = await addLine(db, undefined, line);
+    const b = await addLine(db, a.draftId, { ...line, inscription: "Second" });
+    if (a.kind !== "added" || b.kind !== "added") throw new Error("not added");
+    const read = await readLine(db, a.draftId, a.lineId);
+    expect(read).toMatchObject({
+      slug: "the-lothian",
+      inscription: "Happy 30th, Mairi",
+    });
+    const bigger = (await readCakePage(db, "the-lothian"))!.sizes[2].id;
+    expect(
+      await updateLine(db, a.draftId, a.lineId, {
+        ...line,
+        sizeId: bigger,
+        inscription: "Changed",
+      }),
+    ).toBe(true);
+    const views = await draftLineViews(db, a.draftId);
+    expect(views.map((v) => v.title)).toEqual([
+      "The Lothian · serves 40 · “Changed”",
+      "The Lothian · serves 24 · “Second”",
+    ]);
+    const other = await addLine(db, undefined, line);
+    expect(await readLine(db, other.draftId, a.lineId)).toBeNull();
+    expect(await updateLine(db, other.draftId, a.lineId, line)).toBe(false);
   });
 });

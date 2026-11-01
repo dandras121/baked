@@ -3,6 +3,7 @@ import { Link } from "@/components/ui/link";
 import type { CatalogueCake } from "@/lib/catalogue";
 import { telHref } from "@/components/contact/contact-page";
 import { CatalogueGrid } from "./catalogue-grid";
+import { ClearedNotice } from "./cleared-notice";
 import styles from "./catalogue.module.css";
 
 /** The six “cake from above” slots of the header (§0.6): empty circles until Bohoka's pictures arrive. */
@@ -33,6 +34,7 @@ export function CataloguePage({
           my recipes.
         </h1>
       </header>
+      <ClearedNotice />
       {cakes.length === 0 ? (
         // No visible designs at all (1108:9884): no filter row, no count.
         <section className={styles.empty} aria-labelledby="range-empty">

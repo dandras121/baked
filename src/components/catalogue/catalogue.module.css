@@ -503,3 +503,17 @@
     font: var(--type-body);
   }
 }
+
+/* The cleared-order notice under the title band (§10.2). */
+.cleared {
+  position: relative;
+  z-index: 2;
+  width: calc(354 * var(--u));
+  margin: 16px auto 0;
+}
+
+@media (min-width: 768px) {
+  .cleared {
+    width: calc(1120 * var(--u));
+  }
+}

@@ -147,3 +147,80 @@ export async function draftLineViews(
   }
   return views;
 }
+
+/**
+ * What the cookie points at: a live draft, one that was cleared after 24 hours without activity (marked
+ * `abandoned` here, §10.2), or nothing.
+ */
+export async function draftStatus(
+  db: Db,
+  id: string | undefined,
+  now = new Date(),
+): Promise<"live" | "cleared" | "none"> {
+  if (!id || !UUID.test(id)) return "none";
+  const [d] = await db.select().from(drafts).where(eq(drafts.id, id));
+  if (!d) return "none";
+  if (d.status === "abandoned") return "cleared";
+  if (d.status !== "draft") return "none";
+  if (d.lastActivityAt.getTime() > now.getTime() - DRAFT_IDLE_MS) return "live";
+  await db
+    .update(drafts)
+    .set({ status: "abandoned" })
+    .where(and(eq(drafts.id, id), eq(drafts.status, "draft")));
+  return "cleared";
+}
+
+export type StoredLine = {
+  id: number;
+  slug: string;
+  sizeId: number;
+  answers: Answers;
+  inscription: string;
+};
+
+/** One line of the live draft (edit mode, §5.1), or null when it is not in this draft. */
+export async function readLine(
+  db: Db,
+  draftId: string | undefined,
+  lineId: number,
+  now = new Date(),
+): Promise<StoredLine | null> {
+  const d = await liveDraft(db, draftId, now);
+  if (!d || !Number.isInteger(lineId)) return null;
+  const [row] = await db
+    .select({ line: draftLines, slug: cakes.slug })
+    .from(draftLines)
+    .innerJoin(cakes, eq(cakes.id, draftLines.cakeId))
+    .where(and(eq(draftLines.id, lineId), eq(draftLines.draftId, d.id)));
+  if (!row) return null;
+  return {
+    id: row.line.id,
+    slug: row.slug,
+    sizeId: row.line.sizeId,
+    answers: row.line.answers as Answers,
+    inscription: row.line.inscription,
+  };
+}
+
+/** Save this cake (edit mode): the line keeps its place in the order; false when it is not in this draft. */
+export async function updateLine(
+  db: Db,
+  draftId: string | undefined,
+  lineId: number,
+  line: { sizeId: number; answers: Answers; inscription: string },
+  now = new Date(),
+): Promise<boolean> {
+  const d = await liveDraft(db, draftId, now);
+  if (!d) return false;
+  const done = await db
+    .update(draftLines)
+    .set(line)
+    .where(and(eq(draftLines.id, lineId), eq(draftLines.draftId, d.id)))
+    .returning({ id: draftLines.id });
+  if (!done.length) return false;
+  await db
+    .update(drafts)
+    .set({ lastActivityAt: now })
+    .where(eq(drafts.id, d.id));
+  return true;
+}

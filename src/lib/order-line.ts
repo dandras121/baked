@@ -20,6 +20,9 @@ export const LINE_COPY = {
   failed:
     "The connection dropped before the cake reached your order. Check you are online and press Add to your order again.",
   gone: "This cake or size is no longer available. Reload the page to see what is on offer now.",
+  lineGone:
+    "This cake is no longer in your order, so nothing was saved. Add it again if you would like it.",
+  cleared: "Your order was cleared after a day without changes.",
 } as const;
 
 /** Curly quotes made straight, NFC, trimmed; only spaces = empty (§5.1). */
@@ -138,4 +141,10 @@ export function capCopy(max = MAX_CAKES) {
     most: `${N} is the most one order can hold.`,
     why: `A ${next} cake would quietly eat most of a week, so orders stop at ${n}. Send me an enquiry instead and I'll plan it by hand.`,
   };
+}
+
+/** Where Save this cake returns to (§5.1 Edit mode): the step the customer came from; step 2 when unknown. */
+const STEPS = ["when", "details", "pay"] as const;
+export function returnStep(from: unknown): string {
+  return `/order/${STEPS.find((s) => s === from) ?? "when"}`;
 }

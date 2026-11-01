@@ -5,7 +5,7 @@
 import { and, eq, isNull } from "drizzle-orm";
 import { NextResponse, type NextRequest } from "next/server";
 import { connect, databaseUrl } from "@/db/client";
-import { DRAFT_COOKIE, liveDraft } from "@/db/draft-repo";
+import { DRAFT_COOKIE, draftStatus } from "@/db/draft-repo";
 import { cakes } from "@/db/schema";
 import { sentTokenValid } from "@/lib/sent-token";
 
@@ -28,13 +28,13 @@ async function visibleSlugs(): Promise<Set<string>> {
   }
 }
 
-/** True when the bbl_session cookie points at a live draft (§10.2). */
-async function hasDraft(request: NextRequest): Promise<boolean> {
+/** What the bbl_session cookie points at: a live draft, one cleared after a day without changes, or none (§10.2). */
+async function draftOf(request: NextRequest) {
   const id = request.cookies.get(DRAFT_COOKIE)?.value;
-  if (!id || !databaseUrl()) return false;
+  if (!id || !databaseUrl()) return "none" as const;
   const { db, close } = connect();
   try {
-    return (await liveDraft(db, id)) !== null;
+    return await draftStatus(db, id);
   } finally {
     await close();
   }
@@ -43,8 +43,12 @@ async function hasDraft(request: NextRequest): Promise<boolean> {
 export async function proxy(request: NextRequest) {
   // A checkout step opened without a draft goes to the range (§10.2 Opening a step directly).
   if (request.nextUrl.pathname.startsWith("/order/")) {
-    if (await hasDraft(request)) return NextResponse.next();
-    return NextResponse.redirect(new URL("/cakes", request.url));
+    const status = await draftOf(request);
+    if (status === "live") return NextResponse.next();
+    // A cleared draft: /cakes says so (“Your order was cleared after a day without changes.”).
+    const to = new URL("/cakes", request.url);
+    if (status === "cleared") to.searchParams.set("cleared", "1");
+    return NextResponse.redirect(to);
   }
   if (request.nextUrl.pathname === "/contact/sent") {
     if (sentTokenValid("contact", request.nextUrl.searchParams.get("t")))

@@ -1,19 +1,24 @@
 "use server";
 
 import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
 import { readCakePage } from "@/db/cake-page-repo";
 import { connect, databaseUrl } from "@/db/client";
 import {
   addLine,
   draftIsFull,
+  draftStatus,
   DRAFT_COOKIE,
   DRAFT_COOKIE_DAYS,
   draftLineViews,
+  readLine,
+  updateLine,
   type LineView,
 } from "@/db/draft-repo";
 import type { Answers } from "@/lib/cake-config";
 import {
   cleanAnswers,
+  returnStep,
   inscriptionError,
   LINE_COPY,
   normaliseText,
@@ -34,7 +39,36 @@ export type AddState = {
   notice: string | null;
   lines: LineView[];
   values: AddValues;
+  /** The cookie's draft had been cleared after a day without changes, so this cake started a new order (§10.2). */
+  cleared?: boolean;
 };
+
+export type LoadedLine = {
+  size: number;
+  answers: Answers;
+  inscription: string;
+};
+
+/** Edit mode (§5.1): the line's size, answers and inscription, when it is a line of this visitor's draft for this cake. */
+export async function loadLine(
+  slug: string,
+  lineId: number,
+): Promise<LoadedLine | null> {
+  if (!databaseUrl()) return null;
+  const { db, close } = connect();
+  try {
+    const id = (await cookies()).get(DRAFT_COOKIE)?.value;
+    const line = await readLine(db, id, lineId);
+    if (!line || line.slug !== slug) return null;
+    return {
+      size: line.sizeId,
+      answers: line.answers,
+      inscription: line.inscription,
+    };
+  } finally {
+    await close();
+  }
+}
 
 /** The form's answers: size, option-{id} (radio, boxes, text) and the inscription. */
 function readForm(form: FormData): AddValues {
@@ -97,16 +131,36 @@ export async function addToOrder(
       : null;
     if (problem) errors.inscription = problem;
 
-    // The cap first (§5.1): with five cakes already in, nothing else is asked.
-    if (await draftIsFull(db, draftId)) return { ...base, kind: "cap" };
+    const lineId = Number(form.get("line"));
+    const editing = Number.isInteger(lineId) && lineId > 0;
+    // The cap first (§5.1): with five cakes already in, nothing else is asked. (Editing a line adds nothing.)
+    if (!editing && (await draftIsFull(db, draftId)))
+      return { ...base, kind: "cap" };
     if (Object.keys(errors).length) return { ...base, kind: "invalid", errors };
-    if (cake.offerInscription && !inscription && !form.getAll("plain").includes("1"))
+    if (
+      cake.offerInscription &&
+      !inscription &&
+      !form.getAll("plain").includes("1")
+    )
       return { ...base, kind: "plain" };
 
+    const answers = cleanAnswers(cake.options, values.answers);
+    if (editing) {
+      const saved = await updateLine(db, draftId, lineId, {
+        sizeId: size.id,
+        answers,
+        inscription,
+      });
+      if (!saved)
+        return { ...base, kind: "failed", notice: LINE_COPY.lineGone };
+      redirect(returnStep(form.get("from")));
+    }
+
+    const cleared = (await draftStatus(db, draftId)) === "cleared";
     const result = await addLine(db, draftId, {
       cakeId: cake.id,
       sizeId: size.id,
-      answers: cleanAnswers(cake.options, values.answers),
+      answers,
       inscription,
     });
     jar.set(DRAFT_COOKIE, result.draftId, {
@@ -120,6 +174,7 @@ export async function addToOrder(
     return {
       ...base,
       kind: "added",
+      cleared,
       lines: await draftLineViews(db, result.draftId),
     };
   } finally {
