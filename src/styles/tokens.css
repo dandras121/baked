@@ -21,6 +21,7 @@
   --colour-paper: #f7f4fa; /* page background, text on dark buttons · Figma colour/paper = colour/ink-inverse */
   --colour-ink-inverse: #f7f4fa; /* text on dark buttons · Figma colour/ink-inverse */
   --colour-white: #ffffff; /* cards, navigation · Figma colour/white = colour/surface */
+  --colour-white-40: rgb(255 255 255 / 0.4); /* the “My order” button background · Bohoka 2026-11-01 */
   --colour-surface: #ffffff; /* card and panel surface · Figma colour/surface */
 
   /* @group Colours — decoration and states */

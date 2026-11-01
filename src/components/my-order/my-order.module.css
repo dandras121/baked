@@ -1,4 +1,4 @@
-/* “My order” (slice 4.2c): a plain round outline button at the bottom left, as the site's own buttons. */
+/* “My order” (slice 4.2c): a plain round button at the bottom left; white at 40 %, no edge (Bohoka 2026-11-01). */
 .button {
   position: fixed;
   z-index: 30;
@@ -8,9 +8,9 @@
   align-items: center;
   min-height: 44px;
   padding: 0 20px;
-  border: 1px solid var(--colour-ink);
+  border: 0;
   border-radius: var(--radius-pill);
-  background: var(--colour-white);
+  background: var(--colour-white-40);
   box-shadow: var(--shadow-header);
   color: var(--colour-ink);
   font: var(--type-pill-phone);
