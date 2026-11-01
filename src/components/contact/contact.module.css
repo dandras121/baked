@@ -215,7 +215,7 @@
   }
 
   .term {
-    color: var(--colour-display);
+    color: var(--colour-ink);
     font: var(--type-contact-detail);
   }
 
@@ -252,5 +252,21 @@
 
   .back {
     width: auto;
+  }
+}
+
+/* Plain headings in the cake page style: thin Fraunces in ink, no capitals or tracking (Bohoka 2026-11-01). */
+.detailsTitle {
+  color: var(--colour-ink);
+  font: var(--type-option-phone);
+  font-variation-settings: var(--font-display-axes);
+  letter-spacing: normal;
+  text-transform: none;
+}
+
+@media (min-width: 768px) {
+  .detailsTitle {
+    font: var(--type-option);
+    letter-spacing: normal;
   }
 }

@@ -40,7 +40,6 @@ export function GalleryPage({ tiles }: { tiles: GalleryTile[] }) {
             <GalleryGrid tiles={tiles} />
           </div>
           <section className={styles.cta} aria-labelledby="gallery-cta">
-            <p className={styles.eyebrow}>Bespoke</p>
             <h2 id="gallery-cta" className={styles.ctaTitle}>
               Have an idea of your own?
             </h2>

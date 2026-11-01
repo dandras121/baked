@@ -222,3 +222,27 @@
     font: var(--type-meta);
   }
 }
+
+/* Plain headings in the cake page style: thin Fraunces in ink, no capitals or tracking (Bohoka 2026-11-01). */
+.tocTitle {
+  color: var(--colour-ink);
+  font: var(--type-option-phone);
+  font-variation-settings: var(--font-display-axes);
+  letter-spacing: normal;
+  text-transform: none;
+}
+
+@media (min-width: 768px) {
+  .tocTitle {
+    font: var(--type-option);
+    letter-spacing: normal;
+  }
+}
+
+/* “Last updated …” is a plain line, not a label. */
+.updated {
+  color: var(--colour-meta);
+  font: var(--type-meta);
+  letter-spacing: normal;
+  text-transform: none;
+}

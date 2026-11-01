@@ -11,10 +11,10 @@
   color: var(--colour-meta);
 }
 
+/* Field labels in sentence case, Quicksand, ink — no capitals or tracking (Bohoka 2026-11-01). */
 .caps {
-  font: var(--type-label);
-  letter-spacing: var(--type-label-ls);
-  text-transform: uppercase;
+  color: var(--colour-ink);
+  font: var(--type-nav);
 }
 
 .plain {
@@ -141,9 +141,13 @@
     margin-bottom: var(--space-6);
   }
 
-  .caps,
   .plain {
     font: var(--type-label-sm);
+  }
+
+  .caps {
+    font: var(--type-field-phone);
+    font-weight: 500;
   }
 
   .box {
