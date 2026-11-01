@@ -403,12 +403,13 @@
     overflow: visible;
   }
 
+  /* The same distance either side of the picture, as drawn (609:2889: about 25 px; Bohoka 2026-11-01). */
   .prev {
-    left: calc(-10.6 * var(--u) - 22px);
+    left: calc(-25 * var(--u) - 22px);
   }
 
   .next {
-    left: calc(414.5 * var(--u) - 22px);
+    left: calc(409 * var(--u) - 22px);
   }
 
   .arrow:disabled {
