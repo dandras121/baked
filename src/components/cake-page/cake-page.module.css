@@ -898,3 +898,19 @@
     font-weight: 400;
   }
 }
+
+/* One divider only, before the allergens (Bohoka 2026-11-01); the rest is held apart by space. */
+.price {
+  margin-top: 32px;
+}
+
+@media (min-width: 768px) {
+  .price {
+    margin-top: calc(40 * var(--u));
+  }
+
+  .allergens {
+    padding-top: calc(26 * var(--u));
+    border-top: 1px solid var(--colour-line-rule);
+  }
+}

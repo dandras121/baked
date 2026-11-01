@@ -157,7 +157,6 @@ export function CakePage({
         <h1 className={styles.name}>{cake.name}</h1>
         <p className={styles.whatItIs}>{cake.whatItIs}</p>
         {cake.from && <p className={styles.from}>{cake.from}</p>}
-        <hr className={styles.rule} />
 
         {state.kind === "added" && <AddedPanel lines={state.lines} />}
         {state.kind === "cap" && <CapPanel />}
@@ -239,7 +238,6 @@ export function CakePage({
             />
           )}
 
-          <hr className={styles.rule} />
           <div className={styles.price}>
             <PriceFigure text={formatPrice(price)} className={styles.amount} />
             {size && (
