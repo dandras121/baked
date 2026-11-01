@@ -946,3 +946,28 @@
     display: none;
   }
 }
+
+/* The summary's heading on the same line as the step's first heading (Bohoka 2026-11-01: step 2 looked broken):
+   the ← back link (18 px) and its gap sit above the step's form, not above the summary. */
+@media (min-width: 768px) {
+  .summary {
+    padding-top: 0;
+    margin-top: calc(18px + 28 * var(--u));
+  }
+}
+
+/* Tablet: three columns were too tight. The calendar and the handover one under the other, the summary beside. */
+@media (min-width: 768px) and (max-width: 1119.98px) {
+  .when {
+    grid-template-columns: minmax(0, 1fr);
+    row-gap: calc(48 * var(--u));
+  }
+
+  .calendar {
+    max-width: calc(520 * var(--u));
+  }
+
+  .card {
+    min-height: 0;
+  }
+}
