@@ -65,12 +65,16 @@ const BACK: Record<Key, { label: string; href: (cake: string) => string }> = {
 
 type Draft = NonNullable<Awaited<ReturnType<typeof liveDraft>>>;
 
-async function readDraft(): Promise<"confirmed" | {
-  draft: Draft;
-  lines: LineView[];
-  cap: CapacityInput;
-  lock: LockState;
-} | null> {
+async function readDraft(): Promise<
+  | "confirmed"
+  | {
+      draft: Draft;
+      lines: LineView[];
+      cap: CapacityInput;
+      lock: LockState;
+    }
+  | null
+> {
   // A per-visit render: nothing here may be prerendered (the database client draws random values).
   await connection();
   const id = (await cookies()).get(DRAFT_COOKIE)?.value;
@@ -178,11 +182,7 @@ export async function CheckoutStep({ step }: { step: Key }) {
         </h1>
       </div>
       {/* Being paid in another tab (§5.5): every field and button that changes the order is off until it ends. */}
-      <fieldset
-        className={styles.pauseScope}
-        disabled={paused}
-        data-paused={paused || undefined}
-      >
+      <PauseScope paused={paused}>
         <div className={styles.body} data-step={step}>
           <div className={styles.main} data-step-body>
             <Link href={BACK[step].href(cakeHref)} className={styles.back}>
@@ -289,8 +289,27 @@ export async function CheckoutStep({ step }: { step: Key }) {
             {summary(true)}
           </SummaryBar>
         )}
-      </fieldset>
+      </PauseScope>
     </div>
+  );
+}
+
+/**
+ * Only while another tab is paying: a disabled fieldset turns off every field and button inside it. Otherwise no
+ * wrapper at all — a layout-free fieldset around the steps left hover trails in Chrome on Windows (Bohoka 2026-11-04).
+ */
+function PauseScope({
+  paused,
+  children,
+}: {
+  paused: boolean;
+  children: React.ReactNode;
+}) {
+  if (!paused) return children;
+  return (
+    <fieldset className={styles.pauseScope} disabled data-paused>
+      {children}
+    </fieldset>
   );
 }
 
