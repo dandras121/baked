@@ -159,7 +159,16 @@ function PayForm({
   return (
     <div className={styles.payBlock}>
       <ExpressCheckoutElement
-        options={{ buttonHeight: 48 }}
+        // Apple Pay and Google Pay only (§5.4): no Link, PayPal, Amazon Pay or Klarna.
+        options={{
+          buttonHeight: 48,
+          paymentMethods: {
+            link: "never",
+            paypal: "never",
+            amazonPay: "never",
+            klarna: "never",
+          },
+        }}
         onReady={({ availablePaymentMethods }) =>
           setWallets(!!availablePaymentMethods)
         }
@@ -175,8 +184,10 @@ function PayForm({
       {wallets && <p className={styles.payDivider}>or pay by card</p>}
       <PaymentElement
         options={{
-          wallets: { applePay: "never", googlePay: "never" },
+          wallets: { applePay: "never", googlePay: "never", link: "never" },
           fields: { billingDetails: { name: "never" } },
+          // A UK bakery: the country starts as the United Kingdom (with its postcode field); the customer can change it.
+          defaultValues: { billingDetails: { address: { country: "GB" } } },
         }}
         onChange={(e) => setComplete(e.complete)}
         onLoadError={() => setLoadFailed(true)}
