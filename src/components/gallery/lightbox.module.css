@@ -293,14 +293,30 @@
   }
 }
 
-/* Tablet: the photo about twice as large as the 0.8 × desktop card — as wide as the screen leaves beside the
-   arrows, and never taller than the screen allows (Bohoka 2026-11-01). */
-@media (min-width: 768px) and (max-width: 1119.98px) {
+/* Tablet and desktop: the photo as large as the screen allows — as wide as it leaves beside the arrows, and short
+   enough that the caption box fits under it (Bohoka 2026-11-01 / 2026-11-04). */
+@media (min-width: 768px) {
+  /* Under the photo: 12 gap + the caption box (about 166 px at desktop type) + 16 gap + the dashes; 20 above. */
+  .stage {
+    padding-top: 20px;
+    padding-bottom: 12px;
+  }
+
   .card {
     --s: min(
       calc(100vw - 2 * (56px + 24px)),
-      calc(100dvh - 48px - 186px * var(--type-scale) - 12px - 80px)
+      calc(100dvh - 20px - 12px - 166px * var(--type-scale) - 16px - 5px - 12px)
     );
+  }
+
+  .under {
+    margin-top: 16px;
+  }
+
+  .close {
+    position: fixed;
+    top: 16px;
+    right: 16px;
   }
 
   .prev {
@@ -312,55 +328,30 @@
   }
 }
 
-/* Desktop and a tablet turned to landscape: the photo as tall as the screen allows (Bohoka 2026-11-04: twice
-   as large), the caption box beside it, the dashes under them. */
-@media (min-width: 1120px), (min-width: 768px) and (orientation: landscape) {
-  .stage {
-    padding: 24px 24px 16px;
-  }
-
+/* Phone: the same style — a rounded photo with a margin, the caption in its own rounded box right under it, the
+   dashes and the swipe hint below (Bohoka 2026-11-04). */
+@media (max-width: 767.98px) {
   .card {
-    --cap: 320px;
-    --s: min(
-      calc(100dvh - 24px - 16px - 5px - 24px),
-      calc(100vw - 2 * (56px + 24px) - var(--cap) - 16px)
-    );
-    display: grid;
-    grid-template-areas:
-      "photo caption"
-      "under under";
-    grid-template-columns: var(--s) var(--cap);
-    align-items: end;
-    column-gap: 16px;
-    width: auto;
+    justify-content: center;
+    padding: 0 16px;
   }
 
   .photo {
-    grid-area: photo;
+    margin-top: 0;
+    overflow: hidden;
+    border-radius: var(--radius-frame);
   }
 
   .captionBar {
-    grid-area: caption;
-    width: var(--cap);
-    margin-top: 0;
+    order: 1;
+    margin-top: 12px;
+    padding: 18px 20px 20px;
+    border-radius: var(--radius-frame);
+    box-shadow: var(--shadow-card);
   }
 
   .under {
-    grid-area: under;
-    margin-top: 16px;
-  }
-
-  .close {
-    position: fixed;
-    top: 16px;
-    right: 16px;
-  }
-
-  .prev {
-    left: calc(-56px - 16px);
-  }
-
-  .next {
-    right: calc(-56px - 16px);
+    order: 2;
+    margin: 16px 0 auto;
   }
 }

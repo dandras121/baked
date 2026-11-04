@@ -2,7 +2,8 @@
 
 import NextLink from "next/link";
 import { usePathname } from "next/navigation";
-import { useCallback, useEffect, useState, useTransition } from "react";
+import { useCallback, useEffect, useRef, useState, useTransition } from "react";
+import type { LineView } from "@/db/draft-repo";
 import { removeFromMyOrder } from "@/app/(site)/order/actions";
 import { ButtonLink } from "@/components/ui/button";
 import { Overlay } from "@/components/ui/overlay";
@@ -10,6 +11,7 @@ import { formatPrice } from "@/lib/money";
 import {
   editHref,
   EMPTY_ORDER,
+  myOrder,
   ORDER_CHANGED,
   showsButton,
   type MyOrder,
@@ -32,10 +34,14 @@ export function MyOrderButton() {
   const [seen, setSeen] = useState({ n: 0, pop: 0 });
   const [pending, start] = useTransition();
 
+  // Only the newest answer counts: an older, slower one never overwrites it.
+  const asked = useRef(0);
   const load = useCallback(async () => {
+    const mine = ++asked.current;
     try {
       const r = await fetch("/api/order", { cache: "no-store" });
-      if (r.ok) setOrder((await r.json()) as MyOrder);
+      const next = (await r.json()) as MyOrder;
+      if (r.ok && mine === asked.current) setOrder(next);
     } catch {
       // Offline or the server did not answer: the button keeps what it showed.
     }
@@ -56,10 +62,18 @@ export function MyOrderButton() {
 
   useEffect(() => {
     const again = () => void load();
-    window.addEventListener(ORDER_CHANGED, again);
+    // The cake page hands over the order as it is right after Add, so the button (and its pop) follow at once.
+    const added = (e: Event) => {
+      const lines = (e as CustomEvent<LineView[] | undefined>).detail;
+      if (lines) {
+        asked.current++;
+        setOrder(myOrder(lines));
+      } else void load();
+    };
+    window.addEventListener(ORDER_CHANGED, added);
     window.addEventListener("pageshow", again);
     return () => {
-      window.removeEventListener(ORDER_CHANGED, again);
+      window.removeEventListener(ORDER_CHANGED, added);
       window.removeEventListener("pageshow", again);
     };
   }, [load]);
@@ -106,7 +120,9 @@ export function MyOrderButton() {
           data-pressable
           onClick={() => {
             setKind(
-              window.matchMedia("(pointer: coarse)").matches
+              // Any touch screen (an iPad with a keyboard or trackpad reports a fine pointer, but still has touch).
+              window.matchMedia("(any-pointer: coarse)").matches ||
+                navigator.maxTouchPoints > 0
                 ? "sheet"
                 : undefined,
             );

@@ -176,7 +176,10 @@ export function CakePage({
   const done = state.kind === "added" || state.kind === "cap";
   // The “My order” button reads the order again once a cake was added (slice 4.2c).
   useEffect(() => {
-    if (state.kind === "added") window.dispatchEvent(new Event(ORDER_CHANGED));
+    if (state.kind === "added")
+      window.dispatchEvent(
+        new CustomEvent(ORDER_CHANGED, { detail: state.lines }),
+      );
   }, [state]);
 
   return (
