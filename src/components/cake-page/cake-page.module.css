@@ -979,3 +979,15 @@
     margin: calc(64 * var(--u)) calc(112 * var(--u)) 0;
   }
 }
+
+/* Large screens: the ‹ › keep their drawn size; the picture and thumbnails take the extra room (Bohoka 2026-11-04). */
+@media (min-width: 1281px) {
+  .arrow {
+    height: 56px;
+  }
+
+  .arrow svg {
+    width: 10px;
+    height: 46px;
+  }
+}

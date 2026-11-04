@@ -283,3 +283,10 @@
 
   /* Wider than 1280 px the mascot stays at the footer's own corner (Proposal, R§4). */
 }
+
+/* Large screens: the footer wordmark keeps its drawn size (Bohoka 2026-11-04). */
+@media (min-width: 1281px) {
+  .wordmark {
+    width: 375px;
+  }
+}

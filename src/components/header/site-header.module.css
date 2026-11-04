@@ -123,22 +123,3 @@
     right: calc(37 * var(--u));
   }
 }
-
-/* Large screens: the whole bar grows with the page (--type-scale, see responsive.css) — its height, the emblem,
-   the wordmark and the navigation's place (Bohoka 2026-11-04). */
-@media (min-width: 1281px) {
-  .mark {
-    top: calc(-17.32px * var(--type-scale));
-    width: calc(103.95px * var(--type-scale));
-    height: calc(113.4px * var(--type-scale));
-  }
-
-  .wordmark {
-    top: calc(15.73px * var(--type-scale));
-    width: calc(375px * var(--type-scale));
-  }
-
-  .desktopNav {
-    top: calc(30px * var(--type-scale));
-  }
-}
