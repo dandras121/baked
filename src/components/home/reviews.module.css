@@ -106,7 +106,9 @@
   font: var(--type-quote-phone);
   font-variation-settings: var(--font-display-axes);
   -webkit-box-orient: vertical;
-  -webkit-line-clamp: 4;
+  /* Whole lines only: as many as the card has room for (reviews-carousel.tsx), never squeezed by the card. */
+  flex: none;
+  -webkit-line-clamp: var(--lines, 4);
 }
 
 .readMore {
@@ -119,7 +121,7 @@
 }
 
 .card[data-cut] .quote {
-  -webkit-line-clamp: 3;
+  -webkit-line-clamp: var(--lines, 3);
 }
 
 .card[data-cut] .readMore {

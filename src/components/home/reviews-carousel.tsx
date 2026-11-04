@@ -223,17 +223,49 @@ const Review = memo(function Review({
   const quote = useRef<HTMLParagraphElement>(null);
   const article = useRef<HTMLElement>(null);
 
-  // A text longer than the drawn four lines is cut, and “Read on Google →” takes the last line (§4.1).
-  // Measured again when the web font arrives and whenever the card changes size.
+  // As many whole lines as the card has room for (four as drawn; fewer where the type is larger, e.g. an iPad).
+  // A longer text is cut and “Read on Google →” takes the last line (§4.1). Layout sizes only (offset / client), so
+  // a card grown on hover measures the same. Measured again when the web font arrives and whenever the card changes.
   useLayoutEffect(() => {
     const q = quote.current;
     const a = article.current;
     if (!q || !a) return;
     const measure = () => {
-      delete a.dataset.cut;
-      // Half a line of tolerance: rounding of the 1.52 line height must not count as a fifth line.
-      const half = parseFloat(getComputedStyle(q).lineHeight) / 2 || 8;
-      if (q.scrollHeight > q.clientHeight + half) a.dataset.cut = "";
+      const cs = getComputedStyle(q);
+      const lh = parseFloat(cs.lineHeight) || 24;
+      const pad = parseFloat(cs.paddingBottom) || 0;
+      // The whole text's lines, without the clamp.
+      q.style.display = "block";
+      q.style.setProperty("-webkit-line-clamp", "unset");
+      const natural = Math.round((q.scrollHeight - pad) / lh);
+      q.style.display = "";
+      q.style.removeProperty("-webkit-line-clamp");
+      const ac = getComputedStyle(a);
+      const gap = parseFloat(ac.rowGap) || 0;
+      const inner =
+        a.clientHeight -
+        (parseFloat(ac.paddingTop) || 0) -
+        (parseFloat(ac.paddingBottom) || 0);
+      const author = a.querySelector("footer")?.offsetHeight ?? 0;
+      // As drawn, the fourth line may take up to half the gap above the name.
+      const room = inner - author - gap / 2;
+      const fit = Math.max(1, Math.floor((room + 1) / lh));
+      if (natural <= fit) {
+        delete a.dataset.cut;
+        a.style.setProperty("--lines", String(fit));
+        return;
+      }
+      a.dataset.cut = "";
+      const more = a.querySelector<HTMLElement>("[data-read-more]");
+      const moreH = more
+        ? more.offsetHeight +
+          gap +
+          (parseFloat(getComputedStyle(more).marginTop) || 0)
+        : 0;
+      a.style.setProperty(
+        "--lines",
+        String(Math.max(1, Math.floor((room - moreH + 1) / lh))),
+      );
     };
     measure();
     let live = true;
