@@ -493,6 +493,22 @@ export const drafts = pgTable(
     town: text("town"),
     postcode: text("postcode"),
     deliveryWindow: text("delivery_window"),
+    /** Step 3 (§5.3): as typed, saved on blur and on Continue; the phone also in E.164 once it is a valid mobile.
+     *  The allergy consent (D16), the terms acceptance with the revisions shown, and the yearly e-mail opt-in are
+     *  set on Continue; the opt-in becomes a marketing consent when the order is confirmed (§10.10). */
+    customerName: text("customer_name"),
+    email: text("email"),
+    phone: text("phone"),
+    phoneE164: text("phone_e164"),
+    cakeFor: text("cake_for"),
+    allergyNote: text("allergy_note"),
+    allergyConsentAt: timestamp("allergy_consent_at", { withTimezone: true }),
+    allergyConsentWording: text("allergy_consent_wording"),
+    termsAcceptedAt: timestamp("terms_accepted_at", { withTimezone: true }),
+    termsRevisionId: integer("terms_revision_id"),
+    cancellationsRevisionId: integer("cancellations_revision_id"),
+    marketingOptIn: boolean("marketing_opt_in").notNull().default(false),
+    marketingWording: text("marketing_wording"),
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
       .defaultNow(),

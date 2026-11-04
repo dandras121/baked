@@ -971,3 +971,106 @@
     min-height: 0;
   }
 }
+
+/* ---- Step 3: your details (§5.3; desktop 639:3270, consent box 1797:13110) ---- */
+.details {
+  display: flex;
+  flex-direction: column;
+  margin-top: 28px;
+}
+
+.detailsColumns {
+  display: flex;
+  flex-direction: column;
+  gap: 36px;
+}
+
+.fields {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.group > .fields {
+  margin-top: 12px;
+}
+
+/* Typed answers in Quicksand, as on step 2 and the cake page. */
+.details input,
+.details textarea {
+  font-family: var(--font-ui);
+}
+
+.allergyBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+/* Each cake's allergens, just above the note (§5.3, the same content as steps 1 and 4). */
+.containsList {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  color: var(--colour-body);
+  font: var(--type-meta);
+  line-height: 20px;
+  list-style: none;
+}
+
+.consent {
+  margin-top: 4px;
+}
+
+.boxes {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 32px;
+  padding-top: 24px;
+  border-top: 1px solid var(--colour-line-rule);
+}
+
+.boxes a {
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.boxesNote {
+  margin: 0;
+  color: var(--colour-meta);
+  font: var(--type-caption-phone);
+  line-height: 16px;
+}
+
+.detailsContinue {
+  align-self: stretch;
+  margin-top: 28px;
+}
+
+@media (min-width: 768px) {
+  .details {
+    margin-top: calc(28 * var(--u));
+  }
+
+  .detailsContinue {
+    align-self: flex-start;
+  }
+
+  .boxesNote {
+    font: var(--type-meta);
+  }
+}
+
+/* Desktop: two columns as drawn (how I reach you · who for, allergens, note); tablet keeps one column. */
+@media (min-width: 1120px) {
+  .detailsColumns {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    column-gap: calc(52 * var(--u));
+  }
+}

@@ -5,12 +5,22 @@ import { redirect } from "next/navigation";
 import { connect, databaseUrl } from "@/db/client";
 import { connectionKey } from "@/db/contact-repo";
 import {
+  acceptDetails,
   DRAFT_COOKIE,
   draftLineViews,
   liveDraft,
   removeLine,
+  saveDetailsText,
   saveHandover,
 } from "@/db/draft-repo";
+import { readLegalRevision } from "@/db/legal-repo";
+import {
+  DETAILS_COPY,
+  mobileE164,
+  validateDetails,
+  type DetailsErrors,
+  type DetailsInput,
+} from "@/lib/details";
 import { extendHold, takeHold } from "@/db/hold-repo";
 import { readSettings } from "@/db/settings-repo";
 import {
@@ -147,4 +157,71 @@ export async function removeFromMyOrder(lineId: number): Promise<MyOrder> {
   } finally {
     await close();
   }
+}
+
+const detailsInput = (form: FormData): DetailsInput => ({
+  name: String(form.get("name") ?? ""),
+  email: String(form.get("email") ?? ""),
+  phone: String(form.get("phone") ?? ""),
+  cakeFor: String(form.get("cakeFor") ?? ""),
+  note: String(form.get("note") ?? ""),
+  consent: form.get("consent") === "1",
+  terms: form.get("terms") === "1",
+  marketing: form.get("marketing") === "1",
+});
+
+/** Step 3's answers saved as typed when a field is left (§5.3): a refresh keeps them. Never checks, never fails loudly. */
+export async function saveDetailsAsTyped(form: FormData): Promise<void> {
+  if (!databaseUrl()) return;
+  const { db, close } = connect();
+  try {
+    const d = await liveDraft(db, (await cookies()).get(DRAFT_COOKIE)?.value);
+    if (d) await saveDetailsText(db, d.id, detailsInput(form));
+  } finally {
+    await close();
+  }
+}
+
+export type DetailsState = {
+  errors: DetailsErrors;
+  /** Something went wrong on the server: “Nothing was saved — please try again.” */
+  failed?: boolean;
+};
+
+/**
+ * Continue to payment (§5.3): every check on the server; the answers are saved either way (nothing is lost), and
+ * only a complete form records the consents and goes on to step 4.
+ */
+export async function continueToPayment(
+  _prev: DetailsState,
+  form: FormData,
+): Promise<DetailsState> {
+  const input = detailsInput(form);
+  const errors = validateDetails(input);
+  if (!databaseUrl()) return { errors, failed: !Object.keys(errors).length };
+  const { db, close } = connect();
+  let ok = false;
+  try {
+    const d = await liveDraft(db, (await cookies()).get(DRAFT_COOKIE)?.value);
+    if (!d) redirect("/cakes");
+    await saveDetailsText(db, d.id, input);
+    if (Object.keys(errors).length) return { errors };
+    const [terms, cancellations] = await Promise.all([
+      readLegalRevision(db, "terms"),
+      readLegalRevision(db, "cancellations"),
+    ]);
+    await acceptDetails(db, d.id, {
+      ...input,
+      phoneE164: mobileE164(input.phone)!,
+      consentWording: DETAILS_COPY.consent,
+      termsRevisionId: terms?.id ?? null,
+      cancellationsRevisionId: cancellations?.id ?? null,
+      marketingWording: DETAILS_COPY.marketing,
+    });
+    ok = true;
+  } finally {
+    await close();
+  }
+  if (ok) redirect("/order/pay");
+  return { errors: {}, failed: true };
 }

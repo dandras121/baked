@@ -1,7 +1,7 @@
 // The checkout draft (SITE-FLOWS §10.2): find it from the cookie, add a cake, list its lines.
 import { and, asc, count, eq, gt, sql } from "drizzle-orm";
 import type { Answers } from "@/lib/cake-config";
-import { linePricePence, tierWords } from "@/lib/cake-config";
+import { allergenLine, linePricePence, tierWords } from "@/lib/cake-config";
 import { MAX_CAKES, lineTitle, optionsLine } from "@/lib/order-line";
 import { readCakePage } from "./cake-page-repo";
 import type { connect } from "./client";
@@ -29,6 +29,8 @@ export type LineView = {
   sizeLine: string;
   /** The inscription as it goes on the cake, “” for none; null when the cake offers none. */
   message: string | null;
+  /** “The Lothian contains gluten (wheat), eggs and milk.” — the cake with its chosen options (§5.3). */
+  contains: string;
 };
 
 /** The live draft for this cookie value, or null (none, unknown, not a draft any more, or 24 hours idle). */
@@ -154,6 +156,10 @@ export async function draftLineViews(
       slug: cake.slug,
       sizeLine: `${tierWords(size.tiers)} · serves ${size.serves}`,
       message: cake.offerInscription ? line.inscription : null,
+      contains: containsLine(
+        cake.name,
+        allergenLine(cake.allergens, cake.options, answers, []),
+      ),
     });
   }
   return views;
@@ -310,3 +316,79 @@ export async function saveHandover(
     })
     .where(eq(drafts.id, draftId));
 }
+
+/** Step 3's answers as typed (§5.3 “saved on blur, so a refresh keeps them”): no checks, no consents. */
+export async function saveDetailsText(
+  db: Db,
+  draftId: string,
+  t: {
+    name: string;
+    email: string;
+    phone: string;
+    cakeFor: string;
+    note: string;
+  },
+): Promise<void> {
+  const keep = (s: string) => (s.trim() ? s.trim() : null);
+  await db
+    .update(drafts)
+    .set({
+      customerName: keep(t.name),
+      email: keep(t.email),
+      phone: keep(t.phone),
+      cakeFor: keep(t.cakeFor),
+      allergyNote: keep(t.note),
+      lastActivityAt: new Date(),
+    })
+    .where(eq(drafts.id, draftId));
+}
+
+/**
+ * Continue on step 3 with everything valid: the answers, the phone in E.164, the allergy consent with its time and
+ * wording (D16; cleared with the note), the terms acceptance with the Terms and Cancellations revisions shown, the
+ * yearly e-mail opt-in with its wording (§5.3, §10.10).
+ */
+export async function acceptDetails(
+  db: Db,
+  draftId: string,
+  d: {
+    name: string;
+    email: string;
+    phone: string;
+    phoneE164: string;
+    cakeFor: string;
+    note: string;
+    consentWording: string;
+    termsRevisionId: number | null;
+    cancellationsRevisionId: number | null;
+    marketing: boolean;
+    marketingWording: string;
+  },
+  now = new Date(),
+): Promise<void> {
+  const note = d.note.trim();
+  await db
+    .update(drafts)
+    .set({
+      customerName: d.name.trim(),
+      email: d.email.trim(),
+      phone: d.phone.trim(),
+      phoneE164: d.phoneE164,
+      cakeFor: d.cakeFor.trim() || null,
+      allergyNote: note || null,
+      allergyConsentAt: note ? now : null,
+      allergyConsentWording: note ? d.consentWording : null,
+      termsAcceptedAt: now,
+      termsRevisionId: d.termsRevisionId,
+      cancellationsRevisionId: d.cancellationsRevisionId,
+      marketingOptIn: d.marketing,
+      marketingWording: d.marketing ? d.marketingWording : null,
+      furthestStep: 4,
+      lastActivityAt: now,
+    })
+    .where(eq(drafts.id, draftId));
+}
+
+/** “Contains gluten …” → “The Lothian contains gluten …” (one line per cake on step 3, §5.3). */
+export const containsLine = (name: string, line: string) =>
+  `${name} ${line.charAt(0).toLowerCase()}${line.slice(1)}`;

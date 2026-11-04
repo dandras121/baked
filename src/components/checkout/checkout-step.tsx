@@ -31,6 +31,9 @@ import { holdMinutes, MAX_EXTENSIONS } from "@/lib/hold";
 import { formatLongDate } from "@/lib/london-time";
 import { formatPrice } from "@/lib/money";
 import type { Settings } from "@/lib/settings";
+import { allergenLabel } from "@/lib/cakes";
+import { detailsDone, kitchenHelper } from "@/lib/details";
+import { DetailsForm } from "./details-form";
 import { HoldLine } from "./hold-line";
 import { WhenCalendar } from "./when-calendar";
 import styles from "./checkout.module.css";
@@ -47,8 +50,7 @@ const BACK: Record<Key, { label: string; href: (cake: string) => string }> = {
 };
 
 /** What a step builds in its own slice (4.1 makes the frame around it). */
-const BUILT_IN: Record<"details" | "pay", string> = {
-  details: "4.3",
+const BUILT_IN: Record<"pay", string> = {
   pay: "4.4",
 };
 
@@ -93,7 +95,7 @@ export async function CheckoutStep({ step }: { step: Key }) {
   const allowed = allowedStep(step, {
     cakes: lines.length,
     whenDone: draft.holdDate !== null && draft.handover !== null,
-    detailsDone: false,
+    detailsDone: detailsDone(draft),
   });
   if (allowed !== step) redirect(stepPath(allowed));
   const now = new Date();
@@ -158,7 +160,24 @@ export async function CheckoutStep({ step }: { step: Key }) {
               chips={ranOutChips(draft.holdDate!, cap)}
             />
           )}
-          {step !== "when" && (
+          {step === "details" && (
+            <DetailsForm
+              initial={{
+                name: draft.customerName ?? "",
+                email: draft.email ?? "",
+                phone: draft.phone ?? "",
+                cakeFor: draft.cakeFor ?? "",
+                note: draft.allergyNote ?? "",
+              }}
+              contains={lines.map((l) => l.contains)}
+              kitchenHelper={kitchenHelper(
+                (settings?.kitchenHandles ?? []).map((a) =>
+                  allergenLabel(a, { allergens: [] }),
+                ),
+              )}
+            />
+          )}
+          {step === "pay" && (
             <p className={styles.stub}>
               This step is built in slice {BUILT_IN[step]}.
             </p>
@@ -175,7 +194,7 @@ export async function CheckoutStep({ step }: { step: Key }) {
             settings?.deliveryChargePence ?? 0,
           )}
           expiresAt={hold ? hold.expiresAt.toISOString() : null}
-          form={step === "when" ? "step-form" : null}
+          form="step-form"
         >
           {summary(true)}
         </SummaryBar>
