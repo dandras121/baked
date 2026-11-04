@@ -44,7 +44,7 @@ const IOS_FOCUS_ZOOM = `try{var n=navigator;if(/iPad|iPhone|iPod/.test(n.userAge
 // The two faces almost every page shows first; the rest load when used.
 const PRELOAD_FONTS = [
   "/fonts/quicksand-latin-wght-normal.woff2",
-  "/fonts/fraunces-latin-full-normal.woff2",
+  "/fonts/fraunces-latin-normal.woff2",
 ];
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

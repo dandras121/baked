@@ -281,7 +281,8 @@ function MediaVideo({
         muted={!unmuted}
         loop
         playsInline
-        preload="metadata"
+        // Nothing is fetched until the video is the one shown (it has a poster meanwhile): pages load faster.
+        preload={active ? "auto" : "none"}
         aria-hidden
         tabIndex={-1}
       />
