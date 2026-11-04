@@ -210,3 +210,11 @@
     display: inline;
   }
 }
+
+/* Large screens: the section is narrower than the screen, so its own edge would cut the soft glow in a hard
+   line; the page clips at the screen edge instead (responsive.css). Bohoka 2026-11-04. */
+@media (min-width: 1281px) {
+  .special {
+    overflow-x: visible;
+  }
+}

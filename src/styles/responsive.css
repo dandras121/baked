@@ -44,6 +44,8 @@
      huge” at full scale). Backgrounds still run edge to edge. */
   .shell {
     --u: calc((1280px + (min(100cqw, 2560px) - 1280px) * 0.5) / 1280);
+    /* Decorations may reach past the content column; the screen edge is where they stop. */
+    overflow-x: clip;
   }
 
   :root {
