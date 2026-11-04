@@ -311,3 +311,56 @@
     right: calc(-56px - 12px);
   }
 }
+
+/* Desktop and a tablet turned to landscape: the photo as tall as the screen allows (Bohoka 2026-11-04: twice
+   as large), the caption box beside it, the dashes under them. */
+@media (min-width: 1120px), (min-width: 768px) and (orientation: landscape) {
+  .stage {
+    padding: 24px 24px 16px;
+  }
+
+  .card {
+    --cap: 320px;
+    --s: min(
+      calc(100dvh - 24px - 16px - 5px - 24px),
+      calc(100vw - 2 * (56px + 24px) - var(--cap) - 16px)
+    );
+    display: grid;
+    grid-template-areas:
+      "photo caption"
+      "under under";
+    grid-template-columns: var(--s) var(--cap);
+    align-items: end;
+    column-gap: 16px;
+    width: auto;
+  }
+
+  .photo {
+    grid-area: photo;
+  }
+
+  .captionBar {
+    grid-area: caption;
+    width: var(--cap);
+    margin-top: 0;
+  }
+
+  .under {
+    grid-area: under;
+    margin-top: 16px;
+  }
+
+  .close {
+    position: fixed;
+    top: 16px;
+    right: 16px;
+  }
+
+  .prev {
+    left: calc(-56px - 16px);
+  }
+
+  .next {
+    right: calc(-56px - 16px);
+  }
+}

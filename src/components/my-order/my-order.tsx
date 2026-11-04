@@ -26,6 +26,10 @@ export function MyOrderButton() {
   const pathname = usePathname();
   const [order, setOrder] = useState<MyOrder>(EMPTY_ORDER);
   const [open, setOpen] = useState(false);
+  // Touch screens (phone and iPad, also in landscape) get the bottom sheet across the whole width (Bohoka 2026-11-04).
+  const [kind, setKind] = useState<"sheet" | undefined>(undefined);
+  // Each new cake replays the violet pop: the button is drawn afresh (Bohoka 2026-11-04).
+  const [seen, setSeen] = useState({ n: 0, pop: 0 });
   const [pending, start] = useTransition();
 
   const load = useCallback(async () => {
@@ -79,6 +83,8 @@ export function MyOrderButton() {
   }, [pathname]);
 
   const n = order.lines.length;
+  if (n !== seen.n)
+    setSeen({ n, pop: seen.n > 0 && n > seen.n ? seen.pop + 1 : seen.pop });
   if (!showsButton(pathname, n) && !open) return null;
 
   const remove = (id: number) =>
@@ -92,12 +98,20 @@ export function MyOrderButton() {
     <>
       {showsButton(pathname, n) && (
         <button
+          key={seen.pop}
           type="button"
           className={styles.button}
           aria-haspopup="dialog"
           data-away={away || undefined}
           data-pressable
-          onClick={() => setOpen(true)}
+          onClick={() => {
+            setKind(
+              window.matchMedia("(pointer: coarse)").matches
+                ? "sheet"
+                : undefined,
+            );
+            setOpen(true);
+          }}
         >
           My order
           {/* The number of cakes for screen readers only; the button itself says just “My order” (Bohoka). */}
@@ -110,6 +124,7 @@ export function MyOrderButton() {
         open={open}
         onClose={() => setOpen(false)}
         title="Your order"
+        kind={kind}
         classNames={{ panel: styles.panel, body: styles.body }}
       >
         <ul className={styles.lines} aria-busy={pending || undefined}>

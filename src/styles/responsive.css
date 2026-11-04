@@ -4,7 +4,9 @@
  *
  * --u is one design pixel in CSS pixels. Use it for horizontal sizes: width: calc(355 * var(--u)).
  *   phone:            design width 402, fluid with the viewport (RESPONSIVE §2)
- *   tablet + desktop: desktop design px; 1024 → × 0.8 (§3.2), other widths fluid (§3.3, §4), capped at 1280
+ *   tablet + desktop: desktop design px; 1024 → × 0.8 (§3.2), other widths fluid (§3.3, §4)
+ *   wider than 1280: the whole 1280 design grows with the screen, type included, up to 2560 (Bohoka 2026-11-04:
+ *   on a large monitor the page sat in a 1280 column in the middle)
  * Type sizes never use --u: they stay fixed per band (tablet formula in tokens.css).
  * cqw needs a size container: .shell (src/components/page-shell). Do not give its descendants
  * container-type: inline-size without naming the unit they should use.
@@ -31,6 +33,19 @@
 @media (min-width: 1120px) {
   .shell {
     --band: desktop;
+  }
+}
+
+/* Large screens: one design pixel grows with the width, and so does the type (tan(atan2()) turns the length ratio
+   into a plain number, which calc() alone cannot yet do in every browser). */
+@media (min-width: 1281px) {
+  .shell {
+    --u: calc(min(100cqw, 2560px) / 1280);
+  }
+
+  :root {
+    --type-scale: tan(atan2(min(100vw, 2560px), 1280px));
+    --header-height: calc(77px * var(--type-scale));
   }
 }
 

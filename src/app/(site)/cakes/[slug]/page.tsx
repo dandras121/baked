@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { CakePage } from "@/components/cake-page/cake-page";
+import { FreshOnVisit } from "@/components/ui/fresh-on-visit";
 import { getCakePage } from "@/db/cake-page-repo";
 import { getVisibleSlugs } from "@/db/home-repo";
 import { getSiteSettings } from "@/db/site-settings";
@@ -33,5 +34,9 @@ export default async function Page({
     getSiteSettings(),
   ]);
   if (!cake) notFound();
-  return <CakePage cake={cake} kitchen={settings?.kitchenHandles ?? []} />;
+  return (
+    <FreshOnVisit>
+      <CakePage cake={cake} kitchen={settings?.kitchenHandles ?? []} />
+    </FreshOnVisit>
+  );
 }

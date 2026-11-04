@@ -118,3 +118,38 @@ test("the phone and tablet menu: the button steps aside while it is open", async
   );
   await expect(myOrder(page)).toBeVisible();
 });
+
+test("each new cake replays the violet pop", async ({ page }) => {
+  await addLothian(page, "One");
+  await expect(myOrder(page)).toHaveAccessibleName(/^My order\s*, 1 cake$/);
+  // Mark the button that shows now, then add a second cake without a full page load.
+  await myOrder(page).evaluate((el) => el.setAttribute("data-first", ""));
+  await page.getByRole("link", { name: "Add another cake" }).click();
+  await expect(page).toHaveURL(/\/cakes$/);
+  await page.locator('a[href="/cakes/the-lothian"]').first().click();
+  await expect(page).toHaveURL(/the-lothian$/);
+  await page.getByRole("textbox", { name: /Inscription/ }).fill("Two");
+  await page.getByRole("button", { name: "Add to your order" }).click();
+  await expect(myOrder(page)).toHaveAccessibleName(/^My order\s*, 2 cakes$/);
+  // Drawn afresh, so its appear animation runs again.
+  await expect(myOrder(page)).not.toHaveAttribute("data-first", "");
+});
+
+test("touch screens: the order opens as a sheet across the whole width (iPad too)", async ({
+  browser,
+}) => {
+  const ctx = await browser.newContext({
+    viewport: { width: 1024, height: 1366 },
+    hasTouch: true,
+    extraHTTPHeaders: { "x-forwarded-for": `10.${Date.now() % 250}.7.7` },
+  });
+  const page = await ctx.newPage();
+  await addLothian(page);
+  await page.goto("/faq");
+  await myOrder(page).tap();
+  const sheet = page.getByRole("dialog", { name: "Your order" });
+  await expect(sheet).toHaveAttribute("data-kind", "sheet");
+  const panel = await sheet.locator("> div").nth(1).boundingBox();
+  expect(Math.round(panel!.width)).toBe(1024);
+  await ctx.close();
+});

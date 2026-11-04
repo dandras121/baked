@@ -79,7 +79,8 @@
   }
 }
 
-.panel {
+/* The dialog (mouse) is 440 wide; the sheet (touch) runs across the whole screen. */
+:global([data-kind="dialog"]) .panel {
   width: min(440px, 100%);
 }
 
