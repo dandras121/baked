@@ -164,3 +164,11 @@ test("axe: the 404 page has no violations", async ({ page }) => {
   await page.goto("/this-does-not-exist");
   expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
 });
+
+test("/order/confirmed without a draft goes to the range, never the 404 page", async ({
+  page,
+}) => {
+  const res = await page.goto("/order/confirmed");
+  await expect(page).toHaveURL(/\/cakes$/);
+  expect(res?.status()).toBe(200);
+});
