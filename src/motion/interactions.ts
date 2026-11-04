@@ -43,8 +43,11 @@ function isDisabled(el: HTMLElement): boolean {
 }
 
 function settle(target: HTMLElement, scale: number) {
-  target.style.transform = Math.abs(scale - 1) < 1e-3 ? "" : `scale(${scale})`;
-  target.style.willChange = "";
+  const resting = Math.abs(scale - 1) < 1e-3;
+  target.style.transform = resting ? "" : `scale(${scale})`;
+  // While grown, the element stays on its own layer; leaving it in between left trails of the grown size on some
+  // desktop GPUs (Bohoka 2026-11-04). Back at its size, it returns to the page and is painted afresh.
+  target.style.willChange = resting ? "" : "transform";
   if (scale > 1) target.setAttribute("data-raised", "");
   else target.removeAttribute("data-raised");
 }
