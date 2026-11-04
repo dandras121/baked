@@ -10,7 +10,11 @@ test.beforeEach(async ({ page }) => {
 });
 
 /** One cake, a held day `monthsAhead` months on, delivery, the details, step 4. */
-async function stepFour(page: Page, monthsAhead = 3) {
+async function stepFour(
+  page: Page,
+  // A later month at random, so tests running side by side (and their holds) rarely meet.
+  monthsAhead = 2 + Math.floor(Math.random() * 9),
+) {
   await page.goto("/cakes/the-lothian");
   await page.getByRole("textbox", { name: /Inscription/ }).fill("Happy 30th");
   await page.getByRole("button", { name: "Add to your order" }).click();
@@ -89,7 +93,7 @@ test("the order, each cake's allergens, the handover line, the total and your de
 test("BEFORE YOU PAY: more than seven days away shows the tiers, the kitchen sentence once; Due today", async ({
   page,
 }) => {
-  await stepFour(page, 3);
+  await stepFour(page);
   const box = page.getByRole("region", { name: "Before you pay" });
   await expect(box).toContainText("14-day right to cancel");
   await expect(box).toContainText(

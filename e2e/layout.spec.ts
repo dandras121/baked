@@ -63,7 +63,7 @@ test("R§3.2 tablet type = max(0.8 × desktop, min(desktop, 14)); fixed at every
   }
 });
 
-test("R§2–4 horizontal sizes: 355 design px = 284 at 1024, fluid between, 355 from 1280", async ({
+test("R§2–4 horizontal sizes: 355 design px = 284 at 1024, fluid between, 355 at 1280; above, half of the extra width (Bohoka 2026-11-04)", async ({
   page,
 }) => {
   const cases: [number, number][] = [
@@ -71,7 +71,8 @@ test("R§2–4 horizontal sizes: 355 design px = 284 at 1024, fluid between, 355
     [1024, 284],
     [1200, 355 * (1200 / 1280)],
     [1280, 355],
-    [1600, 355],
+    // Above 1280 the layout grows by half of the extra width: 1600 → a 1440 composition.
+    [1600, 355 * (1440 / 1280)],
   ];
   for (const [width, expected] of cases) {
     await page.setViewportSize({ width, height: 900 });
@@ -91,15 +92,15 @@ test("R§2–4 horizontal sizes: 355 design px = 284 at 1024, fluid between, 355
   ).toBeCloseTo((274 * 360) / 402, 0);
 });
 
-test("R§4 above 1280 the content stays 1280 and centred, the band runs edge to edge", async ({
+test("R§4 above 1280 the content column takes half of the extra width, centred; the band runs edge to edge (Bohoka 2026-11-04)", async ({
   page,
 }) => {
   await page.setViewportSize({ width: 1600, height: 900 });
   await page.goto("/dev/layout");
   const content = await page.locator("h1").locator("..").boundingBox();
   const band = await page.locator("h1").locator("../..").boundingBox();
-  expect(content!.width).toBe(1280);
-  expect(content!.x).toBe(160);
+  expect(content!.width).toBeCloseTo(1440, 0);
+  expect(content!.x).toBeCloseTo(80, 0);
   expect(band!.width).toBe(1600);
 });
 

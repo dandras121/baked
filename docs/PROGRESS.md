@@ -240,6 +240,7 @@ Branch per phase (`phase-00-foundations`, …), one commit per accepted slice, t
   - Proposals: pause button, keyboard-only focus pause, swipe loop, carousel semantics, photo alt, band top without the cake row.
 
 ## Later (noticed, belongs to another slice)
+- 10.1: the e2e checkout tests leave drafts with 20-minute holds behind; after many runs in a day the local test calendar fills up (3046 drafts on 2026-11-04). A global setup that clears local drafts before a run, or tests on fresh months only.
 
 - /cakes on the phone, Lighthouse performance 86 (the band texture is the largest paint) and best practices 96 (the catalogue card's 11 px flavour line, as drawn) → 10.5; ask Bohoka about the card text size then.
 - The Edit links for a cake in the order (step 4, the phone summary panel, “← Back to the cake” on step 2) and edit mode without JavaScript → 4.1 / 4.4.
