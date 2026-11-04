@@ -336,15 +336,17 @@
     padding-top: calc(76px + env(safe-area-inset-top));
   }
 
+  /* The photo, its caption and the dashes sit at the bottom of the screen, away from the × (Bohoka 2026-11-04). */
   .card {
-    justify-content: center;
-    padding: 0 16px;
+    justify-content: flex-end;
+    padding: 0 16px calc(20px + env(safe-area-inset-bottom));
   }
 
-  /* Short screens: the photo gives way, so the caption, the dashes and the hint stay on screen. */
+  /* As wide as the screen; on short screens it gives way so the caption (up to about 200), the dashes and the
+     hint (about 33) and their gaps stay on screen under it. */
   .photo {
     align-self: center;
-    width: min(100%, calc(100dvh - 76px - env(safe-area-inset-top) - 330px));
+    width: min(100%, calc(100dvh - 76px - env(safe-area-inset-top) - 285px));
     margin-top: 0;
     overflow: hidden;
     border-radius: var(--radius-frame);
@@ -360,7 +362,7 @@
 
   .under {
     order: 2;
-    margin: 16px 0 auto;
+    margin: 16px 0 0;
   }
 }
 
