@@ -35,7 +35,9 @@
   background: var(--colour-white);
   box-shadow: var(--shadow-card);
   border: 0;
-  overflow: auto;
+  /* Never a sideways scrollbar for a control growing on hover (ANIM-07). */
+  overflow-x: hidden;
+  overflow-y: auto;
 }
 
 /* Dialog: centred, 508 wide (tablet × 0.8). */
