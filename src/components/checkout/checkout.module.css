@@ -956,8 +956,9 @@
   }
 }
 
-/* Tablet: three columns were too tight. The calendar and the handover one under the other, the summary beside. */
-@media (min-width: 768px) and (max-width: 1119.98px) {
+/* Tablet and desktop: the calendar, and under it the handover; the summary beside (Bohoka 2026-11-01: three
+   columns were too tight on the tablet; 2026-11-04: the same on the desktop). */
+@media (min-width: 768px) {
   .when {
     grid-template-columns: minmax(0, 1fr);
     row-gap: calc(48 * var(--u));

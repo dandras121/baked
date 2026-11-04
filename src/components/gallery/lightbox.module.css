@@ -381,7 +381,7 @@
   .card {
     --s: min(
       calc(100vw - 2 * (56px + 24px)),
-      calc(100dvh - 20px - 12px - 104px * var(--type-scale) - 16px - 5px - 12px)
+      calc(100dvh - 20px - 12px - 108px * var(--type-scale) - 16px - 22px - 12px)
     );
   }
 }
