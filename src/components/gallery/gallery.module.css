@@ -106,7 +106,7 @@
 
 /* ANIM-17: new tiles rise 12 px and fade in, 240 ms, 40 ms apart (at most 6 staggered). */
 .rise {
-  animation: gallery-rise var(--duration-240) var(--ease-out) both;
+  animation: gallery-rise var(--duration-240) var(--ease-out) backwards;
 }
 
 @keyframes gallery-rise {

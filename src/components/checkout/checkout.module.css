@@ -99,7 +99,10 @@
 }
 
 .main {
-  animation: step-in var(--duration-240) var(--ease-out) var(--duration-120) both;
+  /* backwards, not both: a held finished animation keeps the whole step on its own layer, and Chrome on Windows then
+     left the edges of grown buttons and cards behind (Bohoka 2026-11-04). */
+  animation: step-in var(--duration-240) var(--ease-out) var(--duration-120)
+    backwards;
 }
 
 /* ANIM-18 with a full page load: only the new content's rise runs (8 px, 120–360 ms). */

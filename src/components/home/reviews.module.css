@@ -85,7 +85,7 @@
 
 /* A card that arrives after the page loaded fades in; reduced motion: at once (interaction.css). */
 .fresh {
-  animation: review-in var(--duration-200) var(--ease-out) both;
+  animation: review-in var(--duration-200) var(--ease-out) backwards;
 }
 
 @keyframes review-in {

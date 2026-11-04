@@ -227,7 +227,7 @@
 
 /* ANIM-17: new cards rise 12 px and fade in, 240 ms, 40 ms apart. */
 .rise {
-  animation: catalogue-rise var(--duration-240) var(--ease-out) both;
+  animation: catalogue-rise var(--duration-240) var(--ease-out) backwards;
 }
 
 @keyframes catalogue-rise {
