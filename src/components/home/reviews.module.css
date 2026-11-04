@@ -260,3 +260,10 @@
     display: none;
   }
 }
+
+/* Large screens: the row runs to the screen's edges as at 1280, not to the content column (Bohoka 2026-11-04). */
+@media (min-width: 1281px) {
+  .section {
+    width: 100%;
+  }
+}

@@ -5,8 +5,8 @@
  * --u is one design pixel in CSS pixels. Use it for horizontal sizes: width: calc(355 * var(--u)).
  *   phone:            design width 402, fluid with the viewport (RESPONSIVE §2)
  *   tablet + desktop: desktop design px; 1024 → × 0.8 (§3.2), other widths fluid (§3.3, §4)
- *   wider than 1280: the whole 1280 design grows with the screen, type included, up to 2560 (Bohoka 2026-11-04:
- *   on a large monitor the page sat in a 1280 column in the middle)
+ *   wider than 1280: the layout grows by half and the type by a quarter of the extra width, up to 2560 (Bohoka
+ *   2026-11-04: on a large monitor the page sat in a 1280 column; at full scale it looked too large)
  * Type sizes never use --u: they stay fixed per band (tablet formula in tokens.css).
  * cqw needs a size container: .shell (src/components/page-shell). Do not give its descendants
  * container-type: inline-size without naming the unit they should use.
@@ -39,13 +39,20 @@
 /* Large screens: one design pixel grows with the width, and so does the type (tan(atan2()) turns the length ratio
    into a plain number, which calc() alone cannot yet do in every browser). */
 @media (min-width: 1281px) {
+  /* Gently: of every pixel beyond 1280 the layout takes half and the type a quarter, so a 1920 screen gets a
+     1600 composition with type × 1.125, and 2560 a 1920 composition with type × 1.25 (Bohoka 2026-11-04: “too
+     huge” at full scale). Backgrounds still run edge to edge. */
   .shell {
-    --u: calc(min(100cqw, 2560px) / 1280);
+    --u: calc((1280px + (min(100cqw, 2560px) - 1280px) * 0.5) / 1280);
   }
 
   :root {
-    --type-scale: tan(atan2(min(100vw, 2560px), 1280px));
+    --type-scale: tan(
+      atan2(1280px + (min(100vw, 2560px) - 1280px) * 0.25, 1280px)
+    );
     --header-height: calc(77px * var(--type-scale));
+    /* Header, content and footer share one centred column of the composition's width (1600 on 1920). */
+    --page-max: calc(1280px + (min(100vw, 2560px) - 1280px) * 0.5);
   }
 }
 
