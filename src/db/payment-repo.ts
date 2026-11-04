@@ -60,7 +60,7 @@ export async function ensurePaymentIntent(
 }
 
 export type Prepared =
-  | { kind: "ok"; amountPence: number }
+  | { kind: "ok"; amountPence: number; holdExpiresAt: string }
   | { kind: "changed"; amountPence: number }
   | { kind: "held-out" }
   | { kind: "locked" }
@@ -97,6 +97,9 @@ export async function preparePayment(
     const intent = await gw.retrieve(d.paymentIntentId);
     if (intent.amountPence !== amount) await gw.updateAmount(intent.id, amount);
     const keepUntil = new Date(now.getTime() + LOCK_MS);
+    const held = new Date(
+      Math.max(keepUntil.getTime(), d.holdExpiresAt?.getTime() ?? 0),
+    );
     await tx
       .update(drafts)
       .set({
@@ -120,7 +123,11 @@ export async function preparePayment(
         lastActivityAt: now,
       })
       .where(eq(drafts.id, draftId));
-    return { kind: "ok", amountPence: amount };
+    return {
+      kind: "ok",
+      amountPence: amount,
+      holdExpiresAt: held.toISOString(),
+    };
   });
 }
 

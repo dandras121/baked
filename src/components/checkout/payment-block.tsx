@@ -124,7 +124,7 @@ export type PayContext = {
 
 type Outcome =
   | null
-  | { kind: "declined"; bank: string | null }
+  | { kind: "declined" }
   | { kind: "not-confirmed" }
   | { kind: "message"; text: string };
 
@@ -164,8 +164,10 @@ function PayForm({
     googlePay?: boolean;
   } | null>(null);
   const [loadFailed, setLoadFailed] = useState(false);
-  const left = useHoldLeft(context.holdExpiresAt);
-  const heldOut = !context.holdExpiresAt || left <= 0;
+  // Pay keeps the hold for at least 15 more minutes (§5.5 prepare): the notices count from that.
+  const [keptUntil, setKeptUntil] = useState<string | null>(null);
+  const left = useHoldLeft(keptUntil ?? context.holdExpiresAt);
+  const heldOut = !(keptUntil ?? context.holdExpiresAt) || left <= 0;
   const stopped = heldOut || context.pausedHere;
   const returnUrl = useMemo(
     () =>
@@ -178,7 +180,10 @@ function PayForm({
   /** prepare on the server first (§5.5); anything but ok stops here, nothing charged. */
   async function prepare(): Promise<boolean> {
     const p = await prepareToPay(totalPence);
-    if (p.kind === "ok") return true;
+    if (p.kind === "ok") {
+      setKeptUntil(p.holdExpiresAt);
+      return true;
+    }
     if (p.kind === "changed")
       setOutcome({
         kind: "message",
@@ -202,8 +207,7 @@ function PayForm({
     await paymentDidNotGoThrough();
     if (error && isAuthenticationFailure(error.code))
       setOutcome({ kind: "not-confirmed" });
-    else if (error?.type === "card_error")
-      setOutcome({ kind: "declined", bank: error.message ?? null });
+    else if (error?.type === "card_error") setOutcome({ kind: "declined" });
     else
       setOutcome({ kind: "message", text: error?.message ?? PAY_COPY.failed });
     return false;
@@ -240,9 +244,6 @@ function PayForm({
     <div className={styles.payBlock}>
       {outcome?.kind === "declined" && (
         <Notice tone="error" title={OUTCOME_COPY.declinedTitle} urgent>
-          {outcome.bank && (
-            <p className={styles.payNoticeLine}>{outcome.bank}</p>
-          )}
           <p className={styles.payNoticeLine}>
             {OUTCOME_COPY.declinedText(context.dateLabel, left, wallet)}
           </p>
