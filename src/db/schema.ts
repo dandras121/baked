@@ -509,6 +509,12 @@ export const drafts = pgTable(
     cancellationsRevisionId: integer("cancellations_revision_id"),
     marketingOptIn: boolean("marketing_opt_in").notNull().default(false),
     marketingWording: text("marketing_wording"),
+    /** Paying (§5.5): the one PaymentIntent of this draft, the snapshot taken at Pay with its amount, and when the
+     *  draft was locked for paying (status `pending`). */
+    paymentIntentId: text("payment_intent_id"),
+    snapshot: jsonb("snapshot"),
+    snapshotAmountPence: integer("snapshot_amount_pence"),
+    lockedAt: timestamp("locked_at", { withTimezone: true }),
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
       .defaultNow(),

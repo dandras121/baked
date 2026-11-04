@@ -1229,3 +1229,39 @@
     box-shadow: 0 1px 0 var(--colour-line-rule);
   }
 }
+
+/* ---- Step 4: the payment block (983:9092) ---- */
+.payBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-top: 24px;
+}
+
+.payDivider {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  margin: 0;
+  color: var(--colour-meta);
+  font: var(--type-meta);
+}
+
+.payDivider::before,
+.payDivider::after {
+  flex: 1;
+  height: 1px;
+  background: var(--colour-line-rule);
+  content: "";
+}
+
+.payMessage {
+  margin: 0;
+  color: var(--colour-error);
+  font: var(--type-meta);
+  line-height: 20px;
+}
+
+.payButton {
+  margin-top: 4px;
+}

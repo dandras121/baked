@@ -4,6 +4,7 @@ import type { LineView } from "@/db/draft-repo";
 import { formatPrice } from "@/lib/money";
 import { NOTHING_FURTHER } from "@/lib/review";
 import styles from "./checkout.module.css";
+import { PaymentBlock } from "./payment-block";
 
 /**
  * Step 4 — One last look (§5.4; desktop 641:3382, Your details 1797:13126, phone 834:…). Left: the cakes with
@@ -16,6 +17,7 @@ export function ReviewStep({
   totalPence,
   details,
   beforeYouPay,
+  payment,
 }: {
   lines: LineView[];
   handover: { label: string; value: string };
@@ -28,6 +30,8 @@ export function ReviewStep({
     address: [string, string] | null;
   };
   beforeYouPay: string[];
+  /** The PaymentIntent's client secret and the publishable key; null / “” while payments are not switched on. */
+  payment: { clientSecret: string | null; publishableKey: string };
 }) {
   return (
     <div className={styles.review}>
@@ -133,9 +137,12 @@ export function ReviewStep({
         <p className={styles.dueLabel}>Due today</p>
         <p className={styles.dueAmount}>{formatPrice(totalPence)}</p>
         <p className={styles.reviewNote}>{NOTHING_FURTHER}</p>
-        <p className={styles.stub}>
-          The card and Apple Pay / Google Pay payment arrives in slice 4.4b.
-        </p>
+        <PaymentBlock
+          clientSecret={payment.clientSecret}
+          publishableKey={payment.publishableKey}
+          totalPence={totalPence}
+          billingName={details.name}
+        />
         <p className={styles.reviewNote}>
           Card payments are handled by Stripe. I never see your card number.
         </p>

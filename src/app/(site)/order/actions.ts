@@ -14,6 +14,8 @@ import {
   saveHandover,
 } from "@/db/draft-repo";
 import { readLegalRevision } from "@/db/legal-repo";
+import { preparePayment, unlockDraft, type Prepared } from "@/db/payment-repo";
+import { gateway } from "@/lib/payments";
 import {
   DETAILS_COPY,
   mobileE164,
@@ -224,4 +226,36 @@ export async function continueToPayment(
   }
   if (ok) redirect("/order/pay");
   return { errors: {}, failed: true };
+}
+
+async function draftIdOrNull(): Promise<string | null> {
+  return (await cookies()).get(DRAFT_COOKIE)?.value ?? null;
+}
+
+/**
+ * Pressing Pay (§5.5 prepare): checks the hold and the amount the customer saw, then locks the draft for paying.
+ * Only after `ok` does the page ask Stripe to confirm the payment.
+ */
+export async function prepareToPay(shownPence: number): Promise<Prepared> {
+  const gw = gateway();
+  const id = await draftIdOrNull();
+  if (!gw || !id || !databaseUrl()) return { kind: "gone" };
+  const { db, close } = connect();
+  try {
+    return await preparePayment(db, id, shownPence, gw);
+  } finally {
+    await close();
+  }
+}
+
+/** The payment did not go through (declined, cancelled): the draft opens again, the same PaymentIntent (§5.5). */
+export async function paymentDidNotGoThrough(): Promise<void> {
+  const id = await draftIdOrNull();
+  if (!id || !databaseUrl()) return;
+  const { db, close } = connect();
+  try {
+    await unlockDraft(db, id);
+  } finally {
+    await close();
+  }
 }

@@ -124,3 +124,33 @@ test("axe: step 4; screenshots", async ({ page }, testInfo) => {
     fullPage: true,
   });
 });
+
+test("4.4b: one PaymentIntent per draft, the same after a reload; without keys Pay is off and says so", async ({
+  page,
+}) => {
+  await stepFour(page);
+  const id = (await page.context().cookies()).find(
+    (c) => c.name === "bbl_session",
+  )!.value;
+  const piOf = async () => {
+    process.loadEnvFile?.(".env.local");
+    const { connect } = await import("../src/db/client");
+    const { drafts } = await import("../src/db/schema");
+    const { eq } = await import("drizzle-orm");
+    const { db, close } = connect();
+    try {
+      return (await db.select().from(drafts).where(eq(drafts.id, id)))[0]
+        .paymentIntentId;
+    } finally {
+      await close();
+    }
+  };
+  const first = await piOf();
+  expect(first).toMatch(/^pi_/);
+  await page.reload();
+  expect(await piOf()).toBe(first);
+  await expect(
+    page.getByText(/Payments are not switched on yet/),
+  ).toBeVisible();
+  await expect(page.getByRole("button", { name: /^Pay £185$/ })).toBeDisabled();
+});

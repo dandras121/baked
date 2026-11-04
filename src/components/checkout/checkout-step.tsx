@@ -34,6 +34,8 @@ import type { Settings } from "@/lib/settings";
 import { allergenLabel } from "@/lib/cakes";
 import { detailsDone, kitchenHelper } from "@/lib/details";
 import { beforeYouPay, reviewHandoverLine } from "@/lib/review";
+import { ensurePaymentIntent } from "@/db/payment-repo";
+import { gateway, PUBLISHABLE_KEY } from "@/lib/payments";
 import { DetailsForm } from "./details-form";
 import { ReviewStep } from "./review-step";
 import { HoldLine } from "./hold-line";
@@ -109,6 +111,11 @@ export async function CheckoutStep({ step }: { step: Key }) {
   const handover = draft.handover
     ? handoverRow(draft.handover as Handover, draft.deliveryWindow, charge)
     : null;
+  // Step 4 creates (once) or updates the draft's PaymentIntent (§5.5); none while payments are switched off.
+  const payment =
+    step === "pay"
+      ? await paymentFor(draft.id)
+      : { clientSecret: null, publishableKey: "" };
   const summary = (panel: boolean) => (
     <OrderSummary
       lines={lines}
@@ -178,6 +185,7 @@ export async function CheckoutStep({ step }: { step: Key }) {
           )}
           {step === "pay" && (
             <ReviewStep
+              payment={payment}
               lines={lines}
               handover={reviewHandoverLine({
                 handover: (draft.handover ?? "collection") as Handover,
@@ -228,6 +236,23 @@ export async function CheckoutStep({ step }: { step: Key }) {
       )}
     </div>
   );
+}
+
+async function paymentFor(
+  draftId: string,
+): Promise<{ clientSecret: string | null; publishableKey: string }> {
+  const gw = gateway();
+  if (!gw || !databaseUrl()) return { clientSecret: null, publishableKey: "" };
+  const { db, close } = connect();
+  try {
+    const intent = await ensurePaymentIntent(db, draftId, gw);
+    return {
+      clientSecret: intent.clientSecret,
+      publishableKey: PUBLISHABLE_KEY(),
+    };
+  } finally {
+    await close();
+  }
 }
 
 /** “There is nothing in your order” (1096:9106 · C): the last cake was removed. */

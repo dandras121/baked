@@ -42,7 +42,11 @@ async function draftOf(request: NextRequest) {
 
 export async function proxy(request: NextRequest) {
   // A checkout step opened without a draft goes to the range (§10.2 Opening a step directly).
-  if (request.nextUrl.pathname.startsWith("/order/")) {
+  // /order/confirmed shows a draft that is being paid or paid; the page reads it itself (§5.6).
+  if (
+    request.nextUrl.pathname.startsWith("/order/") &&
+    request.nextUrl.pathname !== "/order/confirmed"
+  ) {
     const status = await draftOf(request);
     if (status === "live") return NextResponse.next();
     // A cleared draft: /cakes says so (“Your order was cleared after a day without changes.”).

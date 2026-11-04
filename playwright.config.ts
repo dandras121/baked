@@ -73,6 +73,7 @@ export default defineConfig({
     reuseExistingServer: !process.env.CI,
     timeout: 240_000,
     // The hero's development-only placeholder slides, so the slider can be tested (slice 2.1).
-    env: { BBL_HERO_PLACEHOLDERS: "1" },
+    // Payments: the in-memory fake gateway (src/lib/payments.ts), so step 4 makes its PaymentIntent without Stripe keys.
+    env: { BBL_HERO_PLACEHOLDERS: "1", BBL_PAYMENTS: "fake" },
   },
 });

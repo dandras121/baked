@@ -85,6 +85,13 @@
       "when": 1793773254663,
       "tag": "0011_your_details",
       "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1793784033607,
+      "tag": "0012_paying",
+      "breakpoints": true
     }
   ]
 }
