@@ -54,12 +54,13 @@
   margin-top: calc(38.2 * var(--u));
 }
 
-/* The cards' white glow needs a little room inside the scroller. */
+/* The cards' white glow (9.6 px) and their hover growth need room inside the scroller; it never shrinks below 14 px
+   on narrow tablets, where 12 u cut the glow. */
 .track {
   display: flex;
   gap: calc(18 * var(--u));
-  margin: calc(-12 * var(--u)) 0;
-  padding: calc(12 * var(--u)) calc(14 * var(--u));
+  margin: calc(-1 * max(12 * var(--u), 14px)) 0;
+  padding: max(12 * var(--u), 14px) calc(14 * var(--u));
   overflow-x: auto;
   scroll-padding-inline: calc(14 * var(--u));
   scroll-snap-type: x mandatory;

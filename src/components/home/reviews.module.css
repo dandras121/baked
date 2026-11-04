@@ -42,8 +42,10 @@
   --card-w: calc(288 * var(--u));
   display: flex;
   gap: calc(12 * var(--u));
-  margin: 0;
-  padding: 16px calc(50% - var(--card-w) / 2) 44px;
+  /* Room for the card shadow (14 px down, 34 px blur) and the 10 % hover growth (ANIM-07): a scrolling row clips
+     both. The negative margins keep the drawn places (Bohoka 2026-11-04: “the shadow is cut, mostly on hover”). */
+  margin: -20px 0 -20px;
+  padding: 36px calc(50% - var(--card-w) / 2) 64px;
   overflow-x: auto;
   scroll-snap-type: x mandatory;
   scrollbar-width: none;
@@ -142,6 +144,8 @@
 }
 
 .controls {
+  position: relative;
+  z-index: 2; /* above the row's shadow room */
   display: flex;
   align-items: center;
   justify-content: center;
@@ -217,9 +221,8 @@
   .track {
     --card-w: calc(327 * var(--u));
     gap: calc(32 * var(--u));
-    /* Room for a card growing 10 % on hover (ANIM-07); the -6 px keeps the drawn place. */
-    margin-top: -6px;
-    padding-top: 16px;
+    /* As above; the extra -6 px keeps the drawn place on desktop. */
+    margin-top: -26px;
   }
 
   .card {

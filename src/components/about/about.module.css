@@ -93,8 +93,9 @@
 .cards {
   display: flex;
   gap: 12px;
-  margin: 0;
-  padding: 0 calc(16.5 * var(--u));
+  /* Room for a card growing on press (ANIM-07): the scrolling row clips it; the negative margins keep the drawn place. */
+  margin: -10px 0;
+  padding: 10px calc(16.5 * var(--u));
   overflow-x: auto;
   scroll-snap-type: x mandatory;
   scroll-padding-inline: calc(16.5 * var(--u));
@@ -232,6 +233,7 @@
     display: grid;
     grid-template-columns: calc(476 * var(--u)) calc(393 * var(--u)) 1fr;
     gap: 0;
+    margin: 0;
     padding: 0 0 0 calc(36 * var(--u));
     overflow: visible;
   }
