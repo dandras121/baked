@@ -346,7 +346,9 @@
      hint (about 33) and their gaps stay on screen under it. */
   .photo {
     align-self: center;
-    width: min(100%, calc(100dvh - 76px - env(safe-area-inset-top) - 285px));
+    /* Under it: 12 + the caption (about 161; 198 when a long name wraps on a narrow phone) + 16 + the dashes and
+       the hint (33) + 20. */
+    width: min(100%, calc(100dvh - 76px - env(safe-area-inset-top) - 245px));
     margin-top: 0;
     overflow: hidden;
     border-radius: var(--radius-frame);
@@ -386,5 +388,12 @@
       /* Room for a name on two lines beside the button (a narrower photo wraps it). */
       calc(100dvh - 20px - 12px - 150px * var(--type-scale) - 16px - 22px - 12px)
     );
+  }
+}
+
+/* Narrow phones (under 390): a long cake name wraps, so the caption is taller. */
+@media (max-width: 389.98px) {
+  .photo {
+    width: min(100%, calc(100dvh - 76px - env(safe-area-inset-top) - 285px));
   }
 }
