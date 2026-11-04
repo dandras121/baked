@@ -155,3 +155,6 @@ Bohoka’s decision is added when he gives it (“jó” = keep, “ne legyen”
 | 4.3 | §5.3 Allergen lines | The cake page's allergen sentence without the kitchen part, the cake's name first: “The Lothian contains gluten (wheat), eggs and milk.” | `src/db/draft-repo.ts` | Waiting for Bohoka |
 | 4.3 | §5.3 Saved on blur | Name, e-mail, phone, who for and the note are saved as typed when a field is left; the boxes and consents only on a complete Continue | `src/app/(site)/order/actions.ts` | Waiting for Bohoka |
 | 4.3 | §10.8 Messages | A message goes as soon as its field is changed; the next Continue shows what is still wrong | `src/components/checkout/details-form.tsx` | Waiting for Bohoka |
+| 4.4a | §5.4 BEFORE YOU PAY order | 14-day exclusion · tiers (or the half-refund line, or “go through me”) · changes until D-2 · earliest-date line (only with the tiers) · you pay in full today · the kitchen sentence | `src/lib/review.ts` | Waiting for Bohoka |
+| 4.4a | §5.4 Line Edit on step 4 | The cake in edit mode; Save returns to step 4 | `src/components/checkout/review-step.tsx` | Waiting for Bohoka |
+| 4.4a | §5.4 Picture slot | Each cake line has a 64 × 80 picture slot (empty until photos arrive) | `src/components/checkout/review-step.tsx` | Waiting for Bohoka |

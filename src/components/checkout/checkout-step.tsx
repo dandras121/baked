@@ -33,7 +33,9 @@ import { formatPrice } from "@/lib/money";
 import type { Settings } from "@/lib/settings";
 import { allergenLabel } from "@/lib/cakes";
 import { detailsDone, kitchenHelper } from "@/lib/details";
+import { beforeYouPay, reviewHandoverLine } from "@/lib/review";
 import { DetailsForm } from "./details-form";
+import { ReviewStep } from "./review-step";
 import { HoldLine } from "./hold-line";
 import { WhenCalendar } from "./when-calendar";
 import styles from "./checkout.module.css";
@@ -50,9 +52,6 @@ const BACK: Record<Key, { label: string; href: (cake: string) => string }> = {
 };
 
 /** What a step builds in its own slice (4.1 makes the frame around it). */
-const BUILT_IN: Record<"pay", string> = {
-  pay: "4.4",
-};
 
 type Draft = NonNullable<Awaited<ReturnType<typeof liveDraft>>>;
 
@@ -132,7 +131,7 @@ export async function CheckoutStep({ step }: { step: Key }) {
           {STEP_TITLES[step]}
         </h1>
       </div>
-      <div className={styles.body}>
+      <div className={styles.body} data-step={step}>
         <div className={styles.main} data-step-body>
           <Link href={BACK[step].href(cakeHref)} className={styles.back}>
             {BACK[step].label}
@@ -178,9 +177,37 @@ export async function CheckoutStep({ step }: { step: Key }) {
             />
           )}
           {step === "pay" && (
-            <p className={styles.stub}>
-              This step is built in slice {BUILT_IN[step]}.
-            </p>
+            <ReviewStep
+              lines={lines}
+              handover={reviewHandoverLine({
+                handover: (draft.handover ?? "collection") as Handover,
+                window: draft.deliveryWindow,
+                dateLabel: long(draft.holdDate!),
+                chargePence: charge,
+              })}
+              totalPence={orderTotal(lines, charge)}
+              details={{
+                name: draft.customerName ?? "",
+                email: draft.email ?? "",
+                phone: draft.phone ?? "",
+                address:
+                  draft.handover === "delivery"
+                    ? [
+                        draft.address ?? "",
+                        `${draft.town ?? ""} ${draft.postcode ?? ""}`.trim(),
+                      ]
+                    : null,
+              }}
+              beforeYouPay={beforeYouPay({
+                // At checkout the earliest date the order has had is the chosen one (§10.1).
+                earliest: draft.holdDate!,
+                date: draft.holdDate!,
+                today: cap.today,
+                kitchenOthers: (settings?.kitchenHandles ?? [])
+                  .filter((a) => !lines.some((l) => l.allergenKeys.includes(a)))
+                  .map((a) => allergenLabel(a, { allergens: [] })),
+              })}
+            />
           )}
         </div>
         {step !== "pay" && summary(false)}

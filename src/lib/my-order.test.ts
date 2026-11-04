@@ -12,6 +12,8 @@ const line = (id: number, pricePence: number): LineView => ({
   sizeLine: "Two tiers · serves 24",
   message: "Happy 30th",
   contains: "The Lothian contains gluten (wheat), eggs and milk.",
+  allergenText: "Contains gluten (wheat), eggs and milk.",
+  allergenKeys: ["cereals containing gluten", "eggs", "milk"],
 });
 
 describe("slice 4.2c My order", () => {

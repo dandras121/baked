@@ -1,7 +1,13 @@
 // The checkout draft (SITE-FLOWS §10.2): find it from the cookie, add a cake, list its lines.
 import { and, asc, count, eq, gt, sql } from "drizzle-orm";
 import type { Answers } from "@/lib/cake-config";
-import { allergenLine, linePricePence, tierWords } from "@/lib/cake-config";
+import {
+  allergenLine,
+  lineAllergens,
+  linePricePence,
+  tierWords,
+} from "@/lib/cake-config";
+import type { Allergen } from "@/lib/constants";
 import { MAX_CAKES, lineTitle, optionsLine } from "@/lib/order-line";
 import { readCakePage } from "./cake-page-repo";
 import type { connect } from "./client";
@@ -31,6 +37,10 @@ export type LineView = {
   message: string | null;
   /** “The Lothian contains gluten (wheat), eggs and milk.” — the cake with its chosen options (§5.3). */
   contains: string;
+  /** “Contains gluten (wheat), eggs and milk.” — the same sentence without the name (step 4, §5.4). */
+  allergenText: string;
+  /** The 14-allergen keys of this cake with its options (for the kitchen sentence, §5.4). */
+  allergenKeys: Allergen[];
 };
 
 /** The live draft for this cookie value, or null (none, unknown, not a draft any more, or 24 hours idle). */
@@ -160,6 +170,9 @@ export async function draftLineViews(
         cake.name,
         allergenLine(cake.allergens, cake.options, answers, []),
       ),
+      allergenText: allergenLine(cake.allergens, cake.options, answers, []),
+      allergenKeys: lineAllergens(cake.allergens, cake.options, answers)
+        .allergens as Allergen[],
     });
   }
   return views;
