@@ -206,3 +206,56 @@ test("4.5a: a draft being paid in another tab — the notice on every step, the 
     page.getByRole("textbox", { name: "Your name", exact: true }),
   ).toBeEnabled();
 });
+
+test("4.5b: /order/confirmed waits for Stripe's confirmation and shows it without a reload; back to a step → the confirmation", async ({
+  page,
+}) => {
+  test.setTimeout(90_000);
+  await stepFour(page);
+  const id = (await page.context().cookies()).find(
+    (c) => c.name === "bbl_session",
+  )!.value;
+  const setStatus = async (status: "pending" | "confirmed") => {
+    process.loadEnvFile?.(".env.local");
+    const { connect } = await import("../src/db/client");
+    const { drafts } = await import("../src/db/schema");
+    const { eq } = await import("drizzle-orm");
+    const { db, close } = connect();
+    try {
+      await db
+        .update(drafts)
+        .set(
+          status === "pending"
+            ? { status, lockedAt: new Date() }
+            : { status, confirmedAt: new Date(), lockedAt: null },
+        )
+        .where(eq(drafts.id, id));
+    } finally {
+      await close();
+    }
+  };
+  // Paid, the confirmation not here yet (the fake PaymentIntent is still under way, inside the lock).
+  await setStatus("pending");
+  await page.goto("/order/confirmed");
+  await expect(
+    page.getByRole("heading", { name: "Confirming your order…" }),
+  ).toBeVisible();
+  // After 10 seconds: “Still processing”.
+  await expect(
+    page.getByRole("heading", {
+      name: "Payment received — confirming your order",
+    }),
+  ).toBeVisible({ timeout: 15_000 });
+  await expect(page.getByText(/This page updates itself/)).toBeVisible();
+  // Stripe's confirmation arrives: the page swaps by itself.
+  const url = page.url();
+  await setStatus("confirmed");
+  await expect(
+    page.getByRole("heading", { name: "Thank you, Mairi." }),
+  ).toBeVisible({
+    timeout: 15_000,
+  });
+  expect(page.url()).toBe(url);
+  await page.goto("/order/pay");
+  await expect(page).toHaveURL(/\/order\/confirmed$/);
+});

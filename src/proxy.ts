@@ -48,6 +48,9 @@ export async function proxy(request: NextRequest) {
   if (request.nextUrl.pathname.startsWith("/order/")) {
     const status = await draftOf(request);
     if (status === "live") return NextResponse.next();
+    // Back to a step after paying: the confirmation (§5.6).
+    if (status === "paid")
+      return NextResponse.redirect(new URL("/order/confirmed", request.url));
     // A cleared draft: /cakes says so (“Your order was cleared after a day without changes.”).
     const to = new URL("/cakes", request.url);
     if (status === "cleared") to.searchParams.set("cleared", "1");

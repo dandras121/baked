@@ -34,6 +34,7 @@ import type { Settings } from "@/lib/settings";
 import { allergenLabel } from "@/lib/cakes";
 import { detailsDone, kitchenHelper } from "@/lib/details";
 import { beforeYouPay, reviewHandoverLine } from "@/lib/review";
+import { confirmationState } from "@/db/confirm-repo";
 import {
   ensurePaymentIntent,
   settleLock,
@@ -64,7 +65,7 @@ const BACK: Record<Key, { label: string; href: (cake: string) => string }> = {
 
 type Draft = NonNullable<Awaited<ReturnType<typeof liveDraft>>>;
 
-async function readDraft(): Promise<{
+async function readDraft(): Promise<"confirmed" | {
   draft: Draft;
   lines: LineView[];
   cap: CapacityInput;
@@ -77,7 +78,12 @@ async function readDraft(): Promise<{
   const { db, close } = connect();
   try {
     const found = await liveDraft(db, id, new Date(), true);
-    if (!found) return null;
+    if (!found) {
+      // Back to a step after paying: the confirmation (§5.6).
+      if ((await confirmationState(db, id, null)) === "confirmed")
+        return "confirmed";
+      return null;
+    }
     // A draft being paid (§5.5): the PaymentIntent decides what this visit shows.
     const gw = gateway();
     const lock: LockState =
@@ -109,6 +115,7 @@ async function readDraft(): Promise<{
  */
 export async function CheckoutStep({ step }: { step: Key }) {
   const found = await readDraft();
+  if (found === "confirmed") redirect("/order/confirmed");
   if (!found) redirect("/cakes");
   const { draft, lines, cap, lock } = found;
   // Paid (or the bank is still processing it): the confirmation page (§5.5 Refresh / reopen while paying).

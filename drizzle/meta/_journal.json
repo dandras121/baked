@@ -92,6 +92,13 @@
       "when": 1793784033607,
       "tag": "0012_paying",
       "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1793828746102,
+      "tag": "0013_confirming",
+      "breakpoints": true
     }
   ]
 }

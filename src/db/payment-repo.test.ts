@@ -1,7 +1,6 @@
 import { eq } from "drizzle-orm";
 import { migrate } from "drizzle-orm/postgres-js/migrator";
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
-import type { Gateway, Intent } from "@/lib/payments";
 import { readCakePage } from "./cake-page-repo";
 import { ensureSampleCatalogue } from "./cake-repo";
 import { connect } from "./client";
@@ -15,39 +14,10 @@ import {
   unlockDraft,
 } from "./payment-repo";
 import { drafts, settings } from "./schema";
+import { countingGateway } from "./test-gateway";
 
 const url = process.env.TEST_DATABASE_URL;
 process.env.BBL_HOLD_MINUTES = "20";
-
-/** A counting fake: what Stripe would be asked. */
-function countingGateway() {
-  const intents = new Map<string, Intent>();
-  const calls = { create: 0, update: 0 };
-  const gw: Gateway = {
-    async create(draftId, amountPence) {
-      calls.create++;
-      const id = `pi_${draftId.slice(0, 8)}`;
-      if (!intents.has(id))
-        intents.set(id, {
-          id,
-          clientSecret: `${id}_s`,
-          amountPence,
-          status: "requires_payment_method",
-        });
-      return intents.get(id)!;
-    },
-    async retrieve(id) {
-      return intents.get(id)!;
-    },
-    async updateAmount(id, amountPence) {
-      calls.update++;
-      const i = { ...intents.get(id)!, amountPence };
-      intents.set(id, i);
-      return i;
-    },
-  };
-  return { gw, calls, intents };
-}
 
 describe.skipIf(!url)("database: paying for a draft (§5.5)", () => {
   const conn = url ? connect(url) : null;

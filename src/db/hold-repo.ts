@@ -1,6 +1,18 @@
 // The date hold and capacity counts (SITE-FLOWS §10.3, §10.4). Taking or renewing a hold re-checks the caps under
 // one lock, so two buyers can never both take the last slot.
-import { and, count, eq, gt, gte, isNotNull, lte, ne, sql } from "drizzle-orm";
+import {
+  and,
+  count,
+  eq,
+  gt,
+  gte,
+  inArray,
+  isNotNull,
+  lte,
+  ne,
+  or,
+  sql,
+} from "drizzle-orm";
 import { canHold, nearestDates, type CapacityInput } from "@/lib/capacity";
 import { holdMinutes, MAX_CONNECTION_HOLDS, MAX_EXTENSIONS } from "@/lib/hold";
 import { addDays, londonDate, type CalendarDate } from "@/lib/london-time";
@@ -35,7 +47,7 @@ export function liveHold(
   };
 }
 
-/** Cakes in other customers' live holds per day (§10.4 What counts). Orders join the count with 4.6. */
+/** Cakes in other customers' live holds and confirmed orders per day (§10.4 What counts). */
 async function otherHoldCounts(
   db: Db | Tx,
   from: CalendarDate,
@@ -49,9 +61,15 @@ async function otherHoldCounts(
     .innerJoin(draftLines, eq(draftLines.draftId, drafts.id))
     .where(
       and(
-        eq(drafts.status, "draft"),
         isNotNull(drafts.holdDate),
-        gt(drafts.holdExpiresAt, now),
+        // A live hold (also while it is being paid), or a confirmed order, which keeps its day for good.
+        or(
+          and(
+            inArray(drafts.status, ["draft", "pending"]),
+            gt(drafts.holdExpiresAt, now),
+          ),
+          eq(drafts.status, "confirmed"),
+        ),
         gte(drafts.holdDate, from),
         lte(drafts.holdDate, to),
         exceptDraft ? ne(drafts.id, exceptDraft) : undefined,

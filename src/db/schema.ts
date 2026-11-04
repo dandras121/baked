@@ -515,6 +515,9 @@ export const drafts = pgTable(
     snapshot: jsonb("snapshot"),
     snapshotAmountPence: integer("snapshot_amount_pence"),
     lockedAt: timestamp("locked_at", { withTimezone: true }),
+    /** Confirmed (§10.6): only by Stripe — the `payment_intent.succeeded` webhook or the reconciliation job (§12). */
+    confirmedAt: timestamp("confirmed_at", { withTimezone: true }),
+    amountReceivedPence: integer("amount_received_pence"),
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
       .defaultNow(),
@@ -570,5 +573,30 @@ export const draftLines = pgTable(
   (t) => [
     check("line_inscription_length", sql`char_length(${t.inscription}) <= 48`),
     index("line_draft").on(t.draftId, t.position),
+  ],
+);
+
+/**
+ * “Check this payment” and the other payment flags for Linda (§8.3, §12 reconciliation). Logged here until the
+ * e-mails of phase 5 and the admin of phase 7 show them; one per kind and PaymentIntent, so a replay adds nothing.
+ */
+export const paymentAlerts = pgTable(
+  "payment_alerts",
+  {
+    id: serial("id").primaryKey(),
+    kind: text("kind").notNull(),
+    paymentIntentId: text("payment_intent_id").notNull(),
+    draftId: uuid("draft_id"),
+    detail: text("detail").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [
+    check(
+      "payment_alert_kind",
+      sql`${t.kind} in ('check-payment', 'no-order', 'booked-after-hold')`,
+    ),
+    uniqueIndex("payment_alert_once").on(t.kind, t.paymentIntentId),
   ],
 );

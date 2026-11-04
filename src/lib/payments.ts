@@ -6,6 +6,12 @@ export type Intent = {
   clientSecret: string;
   amountPence: number;
   status: string;
+  /** What Stripe took (0 until it succeeded). */
+  amountReceivedPence: number;
+  /** `metadata.kind` (§10.6): only `checkout` confirms an order. */
+  kind: string | null;
+  /** `metadata.draft_id`: the draft this PaymentIntent pays for. */
+  draftId: string | null;
 };
 
 export type Gateway = {
@@ -13,6 +19,8 @@ export type Gateway = {
   create(draftId: string, amountPence: number): Promise<Intent>;
   retrieve(id: string): Promise<Intent>;
   updateAmount(id: string, amountPence: number): Promise<Intent>;
+  /** Every PaymentIntent created since this time (the reconciliation job, §12). */
+  listSince(since: Date): Promise<Intent[]>;
 };
 
 const fromStripe = (pi: Stripe.PaymentIntent): Intent => ({
@@ -20,6 +28,9 @@ const fromStripe = (pi: Stripe.PaymentIntent): Intent => ({
   clientSecret: pi.client_secret ?? "",
   amountPence: pi.amount,
   status: pi.status,
+  amountReceivedPence: pi.amount_received ?? 0,
+  kind: pi.metadata?.kind ?? null,
+  draftId: pi.metadata?.draft_id ?? null,
 });
 
 function stripeGateway(secret: string): Gateway {
@@ -47,6 +58,15 @@ function stripeGateway(secret: string): Gateway {
         await stripe.paymentIntents.update(id, { amount: amountPence }),
       );
     },
+    async listSince(since) {
+      const out: Intent[] = [];
+      for await (const pi of stripe.paymentIntents.list({
+        created: { gte: Math.floor(since.getTime() / 1000) },
+        limit: 100,
+      }))
+        out.push(fromStripe(pi));
+      return out;
+    },
   };
 }
 
@@ -61,20 +81,58 @@ const fakeGateway: Gateway = {
         clientSecret: `${id}_secret`,
         amountPence,
         status: "requires_payment_method",
+        amountReceivedPence: 0,
+        kind: "checkout",
+        draftId,
       });
     return fakes.get(id)!;
   },
   async retrieve(id) {
-    const i = fakes.get(id);
-    if (!i) throw new Error(`No PaymentIntent ${id}`);
-    return i;
+    // A fake made by another server process (tests run several): still waiting for a payment method.
+    return (
+      fakes.get(id) ?? {
+        id,
+        clientSecret: `${id}_secret`,
+        amountPence: 0,
+        status: "requires_payment_method",
+        amountReceivedPence: 0,
+        kind: "checkout",
+        draftId: null,
+      }
+    );
   },
   async updateAmount(id, amountPence) {
     const i = { ...(await fakeGateway.retrieve(id)), amountPence };
     fakes.set(id, i);
     return i;
   },
+  async listSince() {
+    return [...fakes.values()];
+  },
 };
+
+/** Tests only: what the fake Stripe says about a PaymentIntent (e.g. that it succeeded). */
+export function setFakeIntent(id: string, patch: Partial<Intent>) {
+  const i = fakes.get(id);
+  if (i) fakes.set(id, { ...i, ...patch });
+}
+
+/**
+ * A webhook event, only when its `Stripe-Signature` matches the endpoint's secret (§10.6); null otherwise. Checking
+ * the signature needs no network call.
+ */
+export function verifiedEvent(
+  body: string,
+  signature: string | null,
+  secret = process.env.STRIPE_WEBHOOK_SECRET,
+): Stripe.Event | null {
+  if (!signature || !secret) return null;
+  try {
+    return Stripe.webhooks.constructEvent(body, signature, secret);
+  } catch {
+    return null;
+  }
+}
 
 /** The gateway, or null when payments are not switched on (no key): step 4 then says so. */
 export function gateway(): Gateway | null {

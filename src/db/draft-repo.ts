@@ -190,11 +190,17 @@ export async function draftStatus(
   db: Db,
   id: string | undefined,
   now = new Date(),
-): Promise<"live" | "cleared" | "none"> {
+): Promise<"live" | "cleared" | "paid" | "none"> {
   if (!id || !UUID.test(id)) return "none";
   const [d] = await db.select().from(drafts).where(eq(drafts.id, id));
   if (!d) return "none";
   if (d.status === "abandoned") return "cleared";
+  // Paid: for 24 hours the cookie leads to the confirmation (§5.5 Payment succeeded, browser closed).
+  if (d.status === "confirmed")
+    return d.confirmedAt &&
+      d.confirmedAt.getTime() > now.getTime() - DRAFT_IDLE_MS
+      ? "paid"
+      : "none";
   // A draft being paid is still this visitor's order: the steps show it (and say it is being paid, §5.5).
   if (d.status !== "draft" && d.status !== "pending") return "none";
   if (d.lastActivityAt.getTime() > now.getTime() - DRAFT_IDLE_MS) return "live";
