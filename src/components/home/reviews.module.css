@@ -98,7 +98,9 @@
 
 .quote {
   display: -webkit-box;
-  margin: 0;
+  /* Room for the letters' tails (g, y, p) inside the clip; the negative margin keeps the place (Bohoka 2026-11-04). */
+  margin: 0 0 -0.2em;
+  padding-bottom: 0.2em;
   overflow: hidden;
   color: var(--colour-ink);
   font: var(--type-quote-phone);

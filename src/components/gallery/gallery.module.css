@@ -96,7 +96,9 @@
 
 .caption {
   display: block;
-  margin: 8px 0 0;
+  /* Room for the letters' tails (g, y, p) inside the clip; the negative margin keeps the place (Bohoka 2026-11-04). */
+  margin: 8px 0 -0.2em;
+  padding-bottom: 0.2em;
   overflow: hidden;
   color: var(--colour-meta);
   font: var(--type-meta);

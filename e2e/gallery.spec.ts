@@ -72,21 +72,22 @@ test("ANIM-17: the new tiles rise 12 px and fade in, 240 ms, 40 ms apart, at mos
 }) => {
   await page.goto("/gallery");
   await more(page).click();
+  await expect(tiles(page)).toHaveCount(24);
+  // Read from CSS: each rise lets go of its tile once it ends (fill backwards), so some may be over already.
   const timing = await tiles(page).evaluateAll((els) =>
     els.slice(12).map((el) => {
-      const a = el.getAnimations()[0];
-      const t = a?.effect?.getComputedTiming();
-      return [t?.duration, t?.delay];
+      const cs = getComputedStyle(el);
+      return [cs.animationDuration, cs.animationDelay];
     }),
   );
   expect(timing.slice(0, 7)).toEqual([
-    [240, 0],
-    [240, 40],
-    [240, 80],
-    [240, 120],
-    [240, 160],
-    [240, 200],
-    [240, 200],
+    ["0.24s", "0s"],
+    ["0.24s", "0.04s"],
+    ["0.24s", "0.08s"],
+    ["0.24s", "0.12s"],
+    ["0.24s", "0.16s"],
+    ["0.24s", "0.2s"],
+    ["0.24s", "0.2s"],
   ]);
 });
 

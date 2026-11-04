@@ -105,13 +105,18 @@ test("Show the next 2: the rest rise in, focus on the first new card, ?shown=24,
       .nth(12)
       .getByRole("link", { name: "Highland Heather", exact: true }),
   ).toBeFocused();
+  // Read from CSS: the rise lets go of the card once it ends (fill backwards), so it may be over already.
   const anim = await cards(page)
     .nth(13)
     .evaluate((el) => {
-      const t = el.getAnimations()[0]?.effect?.getComputedTiming();
-      return [t?.duration, t?.delay];
+      const cs = getComputedStyle(el);
+      return [
+        cs.animationName !== "none",
+        cs.animationDuration,
+        cs.animationDelay,
+      ];
     });
-  expect(anim).toEqual([240, 40]);
+  expect(anim).toEqual([true, "0.24s", "0.04s"]);
 });
 
 test("a shared address opens with its occasion and pages; Back from a cake page returns to it", async ({

@@ -149,6 +149,9 @@
 .openTitleText {
   display: block;
   max-width: 100%;
+  /* Room for the letters' tails (g, y, p) inside the clip; the negative margin keeps the place (Bohoka 2026-11-04). */
+  margin-bottom: -0.2em;
+  padding-bottom: 0.2em;
   overflow: hidden;
   text-overflow: ellipsis;
   transform-origin: 0 0;
@@ -186,6 +189,9 @@
 /* Up to two lines, then an ellipsis (§4.1). */
 .nameLink {
   display: -webkit-box;
+  /* Room for the letters' tails (g, y, p) inside the clip; the negative margin keeps the place (Bohoka 2026-11-04). */
+  margin-bottom: -0.2em;
+  padding-bottom: 0.2em;
   overflow: hidden;
   color: inherit;
   text-decoration: none;
@@ -201,7 +207,9 @@
 .flavour {
   display: -webkit-box;
   max-width: calc(250 * var(--u));
-  margin: 0 0 0 calc(15.47 * var(--u));
+  /* Room for the letters' tails (g, y, p) inside the clip; the negative margin keeps the place (Bohoka 2026-11-04). */
+  margin: 0 0 -0.2em calc(15.47 * var(--u));
+  padding-bottom: 0.2em;
   overflow: hidden;
   color: var(--colour-accent);
   font: var(--type-card-desc);

@@ -408,8 +408,12 @@
     flex-flow: row wrap;
     align-items: baseline;
     column-gap: 12px;
-    row-gap: 0;
+    /* A wrapped occasion lands far below, out of sight; the extra 0.25em keeps the name's letter tails (g, y). */
+    row-gap: 1lh;
     max-height: 1lh;
+    margin-bottom: -0.25em;
+    padding-bottom: 0.25em;
+    box-sizing: content-box;
     overflow: hidden;
     font: var(--type-lightbox-caption);
   }
@@ -417,6 +421,8 @@
   .caption {
     min-width: 0;
     max-width: 100%;
+    margin-bottom: -0.25em;
+    padding-bottom: 0.25em;
     overflow: hidden;
     white-space: nowrap;
     text-overflow: ellipsis;
