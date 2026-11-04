@@ -179,3 +179,11 @@
     overflow: visible;
   }
 }
+
+/* Touch screens (iPad, also turned to landscape where the desktop layout shows) swipe the row; the ‹ › arrows
+   are for a mouse only (Bohoka 2026-11-04). The dashes stay. */
+@media (hover: none) and (pointer: coarse) {
+  .arrow {
+    display: none;
+  }
+}

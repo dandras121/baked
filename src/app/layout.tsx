@@ -41,6 +41,11 @@ const MASCOT_INTRO = `document.documentElement.classList.add("js");try{if(!sessi
 // for pinching), so nothing is lost. Elsewhere the limit would block zooming (§10.13), so it is never set there. Next adds its own viewport tag again on the client, so every one is kept in step.
 const IOS_FOCUS_ZOOM = `try{var n=navigator;if(/iPad|iPhone|iPod/.test(n.userAgent)||(n.platform==="MacIntel"&&n.maxTouchPoints>1)){var f=function(){document.querySelectorAll('meta[name="viewport"]').forEach(function(m){if(m.content.indexOf("maximum-scale")<0)m.content+=", maximum-scale=1"})};f();new MutationObserver(f).observe(document.documentElement,{childList:true,subtree:true,attributes:true,attributeFilter:["content"]})}}catch(e){}`;
 
+// A page left open while a new version went live can ask for a part of the old version that is gone; then
+// nothing on it reacts (no menu, no search). When a script part fails to load, the page reloads once to fetch the
+// new version (at most once a minute, so a real outage never loops). Bohoka 2026-11-04.
+const STALE_RELOAD = `try{var R="bbl:stale-reload",g=function(){try{var t=+sessionStorage.getItem(R)||0;if(Date.now()-t<6e4)return;sessionStorage.setItem(R,String(Date.now()))}catch(e){}location.reload()},m=/ChunkLoadError|Loading chunk|dynamically imported module|Importing a module script failed|Failed to load chunk/i;window.addEventListener("error",function(e){var s=e.target;if(s&&s.tagName==="SCRIPT"&&(s.src||"").indexOf("/_next/")>=0)g();else if(e.message&&m.test(e.message))g()},true);window.addEventListener("unhandledrejection",function(e){var r=e.reason;if(r&&m.test((r.name||"")+" "+(r.message||"")))g()})}catch(e){}`;
+
 // The two faces almost every page shows first; the rest load when used.
 const PRELOAD_FONTS = [
   "/fonts/quicksand-latin-wght-normal.woff2",
@@ -57,6 +62,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       <head>
         <script dangerouslySetInnerHTML={{ __html: MASCOT_INTRO }} />
         <script dangerouslySetInnerHTML={{ __html: IOS_FOCUS_ZOOM }} />
+        <script dangerouslySetInnerHTML={{ __html: STALE_RELOAD }} />
       </head>
       <body>
         {children}
