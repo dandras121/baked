@@ -205,6 +205,8 @@ function PayForm({
       return true;
     }
     await paymentDidNotGoThrough();
+    // The hold line above counts from the hold Pay kept (§5.5): fetch it again.
+    router.refresh();
     if (error && isAuthenticationFailure(error.code))
       setOutcome({ kind: "not-confirmed" });
     else if (error?.type === "card_error") setOutcome({ kind: "declined" });
