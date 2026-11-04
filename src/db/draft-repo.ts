@@ -1,5 +1,5 @@
 // The checkout draft (SITE-FLOWS §10.2): find it from the cookie, add a cake, list its lines.
-import { and, asc, count, eq, gt, sql } from "drizzle-orm";
+import { and, asc, count, eq, gt, inArray, sql } from "drizzle-orm";
 import type { Answers } from "@/lib/cake-config";
 import {
   allergenLine,
@@ -48,6 +48,8 @@ export async function liveDraft(
   db: Db,
   id: string | undefined,
   now = new Date(),
+  /** Also a draft being paid (`pending`, §5.5): the checkout steps show it, the edits do not touch it. */
+  orPaying = false,
 ) {
   if (!id || !UUID.test(id)) return null;
   const [d] = await db
@@ -56,7 +58,9 @@ export async function liveDraft(
     .where(
       and(
         eq(drafts.id, id),
-        eq(drafts.status, "draft"),
+        orPaying
+          ? inArray(drafts.status, ["draft", "pending"])
+          : eq(drafts.status, "draft"),
         gt(drafts.lastActivityAt, new Date(now.getTime() - DRAFT_IDLE_MS)),
       ),
     );
@@ -191,7 +195,8 @@ export async function draftStatus(
   const [d] = await db.select().from(drafts).where(eq(drafts.id, id));
   if (!d) return "none";
   if (d.status === "abandoned") return "cleared";
-  if (d.status !== "draft") return "none";
+  // A draft being paid is still this visitor's order: the steps show it (and say it is being paid, §5.5).
+  if (d.status !== "draft" && d.status !== "pending") return "none";
   if (d.lastActivityAt.getTime() > now.getTime() - DRAFT_IDLE_MS) return "live";
   await db
     .update(drafts)

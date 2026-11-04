@@ -158,3 +158,51 @@ test("4.4b: one PaymentIntent per draft, the same after a reload; without keys P
   ).toBeVisible();
   await expect(page.getByRole("button", { name: /^Pay £185$/ })).toBeDisabled();
 });
+
+test("4.5a: a draft being paid in another tab — the notice on every step, the order's controls off; open again when the lock ends", async ({
+  page,
+}) => {
+  await stepFour(page);
+  const id = (await page.context().cookies()).find(
+    (c) => c.name === "bbl_session",
+  )!.value;
+  const lock = async (lockedAt: Date | null) => {
+    process.loadEnvFile?.(".env.local");
+    const { connect } = await import("../src/db/client");
+    const { drafts } = await import("../src/db/schema");
+    const { eq } = await import("drizzle-orm");
+    const { db, close } = connect();
+    try {
+      await db
+        .update(drafts)
+        .set({ status: lockedAt ? "pending" : "draft", lockedAt })
+        .where(eq(drafts.id, id));
+      return (await db.select().from(drafts).where(eq(drafts.id, id)))[0]
+        .status;
+    } finally {
+      await close();
+    }
+  };
+  const notice = page.getByText(
+    "This order is being paid in another tab — changes are paused until that payment finishes.",
+  );
+  await lock(new Date());
+  await page.reload();
+  await expect(notice).toBeVisible();
+  await expect(page.getByRole("button", { name: /^Pay £/ })).toBeDisabled();
+  await expect(
+    page.getByRole("button", { name: /^Remove/ }).first(),
+  ).toBeDisabled();
+  await page.goto("/order/details");
+  await expect(notice).toBeVisible();
+  await expect(
+    page.getByRole("textbox", { name: "Your name", exact: true }),
+  ).toBeDisabled();
+  // The lock ran out (15 minutes) with nothing paid: editable again, the draft back to `draft`.
+  expect(await lock(new Date(Date.now() - 16 * 60 * 1000))).toBe("pending");
+  await page.reload();
+  await expect(notice).toBeHidden();
+  await expect(
+    page.getByRole("textbox", { name: "Your name", exact: true }),
+  ).toBeEnabled();
+});

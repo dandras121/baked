@@ -1266,3 +1266,30 @@
 .payButton {
   margin-top: 4px;
 }
+
+/* The outcome notices above the block (§5.5; 983:9181, 983:9273) */
+.payNoticeLine {
+  margin: 0;
+}
+
+.payNoticeLine + .payNoticeLine {
+  margin-top: 6px;
+}
+
+.tryAgain {
+  margin-top: 12px;
+}
+
+/* “Being paid in another tab” under the stepper (§5.5) */
+.lockNotice {
+  margin-top: 16px;
+}
+
+/* A layout-free wrapper: only its `disabled` matters (§5.5 Second tab while paying). */
+.pauseScope {
+  display: contents;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}

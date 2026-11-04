@@ -34,7 +34,14 @@ import type { Settings } from "@/lib/settings";
 import { allergenLabel } from "@/lib/cakes";
 import { detailsDone, kitchenHelper } from "@/lib/details";
 import { beforeYouPay, reviewHandoverLine } from "@/lib/review";
-import { ensurePaymentIntent } from "@/db/payment-repo";
+import {
+  ensurePaymentIntent,
+  settleLock,
+  unlockDraft,
+  type LockState,
+} from "@/db/payment-repo";
+import { Notice } from "@/components/ui/notice";
+import { PAY_COPY } from "@/lib/pay-copy";
 import { gateway, PUBLISHABLE_KEY } from "@/lib/payments";
 import { DetailsForm } from "./details-form";
 import { ReviewStep } from "./review-step";
@@ -61,6 +68,7 @@ async function readDraft(): Promise<{
   draft: Draft;
   lines: LineView[];
   cap: CapacityInput;
+  lock: LockState;
 } | null> {
   // A per-visit render: nothing here may be prerendered (the database client draws random values).
   await connection();
@@ -68,9 +76,22 @@ async function readDraft(): Promise<{
   if (!databaseUrl()) return null;
   const { db, close } = connect();
   try {
-    const draft = await liveDraft(db, id);
-    if (!draft) return null;
+    const found = await liveDraft(db, id, new Date(), true);
+    if (!found) return null;
+    // A draft being paid (§5.5): the PaymentIntent decides what this visit shows.
+    const gw = gateway();
+    const lock: LockState =
+      found.status === "pending"
+        ? gw
+          ? await settleLock(db, found, gw)
+          : (await unlockDraft(db, found.id), { kind: "open" as const })
+        : { kind: "open" };
+    const draft =
+      lock.kind === "open" && found.status === "pending"
+        ? { ...found, status: "draft" }
+        : found;
     return {
+      lock,
       draft,
       lines: await draftLineViews(db, draft.id),
       cap: await capacityFor(db, draft),
@@ -89,7 +110,12 @@ async function readDraft(): Promise<{
 export async function CheckoutStep({ step }: { step: Key }) {
   const found = await readDraft();
   if (!found) redirect("/cakes");
-  const { draft, lines, cap } = found;
+  const { draft, lines, cap, lock } = found;
+  // Paid (or the bank is still processing it): the confirmation page (§5.5 Refresh / reopen while paying).
+  if (lock.kind === "paid") redirect("/order/confirmed");
+  // Waiting for the bank check: only step 4 can finish it.
+  if (lock.kind === "needs-bank-check" && step !== "pay")
+    redirect("/order/pay");
   if (lines.length === 0) return <EmptyOrder />;
   // Step 2 is done once a date was held and the handover saved (step 3's details join in 4.3). A hold that ran out
   // still counts: steps 3–4 show “your minutes are up” with chips rather than sending the customer back (§5.5).
@@ -130,110 +156,133 @@ export async function CheckoutStep({ step }: { step: Key }) {
   const last = lastAdded(lines)!;
   const cakeHref = `/cakes/${last.slug}?line=${last.id}&from=${step}`;
   const n = STEPS.find((s) => s.key === step)!.n;
+  const paused = lock.kind === "paying-elsewhere";
   return (
     <div className={styles.page}>
       <Stepper current={n} cakeHref={cakeHref} />
+      {lock.kind === "paying-elsewhere" && (
+        <div className={styles.lockNotice}>
+          <Notice title={PAY_COPY.anotherTab} urgent />
+        </div>
+      )}
       <div className={styles.band}>
         <h1 className={styles.title} tabIndex={-1} data-step-heading>
           {STEP_TITLES[step]}
         </h1>
       </div>
-      <div className={styles.body} data-step={step}>
-        <div className={styles.main} data-step-body>
-          <Link href={BACK[step].href(cakeHref)} className={styles.back}>
-            {BACK[step].label}
-          </Link>
-          {step === "when" ? (
-            <WhenStep
-              cap={cap}
-              long={long}
-              minutes={minutes}
-              settings={settings}
-              draft={draft}
-            />
-          ) : (
-            <HoldLine
-              dateLabel={long(draft.holdDate!)}
-              expiresAt={hold ? hold.expiresAt.toISOString() : null}
-              serverLeft={hold ? hold.expiresAt.getTime() - now.getTime() : 0}
-              canKeep={
-                !!hold &&
-                hold.extensions < MAX_EXTENSIONS &&
-                canHold(hold.date, { ...cap, ownHold: null })
-              }
-              minutes={minutes}
-              step={step}
-              chips={ranOutChips(draft.holdDate!, cap)}
-            />
-          )}
-          {step === "details" && (
-            <DetailsForm
-              initial={{
-                name: draft.customerName ?? "",
-                email: draft.email ?? "",
-                phone: draft.phone ?? "",
-                cakeFor: draft.cakeFor ?? "",
-                note: draft.allergyNote ?? "",
-              }}
-              contains={lines.map((l) => l.contains)}
-              kitchenHelper={kitchenHelper(
-                (settings?.kitchenHandles ?? []).map((a) =>
-                  allergenLabel(a, { allergens: [] }),
-                ),
-              )}
-            />
-          )}
-          {step === "pay" && (
-            <ReviewStep
-              payment={payment}
-              lines={lines}
-              handover={reviewHandoverLine({
-                handover: (draft.handover ?? "collection") as Handover,
-                window: draft.deliveryWindow,
-                dateLabel: long(draft.holdDate!),
-                chargePence: charge,
-              })}
-              totalPence={orderTotal(lines, charge)}
-              details={{
-                name: draft.customerName ?? "",
-                email: draft.email ?? "",
-                phone: draft.phone ?? "",
-                address:
-                  draft.handover === "delivery"
-                    ? [
-                        draft.address ?? "",
-                        `${draft.town ?? ""} ${draft.postcode ?? ""}`.trim(),
-                      ]
-                    : null,
-              }}
-              beforeYouPay={beforeYouPay({
-                // At checkout the earliest date the order has had is the chosen one (§10.1).
-                earliest: draft.holdDate!,
-                date: draft.holdDate!,
-                today: cap.today,
-                kitchenOthers: (settings?.kitchenHandles ?? [])
-                  .filter((a) => !lines.some((l) => l.allergenKeys.includes(a)))
-                  .map((a) => allergenLabel(a, { allergens: [] })),
-              })}
-            />
-          )}
+      {/* Being paid in another tab (§5.5): every field and button that changes the order is off until it ends. */}
+      <fieldset
+        className={styles.pauseScope}
+        disabled={paused}
+        data-paused={paused || undefined}
+      >
+        <div className={styles.body} data-step={step}>
+          <div className={styles.main} data-step-body>
+            <Link href={BACK[step].href(cakeHref)} className={styles.back}>
+              {BACK[step].label}
+            </Link>
+            {step === "when" ? (
+              <WhenStep
+                cap={cap}
+                long={long}
+                minutes={minutes}
+                settings={settings}
+                draft={draft}
+              />
+            ) : (
+              <HoldLine
+                dateLabel={long(draft.holdDate!)}
+                expiresAt={hold ? hold.expiresAt.toISOString() : null}
+                serverLeft={hold ? hold.expiresAt.getTime() - now.getTime() : 0}
+                canKeep={
+                  !!hold &&
+                  hold.extensions < MAX_EXTENSIONS &&
+                  canHold(hold.date, { ...cap, ownHold: null })
+                }
+                minutes={minutes}
+                step={step}
+                chips={ranOutChips(draft.holdDate!, cap)}
+              />
+            )}
+            {step === "details" && (
+              <DetailsForm
+                initial={{
+                  name: draft.customerName ?? "",
+                  email: draft.email ?? "",
+                  phone: draft.phone ?? "",
+                  cakeFor: draft.cakeFor ?? "",
+                  note: draft.allergyNote ?? "",
+                }}
+                contains={lines.map((l) => l.contains)}
+                kitchenHelper={kitchenHelper(
+                  (settings?.kitchenHandles ?? []).map((a) =>
+                    allergenLabel(a, { allergens: [] }),
+                  ),
+                )}
+              />
+            )}
+            {step === "pay" && (
+              <ReviewStep
+                payment={payment}
+                pay={{
+                  holdExpiresAt: hold ? hold.expiresAt.toISOString() : null,
+                  dateLabel: long(draft.holdDate!),
+                  phone: settings?.phone ?? null,
+                  pausedHere: paused,
+                  bankCheckSecret:
+                    lock.kind === "needs-bank-check" ? lock.clientSecret : null,
+                }}
+                lines={lines}
+                handover={reviewHandoverLine({
+                  handover: (draft.handover ?? "collection") as Handover,
+                  window: draft.deliveryWindow,
+                  dateLabel: long(draft.holdDate!),
+                  chargePence: charge,
+                })}
+                totalPence={orderTotal(lines, charge)}
+                details={{
+                  name: draft.customerName ?? "",
+                  email: draft.email ?? "",
+                  phone: draft.phone ?? "",
+                  address:
+                    draft.handover === "delivery"
+                      ? [
+                          draft.address ?? "",
+                          `${draft.town ?? ""} ${draft.postcode ?? ""}`.trim(),
+                        ]
+                      : null,
+                }}
+                beforeYouPay={beforeYouPay({
+                  // At checkout the earliest date the order has had is the chosen one (§10.1).
+                  earliest: draft.holdDate!,
+                  date: draft.holdDate!,
+                  today: cap.today,
+                  kitchenOthers: (settings?.kitchenHandles ?? [])
+                    .filter(
+                      (a) => !lines.some((l) => l.allergenKeys.includes(a)),
+                    )
+                    .map((a) => allergenLabel(a, { allergens: [] })),
+                })}
+              />
+            )}
+          </div>
+          {step !== "pay" && summary(false)}
         </div>
-        {step !== "pay" && summary(false)}
-      </div>
-      {step !== "pay" && (
-        <SummaryBar
-          total={formatPrice(orderTotal(lines, charge))}
-          line={barLine(
-            lines.length,
-            draft.handover,
-            settings?.deliveryChargePence ?? 0,
-          )}
-          expiresAt={hold ? hold.expiresAt.toISOString() : null}
-          form="step-form"
-        >
-          {summary(true)}
-        </SummaryBar>
-      )}
+        {step !== "pay" && (
+          <SummaryBar
+            total={formatPrice(orderTotal(lines, charge))}
+            line={barLine(
+              lines.length,
+              draft.handover,
+              settings?.deliveryChargePence ?? 0,
+            )}
+            expiresAt={hold ? hold.expiresAt.toISOString() : null}
+            form="step-form"
+          >
+            {summary(true)}
+          </SummaryBar>
+        )}
+      </fieldset>
     </div>
   );
 }

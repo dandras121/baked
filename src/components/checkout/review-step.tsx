@@ -4,7 +4,7 @@ import type { LineView } from "@/db/draft-repo";
 import { formatPrice } from "@/lib/money";
 import { NOTHING_FURTHER } from "@/lib/review";
 import styles from "./checkout.module.css";
-import { PaymentBlock } from "./payment-block";
+import { PaymentBlock, type PayContext } from "./payment-block";
 
 /**
  * Step 4 — One last look (§5.4; desktop 641:3382, Your details 1797:13126, phone 834:…). Left: the cakes with
@@ -18,6 +18,7 @@ export function ReviewStep({
   details,
   beforeYouPay,
   payment,
+  pay,
 }: {
   lines: LineView[];
   handover: { label: string; value: string };
@@ -32,6 +33,8 @@ export function ReviewStep({
   beforeYouPay: string[];
   /** The PaymentIntent's client secret and the publishable key; null / “” while payments are not switched on. */
   payment: { clientSecret: string | null; publishableKey: string };
+  /** For the outcomes (§5.5): the hold, the date, Linda's phone, a payment under way elsewhere, a bank check to finish. */
+  pay: PayContext;
 }) {
   return (
     <div className={styles.review}>
@@ -142,6 +145,7 @@ export function ReviewStep({
           publishableKey={payment.publishableKey}
           totalPence={totalPence}
           billingName={details.name}
+          context={pay}
         />
         <p className={styles.reviewNote}>
           Card payments are handled by Stripe. I never see your card number.

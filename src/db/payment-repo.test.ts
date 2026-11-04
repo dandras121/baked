@@ -11,6 +11,7 @@ import {
   draftAmount,
   ensurePaymentIntent,
   preparePayment,
+  settleLock,
   unlockDraft,
 } from "./payment-repo";
 import { drafts, settings } from "./schema";
@@ -146,5 +147,43 @@ describe.skipIf(!url)("database: paying for a draft (§5.5)", () => {
       (await preparePayment(db(), draftId, intent.amountPence, gw, afterHold))
         .kind,
     ).toBe("held-out");
+  });
+
+  it("a draft found pending: the PaymentIntent decides — paid, bank check to finish, another tab, or open again after 15 minutes", async () => {
+    const { draftId } = await addLine(db(), undefined, line, now);
+    await takeHold(db(), draftId, day, "c", now);
+    const { gw, intents } = countingGateway();
+    const intent = await ensurePaymentIntent(db(), draftId, gw);
+    await preparePayment(db(), draftId, intent.amountPence, gw, now);
+    const set = (status: string) =>
+      intents.set(intent.id, { ...intents.get(intent.id)!, status });
+    const soon = new Date(now.getTime() + 60 * 1000);
+
+    // Between Pay and Stripe's answer: being paid in another tab.
+    expect((await settleLock(db(), await row(draftId), gw, soon)).kind).toBe(
+      "paying-elsewhere",
+    );
+    set("requires_action");
+    expect(await settleLock(db(), await row(draftId), gw, soon)).toEqual({
+      kind: "needs-bank-check",
+      clientSecret: intent.clientSecret,
+    });
+    for (const s of ["succeeded", "processing"]) {
+      set(s);
+      expect((await settleLock(db(), await row(draftId), gw, soon)).kind).toBe(
+        "paid",
+      );
+    }
+    expect((await row(draftId)).status).toBe("pending");
+
+    // The lock ran out with no payment: open again, the same PaymentIntent.
+    set("requires_payment_method");
+    const later = new Date(now.getTime() + 16 * 60 * 1000);
+    expect((await settleLock(db(), await row(draftId), gw, later)).kind).toBe(
+      "open",
+    );
+    const d = await row(draftId);
+    expect(d.status).toBe("draft");
+    expect(d.paymentIntentId).toBe(intent.id);
   });
 });
