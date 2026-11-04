@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { Ombre } from "@/components/ui/ombre";
 import { FacebookIcon, InstagramIcon } from "@/components/ui/social-icons";
 import type { Settings } from "@/lib/settings";
 import styles from "./home-sections.module.css";
@@ -71,6 +72,7 @@ export function LocalHomeBaked({
 }) {
   return (
     <div className={styles.band}>
+      <Ombre name="home-band" imgClassName={styles.bandOmbre} />
       {cakeRow}
       <section
         className={styles.local}

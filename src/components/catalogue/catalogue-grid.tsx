@@ -1,5 +1,6 @@
 "use client";
 
+import { Ombre } from "@/components/ui/ombre";
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { CakeCard } from "@/components/cake-card/cake-card";
 import { ButtonLink } from "@/components/ui/button";
@@ -162,6 +163,18 @@ export function CatalogueGrid({ cakes }: { cakes: CatalogueCake[] }) {
         </p>
       )}
       <div className={styles.band}>
+        <Ombre
+          name="range-phone"
+          tail
+          className={styles.ombrePhone}
+          imgClassName={styles.ombreImgPhone}
+        />
+        <Ombre
+          name="range-desktop"
+          tail
+          className={styles.ombreDesktop}
+          imgClassName={styles.ombreImgDesktop}
+        />
         <h2 className="visually-hidden">The designs</h2>
         {missingKey ? (
           <section className={styles.notice} aria-labelledby="none-showing">

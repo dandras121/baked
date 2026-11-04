@@ -79,10 +79,18 @@
 /* ── “Local, home baked.” on the pink band — phone 1384:10041, desktop 1361:9949 ── */
 .band {
   position: relative;
+  isolation: isolate;
   overflow: hidden;
-  background: url("/home/band-texture.webp") no-repeat;
-  background-position: calc(-65.92 * var(--u)) 100%;
-  background-size: calc(523 * var(--u)) 132.43%;
+}
+
+/* The drawn picture's place (was background-position / -size): wider than the phone, bottom-aligned. */
+.bandOmbre {
+  top: auto;
+  bottom: 0;
+  left: calc(-65.92 * var(--u));
+  width: calc(523 * var(--u));
+  height: 132.43%;
+  translate: none;
 }
 
 /* The white curved edges at the top and the bottom (Ellipse 42 / 43, Ellipse 40 / 41). */
@@ -267,9 +275,9 @@
     margin: 0;
   }
 
-  .band {
-    background-position: 0 100%;
-    background-size: 100% 132.43%;
+  .bandOmbre {
+    left: 0;
+    width: 100%;
   }
 
   .band::before,

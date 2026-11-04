@@ -5,8 +5,14 @@
   position: relative;
   overflow: clip;
   min-height: 1132px;
-  background: var(--colour-pink) url("/brand/footer-phone.webp") center / cover
-    no-repeat;
+  isolation: isolate;
+  /* The ombre: <Ombre> phone / tablet / desktop, one shown per width (src/styles/ombre.css). */
+  background: var(--colour-pink);
+}
+
+.ombreTablet,
+.ombreDesktop {
+  display: none;
 }
 
 /* Zero-specificity resets, so the spacing rules below win without. */
@@ -163,8 +169,12 @@
 
 /* Tablet and desktop: three columns in desktop design px (× --u: 0.8 at 1024, 1 at 1280). */
 @media (min-width: 768px) {
-  .footer {
-    background-image: url("/brand/footer-tablet.webp");
+  .ombrePhone {
+    display: none;
+  }
+
+  .ombreTablet {
+    display: block;
   }
 
   .inner {
@@ -267,8 +277,12 @@
 }
 
 @media (min-width: 1120px) {
-  .footer {
-    background-image: url("/brand/footer-desktop.webp");
+  .ombreTablet {
+    display: none;
+  }
+
+  .ombreDesktop {
+    display: block;
   }
 
   .inner {

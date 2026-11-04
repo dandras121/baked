@@ -189,10 +189,29 @@
   min-height: 160px;
   margin-top: 4px;
   padding: calc(39 * var(--u)) 16px calc(20 * var(--u));
-  background:
-    url("/range/band-phone.webp") top center / 100% calc(2372 * var(--u))
-      no-repeat,
-    url("/range/band-phone-row.png") top center / 100% 1px repeat-y;
+  isolation: isolate;
+}
+
+/* The ombre (<Ombre>, src/styles/ombre.css): the drawn picture at the top, full width, at its drawn height; its last
+   row continues below. */
+.ombreImgPhone,
+.ombreImgDesktop {
+  top: 0;
+  left: 0;
+  width: 100%;
+  translate: none;
+}
+
+.ombreImgPhone {
+  height: calc(2372 * var(--u));
+}
+
+.ombreImgDesktop {
+  height: calc(1909 * var(--u));
+}
+
+.ombreDesktop {
+  display: none;
 }
 
 /* The white curved top edge (Ellipse 44). */
@@ -445,10 +464,14 @@
   .band {
     margin-top: calc(6 * var(--u));
     padding: calc(50 * var(--u)) 0 calc(20 * var(--u));
-    background:
-      url("/range/band-desktop.webp") top center / 100% calc(1909 * var(--u))
-        no-repeat,
-      url("/range/band-desktop-row.png") top center / 100% 1px repeat-y;
+  }
+
+  .ombrePhone {
+    display: none;
+  }
+
+  .ombreDesktop {
+    display: block;
   }
 
   .band::before {

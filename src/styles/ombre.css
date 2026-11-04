@@ -1,0 +1,73 @@
+/*
+ * The pink ombre backgrounds drawn in CSS (Bohoka 2026-11-04: “replace the picture with the same ombre”; no image).
+ * src/components/ui/ombre.tsx: an outer box filling its surface and an inner “picture” box, by default sized like
+ * background-size: cover. Six left-to-right gradients (tokens.css --ombre-{name}-0…5, fitted by
+ * scripts/ombre-fit.py) are stacked; each row fades in from the one above, so the colour runs smoothly both ways.
+ * The grain is the Figma noise (monotone white, size 0.9) as an SVG turbulence layer.
+ */
+.ombre {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  container-type: size;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+/* The catalogue band: below the drawn height its last row continues (§4.2 Texture band). */
+.ombre[data-tail] {
+  background-image: var(--o5);
+}
+
+.ombre-img {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: max(100cqw, 100cqh * var(--r));
+  height: max(100cqh, 100cqw / var(--r));
+  translate: -50% -50%;
+}
+
+.ombre-img > i {
+  position: absolute;
+  inset: 0;
+}
+
+.ombre-img > i:nth-child(1) {
+  background-image: var(--o0);
+}
+
+.ombre-img > i:nth-child(2) {
+  background-image: var(--o1);
+  mask-image: linear-gradient(to bottom, transparent 0%, black 20%);
+}
+
+.ombre-img > i:nth-child(3) {
+  background-image: var(--o2);
+  mask-image: linear-gradient(to bottom, transparent 20%, black 40%);
+}
+
+.ombre-img > i:nth-child(4) {
+  background-image: var(--o3);
+  mask-image: linear-gradient(to bottom, transparent 40%, black 60%);
+}
+
+.ombre-img > i:nth-child(5) {
+  background-image: var(--o4);
+  mask-image: linear-gradient(to bottom, transparent 60%, black 80%);
+}
+
+.ombre-img > i:nth-child(6) {
+  background-image: var(--o5);
+  mask-image: linear-gradient(to bottom, transparent 80%, black 100%);
+}
+
+/* Figma’s monotone white noise on the textures; its opacity per surface matches the grain measured in the drawn
+   picture (the standard deviation of the fine detail, scripts/ombre-fit.py sources). */
+.ombre::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  opacity: var(--ombre-grain, 0);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1.4' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0.5 0 0 0 -0.078'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E");
+}

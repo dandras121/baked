@@ -8,6 +8,7 @@ import "@/styles/base.css";
 import "@/styles/responsive.css";
 import "@/styles/interaction.css";
 import "@/styles/mascot.css";
+import "@/styles/ombre.css";
 import "./globals.css";
 
 /** The address of the live site; previews and development fall back to their own host (§10.12). */

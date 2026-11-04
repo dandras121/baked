@@ -1,4 +1,5 @@
 import Image from "next/image";
+import { Ombre } from "@/components/ui/ombre";
 import NextLink from "next/link";
 import { cacheLife } from "next/cache";
 import { CookiePreferencesButton } from "@/components/cookies/cookie-preferences-button";
@@ -38,6 +39,9 @@ export async function SiteFooter() {
   const [s, year] = await Promise.all([getSiteSettings(), currentYear()]);
   return (
     <div className={styles.footer}>
+      <Ombre name="footer-phone" className={styles.ombrePhone} />
+      <Ombre name="footer-tablet" className={styles.ombreTablet} />
+      <Ombre name="footer-desktop" className={styles.ombreDesktop} />
       <div className={styles.inner}>
         <div className={styles.about}>
           <NextLink href="/" className={styles.wordmark} data-pressable="">

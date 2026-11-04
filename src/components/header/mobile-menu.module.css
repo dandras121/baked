@@ -64,9 +64,10 @@
 }
 
 /* The header texture stays fixed to the viewport while its circle grows (A§4.3). */
+/* The ombre is drawn by <Ombre name="menu"> (src/styles/ombre.css); the noise below stays on top of it. */
 .pink {
-  background: var(--colour-pink) url("/brand/menu-texture.webp") center / cover
-    no-repeat;
+  isolation: isolate;
+  background: var(--colour-pink);
 }
 
 /* The white 25 % monotone noise that Figma puts on the texture group (A§4.1). */

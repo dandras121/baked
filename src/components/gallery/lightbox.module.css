@@ -386,7 +386,54 @@
     --s: min(
       calc(100vw - 2 * (56px + 24px)),
       /* Room for a name on two lines beside the button (a narrower photo wraps it). */
-      calc(100dvh - 20px - 12px - 150px * var(--type-scale) - 16px - 22px - 12px)
+        calc(
+          100dvh - 20px - 12px - 150px * var(--type-scale) - 16px - 22px - 12px
+        )
+    );
+  }
+}
+
+/* A tablet turned to landscape (any iPad, touch): the caption box on one line — the name, the occasion beside it
+   (each cut with … when it is long) and the button — so the photo takes the height it frees (Bohoka 2026-11-04). */
+@media (min-width: 768px) and (orientation: landscape) and (any-pointer: coarse) {
+  .captionBar {
+    padding: calc(12px * var(--type-scale)) calc(14px * var(--type-scale))
+      calc(12px * var(--type-scale)) calc(24px * var(--type-scale));
+  }
+
+  /* One line: the occasion goes onto a second, hidden line when it does not fit beside the name; the name itself
+     is cut with … only when it alone is too long. */
+  .text {
+    flex: 1;
+    flex-flow: row wrap;
+    align-items: baseline;
+    column-gap: 12px;
+    row-gap: 0;
+    max-height: 1lh;
+    overflow: hidden;
+    font: var(--type-lightbox-caption);
+  }
+
+  .caption {
+    min-width: 0;
+    max-width: 100%;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    text-wrap: nowrap;
+  }
+
+  .occasion {
+    white-space: nowrap;
+  }
+
+  .card {
+    --s: min(
+      calc(100vw - 2 * (56px + 24px)),
+      /* One line: the button's height and the box's padding. */
+        calc(
+          100dvh - 20px - 12px - 76px * var(--type-scale) - 16px - 22px - 12px
+        )
     );
   }
 }

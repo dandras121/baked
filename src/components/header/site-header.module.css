@@ -29,8 +29,8 @@
   container-type: inline-size;
   height: var(--header-height-compact);
   overflow: clip;
-  background: var(--colour-pink) url("/brand/header-texture.webp") center /
-    cover no-repeat;
+  /* The ombre is drawn by <Ombre name="header"> (src/styles/ombre.css). */
+  background: var(--colour-pink);
 }
 
 .inner {

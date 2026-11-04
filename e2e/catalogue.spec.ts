@@ -138,25 +138,28 @@ test("§4.2 an unknown ?occasion= shows All designs", async ({ page }) => {
   await expect(cards(page)).toHaveCount(12);
 });
 
-test("Texture band: the image at its drawn height on top, its last row below — never rescaled", async ({
+test("Texture band: the ombre at its drawn height on top, its last row below — never rescaled; no picture", async ({
   page,
 }) => {
   await page.goto("/cakes");
   const band = page.locator("[role=list][aria-label=Designs]").locator("..");
-  const before = await band.evaluate((el) => {
-    const cs = getComputedStyle(el);
-    return [cs.backgroundSize, cs.backgroundRepeat, cs.backgroundImage];
-  });
-  expect(before[1]).toBe("no-repeat, repeat-y");
-  expect(before[2]).toMatch(
-    /band-(desktop|phone)\.webp.*band-(desktop|phone)-row\.png/,
-  );
+  // The ombre is CSS (Bohoka 2026-11-04): no background picture is loaded.
+  expect(
+    await band.evaluate((el) => getComputedStyle(el).backgroundImage),
+  ).toBe("none");
+  const ombre = band.locator(".ombre:visible");
+  await expect(ombre).toHaveCount(1);
+  await expect(ombre).toHaveAttribute("data-tail", "true");
+  const drawn = () =>
+    ombre
+      .locator(".ombre-img")
+      .evaluate((el) => el.getBoundingClientRect().height);
+  const before = await drawn();
+  // The drawn height: 2372 at 402, 1909 × 0.8 at 1024, 1909 at 1280 — far taller than the screen, not the band.
+  expect(before).toBeGreaterThan(1400);
   await more(page).click();
   await expect(cards(page)).toHaveCount(14);
-  const after = await band.evaluate(
-    (el) => getComputedStyle(el).backgroundSize,
-  );
-  expect(after).toBe(before[0]);
+  expect(await drawn()).toBe(before);
 });
 
 test("axe: no violations, with every card shown", async ({

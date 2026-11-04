@@ -129,7 +129,7 @@ test("ANIM-23: a photo waits on the lilac base, then fades in once decoded", asy
   test.skip(testInfo.project.name !== "desktop", "one browser is enough");
   let release!: () => void;
   const held = new Promise<void>((r) => (release = r));
-  await page.route("**/brand/menu-texture.webp?demo", async (route) => {
+  await page.route("**/home/west-lothian.webp?demo", async (route) => {
     await held;
     await route.continue();
   });

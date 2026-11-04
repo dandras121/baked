@@ -436,7 +436,7 @@ export function ComponentsGallery() {
             }}
           >
             <GalleryPhoto
-              src="/brand/menu-texture.webp?demo"
+              src="/home/west-lothian.webp?demo"
               alt="Pink texture (demo)"
             />
           </div>

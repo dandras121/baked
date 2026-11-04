@@ -1,5 +1,6 @@
 "use client";
 
+import { Ombre } from "@/components/ui/ombre";
 import { usePathname, useRouter } from "next/navigation";
 import {
   useCallback,
@@ -352,7 +353,9 @@ export function MobileMenu({
         data-state={phase}
         hidden={!expanded}
       >
-        <div ref={pink} className={styles.pink} aria-hidden />
+        <div ref={pink} className={styles.pink} aria-hidden>
+          <Ombre name="menu" />
+        </div>
         <div ref={white} className={styles.white} aria-hidden />
         <div className={styles.scroller}>
           <div className={styles.content}>

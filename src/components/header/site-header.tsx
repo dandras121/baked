@@ -1,4 +1,5 @@
 import Image from "next/image";
+import { Ombre } from "@/components/ui/ombre";
 import Link from "next/link";
 import { getSiteSettings } from "@/db/site-settings";
 import { DesktopNav } from "./desktop-nav";
@@ -40,6 +41,7 @@ export async function SiteHeader() {
         </details>
       </noscript>
       <div className={`shell ${styles.bar}`}>
+        <Ombre name="header" />
         <div className={styles.inner}>
           {/* Decorative emblem, cut by the bar as drawn; it slides in on the first load (ANIM-04, slice 1.3). */}
           <Image
