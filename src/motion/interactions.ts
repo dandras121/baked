@@ -1,6 +1,6 @@
 // ANIM-07 (pressables) and ANIM-05 (writable fields) for the whole public site, by one delegated listener.
-// Mark elements in markup: data-pressable (= button), "nav", "row"; fields: data-writable on the field box.
-// For "nav" and "row" only the child [data-pressable-content] scales (§7E). Actions stay on the native click,
+// Mark elements in markup: data-pressable (= button), "nav", "row", "fold"; fields: data-writable on the field box.
+// For "nav", "row" and "fold" only the child [data-pressable-content] scales (§7E). Actions stay on the native click,
 // which browsers fire on release inside the element.
 import {
   CANCEL_EASING,
@@ -24,7 +24,7 @@ const running = new WeakMap<HTMLElement, Animation>();
 function kindOf(el: HTMLElement): Kind {
   if (el.hasAttribute("data-writable")) return "field";
   const v = el.dataset.pressable;
-  return v === "nav" || v === "row" ? v : "button";
+  return v === "nav" || v === "row" || v === "fold" ? v : "button";
 }
 
 function targetOf(el: HTMLElement): HTMLElement {

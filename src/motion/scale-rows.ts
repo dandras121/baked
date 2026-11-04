@@ -2,7 +2,10 @@
 import data from "./keyframes.json";
 
 export type Row = readonly [number, number];
-export type Kind = "button" | "nav" | "row" | "field";
+export type Kind = "button" | "nav" | "row" | "fold" | "field";
+
+/** A fold-out row (FAQ and the other drop-downs) grows a quarter as much as a button (Bohoka 2026-11-05). */
+export const FOLD_SHARE = 0.25;
 export type Part = "hoverIn" | "hoverOut" | "press" | "release";
 export type Input = "mouse" | "touch";
 
@@ -12,6 +15,10 @@ export const CANCEL_EASING = p.easing;
 
 /** The table for one part of the motion. `null` = no motion (a field stays at 1.00 after a desktop release). */
 export function rowsFor(kind: Kind, part: Part, input: Input): Row[] | null {
+  if (kind === "fold") {
+    const full = rowsFor("row", part, input);
+    return full && full.map(([t, v]) => [t, 1 + (v - 1) * FOLD_SHARE] as const);
+  }
   const rows = (r: number[][]) => r as unknown as Row[];
   if (kind === "nav") {
     return rows(

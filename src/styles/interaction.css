@@ -5,7 +5,11 @@
   -webkit-tap-highlight-color: transparent;
 }
 
-[data-pressable]:not([data-pressable="nav"], [data-pressable="row"]),
+[data-pressable]:not(
+  [data-pressable="nav"],
+  [data-pressable="row"],
+  [data-pressable="fold"]
+),
 [data-writable],
 [data-pressable-content] {
   transform-origin: 50% 50%;
@@ -84,7 +88,11 @@ html[data-motion="reduce"] ::after {
    hover (ANIM-07) never paints into the page, which left trails of the edges on some Windows GPUs in Chrome and
    Edge (Bohoka 2026-11-04). Touch screens have no hover and keep their memory. */
 @media (hover: hover) and (pointer: fine) {
-  [data-pressable]:not([data-pressable="nav"], [data-pressable="row"]),
+  [data-pressable]:not(
+    [data-pressable="nav"],
+    [data-pressable="row"],
+    [data-pressable="fold"]
+  ),
   [data-pressable-content] {
     will-change: transform;
   }

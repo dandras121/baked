@@ -124,7 +124,7 @@ export function DropDownRow({ id, question, children }: DropDownRowProps) {
       <summary
         ref={summary}
         className={styles.question}
-        data-pressable="row"
+        data-pressable="fold"
         onClick={(e) => {
           e.preventDefault();
           setOpen(!open);

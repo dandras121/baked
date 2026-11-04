@@ -133,3 +133,14 @@ describe("RESPONSIVE §1 / ANIM-12–13: overlays follow the input", () => {
     expect(overlayKind(1120, "touch")).toBe("dialog");
   });
 });
+
+describe("fold-out rows (FAQ, Bohoka 2026-11-05)", () => {
+  it("grow a quarter as much as a button, in the same time", () => {
+    for (const part of ["hoverIn", "press", "release"] as const) {
+      const row = rowsFor("row", part, "mouse")!;
+      const fold = rowsFor("fold", part, "mouse")!;
+      expect(fold.map(([t]) => t)).toEqual(row.map(([t]) => t));
+      fold.forEach(([, v], i) => expect(v - 1).toBeCloseTo((row[i][1] - 1) / 4));
+    }
+  });
+});
