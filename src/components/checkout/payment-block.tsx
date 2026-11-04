@@ -228,15 +228,23 @@ function PayForm({
     return after(error, paymentIntent?.status);
   }
 
-  /** Try again after the bank check (§5.5 G): prepare, then finish the bank check, or confirm with the card again. */
+  /**
+   * Try again after the bank check (§5.5 G, Refresh / reopen step 4): a bank check still waiting is finished on the
+   * same PaymentIntent with `handleNextAction` (the draft is still locked for it, the card fields may be empty);
+   * otherwise it is a new payment with the card shown, through prepare as usual.
+   */
   async function tryAgain() {
     if (!stripe || !elements) return;
-    if (!(await prepare())) return;
+    setOutcome(null);
     const { paymentIntent } = await stripe.retrievePaymentIntent(clientSecret);
     if (paymentIntent?.status === "requires_action") {
       const r = await stripe.handleNextAction({ clientSecret });
       await after(r.error, r.paymentIntent?.status);
-    } else await payNow();
+    } else if (complete) await payNow();
+    else {
+      await paymentDidNotGoThrough();
+      setOutcome({ kind: "message", text: PAY_COPY.failed });
+    }
   }
 
   const wallet = walletClause(wallets ?? {});
