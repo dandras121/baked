@@ -123,3 +123,23 @@
     right: calc(37 * var(--u));
   }
 }
+
+/* Large screens: the bar as at 1280 — the emblem cut by the screen's left edge, the wordmark beside it, the menu
+   37 px from the right edge — not inside the wider content column (Bohoka 2026-11-04). */
+@media (min-width: 1281px) {
+  .inner {
+    max-width: none;
+  }
+
+  .mark {
+    left: -34.77px;
+  }
+
+  .wordmark {
+    left: 96.39px;
+  }
+
+  .desktopNav {
+    right: 37px;
+  }
+}

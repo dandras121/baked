@@ -252,7 +252,9 @@
 
   .local {
     width: calc(1280 * var(--u));
-    min-height: calc(343 * var(--u));
+    /* The photo (343 tall, from the top) keeps its 68 below it before the footer, also where the text is shorter
+       than the photo — wide screens, where type does not grow (Bohoka 2026-11-04). */
+    min-height: calc((343 + 68) * var(--u));
     margin-top: calc(12 * var(--u));
     padding: calc(25 * var(--u)) 0 calc(68 * var(--u));
   }
