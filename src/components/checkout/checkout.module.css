@@ -514,6 +514,18 @@
   display: none;
 }
 
+/* ANIM-21: the month going out stays on top of the new one while it slides away. */
+.monthStage {
+  position: relative;
+}
+
+:global(html.js) .month[data-leaving] {
+  position: absolute;
+  inset: 0 0 auto;
+  display: block;
+  pointer-events: none;
+}
+
 .noJsMonth {
   margin: 16px 0 4px;
   color: var(--colour-ink);

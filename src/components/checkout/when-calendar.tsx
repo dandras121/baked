@@ -4,6 +4,7 @@ import {
   startTransition,
   useActionState,
   useEffect,
+  useLayoutEffect,
   useRef,
   useState,
   type KeyboardEvent,
@@ -15,6 +16,7 @@ import { Notice } from "@/components/ui/notice";
 import { STATE_WORDS, type CalendarMonth } from "@/lib/capacity";
 import type { HandoverInput } from "@/lib/handover";
 import { HOLD_COPY } from "@/lib/hold";
+import { isMotionReduced } from "@/motion/reduced-motion";
 import styles from "./checkout.module.css";
 import { DateChips } from "./date-chips";
 import { HandoverFields, type HandoverPlace } from "./handover-fields";
@@ -62,7 +64,57 @@ export function WhenCalendar({
   const [chosen, setChosen] = useState<string | null>(initial);
   const [answers, setAnswers] = useState<HandoverInput>(handover);
   const grid = useRef<HTMLDivElement>(null);
+  const monthName = useRef<HTMLParagraphElement>(null);
   const formRef = useRef<HTMLFormElement>(null);
+  // ANIM-21: the old month goes 24 px the way of the move and out (0–160 ms), the new one comes from 24 px on the
+  // other side (80–320 ms); the month name moves with its grid. Reduced motion: it simply swaps.
+  const before = useRef(shown);
+  useLayoutEffect(() => {
+    const from = before.current;
+    before.current = shown;
+    const g = grid.current;
+    if (from === shown || !g || isMotionReduced()) return;
+    const dir = shown > from ? 1 : -1;
+    const out = g.children[from] as HTMLElement | undefined;
+    const into = g.children[shown] as HTMLElement | undefined;
+    const enter = (el: Element | null | undefined) =>
+      el?.animate(
+        [
+          { transform: `translateX(${24 * dir}px)`, opacity: 0 },
+          { transform: "none", opacity: 1 },
+        ],
+        {
+          duration: 240,
+          delay: 80,
+          easing: "cubic-bezier(0.33, 1, 0.68, 1)",
+          fill: "backwards",
+        },
+      );
+    const runs = [enter(into), enter(monthName.current)];
+    if (out) {
+      out.dataset.leaving = "";
+      const a = out.animate(
+        [
+          { transform: "none", opacity: 1 },
+          { transform: `translateX(${-24 * dir}px)`, opacity: 0 },
+        ],
+        {
+          duration: 160,
+          easing: "cubic-bezier(0.32, 0, 0.67, 0)",
+          fill: "forwards",
+        },
+      );
+      a.onfinish = () => {
+        delete out.dataset.leaving;
+        a.cancel();
+      };
+      runs.push(a);
+    }
+    return () => {
+      runs.forEach((r) => r?.cancel());
+      if (out) delete out.dataset.leaving;
+    };
+  }, [shown]);
   // Errors on Continue: the focus goes to the first group with one (§5.2).
   useEffect(() => {
     if (state.kind !== "pick") return;
@@ -138,7 +190,7 @@ export function WhenCalendar({
       <fieldset className={styles.calendar} aria-describedby="calendar-caption">
         <legend className={styles.sectionHeading}>Date</legend>
         <div className={styles.monthBar}>
-          <p className={styles.monthName} aria-live="polite">
+          <p ref={monthName} className={styles.monthName} aria-live="polite">
             {month.label}
           </p>
           <div className={styles.monthButtons}>
@@ -176,7 +228,7 @@ export function WhenCalendar({
             </span>
           ))}
         </div>
-        <div ref={grid}>
+        <div ref={grid} className={styles.monthStage}>
           {months.map((m, i) => (
             <div
               key={m.key}

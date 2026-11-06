@@ -287,3 +287,33 @@ test("axe: step 2 with a day chosen, step 3 with the hold line; screenshots", as
   await holdSomeDay(page, 2);
   expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
 });
+
+test("ANIM-21: the month slides — the old one out 160 ms, the new one in 80–320 ms, the name with it; reduced motion swaps", async ({
+  page,
+}) => {
+  await addCakes(page);
+  await page.goto("/order/when");
+  await page.getByRole("button", { name: "Next month" }).click();
+  const timing = await page.evaluate(() => {
+    const shown = document.querySelector("[data-shown]")!;
+    const leaving = document.querySelector("[data-leaving]");
+    const t = (el: Element | null) =>
+      el?.getAnimations().map((a) => {
+        const c = a.effect!.getComputedTiming();
+        return [c.duration, c.delay];
+      });
+    return { shown: t(shown), leaving: t(leaving) };
+  });
+  expect(timing.shown).toEqual([[240, 80]]);
+  expect(timing.leaving).toEqual([[160, 0]]);
+  // Afterwards only one month is on screen.
+  await expect(page.locator("[data-leaving]")).toHaveCount(0);
+
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.getByRole("button", { name: "Next month" }).click();
+  expect(
+    await page.evaluate(
+      () => document.querySelector("[data-shown]")!.getAnimations().length,
+    ),
+  ).toBe(0);
+});
