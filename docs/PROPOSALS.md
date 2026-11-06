@@ -163,6 +163,6 @@ Bohoka’s decision is added when he gives it (“jó” = keep, “ne legyen”
 | 4.5b | §5.5 Success (the first 10 s) | Before “Still processing” the page says only “Confirming your order…” and asks every 2 s | `src/components/checkout/confirming.tsx` | Accepted 2026-11-06 |
 | 4.5b | §10.6 Webhooks / §12 Reconciliation | A failed payment opens a locked draft at once from the webhook; the job opens it only after the 15-minute lock | `src/db/confirm-repo.ts` | Accepted 2026-11-06 |
 | 4.5b | §8.3 Check this payment (until phase 5) | The flags are stored in `payment_alerts` (once per kind and payment) and written to the server log | `src/db/confirm-repo.ts` | Accepted 2026-11-06 |
-| 4.6b | §5.6 Two days before | “{Thursday 10 September} is the last day to change or cancel online.” (the §5.6 words as one sentence) | `src/lib/confirmed.ts` | Waiting for Bohoka |
-| 4.6b | §5.6 / Appendix A help line | The change line is shown only while online changes are open (until 23:59 on D-2) | `src/lib/confirmed.ts` | Waiting for Bohoka |
-| 4.6b | ANIM-25 storage | Without session storage the greeting is skipped, so it can never play twice | `src/components/checkout/greeting-mascot.tsx` | Waiting for Bohoka |
+| 4.6b | §5.6 Two days before | “{Thursday 10 September} is the last day to change or cancel online.” (the §5.6 words as one sentence) | `src/lib/confirmed.ts` | Accepted 2026-11-06 |
+| 4.6b | §5.6 / Appendix A help line | The change line is shown only while online changes are open (until 23:59 on D-2) | `src/lib/confirmed.ts` | Accepted 2026-11-06 |
+| 4.6b | ANIM-25 storage | Without session storage the greeting is skipped, so it can never play twice | `src/components/checkout/greeting-mascot.tsx` | Accepted 2026-11-06 |
