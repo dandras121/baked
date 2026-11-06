@@ -8,6 +8,7 @@ import {
   gte,
   inArray,
   isNotNull,
+  isNull,
   lte,
   ne,
   or,
@@ -17,7 +18,7 @@ import { canHold, nearestDates, type CapacityInput } from "@/lib/capacity";
 import { holdMinutes, MAX_CONNECTION_HOLDS, MAX_EXTENSIONS } from "@/lib/hold";
 import { addDays, londonDate, type CalendarDate } from "@/lib/london-time";
 import type { connect } from "./client";
-import { closedDays, draftLines, drafts } from "./schema";
+import { closedDays, draftLines, drafts, orderLines, orders } from "./schema";
 import { readSettings } from "./settings-repo";
 
 type Db = ReturnType<typeof connect>["db"];
@@ -55,28 +56,42 @@ async function otherHoldCounts(
   exceptDraft: string | null,
   now: Date,
 ): Promise<Map<CalendarDate, number>> {
-  const rows = await db
+  // Live holds, also while being paid.
+  const held = await db
     .select({ day: drafts.holdDate, n: count(draftLines.id) })
     .from(drafts)
     .innerJoin(draftLines, eq(draftLines.draftId, drafts.id))
     .where(
       and(
         isNotNull(drafts.holdDate),
-        // A live hold (also while it is being paid), or a confirmed order, which keeps its day for good.
-        or(
-          and(
-            inArray(drafts.status, ["draft", "pending"]),
-            gt(drafts.holdExpiresAt, now),
-          ),
-          eq(drafts.status, "confirmed"),
-        ),
+        inArray(drafts.status, ["draft", "pending"]),
+        gt(drafts.holdExpiresAt, now),
         gte(drafts.holdDate, from),
         lte(drafts.holdDate, to),
         exceptDraft ? ne(drafts.id, exceptDraft) : undefined,
       ),
     )
     .groupBy(drafts.holdDate);
-  return new Map(rows.map((r) => [r.day!, Number(r.n)]));
+  // Orders keep their day for good (cancelled and refunded ones free it, §10.6).
+  const booked = await db
+    .select({ day: orders.date, n: count(orderLines.id) })
+    .from(orders)
+    .innerJoin(orderLines, eq(orderLines.orderId, orders.id))
+    .where(
+      and(
+        inArray(orders.status, ["confirmed", "completed"]),
+        gte(orders.date, from),
+        lte(orders.date, to),
+        exceptDraft
+          ? or(isNull(orders.draftId), ne(orders.draftId, exceptDraft))
+          : undefined,
+      ),
+    )
+    .groupBy(orders.date);
+  const counts = new Map<CalendarDate, number>();
+  for (const r of [...held, ...booked])
+    counts.set(r.day!, (counts.get(r.day!) ?? 0) + Number(r.n));
+  return counts;
 }
 
 /** Everything the calendar needs for one draft (§5.2, §10.4). */

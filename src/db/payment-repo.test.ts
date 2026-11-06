@@ -41,14 +41,12 @@ describe.skipIf(!url)("database: paying for a draft (§5.5)", () => {
   });
   beforeEach(async () => {
     await db().delete(drafts);
-    await db()
-      .update(settings)
-      .set({
-        dailyCap: 5,
-        weeklyCap: 20,
-        leadTimeDays: 5,
-        deliveryChargePence: 0,
-      });
+    await db().update(settings).set({
+      dailyCap: 5,
+      weeklyCap: 20,
+      leadTimeDays: 5,
+      deliveryChargePence: 0,
+    });
   });
   afterAll(async () => conn?.close());
 

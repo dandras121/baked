@@ -600,3 +600,85 @@ export const paymentAlerts = pgTable(
     uniqueIndex("payment_alert_once").on(t.kind, t.paymentIntentId),
   ],
 );
+
+/** The order-number sequence: one row per year of confirmation (§10.7 BBL-YYYY-NNNN, no gaps from drafts). */
+export const orderCounters = pgTable("order_counters", {
+  year: integer("year").primaryKey(),
+  last: integer("last").notNull(),
+});
+
+/**
+ * An order (§10.6): made at confirmation from the draft and the snapshot taken at Pay (§1 Snapshot), which it keeps
+ * for good — later admin edits never change it. Business facts are not copied here: order pages read current
+ * Settings (§11.1); e-mail 1's frozen copy arrives with phase 5.
+ */
+export const orders = pgTable(
+  "orders",
+  {
+    id: serial("id").primaryKey(),
+    number: text("number").notNull().unique(),
+    kind: text("kind").notNull().default("catalogue"),
+    status: text("status").notNull().default("confirmed"),
+    draftId: uuid("draft_id").unique(),
+    /** The status link /my-order/[token] (§6, §10.5). */
+    token: text("token").notNull().unique(),
+    date: date("date").notNull(),
+    /** The refund tiers count from the earliest date the order has had (§10.1). */
+    earliestDate: date("earliest_date").notNull(),
+    handover: text("handover").notNull(),
+    deliveryWindow: text("delivery_window"),
+    address: text("address"),
+    town: text("town"),
+    postcode: text("postcode"),
+    customerName: text("customer_name").notNull(),
+    email: text("email").notNull(),
+    phone: text("phone").notNull(),
+    phoneE164: text("phone_e164"),
+    cakeFor: text("cake_for"),
+    allergyNote: text("allergy_note"),
+    /** The consents as given at checkout: wording, time and the legal revisions shown (§5.3). */
+    consents: jsonb("consents").notNull(),
+    marketingOptIn: boolean("marketing_opt_in").notNull().default(false),
+    deliveryChargePence: integer("delivery_charge_pence").notNull().default(0),
+    totalPence: integer("total_pence").notNull(),
+    amountReceivedPence: integer("amount_received_pence").notNull(),
+    paymentIntentId: text("payment_intent_id").unique(),
+    snapshot: jsonb("snapshot").notNull(),
+    confirmedAt: timestamp("confirmed_at", { withTimezone: true }).notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [
+    check("order_kind", sql`${t.kind} in ('catalogue', 'manual')`),
+    check(
+      "order_status",
+      sql`${t.status} in ('confirmed', 'completed', 'cancelled', 'refunded')`,
+    ),
+    check("order_handover", sql`${t.handover} in ('delivery', 'collection')`),
+    index("order_date").on(t.date, t.status),
+  ],
+);
+
+/** One cake of an order, copied from the snapshot: what was bought, at what price, with which allergens. */
+export const orderLines = pgTable(
+  "order_lines",
+  {
+    id: serial("id").primaryKey(),
+    orderId: integer("order_id")
+      .notNull()
+      .references(() => orders.id, { onDelete: "cascade" }),
+    position: integer("position").notNull(),
+    slug: text("slug").notNull(),
+    name: text("name").notNull(),
+    sizeLine: text("size_line").notNull(),
+    options: text("options").notNull().default(""),
+    /** The inscription; null when the cake offers none. */
+    message: text("message"),
+    /** The line price paid (§11 Line price paid), from the snapshot. */
+    pricePence: integer("price_pence").notNull(),
+    allergenText: text("allergen_text").notNull(),
+    allergenKeys: jsonb("allergen_keys").notNull(),
+  },
+  (t) => [index("order_line_order").on(t.orderId, t.position)],
+);

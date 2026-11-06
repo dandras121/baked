@@ -2,7 +2,7 @@
 import { eq, sql } from "drizzle-orm";
 import type { Gateway, Intent } from "@/lib/payments";
 import type { connect } from "./client";
-import { draftLineViews } from "./draft-repo";
+import { draftLineViews, type LineView } from "./draft-repo";
 import { liveHold } from "./hold-repo";
 import { readSettings } from "./settings-repo";
 import { drafts } from "./schema";
@@ -59,6 +59,41 @@ export async function ensurePaymentIntent(
   });
 }
 
+/** One cake as the snapshot keeps it (§1 Snapshot): what an order is made from at confirmation. */
+export type SnapshotLine = {
+  id: number;
+  slug: string;
+  title: string;
+  name: string;
+  sizeLine: string;
+  options: string;
+  message: string | null;
+  pricePence: number;
+  allergenText: string;
+  allergenKeys: string[];
+};
+
+export const snapshotLine = (l: LineView): SnapshotLine => ({
+  id: l.id,
+  slug: l.slug,
+  title: l.title,
+  name: l.name,
+  sizeLine: l.sizeLine,
+  options: l.options,
+  message: l.message,
+  pricePence: l.pricePence,
+  allergenText: l.allergenText,
+  allergenKeys: [...l.allergenKeys],
+});
+
+export type Snapshot = {
+  takenAt: string;
+  date: string | null;
+  handover: string | null;
+  window: string | null;
+  lines: SnapshotLine[];
+};
+
 export type Prepared =
   | { kind: "ok"; amountPence: number; holdExpiresAt: string }
   | { kind: "changed"; amountPence: number }
@@ -110,13 +145,7 @@ export async function preparePayment(
           date: d.holdDate,
           handover: d.handover,
           window: d.deliveryWindow,
-          lines: lines.map((l) => ({
-            id: l.id,
-            slug: l.slug,
-            title: l.title,
-            pricePence: l.pricePence,
-            allergens: l.allergenText,
-          })),
+          lines: lines.map(snapshotLine),
         },
         snapshotAmountPence: amount,
         holdExpiresAt: sql`greatest(${drafts.holdExpiresAt}, ${keepUntil.toISOString()}::timestamptz)`,

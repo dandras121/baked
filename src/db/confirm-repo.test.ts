@@ -8,7 +8,16 @@ import { applyIntent, confirmationState, reconcile } from "./confirm-repo";
 import { addLine } from "./draft-repo";
 import { capacityFor, takeHold } from "./hold-repo";
 import { ensurePaymentIntent, preparePayment } from "./payment-repo";
-import { drafts, paymentAlerts, settings } from "./schema";
+import {
+  cakeSizes,
+  drafts,
+  orderCounters,
+  orderLines,
+  orders,
+  paymentAlerts,
+  settings,
+} from "./schema";
+import { orderForDraft } from "./order-repo";
 import { countingGateway } from "./test-gateway";
 
 const url = process.env.TEST_DATABASE_URL;
@@ -46,18 +55,22 @@ describe.skipIf(!url)("database: Stripe confirms (§5.5, §10.6, §12)", () => {
     };
   });
   beforeEach(async () => {
+    await db().delete(orders);
+    await db().delete(orderCounters);
     await db().delete(paymentAlerts);
     await db().delete(drafts);
-    await db()
-      .update(settings)
-      .set({
-        dailyCap: 5,
-        weeklyCap: 20,
-        leadTimeDays: 5,
-        deliveryChargePence: 0,
-      });
+    await db().update(settings).set({
+      dailyCap: 5,
+      weeklyCap: 20,
+      leadTimeDays: 5,
+      deliveryChargePence: 0,
+    });
   });
-  afterAll(async () => conn?.close());
+  afterAll(async () => {
+    await db().delete(orders);
+    await db().delete(orderCounters);
+    await conn?.close();
+  });
 
   it("succeeded → confirmed once; a replay and a late failure change nothing", async () => {
     const { draftId, intent, succeed, intents, gw } = await paying();
@@ -153,5 +166,71 @@ describe.skipIf(!url)("database: Stripe confirms (§5.5, §10.6, §12)", () => {
     const next = await reconcile(db(), gw, minutes(15));
     expect(next.confirmed).toBe(0);
     expect(await alerts()).toHaveLength(1);
+  });
+
+  it("the order: BBL-2026-0001 then 0002, the snapshot's cakes, prices and allergens; the number goes to Stripe", async () => {
+    const a = await paying();
+    a.succeed(a.intent.id);
+    await applyIntent(
+      db(),
+      a.intents.get(a.intent.id)!,
+      minutes(1),
+      false,
+      a.gw,
+    );
+    const first = (await orderForDraft(db(), a.draftId))!;
+    expect(first.number).toBe("BBL-2026-0001");
+    expect(a.orderNumbers.get(a.intent.id)).toBe("BBL-2026-0001");
+    expect(first.date).toBe(day);
+    expect(first.totalPence).toBe(a.intent.amountPence);
+    expect(first.lines).toHaveLength(1);
+    expect(first.lines[0].name).toBe("The Lothian");
+    expect(first.lines[0].allergenText).toMatch(/^Contains /);
+    expect(first.token.length).toBeGreaterThan(20);
+    // A replay makes no second order.
+    await applyIntent(
+      db(),
+      a.intents.get(a.intent.id)!,
+      minutes(2),
+      false,
+      a.gw,
+    );
+    expect(await db().select().from(orders)).toHaveLength(1);
+    const b = await paying();
+    b.succeed(b.intent.id);
+    await applyIntent(db(), b.intents.get(b.intent.id)!, minutes(3));
+    expect((await orderForDraft(db(), b.draftId))!.number).toBe(
+      "BBL-2026-0002",
+    );
+  });
+
+  it("the snapshot is kept: Linda changing the price later does not change the order", async () => {
+    const a = await paying();
+    a.succeed(a.intent.id);
+    await applyIntent(db(), a.intents.get(a.intent.id)!, minutes(1));
+    const before = (await orderForDraft(db(), a.draftId))!;
+    const [size] = await db()
+      .select()
+      .from(cakeSizes)
+      .where(eq(cakeSizes.id, line.sizeId));
+    await db()
+      .update(cakeSizes)
+      .set({ pricePence: size.pricePence + 2500 })
+      .where(eq(cakeSizes.id, size.id));
+    try {
+      const after = (await orderForDraft(db(), a.draftId))!;
+      expect(after.lines[0].pricePence).toBe(before.lines[0].pricePence);
+      expect(after.totalPence).toBe(before.totalPence);
+      const [l] = await db()
+        .select()
+        .from(orderLines)
+        .where(eq(orderLines.orderId, after.id));
+      expect(l.pricePence).toBe(before.lines[0].pricePence);
+    } finally {
+      await db()
+        .update(cakeSizes)
+        .set({ pricePence: size.pricePence })
+        .where(eq(cakeSizes.id, size.id));
+    }
   });
 });

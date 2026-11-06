@@ -19,6 +19,8 @@ export type Gateway = {
   create(draftId: string, amountPence: number): Promise<Intent>;
   retrieve(id: string): Promise<Intent>;
   updateAmount(id: string, amountPence: number): Promise<Intent>;
+  /** At confirmation: the order number into metadata.order and the description (§10.6), so Stripe shows it. */
+  setOrder(id: string, number: string): Promise<void>;
   /** Every PaymentIntent created since this time (the reconciliation job, §12). */
   listSince(since: Date): Promise<Intent[]>;
 };
@@ -44,7 +46,9 @@ function stripeGateway(secret: string): Gateway {
             currency: "gbp",
             // Cards only (§5.4): Apple Pay and Google Pay are card wallets; no Link, Klarna or bank redirects.
             allowed_payment_method_types: ["card"],
-            metadata: { kind: "checkout", draft_id: draftId },
+            // metadata.order is the draft id until confirmation, then the order number (§10.6).
+            metadata: { kind: "checkout", draft_id: draftId, order: draftId },
+            description: `Baked by Linda draft ${draftId}`,
           },
           { idempotencyKey: `create-${draftId}` },
         ),
@@ -57,6 +61,12 @@ function stripeGateway(secret: string): Gateway {
       return fromStripe(
         await stripe.paymentIntents.update(id, { amount: amountPence }),
       );
+    },
+    async setOrder(id, number) {
+      await stripe.paymentIntents.update(id, {
+        metadata: { order: number },
+        description: `Baked by Linda order ${number}`,
+      });
     },
     async listSince(since) {
       const out: Intent[] = [];
@@ -106,6 +116,7 @@ const fakeGateway: Gateway = {
     fakes.set(id, i);
     return i;
   },
+  async setOrder() {},
   async listSince() {
     return [...fakes.values()];
   },

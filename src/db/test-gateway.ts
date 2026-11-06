@@ -4,6 +4,7 @@ import type { Gateway, Intent } from "@/lib/payments";
 export function countingGateway() {
   const intents = new Map<string, Intent>();
   const calls = { create: 0, update: 0 };
+  const orderNumbers = new Map<string, string>();
   const gw: Gateway = {
     async create(draftId, amountPence) {
       calls.create++;
@@ -29,6 +30,9 @@ export function countingGateway() {
       intents.set(id, i);
       return i;
     },
+    async setOrder(id, number) {
+      orderNumbers.set(id, number);
+    },
     async listSince() {
       return [...intents.values()];
     },
@@ -42,5 +46,5 @@ export function countingGateway() {
       amountReceivedPence: received ?? i.amountPence,
     });
   };
-  return { gw, calls, intents, succeed };
+  return { gw, calls, intents, succeed, orderNumbers };
 }

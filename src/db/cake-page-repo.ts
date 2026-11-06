@@ -101,7 +101,10 @@ export async function readCakePage(
       })),
   }));
   return cakePage(
-    { ...cake, allergens: cake.allergens as CakePageData["allergens"]["allergens"] },
+    {
+      ...cake,
+      allergens: cake.allergens as CakePageData["allergens"]["allergens"],
+    },
     sizes.map((s) => ({
       id: s.id,
       serves: s.serves,

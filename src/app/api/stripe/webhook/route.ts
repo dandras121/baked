@@ -34,6 +34,7 @@ export async function POST(req: Request) {
       await gw.retrieve(id),
       new Date(),
       event.type === "payment_intent.payment_failed",
+      gw,
     );
     return NextResponse.json({ received: true, applied });
   } finally {

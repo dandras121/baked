@@ -4,8 +4,16 @@ import { and, eq, or } from "drizzle-orm";
 import { canHold } from "@/lib/capacity";
 import type { Gateway, Intent } from "@/lib/payments";
 import type { connect } from "./client";
+import { draftLineViews } from "./draft-repo";
 import { capacityFor } from "./hold-repo";
-import { LOCK_MS, settleLock } from "./payment-repo";
+import { createOrder } from "./order-repo";
+import {
+  draftAmount,
+  LOCK_MS,
+  settleLock,
+  snapshotLine,
+  type Snapshot,
+} from "./payment-repo";
 import { drafts, paymentAlerts } from "./schema";
 
 type Db = ReturnType<typeof connect>["db"];
@@ -45,6 +53,8 @@ export async function applyIntent(
   now = new Date(),
   /** A `payment_intent.payment_failed` event: the attempt is over. Otherwise (the job) only a lapsed lock opens. */
   failedEvent = false,
+  /** To write the order number onto the PaymentIntent (§10.6 metadata.order); left out in tests. */
+  gw?: Pick<Gateway, "setOrder">,
 ): Promise<Applied> {
   if (intent.kind !== "checkout") return "nothing";
   const [found] = await db
@@ -68,6 +78,17 @@ export async function applyIntent(
       );
       return "no-order";
     }
+    // The snapshot whose amount Stripe received; otherwise the draft as it is now (§5.5 After an unlock).
+    const snap = found.snapshot as Snapshot | null;
+    const fromSnapshot =
+      !!snap && found.snapshotAmountPence === intent.amountReceivedPence;
+    const lines = fromSnapshot
+      ? snap.lines
+      : (await draftLineViews(db, found.id)).map(snapshotLine);
+    const total = fromSnapshot
+      ? found.snapshotAmountPence!
+      : await draftAmount(db, found.id);
+    let number = "";
     const result = await db.transaction(async (tx) => {
       const [d] = await tx
         .select()
@@ -84,9 +105,24 @@ export async function applyIntent(
           lockedAt: null,
         })
         .where(eq(drafts.id, d.id));
+      number = await createOrder(
+        tx,
+        d,
+        lines,
+        total,
+        intent.amountReceivedPence,
+        fromSnapshot ? snap : null,
+        now,
+      );
       return "confirmed" as const;
     });
     if (result === "already-confirmed") return result;
+    // Refund in Stripe finds the order by its number (§10.6); a failure here changes nothing else.
+    await gw
+      ?.setOrder(intent.id, number)
+      .catch((e) =>
+        console.warn(`[stripe] order number not written on ${intent.id}`, e),
+      );
     if (found.snapshotAmountPence !== intent.amountReceivedPence)
       await alert(
         db,
@@ -137,7 +173,7 @@ export async function applyIntent(
  */
 export async function reconcile(
   db: Db,
-  gw: { listSince(since: Date): Promise<Intent[]> },
+  gw: Pick<Gateway, "listSince" | "setOrder">,
   now = new Date(),
 ): Promise<Record<Applied, number>> {
   const seen: Record<Applied, number> = {
@@ -149,7 +185,7 @@ export async function reconcile(
   };
   const since = new Date(now.getTime() - 48 * 60 * 60 * 1000);
   for (const intent of await gw.listSince(since))
-    seen[await applyIntent(db, intent, now)]++;
+    seen[await applyIntent(db, intent, now, false, gw)]++;
   return seen;
 }
 

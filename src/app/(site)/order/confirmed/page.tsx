@@ -1,4 +1,3 @@
-import { eq } from "drizzle-orm";
 import type { Metadata } from "next";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
@@ -8,8 +7,10 @@ import { Confirming } from "@/components/checkout/confirming";
 import { ButtonLink } from "@/components/ui/button";
 import { connect, databaseUrl } from "@/db/client";
 import { confirmationState } from "@/db/confirm-repo";
+import { eq } from "drizzle-orm";
 import { DRAFT_COOKIE } from "@/db/draft-repo";
 import { drafts } from "@/db/schema";
+import { orderForDraft } from "@/db/order-repo";
 import { gateway } from "@/lib/payments";
 
 // After Pay (§5.5 Success, §5.6). Only Stripe confirms (the webhook or the reconciliation job, §10.6); until then the
@@ -28,14 +29,17 @@ export default async function Page() {
   const { db, close } = connect();
   let state: Awaited<ReturnType<typeof confirmationState>>;
   let name = "";
+  let number = "";
   try {
     state = await confirmationState(db, id, gateway());
     if (state === "confirmed") {
+      const o = await orderForDraft(db, id!);
       const [d] = await db
         .select({ name: drafts.customerName })
         .from(drafts)
         .where(eq(drafts.id, id!));
-      name = (d?.name ?? "").trim().split(/\s+/)[0] ?? "";
+      name = (o?.customerName ?? d?.name ?? "").trim().split(/\s+/)[0] ?? "";
+      number = o?.number ?? "";
     }
   } finally {
     await close();
@@ -51,9 +55,15 @@ export default async function Page() {
               Thank you{name ? `, ${name}` : ""}.
             </h1>
             <p className={styles.emptyText}>Your order is confirmed.</p>
+            {number && (
+              <p className={styles.emptyText}>
+                Your order number{" "}
+                <strong data-testid="order-number">{number}</strong>
+              </p>
+            )}
             <p className={styles.stub}>
-              The order number, what happens next and the mascot arrive in slice
-              4.6.
+              What happens next, Track this order and the mascot arrive in slice
+              4.6b.
             </p>
             <div className={styles.emptyActions}>
               <ButtonLink href="/">Back to the home page</ButtonLink>
