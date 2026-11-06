@@ -682,3 +682,46 @@ export const orderLines = pgTable(
   },
   (t) => [index("order_line_order").on(t.orderId, t.position)],
 );
+
+/**
+ * The send log and queue (§8.4): one row per e-mail ever asked for. `key` is its never-twice key (e.g.
+ * “order:12:1:12”), so the same e-mail for the same event is queued once only. The template and its data are
+ * kept, not the HTML: every attempt renders again, so time-dependent copy is current. In development and on
+ * previews nothing leaves the site: `transport` = “outbox”, and /dev/mail shows the rendered e-mail.
+ */
+export const mailSends = pgTable(
+  "mail_sends",
+  {
+    id: serial("id").primaryKey(),
+    key: text("key").notNull().unique(),
+    template: text("template").notNull(),
+    data: jsonb("data").notNull(),
+    to: text("to").notNull(),
+    replyTo: text("reply_to"),
+    stream: text("stream").notNull().default("transactional"),
+    status: text("status").notNull().default("queued"),
+    attempts: integer("attempts").notNull().default(0),
+    deadline: timestamp("deadline", { withTimezone: true }).notNull(),
+    nextAttemptAt: timestamp("next_attempt_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    lastError: text("last_error"),
+    transport: text("transport"),
+    providerId: text("provider_id"),
+    subject: text("subject"),
+    html: text("html"),
+    text: text("text"),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    sentAt: timestamp("sent_at", { withTimezone: true }),
+  },
+  (t) => [
+    check(
+      "mail_status",
+      sql`${t.status} in ('queued', 'sent', 'failed', 'failed-too-late')`,
+    ),
+    check("mail_stream", sql`${t.stream} in ('transactional', 'broadcast')`),
+    index("mail_due").on(t.status, t.nextAttemptAt),
+  ],
+);

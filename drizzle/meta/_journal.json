@@ -106,6 +106,13 @@
       "when": 1793998916581,
       "tag": "0014_orders",
       "breakpoints": true
+    },
+    {
+      "idx": 15,
+      "version": "7",
+      "when": 1794003886131,
+      "tag": "0015_mail",
+      "breakpoints": true
     }
   ]
 }
