@@ -1,6 +1,7 @@
 import NextLink from "next/link";
 import { STEPS, stepCount, stepPath, stepState } from "@/lib/checkout";
 import styles from "./checkout.module.css";
+import { StepMotion } from "./step-motion";
 
 /**
  * The checkout stepper (§5 Stepper; desktop V2 · Stepper 627:3124, phone 812:5951). Desktop and tablet: four steps
@@ -18,13 +19,14 @@ export function Stepper({
   const here = STEPS[current - 1];
   return (
     <nav className={styles.stepper} aria-label="Checkout steps">
+      <StepMotion current={current} />
       <ol className={styles.steps}>
         {STEPS.map((s) => {
           const state = stepState(s.n, current);
           const href = s.key === "cake" ? cakeHref : stepPath(s.key);
           const inner = (
             <>
-              <span className={styles.disc} aria-hidden>
+              <span className={styles.disc} aria-hidden data-disc>
                 {state === "done" ? "✓" : s.n}
               </span>
               <span className={styles.stepLabel}>{s.label}</span>
@@ -58,6 +60,7 @@ export function Stepper({
             <span
               key={s.key}
               className={styles.dot}
+              data-dot
               data-state={stepState(s.n, current)}
             />
           ))}

@@ -50,6 +50,7 @@ import { HoldLine } from "./hold-line";
 import { WhenCalendar } from "./when-calendar";
 import styles from "./checkout.module.css";
 import { OrderSummary, orderTotal } from "./order-summary";
+import { StepBody } from "./step-motion";
 import { Stepper } from "./stepper";
 import { SummaryBar } from "./summary-bar";
 
@@ -184,7 +185,7 @@ export async function CheckoutStep({ step }: { step: Key }) {
       {/* Being paid in another tab (§5.5): every field and button that changes the order is off until it ends. */}
       <PauseScope paused={paused}>
         <div className={styles.body} data-step={step}>
-          <div className={styles.main} data-step-body>
+          <StepBody step={n} className={styles.main}>
             <Link href={BACK[step].href(cakeHref)} className={styles.back}>
               {BACK[step].label}
             </Link>
@@ -272,7 +273,7 @@ export async function CheckoutStep({ step }: { step: Key }) {
                 })}
               />
             )}
-          </div>
+          </StepBody>
           {step !== "pay" && summary(false)}
         </div>
         {step !== "pay" && (

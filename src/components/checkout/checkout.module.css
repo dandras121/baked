@@ -113,6 +113,18 @@
   }
 }
 
+/* Back: mirrored — the new content comes down from 8 px above (ANIM-18). */
+.main[data-dir="back"] {
+  animation-name: step-in-back;
+}
+
+@keyframes step-in-back {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .main {
     animation: none;

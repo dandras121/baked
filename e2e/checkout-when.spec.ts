@@ -317,3 +317,49 @@ test("ANIM-21: the month slides — the old one out 160 ms, the new one in 80–
     ),
   ).toBe(0);
 });
+
+test("ANIM-18: Continue — the old step fades out 120 ms, the connector fills 80–320, the tick comes with the new step, focus to its heading; Back rises from above; a full load runs only the rise", async ({
+  page,
+}, testInfo) => {
+  test.skip(testInfo.project.name === "phone", "the dots get the same timing");
+  await addCakes(page);
+  await page.goto("/order/when");
+  // A full page load: nothing in the stepper moves.
+  expect(
+    await page.evaluate(
+      () =>
+        document
+          .querySelector("nav[aria-label='Checkout steps']")!
+          .getAnimations({ subtree: true }).length,
+    ),
+  ).toBe(0);
+  // Record every Web Animation from here on (the document stays: client-side navigation).
+  await page.evaluate(() => {
+    const w = window as unknown as { anims: string[] };
+    w.anims = [];
+    const animate = Element.prototype.animate;
+    Element.prototype.animate = function (k, o) {
+      const t = typeof o === "object" ? o : {};
+      w.anims.push(
+        `${t.pseudoElement ?? ""}${t.delay ?? 0}+${t.duration}${this.getAttribute("aria-hidden") === "true" && this.hasAttribute("inert") ? " copy" : ""}`,
+      );
+      return animate.call(this, k, o);
+    };
+  });
+  await laterMonth(page);
+  await holdSomeDay(page);
+  await expect(page.getByRole("heading", { level: 1 })).toBeFocused();
+  const anims = await page.evaluate(
+    () => (window as unknown as { anims: string[] }).anims,
+  );
+  expect(anims).toContain("::after80+240"); // the connector fills
+  expect(anims).toContain("120+240"); // the tick
+  expect(anims).toContain("0+120 copy"); // the old step fades out
+  // Back: the new content comes down from above.
+  await page.getByRole("link", { name: "← Back to when & where" }).click();
+  await expect(page).toHaveURL(/order\/when$/);
+  await expect(page.locator("[data-step-body]:visible")).toHaveAttribute(
+    "data-dir",
+    "back",
+  );
+});
