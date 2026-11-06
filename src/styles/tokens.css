@@ -174,6 +174,16 @@
   --type-about-local-phone: 500 13px/25px var(--font-ui); /* “Based in West Lothian…” on the phone · 482:2691 */
   --type-page-title: 400 max(calc(145px * var(--type-scale)), min(145px, 14px))/0.9 var(--font-display); /* page title on a white band, e.g. “We have all the answers.” · 658:4023 */
   --type-page-title-phone: 400 64px/60px var(--font-display); /* page title on the phone · 803:5741 */
+  --type-confirmed-title: 400 max(calc(145px * var(--type-scale)), min(145px, 14px))/calc(140px * var(--type-scale)) var(--font-display); /* Order confirmed “Thank you, Mairi.” · 643:3505 */
+  --type-confirmed-title-phone: 400 64px/60px var(--font-display); /* the same on the phone · 836:6531 */
+  --type-next-label: 400 max(calc(16px * var(--type-scale)), min(16px, 14px))/normal var(--font-display); /* WHAT HAPPENS NEXT row label, “Right now” · 643:3511 */
+  --type-next-label-phone: 400 15px/20px var(--font-display); /* the same on the phone · 836:6535 */
+  --type-next-text: 400 max(calc(14px * var(--type-scale)), min(14px, 14px))/calc(23px * var(--type-scale)) var(--font-ui); /* WHAT HAPPENS NEXT row text · 643:3512 */
+  --type-next-text-phone: 400 12px/20px var(--font-ui); /* the same on the phone · 836:6537 */
+  --type-next-note: 400 max(calc(13px * var(--type-scale)), min(13px, 14px))/calc(21px * var(--type-scale)) var(--font-ui); /* “Something not right?” and “Keep this.” · 643:3529, 643:3534 */
+  --type-next-note-phone: 400 11px/18px var(--font-ui); /* the same on the phone · 836:6554, 836:6561 */
+  --type-order-number: 300 max(calc(38px * var(--type-scale)), min(38px, 14px))/normal var(--font-display); /* BBL-2026-0147 on the order card · 643:3533 */
+  --type-order-number-phone: 300 34px/38px var(--font-display); /* the same on the phone · 836:6559 */
   --type-category: 600 max(calc(11px * var(--type-scale)), min(11px, 14px))/normal var(--font-ui); /* FAQ category label (caps, 18 % spacing), accent · 658:4027 */
   --type-category-phone: 600 10px/14px var(--font-ui); /* FAQ category label on the phone · 803:5741 */
   --type-intro-sm-phone: 400 13px/24px var(--font-ui); /* FAQ introduction on the phone · 803:5741 */

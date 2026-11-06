@@ -417,6 +417,52 @@
   font-variation-settings: var(--font-display-axes);
 }
 
+.type-confirmed-title {
+  font: var(--type-confirmed-title);
+  font-variation-settings: var(--font-display-axes);
+}
+
+.type-confirmed-title-phone {
+  font: var(--type-confirmed-title-phone);
+  font-variation-settings: var(--font-display-axes);
+}
+
+.type-next-label {
+  font: var(--type-next-label);
+  font-variation-settings: var(--font-display-axes);
+}
+
+.type-next-label-phone {
+  font: var(--type-next-label-phone);
+  font-variation-settings: var(--font-display-axes);
+}
+
+.type-next-text {
+  font: var(--type-next-text);
+}
+
+.type-next-text-phone {
+  font: var(--type-next-text-phone);
+}
+
+.type-next-note {
+  font: var(--type-next-note);
+}
+
+.type-next-note-phone {
+  font: var(--type-next-note-phone);
+}
+
+.type-order-number {
+  font: var(--type-order-number);
+  font-variation-settings: var(--font-display-axes);
+}
+
+.type-order-number-phone {
+  font: var(--type-order-number-phone);
+  font-variation-settings: var(--font-display-axes);
+}
+
 .type-category {
   font: var(--type-category);
 }

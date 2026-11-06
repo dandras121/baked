@@ -1,0 +1,251 @@
+/*
+ * Order confirmed (§5.6). Desktop 643:3478 (1280; × --u on the 1024 tablet, 1558:10938), phone 836:6509 (402).
+ * Labels in plain sentence case, not the drawn caps (Bohoka 2026-11-01, as on the checkout steps).
+ */
+.page {
+  background: var(--colour-white);
+}
+
+/* “Thank you, Mairi.” */
+.hero {
+  padding: 41px 24px 41px;
+}
+
+.title {
+  margin: 0;
+  color: var(--colour-display);
+  font: var(--type-confirmed-title-phone);
+  font-variation-settings: var(--font-display-axes);
+}
+
+.title:focus {
+  outline: none;
+}
+
+.body {
+  display: flex;
+  flex-direction: column;
+  padding: 26px 24px 40px;
+}
+
+.heading {
+  margin: 0 0 18px;
+  color: var(--colour-ink);
+  font: var(--type-option-phone);
+  font-variation-settings: var(--font-display-axes);
+}
+
+.rows {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.row {
+  display: grid;
+  gap: 6px;
+  padding: 16px 0;
+  border-bottom: 1px solid var(--colour-line-rule);
+}
+
+.row:first-child {
+  padding-top: 0;
+}
+
+.label {
+  margin: 0;
+  color: var(--colour-ink);
+  font: var(--type-next-label-phone);
+  font-variation-settings: var(--font-display-axes);
+}
+
+.text {
+  margin: 0;
+  color: var(--colour-body);
+  font: var(--type-next-text-phone);
+}
+
+.note {
+  margin: 18px 0 0;
+  color: var(--colour-meta);
+  font: var(--type-next-note-phone);
+}
+
+.note a {
+  color: inherit;
+}
+
+/* The order card, with room above it for the mascot (1803:13062, 56 px on the phone). */
+.order {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  margin-top: 86px;
+}
+
+.card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 20px 18px;
+  border-radius: 10px;
+  background: var(--colour-selected-wash);
+}
+
+.cardLabel {
+  margin: 0;
+  color: var(--colour-meta);
+  font: var(--type-meta);
+}
+
+.number {
+  margin: 0;
+  color: var(--colour-ink);
+  font: var(--type-order-number-phone);
+  font-variation-settings: var(--font-display-axes);
+}
+
+.keep {
+  margin: 0;
+  color: var(--colour-body);
+  font: var(--type-next-note-phone);
+}
+
+.track {
+  width: 100%;
+}
+
+/*
+ * ANIM-25: the mascot peeks over the card, clipped by a box whose bottom edge is the card's top edge (1803:13061):
+ * phone 70 % (82 px showing), tablet 85 % (86 px), desktop 100 px.
+ */
+.mascotClip {
+  --clip-w: 135px;
+  --clip-h: 106px;
+  --clip-right: 5px;
+  --mark-w: 97.3px;
+  --mark-left: 18.8px;
+  --mark-top: 30.3px;
+  position: absolute;
+  right: var(--clip-right);
+  bottom: 100%;
+  width: var(--clip-w);
+  height: var(--clip-h);
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.mascot {
+  /* How far it rises: from fully hidden under the clip's bottom edge (ANIM-25: +86 / +90 / +104 px). */
+  --rise: 86px;
+  position: absolute;
+  top: var(--mark-top);
+  left: var(--mark-left);
+  width: var(--mark-w);
+  height: auto;
+  transform: rotate(-8deg);
+}
+
+/* Before the greeting decides (JavaScript running, not yet hydrated): hidden under the card. */
+:global(html.js) .mascot:not([data-state]) {
+  transform: translateY(var(--rise)) rotate(-18deg);
+}
+
+@media (min-width: 768px) {
+  /* The band starts 17 below the header bar (643:3504 at y 94); the name's line is set in a little, as drawn. */
+  .hero {
+    padding: calc(39 * var(--u)) calc(60 * var(--u)) calc(22 * var(--u));
+    min-height: calc(343 * var(--u));
+    box-sizing: border-box;
+  }
+
+  .title {
+    font: var(--type-confirmed-title);
+  }
+
+  .name {
+    padding-left: 0.14em;
+  }
+
+  .body {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: calc(80 * var(--u));
+    align-items: start;
+    padding: calc(56 * var(--u)) calc(80 * var(--u)) calc(80 * var(--u));
+  }
+
+  .heading {
+    margin-bottom: calc(22 * var(--u));
+    font: var(--type-option);
+  }
+
+  .row {
+    grid-template-columns: calc(180 * var(--u)) 1fr;
+    gap: calc(24 * var(--u));
+    padding: calc(20 * var(--u)) 0;
+  }
+
+  .label {
+    color: var(--colour-display);
+    font: var(--type-next-label);
+  }
+
+  .text {
+    font: var(--type-next-text);
+  }
+
+  .note {
+    margin-top: calc(26 * var(--u));
+    color: var(--colour-body);
+    font: var(--type-next-note);
+  }
+
+  .order {
+    gap: calc(22 * var(--u));
+    margin-top: 0;
+  }
+
+  .card {
+    gap: calc(10 * var(--u));
+    padding: calc(26 * var(--u)) calc(28 * var(--u)) calc(28 * var(--u));
+    border-radius: calc(10 * var(--u));
+  }
+
+  .number {
+    font: var(--type-order-number);
+  }
+
+  .keep {
+    font: var(--type-next-note);
+  }
+
+  .mascotClip {
+    --clip-w: 158.7px;
+    --clip-h: 110px;
+    --clip-right: 18.3px;
+    --mark-w: 118.1px;
+    --mark-left: 20.3px;
+    --mark-top: 31.7px;
+  }
+
+  .mascot {
+    --rise: 90px;
+  }
+}
+
+@media (min-width: 1120px) {
+  .mascotClip {
+    --clip-w: 182.5px;
+    --clip-h: 124px;
+    --clip-right: 19.5px;
+    --mark-w: 139px;
+    --mark-left: 21.8px;
+    --mark-top: 32.9px;
+  }
+
+  .mascot {
+    --rise: 104px;
+  }
+}
