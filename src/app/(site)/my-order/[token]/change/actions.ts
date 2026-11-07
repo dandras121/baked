@@ -3,7 +3,14 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { SITE_URL } from "@/app/layout";
-import { saveChanges } from "@/db/change-repo";
+import { eq } from "drizzle-orm";
+import {
+  applyChangePayment,
+  dropChangePayment,
+  prepareChangePayment,
+  saveChanges,
+} from "@/db/change-repo";
+import { orderChanges } from "@/db/schema";
 import { connect, databaseUrl } from "@/db/client";
 import { processMail } from "@/db/mail-repo";
 import { orderForToken } from "@/db/order-link-repo";
@@ -27,6 +34,7 @@ export type ChangeState = {
     | "nothing"
     | "invalid"
     | "needs-payment"
+    | "locked"
     | "failed";
   errors: Record<number, string>;
 };
@@ -72,4 +80,101 @@ export async function saveChange(
     await close();
   }
   redirect(`/my-order/${token}?saved=${changeId}`);
+}
+
+export type PrepareState =
+  | { kind: "pay"; clientSecret: string; changeId: number; amountPence: number }
+  | {
+      kind: "error";
+      outcome: ChangeState["outcome"];
+      errors: Record<number, string>;
+    };
+
+/** The edits as the form sends them (message-{line}, size-{line}). */
+function editsFrom(form: FormData) {
+  const messages: Record<number, string> = {};
+  const sizes: Record<number, number> = {};
+  for (const [key, value] of form.entries()) {
+    if (key.startsWith("message-"))
+      messages[Number(key.slice(8))] = String(value).slice(0, 100);
+    if (key.startsWith("size-")) sizes[Number(key.slice(5))] = Number(value);
+  }
+  return { messages, sizes };
+}
+
+async function openOrder(token: string) {
+  if (!unlockValid(token, (await cookies()).get(UNLOCK_COOKIE)?.value))
+    return null;
+  return token;
+}
+
+/**
+ * Pay £… and save (§6.4), step 1: the server checks the edits, the version and the window, locks the order and makes
+ * the PaymentIntent for the difference. Nothing on the order changes yet.
+ */
+export async function prepareChange(
+  token: string,
+  version: number,
+  form: FormData,
+): Promise<PrepareState> {
+  const gw = gateway();
+  if (!(await openOrder(token)) || !gw || !databaseUrl())
+    return { kind: "error", outcome: "failed", errors: {} };
+  const { db, close } = connect();
+  try {
+    const found = await orderForToken(db, token);
+    if (!found?.valid) return { kind: "error", outcome: "closed", errors: {} };
+    const r = await prepareChangePayment(db, gw, {
+      orderId: found.order.id,
+      version,
+      ...editsFrom(form),
+    });
+    if (r.kind === "pay") return r;
+    if (r.kind === "invalid")
+      return { kind: "error", outcome: "invalid", errors: r.errors };
+    return {
+      kind: "error",
+      outcome: r.kind === "no-rise" ? "stale" : r.kind,
+      errors: {},
+    };
+  } finally {
+    await close();
+  }
+}
+
+/**
+ * Step 2, after Stripe answered in the browser: the payment is read from Stripe; succeeded → applied (the webhook may
+ * have done it already) and the order page with the banner; still processing → wait; anything else → dropped, the
+ * order open again, the edits still on the page.
+ */
+export async function finishChange(
+  token: string,
+  changeId: number,
+): Promise<"saved" | "processing" | "failed"> {
+  const gw = gateway();
+  if (!(await openOrder(token)) || !gw || !databaseUrl()) return "failed";
+  const { db, close } = connect();
+  let outcome: "saved" | "processing" | "failed" = "failed";
+  try {
+    const found = await orderForToken(db, token);
+    const [c] = await db
+      .select()
+      .from(orderChanges)
+      .where(eq(orderChanges.id, changeId));
+    if (!found || !c || c.orderId !== found.order.id || !c.paymentIntentId)
+      return "failed";
+    const intent = await gw.retrieve(c.paymentIntentId);
+    if (intent.status === "succeeded") {
+      const r = await applyChangePayment(db, gw, intent);
+      outcome = r === "applied" || r === "already" ? "saved" : "failed";
+      await processMail(db, mailTransport(), SITE_URL).catch((e) =>
+        console.error("change mail", e),
+      );
+    } else if (intent.status === "processing") outcome = "processing";
+    else await dropChangePayment(db, c.orderId, c.id);
+  } finally {
+    await close();
+  }
+  if (outcome === "saved") redirect(`/my-order/${token}?saved=${changeId}`);
+  return outcome;
 }

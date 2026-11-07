@@ -6,6 +6,7 @@ import type { Gateway, Intent } from "@/lib/payments";
 import type { connect } from "./client";
 import { draftLineViews } from "./draft-repo";
 import { capacityFor } from "./hold-repo";
+import { applyChangePayment } from "./change-repo";
 import { createOrder } from "./order-repo";
 import {
   draftAmount,
@@ -255,8 +256,20 @@ export async function reconcile(
     nothing: 0,
   };
   const since = new Date(now.getTime() - 48 * 60 * 60 * 1000);
-  for (const intent of await gw.listSince(since))
+  for (const intent of await gw.listSince(since)) {
+    // A paid size-up whose page and webhook both went missing (§12 reconciliation).
+    if (intent.kind === "change") {
+      if ("refund" in gw)
+        await applyChangePayment(
+          db,
+          gw as Pick<Gateway, "refund">,
+          intent,
+          now,
+        );
+      continue;
+    }
     seen[await applyIntent(db, intent, now, false, gw)]++;
+  }
   return seen;
 }
 

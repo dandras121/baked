@@ -170,3 +170,16 @@
   color: var(--colour-ink);
   font: var(--type-body-sm);
 }
+
+/* Pay the difference (1799:13020): a panel between the rows and the buttons. */
+.payPanel {
+  margin-top: 18px;
+  padding: 20px;
+  border: 1px solid var(--colour-panel-border);
+  border-radius: 14px;
+  background: var(--colour-white);
+}
+
+.cardField {
+  margin-top: 12px;
+}

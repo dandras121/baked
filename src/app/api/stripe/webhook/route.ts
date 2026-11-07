@@ -1,6 +1,10 @@
 import { NextResponse } from "next/server";
 import { connect, databaseUrl } from "@/db/client";
 import { SITE_URL } from "@/app/layout";
+import {
+  applyChangePayment,
+  dropChangePaymentByIntent,
+} from "@/db/change-repo";
 import { applyIntent } from "@/db/confirm-repo";
 import { processMail } from "@/db/mail-repo";
 import { mailTransport } from "@/lib/mail/transport";
@@ -32,9 +36,21 @@ export async function POST(req: Request) {
   const id = (event.data.object as { id: string }).id;
   const { db, close } = connect();
   try {
+    const intent = await gw.retrieve(id);
+    // A customer's size-up (§6.4): applied once paid; a failed one opens the order again.
+    if (intent.kind === "change") {
+      const done =
+        event.type === "payment_intent.payment_failed"
+          ? await dropChangePaymentByIntent(db, intent.id)
+          : await applyChangePayment(db, gw, intent);
+      await processMail(db, mailTransport(), SITE_URL).catch((e) =>
+        console.warn("[mail] after a change payment", e),
+      );
+      return NextResponse.json({ received: true, applied: done });
+    }
     const applied = await applyIntent(
       db,
-      await gw.retrieve(id),
+      intent,
       new Date(),
       event.type === "payment_intent.payment_failed",
       gw,

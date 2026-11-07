@@ -870,6 +870,14 @@ export const orderChanges = pgTable(
     moneyKind: text("money_kind").notNull().default("none"),
     moneyPence: integer("money_pence").notNull().default(0),
     newTotalPence: integer("new_total_pence").notNull(),
+    /** saved · pending (a size-up waiting for its payment, §6.4) · dropped (the payment never came). */
+    status: text("status").notNull().default("saved"),
+    /** A pending change: what to apply once paid, on top of the order at this version. */
+    payload: jsonb("payload"),
+    baseVersion: integer("base_version"),
+    paymentIntentId: text("payment_intent_id").unique(),
+    /** What Stripe took for this change (net paid counts it, §10.6). */
+    paidPence: integer("paid_pence").notNull().default(0),
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
       .defaultNow(),

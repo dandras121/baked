@@ -2,7 +2,11 @@
 
 import { useRouter } from "next/navigation";
 import { useActionState, useEffect, useRef, useState } from "react";
-import type { ChangeState } from "@/app/(site)/my-order/[token]/change/actions";
+import type {
+  ChangeState,
+  PrepareState,
+} from "@/app/(site)/my-order/[token]/change/actions";
+import { ChangePayment } from "./change-payment";
 import { Button, ButtonLink } from "@/components/ui/button";
 import { Notice } from "@/components/ui/notice";
 import { Radio } from "@/components/ui/choice";
@@ -45,6 +49,11 @@ const shown = (m: string | null) => (m ? `“${m}”` : "No message");
  */
 export function ChangePage({
   action,
+  prepare,
+  finish,
+  publishableKey,
+  paying,
+  paidChangeId,
   token,
   number,
   until,
@@ -52,6 +61,13 @@ export function ChangePage({
   lines,
 }: {
   action: (state: ChangeState, form: FormData) => Promise<ChangeState>;
+  prepare: (form: FormData) => Promise<PrepareState>;
+  finish: (changeId: number) => Promise<"saved" | "processing" | "failed">;
+  publishableKey: string;
+  /** A payment for a change is going through on this order (another tab, §6.4). */
+  paying: boolean;
+  /** Back from the bank's check (Stripe's return_url): finish that payment. */
+  paidChangeId: number | null;
   token: string;
   number: string;
   /** “Thursday 10 September” — the last day to change online (D-2). */
@@ -72,7 +88,26 @@ export function ChangePage({
   const [error, setError] = useState<string | null>(null);
   const [askPlain, setAskPlain] = useState(false);
   const title = useRef<HTMLHeadingElement>(null);
+  const formRef = useRef<HTMLFormElement>(null);
   useEffect(() => title.current?.focus(), []);
+  const [refused, setRefused] = useState<ChangeState | null>(null);
+  const [returning, setReturning] = useState<string | null>(
+    paidChangeId ? "Finishing your payment…" : null,
+  );
+  useEffect(() => {
+    if (!paidChangeId) return;
+    void finish(paidChangeId).then((r) =>
+      setReturning(
+        r === "processing"
+          ? "Your bank is still confirming the payment — reload this page in a minute."
+          : r === "failed"
+            ? "Nothing has changed and nothing was taken. Please try again."
+            : null,
+      ),
+    );
+    // Once, on arriving back from the bank.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // The window closed or the order changed elsewhere: the server draws the page again as it is now.
   const [seen, setSeen] = useState(state);
@@ -95,6 +130,32 @@ export function ChangePage({
   const chosenSize = (l: ChangeLine) =>
     l.sizes.find((c) => c.id === sizes[l.id] && !c.current) ?? null;
   const net = resized.reduce((n, l) => n + (chosenSize(l)?.diffPence ?? 0), 0);
+  const payUp = net >= 30;
+  const what =
+    resized.length === 1
+      ? `the size goes up from ${resized[0].sizeLine.replace(/^.* · /, "")} to ${chosenSize(resized[0])!.label.split(" · ")[0].toLowerCase()}`
+      : "the new sizes";
+
+  if (paying && !paidChangeId)
+    return (
+      <div className={styles.page}>
+        <p className={styles.number}>Order {number}</p>
+        <h1 ref={title} tabIndex={-1} className={styles.title}>
+          What would you like to change?
+        </h1>
+        <Notice icon title="A payment is going through">
+          <p>
+            A payment for your change is going through — nothing else can change
+            until it finishes.
+          </p>
+        </Notice>
+        <div className={styles.buttons}>
+          <ButtonLink href={`/my-order/${token}`} variant="outline">
+            Back to your order
+          </ButtonLink>
+        </div>
+      </div>
+    );
 
   const openEditor = (l: ChangeLine) => {
     setOpen(`m${l.id}`);
@@ -143,7 +204,14 @@ export function ChangePage({
           </Notice>
         </div>
       )}
-      <form action={formAction}>
+      {returning && (
+        <div className={styles.notice}>
+          <Notice icon title="Your payment">
+            <p>{returning}</p>
+          </Notice>
+        </div>
+      )}
+      <form ref={formRef} action={formAction}>
         {changed.map((l) => (
           <input
             key={l.id}
@@ -178,8 +246,7 @@ export function ChangePage({
                       </p>
                     </div>
                     {open !== `s${l.id}` &&
-                      // 6.2b: a cake with a size of the same price or smaller to change to.
-                      l.sizes.some((c) => !c.current && c.diffPence <= 0) &&
+                      l.sizes.some((c) => !c.current && !c.removed) &&
                       (chosenSize(l) ? (
                         <button
                           type="button"
@@ -208,27 +275,25 @@ export function ChangePage({
                       <legend className="visually-hidden">
                         Size of {l.name}
                       </legend>
-                      {l.sizes
-                        .filter((c) => c.current || c.diffPence <= 0)
-                        .map((c) => (
-                          <div key={c.id} className={styles.sizeRow}>
-                            <Radio
-                              name={`pick-${l.id}`}
-                              label={c.label}
-                              disabled={c.removed}
-                              checked={
-                                (sizes[l.id] ??
-                                  l.sizes.find((x) => x.current)?.id) === c.id
-                              }
-                              onChange={() =>
-                                c.current
-                                  ? undoSize(l.id)
-                                  : setSizes((x) => ({ ...x, [l.id]: c.id }))
-                              }
-                            />
-                            <span className={styles.diff}>{diffLabel(c)}</span>
-                          </div>
-                        ))}
+                      {l.sizes.map((c) => (
+                        <div key={c.id} className={styles.sizeRow}>
+                          <Radio
+                            name={`pick-${l.id}`}
+                            label={c.label}
+                            disabled={c.removed}
+                            checked={
+                              (sizes[l.id] ??
+                                l.sizes.find((x) => x.current)?.id) === c.id
+                            }
+                            onChange={() =>
+                              c.current
+                                ? undoSize(l.id)
+                                : setSizes((x) => ({ ...x, [l.id]: c.id }))
+                            }
+                          />
+                          <span className={styles.diff}>{diffLabel(c)}</span>
+                        </div>
+                      ))}
                       <div className={styles.editorActions}>
                         <Button onClick={() => setOpen(null)}>Done</Button>
                       </div>
@@ -354,15 +419,47 @@ export function ChangePage({
               : "The difference is under £0.30, so nothing is charged or refunded."}
           </p>
         )}
+        {(refused ?? state).outcome === "locked" && (
+          <div className={styles.notice}>
+            <Notice icon title="A payment is going through">
+              <p>
+                A payment for your change is going through — nothing else can
+                change until it finishes.
+              </p>
+            </Notice>
+          </div>
+        )}
+        {payUp && open === null && (
+          <ChangePayment
+            amountPence={net}
+            what={what}
+            publishableKey={publishableKey}
+            prepare={() => prepare(new FormData(formRef.current!))}
+            finish={finish}
+            returnUrl={(id) =>
+              `${window.location.origin}/my-order/${token}/change?paid=${id}`
+            }
+            onRefused={(r) => {
+              setRefused({ outcome: r.outcome, errors: r.errors });
+              if (r.outcome === "stale" || r.outcome === "closed") {
+                setEdits({});
+                setSizes({});
+                router.refresh();
+              }
+            }}
+          />
+        )}
         <div className={styles.buttons}>
-          <Button
-            type="submit"
-            disabled={(!changed.length && !resized.length) || open !== null}
-            busy={pending}
-            busyLabel="Saving"
-          >
-            Save changes
-          </Button>
+          {!payUp && (
+            <Button
+              type="submit"
+              disabled={(!changed.length && !resized.length) || open !== null}
+              busy={pending}
+              busyLabel="Saving"
+            >
+              Save changes
+            </Button>
+          )}
           <ButtonLink href={`/my-order/${token}`} variant="outline">
             Back to your order
           </ButtonLink>

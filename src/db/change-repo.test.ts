@@ -4,7 +4,14 @@ import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 import { londonInstant } from "@/lib/london-time";
 import { INITIAL_SETTINGS } from "@/lib/settings";
 import { ensureSampleCatalogue } from "./cake-repo";
-import { saveChanges, sizeChoices } from "./change-repo";
+import {
+  applyChangePayment,
+  dropChangePayment,
+  prepareChangePayment,
+  saveChanges,
+  sizeChoices,
+} from "./change-repo";
+import { netPaid } from "./refund-repo";
 import { countingGateway } from "./test-gateway";
 import { connect } from "./client";
 import {
@@ -372,7 +379,7 @@ describe.skipIf(!url)(
       });
     });
 
-    it("bigger: needs a payment first (6.2c) — nothing saved", async () => {
+    it("bigger: Save says it needs a payment first — nothing saved", async () => {
       const { o, l } = await order();
       const r = await saveChanges(
         db(),
@@ -452,6 +459,238 @@ describe.skipIf(!url)(
       expect(
         (await sizeChoices(db(), oddLines))[odd.l.id].at(-1),
       ).toMatchObject({ removed: true, current: true });
+    });
+  },
+);
+
+describe.skipIf(!url)(
+  "database: change your order — a bigger size, paid first (§6.4)",
+  () => {
+    const conn = url ? connect(url) : null;
+    const db = () => conn!.db;
+    let seq = 0;
+    async function order() {
+      seq++;
+      const [row] = await db()
+        .insert(orders)
+        .values({
+          number: `BBL-2026-5${String(seq).padStart(3, "0")}`,
+          token: `up${seq}-${Math.random().toString(36).slice(2)}-padding`,
+          date: "2026-09-12",
+          earliestDate: "2026-09-12",
+          handover: "collection",
+          customerName: "Mairi Sinclair",
+          email: "mairi@example.co.uk",
+          phone: "07700 900 000",
+          consents: {},
+          totalPence: 18500,
+          amountReceivedPence: 18500,
+          paymentIntentId: `pi_up_${seq}_${Math.random().toString(36).slice(2, 8)}`,
+          snapshot: {},
+          confirmedAt: new Date("2026-08-31T10:00:00Z"),
+        })
+        .returning();
+      const [l] = await db()
+        .insert(orderLines)
+        .values({
+          orderId: row.id,
+          position: 1,
+          slug: "the-lothian",
+          name: "The Lothian",
+          sizeLine: "Two tiers · serves 24",
+          message: "Hi",
+          pricePence: 18500,
+          sizePricePence: 18500,
+          allergenText: "Contains eggs.",
+          allergenKeys: [],
+        })
+        .returning();
+      return { o: row, l };
+    }
+    const size = async (serves: number) => {
+      const [c] = await db()
+        .select()
+        .from(cakes)
+        .where(eq(cakes.slug, "the-lothian"));
+      const [s] = await db()
+        .select()
+        .from(cakeSizes)
+        .where(and(eq(cakeSizes.cakeId, c.id), eq(cakeSizes.serves, serves)));
+      return s.id;
+    };
+    beforeAll(async () => {
+      await migrate(db(), { migrationsFolder: "drizzle" });
+      await ensureSettings(db(), INITIAL_SETTINGS);
+      await ensureSampleCatalogue(db());
+    });
+    beforeEach(async () => {
+      await db().delete(mailSends);
+      await db().delete(refunds);
+      await db().delete(orders);
+    });
+    afterAll(async () => {
+      await db().delete(mailSends);
+      await db().delete(refunds);
+      await db().delete(orders);
+      await conn?.close();
+    });
+
+    it("prepare: a pending change, the order locked, a PaymentIntent of kind change for the difference; nothing saved yet", async () => {
+      const t = countingGateway();
+      const { o, l } = await order();
+      const r = await prepareChangePayment(
+        db(),
+        t.gw,
+        { orderId: o.id, version: 1, sizes: { [l.id]: await size(32) } },
+        now,
+      );
+      expect(r).toMatchObject({ kind: "pay", amountPence: 5500 });
+      const [after] = await db()
+        .select()
+        .from(orders)
+        .where(eq(orders.id, o.id));
+      expect(after).toMatchObject({ version: 1, totalPence: 18500 });
+      expect(after.lockedAt).not.toBeNull();
+      const [c] = await db()
+        .select()
+        .from(orderChanges)
+        .where(eq(orderChanges.orderId, o.id));
+      expect(c).toMatchObject({
+        status: "pending",
+        moneyKind: "up",
+        moneyPence: 5500,
+        baseVersion: 1,
+      });
+      expect(t.intents.get(c.paymentIntentId!)).toMatchObject({
+        kind: "change",
+        amountPence: 5500,
+      });
+      // Another tab, while the payment goes through: nothing else can change.
+      expect(
+        (
+          await saveChanges(
+            db(),
+            t.gw,
+            { orderId: o.id, version: 1, messages: { [l.id]: "Other" } },
+            now,
+          )
+        ).kind,
+      ).toBe("locked");
+    });
+
+    it("paid: applied once (page, webhook and job), the line and total raised, unlocked, e-mail 12 “£55 paid today”", async () => {
+      const t = countingGateway();
+      const { o, l } = await order();
+      const r = await prepareChangePayment(
+        db(),
+        t.gw,
+        { orderId: o.id, version: 1, sizes: { [l.id]: await size(32) } },
+        now,
+      );
+      const [c] = await db()
+        .select()
+        .from(orderChanges)
+        .where(eq(orderChanges.orderId, o.id));
+      t.succeed(c.paymentIntentId!);
+      const intent = t.intents.get(c.paymentIntentId!)!;
+      expect(await applyChangePayment(db(), t.gw, intent, now)).toBe("applied");
+      expect(await applyChangePayment(db(), t.gw, intent, now)).toBe("already");
+      const [after] = await db()
+        .select()
+        .from(orders)
+        .where(eq(orders.id, o.id));
+      expect(after).toMatchObject({
+        version: 2,
+        totalPence: 24000,
+        lockedAt: null,
+      });
+      const [line] = await db()
+        .select()
+        .from(orderLines)
+        .where(eq(orderLines.id, l.id));
+      expect(line).toMatchObject({
+        sizeLine: "Two tiers · serves 32",
+        pricePence: 24000,
+        sizePricePence: 24000,
+      });
+      const [saved] = await db()
+        .select()
+        .from(orderChanges)
+        .where(eq(orderChanges.orderId, o.id));
+      expect(saved).toMatchObject({ status: "saved", paidPence: 5500 });
+      const twelve = (await db().select().from(mailSends)).filter(
+        (m) => m.template === "change-saved",
+      );
+      expect(twelve).toHaveLength(1);
+      expect(
+        (twelve[0].data as { view: { money: unknown } }).view.money,
+      ).toEqual({ kind: "up", pence: 5500 });
+      expect(r.kind).toBe("pay");
+      // A later size-down refunds on the change payment too once the first payment is used up.
+      expect(await netPaid(db(), after)).toBe(24000);
+    });
+
+    it("the order moved on before the payment arrived: not applied, the payment refunded (excess), Linda told", async () => {
+      const t = countingGateway();
+      const { o, l } = await order();
+      await prepareChangePayment(
+        db(),
+        t.gw,
+        { orderId: o.id, version: 1, sizes: { [l.id]: await size(32) } },
+        now,
+      );
+      await db().update(orders).set({ version: 2 }).where(eq(orders.id, o.id));
+      const [c] = await db()
+        .select()
+        .from(orderChanges)
+        .where(eq(orderChanges.orderId, o.id));
+      t.succeed(c.paymentIntentId!);
+      expect(
+        await applyChangePayment(
+          db(),
+          t.gw,
+          t.intents.get(c.paymentIntentId!)!,
+          now,
+        ),
+      ).toBe("refunded");
+      expect(t.refunds).toEqual([
+        expect.objectContaining({
+          paymentIntentId: c.paymentIntentId,
+          amountPence: 5500,
+        }),
+      ]);
+      const [after] = await db()
+        .select()
+        .from(orders)
+        .where(eq(orders.id, o.id));
+      expect(after).toMatchObject({ totalPence: 18500, lockedAt: null });
+      const alert = (await db().select().from(mailSends)).find((m) =>
+        m.key.startsWith("alert:change-moved"),
+      );
+      expect(alert).toBeTruthy();
+    });
+
+    it("a payment that did not go through: dropped, the order open again", async () => {
+      const t = countingGateway();
+      const { o, l } = await order();
+      const r = await prepareChangePayment(
+        db(),
+        t.gw,
+        { orderId: o.id, version: 1, sizes: { [l.id]: await size(32) } },
+        now,
+      );
+      if (r.kind !== "pay") throw new Error("expected pay");
+      await dropChangePayment(db(), o.id, r.changeId);
+      const [after] = await db()
+        .select()
+        .from(orders)
+        .where(eq(orders.id, o.id));
+      expect(after.lockedAt).toBeNull();
+      const [c] = await db()
+        .select()
+        .from(orderChanges)
+        .where(eq(orderChanges.id, r.changeId));
+      expect(c.status).toBe("dropped");
     });
   },
 );

@@ -17,7 +17,7 @@ import { cakes, orderLines } from "@/db/schema";
 import { getSiteSettings } from "@/db/site-settings";
 import { formatLongDate, londonDate } from "@/lib/london-time";
 import { formatPrice } from "@/lib/money";
-import { orderRefunds } from "@/db/refund-repo";
+import { netPaid, orderRefunds } from "@/db/refund-repo";
 import { checkKind, UNLOCK_COOKIE, unlockValid } from "@/lib/order-link";
 import { statusState } from "@/lib/order-status";
 import { openOrder, resendLink } from "./actions";
@@ -64,7 +64,9 @@ export default async function Page({
             text:
               change.moneyKind === "down"
                 ? `The details are in your inbox. ${formatPrice(change.moneyPence)} back to your card within 5–10 working days.`
-                : "The details are in your inbox.",
+                : change.moneyKind === "up"
+                  ? `The details are in your inbox. ${formatPrice(change.moneyPence)} paid today.`
+                  : "The details are in your inbox.",
           };
       }
     } finally {
@@ -139,12 +141,8 @@ async function statusView(db: Db, o: Order): Promise<StatusView> {
     completed: o.status === "completed",
     email: o.email,
     totalPence: o.totalPence,
-    // Net paid (§10.6): what Stripe took less what went back.
-    paidPence:
-      o.amountReceivedPence -
-      refundRows
-        .filter((r) => r.status !== "failed")
-        .reduce((n, r) => n + r.amountPence, 0),
+    // Net paid (§10.6): the checkout payment and paid changes, less what went back.
+    paidPence: await netPaid(db, o),
     collectAt: [s?.addressLine, s?.town]
       .filter(Boolean)
       .filter((x, i, a) => i === 0 || !a[0]!.includes(x!))

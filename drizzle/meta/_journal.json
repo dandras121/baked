@@ -155,6 +155,13 @@
       "when": 1794080856864,
       "tag": "0021_size_and_refunds",
       "breakpoints": true
+    },
+    {
+      "idx": 22,
+      "version": "7",
+      "when": 1794081768721,
+      "tag": "0022_change_payments",
+      "breakpoints": true
     }
   ]
 }

@@ -12,6 +12,8 @@ export type Intent = {
   kind: string | null;
   /** `metadata.draft_id`: the draft this PaymentIntent pays for. */
   draftId: string | null;
+  /** `metadata.change_id`: a customer's size-up (kind `change`, §6.4). */
+  changeId?: number | null;
 };
 
 export type Gateway = {
@@ -32,6 +34,12 @@ export type Gateway = {
     amountPence: number,
     key: string,
   ): Promise<Refunded>;
+  /** The payment for a customer's change (§6.4, metadata kind `change`): one per change (idempotency key). */
+  createForChange(
+    changeId: number,
+    orderNumber: string,
+    amountPence: number,
+  ): Promise<Intent>;
 };
 
 export type Refunded =
@@ -46,6 +54,7 @@ const fromStripe = (pi: Stripe.PaymentIntent): Intent => ({
   amountReceivedPence: pi.amount_received ?? 0,
   kind: pi.metadata?.kind ?? null,
   draftId: pi.metadata?.draft_id ?? null,
+  changeId: pi.metadata?.change_id ? Number(pi.metadata.change_id) : null,
 });
 
 function stripeGateway(secret: string): Gateway {
@@ -80,6 +89,24 @@ function stripeGateway(secret: string): Gateway {
         metadata: { order: number },
         description: `Baked by Linda order ${number}`,
       });
+    },
+    async createForChange(changeId, orderNumber, amountPence) {
+      return fromStripe(
+        await stripe.paymentIntents.create(
+          {
+            amount: amountPence,
+            currency: "gbp",
+            allowed_payment_method_types: ["card"],
+            metadata: {
+              kind: "change",
+              change_id: String(changeId),
+              order: orderNumber,
+            },
+            description: `Baked by Linda order ${orderNumber} — change`,
+          },
+          { idempotencyKey: `change-${changeId}` },
+        ),
+      );
     },
     async refund(paymentIntentId, amountPence, key) {
       try {
@@ -149,6 +176,21 @@ const fakeGateway: Gateway = {
   async setOrder() {},
   async listSince() {
     return [...fakes.values()];
+  },
+  async createForChange(changeId, _orderNumber, amountPence) {
+    const id = `pi_fake_change_${changeId}`;
+    if (!fakes.has(id))
+      fakes.set(id, {
+        id,
+        clientSecret: `${id}_secret`,
+        amountPence,
+        status: "requires_payment_method",
+        amountReceivedPence: 0,
+        kind: "change",
+        draftId: null,
+        changeId,
+      });
+    return fakes.get(id)!;
   },
   async refund(_paymentIntentId, _amountPence, key) {
     // A refund on the fake Stripe always goes through (the database tests try failures with their own gateway).

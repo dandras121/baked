@@ -5,7 +5,11 @@ export function countingGateway() {
   const intents = new Map<string, Intent>();
   const calls = { create: 0, update: 0 };
   /** Refunds asked for, and whether the next one fails. */
-  const refunds: { paymentIntentId: string; amountPence: number; key: string }[] = [];
+  const refunds: {
+    paymentIntentId: string;
+    amountPence: number;
+    key: string;
+  }[] = [];
   const refundControl = { fail: false };
   const orderNumbers = new Map<string, string>();
   const gw: Gateway = {
@@ -38,6 +42,22 @@ export function countingGateway() {
     },
     async listSince() {
       return [...intents.values()];
+    },
+    async createForChange(changeId, _number, amountPence) {
+      calls.create++;
+      const id = `pi_change_${changeId}`;
+      if (!intents.has(id))
+        intents.set(id, {
+          id,
+          clientSecret: `${id}_s`,
+          amountPence,
+          status: "requires_payment_method",
+          amountReceivedPence: 0,
+          kind: "change",
+          draftId: null,
+          changeId,
+        });
+      return intents.get(id)!;
     },
     async refund(paymentIntentId, amountPence, key) {
       if (refundControl.fail) return { ok: false, error: "card_closed" };

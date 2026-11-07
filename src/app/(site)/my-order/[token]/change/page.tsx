@@ -8,7 +8,8 @@ import { ChangePage } from "@/components/order-status/change-page";
 import { LinkExpired } from "@/components/order-status/link-expired";
 import { OpenOrder } from "@/components/order-status/open-order";
 import styles from "@/components/order-status/state.module.css";
-import { sizeChoices } from "@/db/change-repo";
+import { paymentInProgress, sizeChoices } from "@/db/change-repo";
+import { PUBLISHABLE_KEY } from "@/lib/payments";
 import { connect, databaseUrl } from "@/db/client";
 import { orderForToken } from "@/db/order-link-repo";
 import { orderLines } from "@/db/schema";
@@ -18,7 +19,7 @@ import { formatLongDate, londonDate } from "@/lib/london-time";
 import { checkKind, UNLOCK_COOKIE, unlockValid } from "@/lib/order-link";
 import { lastChangeDay, panelDate, statusState } from "@/lib/order-status";
 import { openOrder, resendLink } from "../actions";
-import { saveChange } from "./actions";
+import { finishChange, prepareChange, saveChange } from "./actions";
 
 export const instant = false;
 
@@ -33,8 +34,10 @@ export const metadata: Metadata = {
  */
 export default async function Page({
   params,
+  searchParams,
 }: {
   params: Promise<{ token: string }>;
+  searchParams: Promise<{ paid?: string }>;
 }) {
   await connection();
   const { token } = await params;
@@ -109,9 +112,15 @@ export default async function Page({
         lines={view}
       />
     );
+  const paid = Number((await searchParams).paid) || null;
   return (
     <ChangePage
       action={saveChange.bind(null, token, o.version)}
+      prepare={prepareChange.bind(null, token, o.version)}
+      finish={finishChange.bind(null, token)}
+      publishableKey={PUBLISHABLE_KEY()}
+      paying={paymentInProgress(o, new Date())}
+      paidChangeId={paid}
       token={token}
       number={o.number}
       until={deadline}

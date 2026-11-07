@@ -4,29 +4,65 @@ import { and, eq, inArray, sum } from "drizzle-orm";
 import type { Gateway } from "@/lib/payments";
 import type { connect } from "./client";
 import { queueMail } from "./mail-repo";
-import { orders, refunds } from "./schema";
+import { orderChanges, orders, refunds } from "./schema";
 import { readSettings } from "./settings-repo";
 
 type Db = ReturnType<typeof connect>["db"];
 
-/** What can still go back on each of the order's payments (the checkout payment; change payments come in 6.2c). */
+/** What can still go back on each of the order's card payments: the checkout payment, then its paid changes. */
 async function refundable(db: Db, o: typeof orders.$inferSelect) {
-  if (!o.paymentIntentId) return [];
+  const paid: { paymentIntentId: string; amount: number }[] = [];
+  if (o.paymentIntentId)
+    paid.push({
+      paymentIntentId: o.paymentIntentId,
+      amount: o.amountReceivedPence,
+    });
+  const changes = await db
+    .select({ pi: orderChanges.paymentIntentId, paid: orderChanges.paidPence })
+    .from(orderChanges)
+    .where(
+      and(eq(orderChanges.orderId, o.id), eq(orderChanges.status, "saved")),
+    );
+  for (const c of changes)
+    if (c.pi && c.paid > 0)
+      paid.push({ paymentIntentId: c.pi, amount: c.paid });
+  const out: { paymentIntentId: string; left: number }[] = [];
+  for (const p of paid) {
+    const [r] = await db
+      .select({ n: sum(refunds.amountPence) })
+      .from(refunds)
+      .where(
+        and(
+          eq(refunds.paymentIntentId, p.paymentIntentId),
+          inArray(refunds.status, ["pending", "succeeded"]),
+        ),
+      );
+    out.push({
+      paymentIntentId: p.paymentIntentId,
+      left: p.amount - Number(r?.n ?? 0),
+    });
+  }
+  return out;
+}
+
+/** Net paid (§10.6): what the order received and its paid changes, less every refund that has not failed. */
+export async function netPaid(db: Db, o: typeof orders.$inferSelect) {
+  const [c] = await db
+    .select({ n: sum(orderChanges.paidPence) })
+    .from(orderChanges)
+    .where(
+      and(eq(orderChanges.orderId, o.id), eq(orderChanges.status, "saved")),
+    );
   const [r] = await db
     .select({ n: sum(refunds.amountPence) })
     .from(refunds)
     .where(
       and(
-        eq(refunds.paymentIntentId, o.paymentIntentId),
+        eq(refunds.orderId, o.id),
         inArray(refunds.status, ["pending", "succeeded"]),
       ),
     );
-  return [
-    {
-      paymentIntentId: o.paymentIntentId,
-      left: o.amountReceivedPence - Number(r?.n ?? 0),
-    },
-  ];
+  return o.amountReceivedPence + Number(c?.n ?? 0) - Number(r?.n ?? 0);
 }
 
 /**

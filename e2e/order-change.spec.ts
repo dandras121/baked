@@ -226,12 +226,37 @@ test("a smaller size: −£55 in the list, the refund line before saving; saved 
   ).toBeVisible();
 });
 
-test("the smallest size offers no Change for the size (a bigger one is paid for in 6.2c)", async ({
+test("a bigger size: +£55 in the list, Pay the difference with “Pay £55 and save” instead of Save", async ({
   page,
 }) => {
   const { token } = await make(10);
   await unlockAt(page, `/my-order/${token}/change`);
+  await page
+    .getByRole("button", { name: "Change the size of The Lothian" })
+    .click();
+  await expect(page.getByText("+£55")).toBeVisible();
+  await page.getByText("Serves 32 · two tiers").click();
+  await page.getByRole("button", { name: "Done" }).click();
   await expect(
-    page.getByRole("button", { name: "Change the size of The Lothian" }),
-  ).toHaveCount(0);
+    page.getByRole("heading", { name: "Pay the difference" }),
+  ).toBeVisible();
+  await expect(
+    page.getByText("£55 today — the size goes up from serves 24 to serves 32."),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Pay £55 and save" }),
+  ).toBeVisible();
+  await expect(page.getByRole("button", { name: "Save changes" })).toHaveCount(
+    0,
+  );
+  // Without Stripe keys (this test server) nothing can be charged, and it says so.
+  await expect(
+    page.getByText(/Payments are not switched on yet/),
+  ).toBeVisible();
+  await page
+    .getByRole("button", { name: "Undo the size change on The Lothian" })
+    .click();
+  await expect(
+    page.getByRole("button", { name: "Save changes" }),
+  ).toBeVisible();
 });
