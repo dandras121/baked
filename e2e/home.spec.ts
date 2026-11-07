@@ -63,21 +63,34 @@ test("advances every 6 s and loops 1 → 2 → 3 → 1", async ({ page }) => {
     "data-autoplay",
     "",
   );
-  // Freeze the page clock, so only runFor moves time (no drift while the machine is busy).
-  await page.clock.pauseAt(new Date(Date.now() + 1000));
-  let previous = 0;
-  for (const expected of [1, 2, 0]) {
-    // Not after only 4 s (the clock also ticks in real time while polling) …
+  // Freeze the page clock where it is, so only runFor moves time (no drift while the machine is busy).
+  await page.clock.pauseAt(
+    new Date((await page.evaluate(() => Date.now())) + 50),
+  );
+  // How long slide 1 already ran before the pause is unknown, so first wait for it to move on: that sets the beat.
+  await expect
+    .poll(
+      async () => {
+        await page.clock.runFor(250);
+        return activeIndex(page);
+      },
+      { timeout: 30_000 },
+    )
+    .toBe(1);
+  await page.clock.runFor(500); // let the crossfade finish
+  let previous = 1;
+  for (const expected of [2, 0]) {
+    // Not after only 4 s …
     await page.clock.runFor(4000);
     expect(await activeIndex(page)).toBe(previous);
-    // … and then it moves on (small steps, so a timer set a moment late still counts).
+    // … and then it moves on at 6 s (small steps, so a timer set a moment late still counts).
     await expect
       .poll(async () => {
         await page.clock.runFor(250);
         return activeIndex(page);
       })
       .toBe(expected);
-    await page.clock.runFor(500); // let the crossfade finish
+    await page.clock.runFor(500);
     previous = expected;
   }
 });

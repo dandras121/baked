@@ -136,10 +136,19 @@ test("D16: the consent box shows with an allergy note, goes when the note is emp
     page.getByText("Please tick this so I can use your allergy note."),
   ).toBeVisible();
   await expect(page).toHaveURL(/order\/details$/);
-  await consent.check({ force: true });
   await page
-    .getByRole("checkbox", { name: /Send me an email once a year/ })
-    .check({ force: true });
+    .getByText("I agree to Linda using this to make my cake safely.", {
+      exact: true,
+    })
+    .click();
+  await expect(consent).toBeChecked();
+  // Click the visible words, as a person does: the hidden 1 px input sits under the row above while that row
+  // is lit up by the mouse (its 44 px hit area, ANIM-07).
+  const mk = page.getByRole("checkbox", {
+    name: /Send me an email once a year/,
+  });
+  await page.getByText(/^Send me an email once a year/).click();
+  await expect(mk).toBeChecked();
   await cont(page).click();
   await expect(page).toHaveURL(/order\/pay$/);
   const d = await draftRow(page);
