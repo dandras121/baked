@@ -902,6 +902,47 @@ export const orderChanges = pgTable(
  * Money back to the customer (§10.6): one row per Stripe refund, with what it was for (a change, a cancellation, an
  * excess payment). A failed call stays here as `failed` for Linda's Try again (§9.x) and raises an alert (§8.3).
  */
+/**
+ * Delivery attempts (§6.8): one row per attempt once something happens on it. Without a row the first attempt is the
+ * order's own date and window. Nobody was in gives the attempt its delivery token (`/delivery/[token]`) and the day
+ * it was recorded — “today” and “tomorrow” count from that day; the customer's choice is final.
+ */
+export const deliveryAttempts = pgTable(
+  "delivery_attempts",
+  {
+    id: serial("id").primaryKey(),
+    orderId: integer("order_id")
+      .notNull()
+      .references(() => orders.id, { onDelete: "cascade" }),
+    /** 1 = the order's date; 2 = a redelivery. */
+    attempt: integer("attempt").notNull(),
+    day: date("day").notNull(),
+    deliveryWindow: text("delivery_window"),
+    outcome: text("outcome").notNull().default("none"),
+    recordedOn: date("recorded_on"),
+    recordedAt: timestamp("recorded_at", { withTimezone: true }),
+    token: text("token").unique(),
+    choice: text("choice").notNull().default("none"),
+    chosenAt: timestamp("chosen_at", { withTimezone: true }),
+    /** Collect: the day it is collected (the recorded day, or the next before 12 noon after 18:00). */
+    collectDay: date("collect_day"),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [
+    uniqueIndex("delivery_attempt_order").on(t.orderId, t.attempt),
+    check(
+      "delivery_outcome",
+      sql`${t.outcome} in ('none', 'nobody-in', 'handed-over')`,
+    ),
+    check(
+      "delivery_choice",
+      sql`${t.choice} in ('none', 'collect', 'redeliver')`,
+    ),
+  ],
+);
+
 /** Message Linda (§6.5): what the customer wrote from the status link, kept on the order (admin Order detail →
  *  Messages, 9.x). One per form key, so a repeated press is one message (§10.8). */
 export const orderMessages = pgTable(

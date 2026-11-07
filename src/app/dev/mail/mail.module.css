@@ -94,3 +94,8 @@
     grid-template-columns: 1fr;
   }
 }
+
+.inline {
+  display: inline-block;
+  margin-left: 8px;
+}

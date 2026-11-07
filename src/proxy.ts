@@ -6,7 +6,7 @@ import { and, eq, isNull } from "drizzle-orm";
 import { NextResponse, type NextRequest } from "next/server";
 import { connect, databaseUrl } from "@/db/client";
 import { DRAFT_COOKIE, draftStatus } from "@/db/draft-repo";
-import { cakes } from "@/db/schema";
+import { cakes, deliveryAttempts } from "@/db/schema";
 import { sentTokenValid } from "@/lib/sent-token";
 
 const TTL_MS = 60_000;
@@ -40,7 +40,27 @@ async function draftOf(request: NextRequest) {
   }
 }
 
+/** A delivery link (§6.8) exists once Nobody was in gave the attempt its token; anything else is a real 404 (§10.5). */
+async function deliveryKnown(token: string) {
+  if (!/^[A-Za-z0-9_-]{20,64}$/.test(token) || !databaseUrl()) return false;
+  const { db, close } = connect();
+  try {
+    const rows = await db
+      .select({ id: deliveryAttempts.id })
+      .from(deliveryAttempts)
+      .where(eq(deliveryAttempts.token, token));
+    return rows.length > 0;
+  } finally {
+    await close();
+  }
+}
+
 export async function proxy(request: NextRequest) {
+  if (request.nextUrl.pathname.startsWith("/delivery/")) {
+    const token = request.nextUrl.pathname.split("/")[2] ?? "";
+    if (await deliveryKnown(token)) return NextResponse.next();
+    return NextResponse.rewrite(new URL("/__not-found", request.url));
+  }
   // §6.10: a POST to the unsubscribe link (its button, or the mail app's RFC 8058 one-click) is handled by the API
   // route of the same token; opening the link (GET) shows the page and changes nothing.
   if (request.nextUrl.pathname.startsWith("/unsubscribe/")) {
@@ -82,6 +102,7 @@ export const config = {
   matcher: [
     "/cakes/:slug",
     "/contact/sent",
+    "/delivery/:token",
     "/order/:path*",
     "/unsubscribe/:token",
   ],

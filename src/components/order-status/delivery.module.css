@@ -1,0 +1,46 @@
+/* The delivery link (§6.8; 1102:9131, G 1199:9305): the question line, G's rows and the foot lines. */
+.lead {
+  margin: 0 0 6px;
+  color: var(--colour-body);
+  font: var(--type-state-row-value-phone);
+}
+
+.rows {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  margin: 0;
+}
+
+.rows dt,
+.rows dd {
+  margin: 0;
+  padding: 8px 0;
+  border-top: 1px solid var(--colour-line-rule);
+  font: var(--type-state-row-value);
+}
+
+.rows dt:first-of-type,
+.rows dt:first-of-type + dd {
+  border-top: 0;
+  padding-top: 0;
+}
+
+.rows dt {
+  color: var(--colour-body);
+}
+
+.rows dd {
+  color: var(--colour-ink);
+}
+
+.small {
+  margin: 12px 0 0;
+  color: var(--colour-body);
+  font: var(--type-state-small);
+}
+
+.foot {
+  margin: 12px 0 0;
+  color: var(--colour-meta);
+  font: var(--type-state-small);
+}

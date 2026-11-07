@@ -12,6 +12,8 @@ import styles from "@/components/order-status/state.module.css";
 import { connect, databaseUrl } from "@/db/client";
 import { recentChange } from "@/db/change-repo";
 import { recentMessage } from "@/db/message-repo";
+import { attemptByToken, latestAttempt } from "@/db/delivery-repo";
+import { collectingCopy, deliveryPhase, nobodyCopy } from "@/lib/delivery";
 import { readMailSettings, reviewLink } from "@/db/mail-settings-repo";
 import { orderForToken } from "@/db/order-link-repo";
 import { cakes, orderLines } from "@/db/schema";
@@ -109,7 +111,8 @@ type Order = NonNullable<Awaited<ReturnType<typeof orderForToken>>>["order"];
 
 /** Everything the status page shows, read now (§6.2: the state is worked out on every visit). */
 async function statusView(db: Db, o: Order): Promise<StatusView> {
-  const today = londonDate(new Date());
+  const now = new Date();
+  const today = londonDate(now);
   const [lines, mail, s, refundRows] = await Promise.all([
     db
       .select()
@@ -150,8 +153,55 @@ async function statusView(db: Db, o: Order): Promise<StatusView> {
           ? "failed"
           : "pending";
   const lastCancelRefund = cancelRows.at(-1);
+  // Nobody was in and its choice (§6.2 rows 2–3, §6.8).
+  const latest = await latestAttempt(db, o.id);
+  const attempt = latest && {
+    attempt: latest.attempt,
+    outcome: latest.outcome,
+    choice: latest.choice,
+    recordedOn: latest.recordedOn && String(latest.recordedOn),
+    collectDay: latest.collectDay && String(latest.collectDay),
+  };
+  const collectAt = [s?.addressLine, s?.town]
+    .filter(Boolean)
+    .filter((x, i, a) => i === 0 || !a[0]!.includes(x!))
+    .join(", ");
+  const offer =
+    latest?.token && latest.outcome === "nobody-in"
+      ? ((await attemptByToken(db, latest.token))?.offerRedelivery ?? false)
+      : false;
+  const state = statusState(
+    { status: o.status, date: String(o.date) },
+    today,
+    attempt,
+  );
   return {
     token: o.token,
+    nobody:
+      state === "NOBODY" && attempt?.recordedOn
+        ? nobodyCopy({
+            day: String(latest!.day),
+            today,
+            recordedOn: attempt.recordedOn,
+            now,
+            town: s?.town ?? "",
+            collectAt,
+            feePence: s?.secondAttemptFeePence ?? 0,
+            offerRedelivery: offer,
+            phone: s?.phone ?? "",
+          })
+        : null,
+    nobodyOpen: !!attempt && deliveryPhase(attempt, now) === "choose",
+    deliveryHref: latest?.token ? `/delivery/${latest.token}` : null,
+    collecting:
+      state === "MISSED" && attempt?.collectDay && attempt.recordedOn
+        ? collectingCopy({
+            collectDay: attempt.collectDay,
+            recordedOn: attempt.recordedOn,
+            today,
+            collectAt,
+          })
+        : null,
     cancelled: kept
       ? cancelledCopy(
           kept,
@@ -162,7 +212,7 @@ async function statusView(db: Db, o: Order): Promise<StatusView> {
       : null,
     cancelRefundPence: kept ? kept.cardPence + kept.handPence : 0,
     number: o.number,
-    state: statusState({ status: o.status, date: String(o.date) }, today),
+    state,
     date: String(o.date),
     today,
     handover: o.handover === "delivery" ? "delivery" : "collection",
@@ -176,10 +226,7 @@ async function statusView(db: Db, o: Order): Promise<StatusView> {
     totalPence: o.totalPence,
     // Net paid (§10.6): the checkout payment and paid changes, less what went back.
     paidPence: await netPaid(db, o),
-    collectAt: [s?.addressLine, s?.town]
-      .filter(Boolean)
-      .filter((x, i, a) => i === 0 || !a[0]!.includes(x!))
-      .join(", "),
+    collectAt,
     reviewHref: reviewLink(mail.googlePlaceId),
     // The cancellation's own refund is the E state's box and panel row, not a refund line.
     refunds: refundRows

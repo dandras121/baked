@@ -1,0 +1,43 @@
+/* What now (1102:9131): the calm violet panel — wash, violet border, 16 px clocks, the last line in violet. */
+.panel {
+  padding: 19px;
+  border: 1px solid var(--colour-next-border);
+  border-radius: 10px;
+  background: var(--colour-calm-wash);
+}
+
+.label {
+  margin: 0 0 10px;
+  color: var(--colour-display);
+  font: var(--type-state-label);
+}
+
+.list {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.list li {
+  display: grid;
+  grid-template-columns: 16px 1fr;
+  gap: 10px;
+  align-items: start;
+  color: var(--colour-body);
+  font: var(--type-state-small);
+}
+
+.icon {
+  width: 16px;
+  height: 16px;
+  color: var(--colour-accent);
+}
+
+/* The drawn accent violet is 4.37 : 1 on the wash at 12 px; the display violet (label and last line) passes AA. */
+.after {
+  margin: 12px 0 0;
+  color: var(--colour-display);
+  font: var(--type-state-small);
+}

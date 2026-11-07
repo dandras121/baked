@@ -1,20 +1,39 @@
 // The status page (§6.2, §6.3; states 1036:9106): which state shows — the first match wins — and its words.
-// Nobody was in and After a missed delivery come with 6.5 (delivery attempts).
 import type { cancelledCopy } from "./cancel-copy";
+import type { collectingCopy, nobodyCopy } from "./delivery";
 import { WINDOWS } from "./handover";
 import { addDays, formatLongDate, type CalendarDate } from "./london-time";
 
-export type StatusState = "E" | "C" | "B2" | "B" | "A";
+export type StatusState = "E" | "NOBODY" | "MISSED" | "C" | "B2" | "B" | "A";
+
+/** The order's latest delivery attempt, when one is recorded (§6.8). */
+type LatestAttempt = {
+  outcome: string;
+  choice: string;
+  collectDay: CalendarDate | null;
+} | null;
 
 /**
- * E cancelled or refunded → C completed or the date has passed → B2 the date is today → B the change window has
+ * E cancelled or refunded → NOBODY nobody was in and no choice yet → MISSED a choice whose day has not passed → C completed or the date has passed → B2 the date is today → B the change window has
  * closed (from 00:00 on D-1) → A booked.
  */
 export function statusState(
   o: { status: string; date: CalendarDate },
   today: CalendarDate,
+  attempt: LatestAttempt = null,
 ): StatusState {
   if (o.status === "cancelled" || o.status === "refunded") return "E";
+  if (attempt && o.status !== "completed") {
+    if (attempt.outcome === "nobody-in" && attempt.choice === "none")
+      return "NOBODY";
+    // Collect (6.5a); a redelivery's day comes with 6.5b.
+    if (
+      attempt.choice === "collect" &&
+      attempt.collectDay &&
+      attempt.collectDay >= today
+    )
+      return "MISSED";
+  }
   if (o.status === "completed" || o.date < today) return "C";
   if (o.date === today) return "B2";
   if (today >= addDays(o.date, -1)) return "B";
@@ -36,6 +55,10 @@ type View = {
   collectAt: string;
   /** E: the words of the kept cancellation (§6.3 E). */
   cancelled?: ReturnType<typeof cancelledCopy> | null;
+  /** NOBODY: the Nobody-was-in words (§6.8). */
+  nobody?: ReturnType<typeof nobodyCopy> | null;
+  /** MISSED: the collection the customer chose. */
+  collecting?: ReturnType<typeof collectingCopy> | null;
 };
 
 const times = (w: string | null) => WINDOWS.find((x) => x.key === w)?.times;
@@ -104,6 +127,24 @@ export function statusCopy(v: View) {
         nextTitle: delivery ? `${long}${t ? `, ${t}` : ""}` : long,
         nextText: "Anything not right? Message me.",
         note: `Keep this link if you like — it works until ${formatLongDate(addDays(v.date, 30), v.today)}.`,
+      };
+    case "NOBODY":
+      return {
+        title: "Nobody was in",
+        intro: v.nobody?.intro ?? "",
+        eyebrow: "What now",
+        nextTitle: "",
+        nextText: null,
+        note: null,
+      };
+    case "MISSED":
+      return {
+        title: "Your cake is waiting for you",
+        intro: "Nobody was in, so you are collecting it instead.",
+        eyebrow: "Next",
+        nextTitle: v.collecting?.nextTitle ?? "",
+        nextText: v.collecting?.nextText ?? null,
+        note: null,
       };
     case "E":
       return {

@@ -9,6 +9,8 @@ import type { cancelledCopy } from "@/lib/cancel-copy";
 import { panelDate, statusCopy, type StatusState } from "@/lib/order-status";
 import { WINDOWS } from "@/lib/handover";
 import styles from "./status.module.css";
+import { WhatNow } from "./what-now";
+import type { collectingCopy, nobodyCopy } from "@/lib/delivery";
 
 export type StatusView = {
   token: string;
@@ -33,6 +35,12 @@ export type StatusView = {
   /** E: the kept cancellation's words, and what it refunds (§6.3 E). */
   cancelled: ReturnType<typeof cancelledCopy> | null;
   cancelRefundPence: number;
+  /** NOBODY (§6.8): the words, whether the choices are still open, and the delivery link. */
+  nobody: ReturnType<typeof nobodyCopy> | null;
+  nobodyOpen: boolean;
+  deliveryHref: string | null;
+  /** MISSED: the collection the customer chose. */
+  collecting: ReturnType<typeof collectingCopy> | null;
   lines: {
     name: string;
     flavour: string;
@@ -197,6 +205,9 @@ export function StatusPage({
   const title = useRef<HTMLHeadingElement>(null);
   useEffect(() => title.current?.focus(), []);
   const catalogue = !v.manual;
+  // Nobody was in, the choices still open: the two ways forward instead of Message Linda (1102:9106).
+  const choosing =
+    v.state === "NOBODY" && !!v.nobody && v.nobodyOpen && !!v.deliveryHref;
   const again =
     v.state === "C" && catalogue ? v.lines.filter((l) => l.againHref) : [];
   return (
@@ -215,29 +226,63 @@ export function StatusPage({
         </h1>
         <p className={styles.intro}>{copy.intro}</p>
       </div>
-      <div className={styles.next}>
-        <p className={styles.eyebrow}>{copy.eyebrow}</p>
-        <div className={styles.box}>
-          {v.cancelled?.tick ? (
-            <TickIcon />
-          ) : v.state === "E" && v.cancelled?.eyebrow === "No refund" ? null : (
-            <ClockIcon />
-          )}
-          <div>
-            <p className={styles.boxTitle}>{copy.nextTitle}</p>
-            {copy.nextText && <p className={styles.boxText}>{copy.nextText}</p>}
+      {v.state === "NOBODY" && v.nobody ? (
+        <div className={styles.next}>
+          <WhatNow
+            lines={
+              v.nobodyOpen
+                ? [v.nobody.collectLine, v.nobody.redeliverLine].filter(
+                    (l): l is string => !!l,
+                  )
+                : [v.nobody.closed]
+            }
+            after={v.nobodyOpen ? v.nobody.bestLine : null}
+          />
+        </div>
+      ) : (
+        <div className={styles.next}>
+          <p className={styles.eyebrow}>{copy.eyebrow}</p>
+          <div className={styles.box}>
+            {v.cancelled?.tick ? (
+              <TickIcon />
+            ) : v.state === "E" &&
+              v.cancelled?.eyebrow === "No refund" ? null : (
+              <ClockIcon />
+            )}
+            <div>
+              <p className={styles.boxTitle}>{copy.nextTitle}</p>
+              {copy.nextText && (
+                <p className={styles.boxText}>{copy.nextText}</p>
+              )}
+            </div>
           </div>
         </div>
-      </div>
+      )}
       <OrderPanel v={v} />
       <div className={styles.actions}>
         <div className={styles.buttons}>
           {v.state === "A" && catalogue && (
             <ButtonLink href={`${base}/change`}>Change something</ButtonLink>
           )}
-          <ButtonLink href={`${base}/message`} variant="outline">
-            Message Linda
-          </ButtonLink>
+          {choosing ? (
+            <>
+              <ButtonLink href={`${v.deliveryHref}?choice=collect`}>
+                {v.nobody!.collectButton}
+              </ButtonLink>
+              {v.nobody!.redeliverButton && (
+                <ButtonLink
+                  href={`${v.deliveryHref}?choice=redeliver`}
+                  variant="outline"
+                >
+                  {v.nobody!.redeliverButton}
+                </ButtonLink>
+              )}
+            </>
+          ) : (
+            <ButtonLink href={`${base}/message`} variant="outline">
+              Message Linda
+            </ButtonLink>
+          )}
           {again.map((l) => (
             <ButtonLink key={l.againHref} href={l.againHref!} variant="outline">
               {again.length > 1
@@ -254,6 +299,7 @@ export function StatusPage({
           )}
         </div>
         {copy.note && <p className={styles.note}>{copy.note}</p>}
+        {choosing && <p className={styles.note}>{v.nobody!.neither}</p>}
         {v.state === "E" && (
           <p className={styles.cancel}>
             <Link href="/cancellations">Cancellations &amp; refunds</Link>

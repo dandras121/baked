@@ -130,11 +130,11 @@ export const ALERTS: {
   "delivery-choice": (v, origin) =>
     plain(
       v.choice === "collect"
-        ? `${v.number}: they will collect today`
+        ? `${v.number}: they will collect ${v.date === v.today ? "today" : "tomorrow"}`
         : `${v.number}: they will take redelivery on ${formatLongDate(v.date, v.today)}`,
       [
         v.choice === "collect"
-          ? "They chose to collect it free."
+          ? `They chose to collect it free, before ${v.date === v.today ? "6pm" : "12 noon"}.`
           : "They chose the redelivery.",
       ],
       ORDER(origin, v.number),

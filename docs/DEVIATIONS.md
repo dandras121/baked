@@ -107,3 +107,6 @@ Anything built differently from the docs or Figma, and why. Bohoka’s decision 
 | 6.4 | Phone 1058:9130: no field label, no counter | The desktop label and the n / 400 counter on every width (§6.5) |
 | 6.4 | 654:3665 “It works for 30 days from your delivery date.” | “It works until 30 days after your date.” (Appendix A) |
 | 6.4 | Caps labels “YOUR MESSAGE”, “ORDER NUMBER (OPTIONAL)”, “EMAIL” | Sentence case (Bohoka 2026-11-01) |
+| 6.5a | 1102:9131 What now: label and last line in the accent violet (#7a57c2) on the violet wash | The display violet (#563b83): the accent is 4.37 : 1 there at 12 px, under the 4.5 : 1 of §10.13 |
+| 6.5a | 1102:9106 caps “WHAT NOW”, “YOUR ORDER”; 1199:9305 caps | Sentence case (Bohoka 2026-11-01) |
+| 6.5a | Redeliver tomorrow (1199:9325 H) | Not bookable yet: its screen says “Booking a redelivery here is not ready yet” with the phone and Collect — built in 6.5b |

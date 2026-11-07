@@ -10,6 +10,10 @@ import { allergenLine, type Answers } from "@/lib/cake-config";
 import type { AllergenSet } from "@/lib/cakes";
 import { optionsLine } from "@/lib/order-line";
 import { addDays, londonDate } from "@/lib/london-time";
+import { SITE_URL } from "@/app/layout";
+import { recordNobodyIn } from "@/db/delivery-repo";
+import { processMail } from "@/db/mail-repo";
+import { mailTransport } from "@/lib/mail/transport";
 
 /**
  * Sample orders for trying the status link (phase 6, Bohoka 2026-11-07): one for each state of the status page —
@@ -56,6 +60,8 @@ export async function makeSamples() {
         handover: "delivery",
         name: "Euan Murray",
       },
+      // Delivery day (6.5): today, for Linda's Nobody was in.
+      { date: today, handover: "delivery", name: "Ailsa Ross" },
     ];
     for (const [i, s] of samples.entries()) {
       const [o] = await db
@@ -137,6 +143,24 @@ export async function makeSamples() {
         allergenKeys: [],
       });
     }
+  } finally {
+    await close();
+  }
+  redirect("/dev/orders");
+}
+
+/**
+ * Linda's Nobody was in (§6.8, Admin / 21) until the admin exists: records it on the order's latest attempt and sends
+ * e-mail 13 to the outbox.
+ */
+export async function nobodyWasIn(orderId: number) {
+  if (!databaseUrl()) return;
+  const { db, close } = connect();
+  try {
+    await recordNobodyIn(db, orderId);
+    await processMail(db, mailTransport(), SITE_URL).catch((e) =>
+      console.error("missed-you mail", e),
+    );
   } finally {
     await close();
   }
