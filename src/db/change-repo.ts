@@ -8,7 +8,13 @@ import {
   sizeChoiceLabel,
   sizeLine,
 } from "@/lib/change-money";
-import { londonDate } from "@/lib/london-time";
+import {
+  formatLongDate,
+  londonDate,
+  type CalendarDate,
+} from "@/lib/london-time";
+import { WINDOWS } from "@/lib/handover";
+import { canHold, nearestDates } from "@/lib/capacity";
 import type { ChangeView } from "@/lib/mail/after-emails";
 import { formatPrice } from "@/lib/money";
 import {
@@ -25,9 +31,10 @@ import {
   optionErrors,
   optionsLine,
 } from "@/lib/order-line";
-import { statusState } from "@/lib/order-status";
+import { lastChangeDay, statusState } from "@/lib/order-status";
 import type { Gateway, Intent } from "@/lib/payments";
 import { readOptions } from "./cake-page-repo";
+import { capacityForOrder } from "./hold-repo";
 import type { connect } from "./client";
 import { queueMail } from "./mail-repo";
 import { refundOrder } from "./refund-repo";
@@ -112,6 +119,7 @@ export type SaveResult =
   | { kind: "nothing" }
   | { kind: "locked" }
   | { kind: "needs-payment"; pence: number }
+  | { kind: "taken"; chips: string[] }
   | { kind: "invalid"; errors: Record<number, string> };
 
 const shown = (m: string | null) => (m ? `“${m}”` : "No message");
@@ -125,6 +133,9 @@ export type ChangeInput = {
   sizes?: Record<number, number>;
   /** { line id: new option answers } (§5.8) */
   options?: Record<number, Answers>;
+  /** A new date and (delivery) window for the whole order (§6.4). */
+  date?: string;
+  window?: string;
 };
 
 type SizeRow = typeof cakeSizes.$inferSelect;
@@ -142,7 +153,13 @@ type Ctx = {
 const optionsPaid = (l: Line) => l.pricePence - sizePaid(l);
 
 /** What a set of edits would do to these lines: the rows of e-mail 12, the line updates and the net difference. */
-function plan(lines: Line[], ctx: Ctx, input: ChangeInput) {
+function plan(
+  lines: Line[],
+  ctx: Ctx,
+  input: ChangeInput,
+  o: Order,
+  today: CalendarDate,
+) {
   const several = lines.length > 1;
   const on = (what: string, l: Line, joint: string) =>
     several ? `${what} ${joint} ${l.name}` : what;
@@ -232,9 +249,52 @@ function plan(lines: Line[], ctx: Ctx, input: ChangeInput) {
   const net =
     moves.reduce((n, m) => n + m.diff, 0) +
     opts.reduce((n, o) => n + o.diff, 0);
-  return { errors, changes, messages, moves, opts, net };
+  // The date and window of the whole order (collection orders: the date only).
+  const long = (d: string) => formatLongDate(d, today);
+  let date: string | null = null;
+  let window: string | null = null;
+  if (
+    input.date &&
+    /^\d{4}-\d{2}-\d{2}$/.test(input.date) &&
+    input.date !== String(o.date)
+  ) {
+    date = input.date;
+    changes.push(["Date", long(String(o.date)), long(date)]);
+  }
+  const times = (k: string | null) => WINDOWS.find((w) => w.key === k)?.times;
+  if (
+    o.handover === "delivery" &&
+    input.window &&
+    times(input.window) &&
+    input.window !== o.deliveryWindow
+  ) {
+    window = input.window;
+    changes.push(["Window", times(o.deliveryWindow) ?? "—", times(window)!]);
+  }
+  return { errors, changes, messages, moves, opts, net, date, window };
 }
 type Plan = ReturnType<typeof plan>;
+
+/** The order's own fields a plan changes: the date (and the earliest date the order has had, §10.1) and window. */
+const orderMove = (p: Plan, o: Order) => ({
+  ...(p.date
+    ? {
+        date: p.date,
+        earliestDate:
+          p.date < String(o.earliestDate) ? p.date : String(o.earliestDate),
+      }
+    : {}),
+  ...(p.window ? { deliveryWindow: p.window } : {}),
+});
+
+/** A new date must be free (the order's own cakes do not count against it, §6.4); else the three nearest free days. */
+async function dateTaken(tx: Tx, o: Order, p: Plan, now: Date) {
+  if (!p.date) return null;
+  const cap = await capacityForOrder(tx, o.id, now);
+  return canHold(p.date, { ...cap, ownHold: null })
+    ? null
+    : nearestDates(p.date, cap);
+}
 
 /** A line's options can be changed when its answers were kept (lines made before 6.2b without options too). */
 export const editableOptions = (l: Line) => l.answers !== null || !l.options;
@@ -362,19 +422,21 @@ export async function saveChanges(
       .from(orderLines)
       .where(eq(orderLines.orderId, o.id))
       .orderBy(orderLines.position);
-    const p = plan(lines, ctx, input);
+    const p = plan(lines, ctx, input, o, today);
     if (Object.keys(p.errors).length)
       return { kind: "invalid", errors: p.errors } as const;
     if (!p.changes.length) return { kind: "nothing" } as const;
     const money = changeMoney(p.net);
     if (money.kind === "up")
       return { kind: "needs-payment", pence: money.pence } as const;
+    const chips = await dateTaken(tx, o, p, now);
+    if (chips) return { kind: "taken", chips } as const;
     const waived = money.kind === "waived";
     await writeLines(tx, o.id, p, waived);
     const newTotal = waived ? o.totalPence : o.totalPence + p.net;
     await tx
       .update(orders)
-      .set({ version: o.version + 1, totalPence: newTotal })
+      .set({ version: o.version + 1, totalPence: newTotal, ...orderMove(p, o) })
       .where(eq(orders.id, o.id));
     const [c] = await tx
       .insert(orderChanges)
@@ -451,12 +513,14 @@ export async function prepareChangePayment(
       .from(orderLines)
       .where(eq(orderLines.orderId, o.id))
       .orderBy(orderLines.position);
-    const p = plan(lines, ctx, input);
+    const p = plan(lines, ctx, input, o, today);
     if (Object.keys(p.errors).length)
       return { kind: "invalid", errors: p.errors } as const;
     if (!p.changes.length) return { kind: "nothing" } as const;
     const money = changeMoney(p.net);
     if (money.kind !== "up") return { kind: "no-rise" } as const;
+    const chips = await dateTaken(tx, o, p, now);
+    if (chips) return { kind: "taken", chips } as const;
     // An earlier payment that never came is dropped; this one takes the lock.
     await tx
       .update(orderChanges)
@@ -464,7 +528,15 @@ export async function prepareChangePayment(
       .where(
         and(eq(orderChanges.orderId, o.id), eq(orderChanges.status, "pending")),
       );
-    await tx.update(orders).set({ lockedAt: now }).where(eq(orders.id, o.id));
+    await tx
+      .update(orders)
+      .set({
+        lockedAt: now,
+        // A new day is held for 20 minutes while the payment goes through, owned by the order (§6.4, §10.3).
+        holdDate: p.date,
+        holdExpiresAt: p.date ? new Date(now.getTime() + 20 * 60_000) : null,
+      })
+      .where(eq(orders.id, o.id));
     const [c] = await tx
       .insert(orderChanges)
       .values({
@@ -475,7 +547,13 @@ export async function prepareChangePayment(
         moneyPence: money.pence,
         newTotalPence: o.totalPence + money.pence,
         status: "pending",
-        payload: { messages: input.messages ?? {}, sizes: input.sizes ?? {} },
+        payload: {
+          messages: input.messages ?? {},
+          sizes: input.sizes ?? {},
+          options: input.options ?? {},
+          date: input.date,
+          window: input.window,
+        },
         baseVersion: o.version,
         createdAt: now,
       })
@@ -526,7 +604,7 @@ export async function dropChangePayment(
     if (c)
       await tx
         .update(orders)
-        .set({ lockedAt: null })
+        .set({ lockedAt: null, holdDate: null, holdExpiresAt: null })
         .where(eq(orders.id, orderId));
   });
 }
@@ -582,7 +660,13 @@ export async function applyChangePayment(
       .from(orderLines)
       .where(eq(orderLines.orderId, o.id))
       .orderBy(orderLines.position);
-    const p = plan(lines, ctx, (c.payload ?? {}) as ChangeInput);
+    const p = plan(
+      lines,
+      ctx,
+      (c.payload ?? {}) as ChangeInput,
+      o,
+      londonDate(now),
+    );
     const sameOrder =
       o.version === c.baseVersion &&
       o.status === "confirmed" &&
@@ -595,15 +679,24 @@ export async function applyChangePayment(
       if (o.lockedAt)
         await tx
           .update(orders)
-          .set({ lockedAt: null })
+          .set({ lockedAt: null, holdDate: null, holdExpiresAt: null })
           .where(eq(orders.id, o.id));
       return { kind: "moved", order: o } as const;
     }
+    // A paid move is applied even when the day filled after its hold ran out — and flagged (§6.4).
+    const overbooked = (await dateTaken(tx, o, p, now)) !== null;
     await writeLines(tx, o.id, p, false);
     const newTotal = o.totalPence + p.net;
     await tx
       .update(orders)
-      .set({ version: o.version + 1, totalPence: newTotal, lockedAt: null })
+      .set({
+        version: o.version + 1,
+        totalPence: newTotal,
+        lockedAt: null,
+        holdDate: null,
+        holdExpiresAt: null,
+        ...orderMove(p, o),
+      })
       .where(eq(orders.id, o.id));
     await tx
       .update(orderChanges)
@@ -614,7 +707,13 @@ export async function applyChangePayment(
         changes: p.changes,
       })
       .where(eq(orderChanges.id, c.id));
-    return { kind: "applied", order: o, plan: p, newTotal } as const;
+    return {
+      kind: "applied",
+      order: o,
+      plan: p,
+      newTotal,
+      overbooked,
+    } as const;
   });
   if (result.kind === "already") return "already";
   if (result.kind === "moved") {
@@ -631,6 +730,23 @@ export async function applyChangePayment(
     true,
     now,
   );
+  if (result.overbooked)
+    await queueMail(
+      db,
+      {
+        key: `alert:booked-after-hold:change:${c0.id}`,
+        template: "alert",
+        data: {
+          kind: "check-payment",
+          view: {
+            amountPence: intent.amountReceivedPence,
+            why: `${result.order.number} was moved to ${result.plan.date} after its hold ran out, onto a day that is now full, closed or too soon — check the day.`,
+          },
+        },
+        to: (await readSettings(db)).email,
+      },
+      now,
+    );
   return "applied";
 }
 
@@ -702,8 +818,8 @@ async function tell(
     p.moves.length ? "" : "size",
     p.opts.length ? "" : "options",
     p.messages.size ? "" : "message",
-    "date",
-    delivery ? "delivery time" : "",
+    p.date ? "" : "date",
+    delivery && !p.window ? "delivery time" : "",
     delivery ? "address" : "",
   ].filter(Boolean);
   const view: ChangeView = {
@@ -718,7 +834,8 @@ async function tell(
       money.kind === "down" || money.kind === "up"
         ? { kind: money.kind, pence: money.pence }
         : { kind: "none", pence: 0 },
-    newDeadline: null,
+    // After a date change: the new last day to change online (§8.1 e-mail 12 variants).
+    newDeadline: p.date ? lastChangeDay(p.date) : null,
   };
   if (o.email)
     await queueMail(

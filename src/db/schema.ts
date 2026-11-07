@@ -655,6 +655,9 @@ export const orders = pgTable(
     version: integer("version").notNull().default(1),
     /** A size-up payment is going through (§6.4): nothing else can change until it finishes or the lock lapses. */
     lockedAt: timestamp("locked_at", { withTimezone: true }),
+    /** A move paid for with a size-up (§6.4): the new day held for 20 minutes, owned by the order (§11.6). */
+    holdDate: date("hold_date"),
+    holdExpiresAt: timestamp("hold_expires_at", { withTimezone: true }),
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
       .defaultNow(),

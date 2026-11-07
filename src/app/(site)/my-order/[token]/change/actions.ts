@@ -36,8 +36,11 @@ export type ChangeState = {
     | "invalid"
     | "needs-payment"
     | "locked"
+    | "taken"
     | "failed";
   errors: Record<number, string>;
+  /** “That day has just been taken”: the three nearest free days (§6.4). */
+  chips?: string[];
 };
 
 /**
@@ -53,7 +56,7 @@ export async function saveChange(
   if (!unlockValid(token, (await cookies()).get(UNLOCK_COOKIE)?.value))
     redirect(`/my-order/${token}/change`);
   if (!databaseUrl()) return { outcome: "failed", errors: {} };
-  const { messages, sizes, options } = editsFrom(form);
+  const { messages, sizes, options, date, window } = editsFrom(form);
   const { db, close } = connect();
   let changeId = 0;
   try {
@@ -65,8 +68,12 @@ export async function saveChange(
       messages,
       sizes,
       options,
+      date,
+      window,
     });
     if (r.kind === "invalid") return { outcome: "invalid", errors: r.errors };
+    if (r.kind === "taken")
+      return { outcome: "taken", errors: {}, chips: r.chips };
     if (r.kind !== "saved") return { outcome: r.kind, errors: {} };
     changeId = r.changeId;
     await processMail(db, mailTransport(), SITE_URL).catch((e) =>
@@ -84,6 +91,7 @@ export type PrepareState =
       kind: "error";
       outcome: ChangeState["outcome"];
       errors: Record<number, string>;
+      chips?: string[];
     };
 
 /** The edits as the form sends them (message-{line}, size-{line}). */
@@ -100,7 +108,15 @@ function editsFrom(form: FormData) {
       if (a) options[Number(key.slice(8))] = a;
     }
   }
-  return { messages, sizes, options };
+  const date = String(form.get("date") ?? "");
+  const window = String(form.get("window") ?? "");
+  return {
+    messages,
+    sizes,
+    options,
+    date: /^\d{4}-\d{2}-\d{2}$/.test(date) ? date : undefined,
+    window: window || undefined,
+  };
 }
 
 /** Option answers as the page sends them (JSON); anything malformed is ignored. */
@@ -150,6 +166,8 @@ export async function prepareChange(
     if (r.kind === "pay") return r;
     if (r.kind === "invalid")
       return { kind: "error", outcome: "invalid", errors: r.errors };
+    if (r.kind === "taken")
+      return { kind: "error", outcome: "taken", errors: {}, chips: r.chips };
     return {
       kind: "error",
       outcome: r.kind === "no-rise" ? "stale" : r.kind,

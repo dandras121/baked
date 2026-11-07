@@ -7,6 +7,10 @@ import type {
   PrepareState,
 } from "@/app/(site)/my-order/[token]/change/actions";
 import { ChangePayment } from "./change-payment";
+import { DayPicker } from "@/components/checkout/day-picker";
+import checkout from "@/components/checkout/checkout.module.css";
+import type { CalendarMonth } from "@/lib/capacity";
+import { WINDOWS } from "@/lib/handover";
 import { Button, ButtonLink } from "@/components/ui/button";
 import { Notice } from "@/components/ui/notice";
 import { Radio } from "@/components/ui/choice";
@@ -76,6 +80,7 @@ export function ChangePage({
   until,
   dateRow,
   lines,
+  calendar,
 }: {
   action: (state: ChangeState, form: FormData) => Promise<ChangeState>;
   prepare: (form: FormData) => Promise<PrepareState>;
@@ -91,6 +96,18 @@ export function ChangePage({
   until: string;
   dateRow: { label: string; value: string };
   lines: ChangeLine[];
+  /** The step-2 calendar for moving the order (its own cakes do not count, §6.4) and its current date and window. */
+  calendar: {
+    months: CalendarMonth[];
+    start: number;
+    longDates: Record<string, string>;
+    caption: string;
+    date: string;
+    window: string | null;
+    delivery: boolean;
+    /** “Sat 12 September”, “Sat 12 September · 9am – 12pm” for a date and window. */
+    rowValue: Record<string, string>;
+  };
 }) {
   const router = useRouter();
   const [state, formAction, pending] = useActionState(action, {
@@ -103,6 +120,21 @@ export function ChangePage({
   const [optEdits, setOptEdits] = useState<Record<number, Answers>>({});
   const [optDraft, setOptDraft] = useState<Answers | null>(null);
   const [optErrors, setOptErrors] = useState<Record<number, string>>({});
+  /** The new date and window (applied), and the open editor's draft. */
+  const [move, setMove] = useState<{
+    date: string;
+    window: string | null;
+  } | null>(null);
+  const [moveDraft, setMoveDraft] = useState<{
+    date: string;
+    window: string | null;
+  } | null>(null);
+  const moved =
+    move && (move.date !== calendar.date || move.window !== calendar.window)
+      ? move
+      : null;
+  const rowText = (m: { date: string; window: string | null }) =>
+    `${calendar.rowValue[m.date] ?? m.date}${calendar.delivery && m.window ? ` · ${WINDOWS.find((w) => w.key === m.window)?.times ?? ""}` : ""}`;
   /** The open editor: “m{line id}” for a message, “s{line id}” for a size. */
   const [open, setOpen] = useState<string | null>(null);
   const [draft, setDraft] = useState("");
@@ -138,6 +170,7 @@ export function ChangePage({
       setEdits({});
       setSizes({});
       setOptEdits({});
+      setMove(null);
       setOpen(null);
       router.refresh();
     }
@@ -266,6 +299,14 @@ export function ChangePage({
             value={sizes[l.id]}
           />
         ))}
+        {moved && (
+          <>
+            <input type="hidden" name="date" value={moved.date} />
+            {calendar.delivery && moved.window && (
+              <input type="hidden" name="window" value={moved.window} />
+            )}
+          </>
+        )}
         {reoptioned.map((l) => (
           <input
             key={l.id}
@@ -540,9 +581,139 @@ export function ChangePage({
             );
           })}
           <div className={styles.row}>
-            <p className={styles.what}>{dateRow.label}</p>
-            <p className={styles.value}>{dateRow.value}</p>
+            <div className={styles.rowHead}>
+              <div>
+                <p className={styles.what}>{dateRow.label}</p>
+                <p className={styles.value}>
+                  {moved ? rowText(moved) : dateRow.value}
+                </p>
+              </div>
+              {open !== "date" &&
+                (moved ? (
+                  <button
+                    type="button"
+                    className={`${styles.rowLink} hit-44`}
+                    aria-label={`Undo the ${dateRow.label.toLowerCase()} change`}
+                    onClick={() => setMove(null)}
+                  >
+                    Undo
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    className={`${styles.rowLink} hit-44`}
+                    aria-label={`Change the ${dateRow.label.toLowerCase()}`}
+                    onClick={() => {
+                      setOpen("date");
+                      setMoveDraft(
+                        move ?? {
+                          date: calendar.date,
+                          window: calendar.window,
+                        },
+                      );
+                    }}
+                  >
+                    Change
+                  </button>
+                ))}
+            </div>
+            {moved && open !== "date" && (
+              <p className={styles.was}>Changed · was {dateRow.value}</p>
+            )}
+            {open === "date" && moveDraft && (
+              <div className={styles.editor}>
+                <DayPicker
+                  months={calendar.months}
+                  start={calendar.start}
+                  chosen={moveDraft.date}
+                  onChoose={(date) => setMoveDraft((m) => ({ ...m!, date }))}
+                  longDates={calendar.longDates}
+                  caption={calendar.caption}
+                />
+                {calendar.delivery && (
+                  <fieldset className={checkout.group}>
+                    <legend className={checkout.sectionHeading}>
+                      What time?
+                    </legend>
+                    <div className={checkout.windows}>
+                      {WINDOWS.map((w) => (
+                        <label
+                          key={w.key}
+                          className={checkout.window}
+                          data-checked={moveDraft.window === w.key || undefined}
+                          data-pressable
+                        >
+                          <input
+                            type="radio"
+                            name="window-pick"
+                            value={w.key}
+                            checked={moveDraft.window === w.key}
+                            onChange={() =>
+                              setMoveDraft((m) => ({ ...m!, window: w.key }))
+                            }
+                            className="visually-hidden"
+                            aria-label={`${w.name} · ${w.times}`}
+                          />
+                          <span aria-hidden>
+                            {w.name}
+                            <span className={checkout.wideDay}>
+                              {" "}
+                              · {w.times}
+                            </span>
+                          </span>
+                        </label>
+                      ))}
+                    </div>
+                  </fieldset>
+                )}
+                <div className={styles.editorActions}>
+                  <Button
+                    onClick={() => {
+                      setMove(moveDraft);
+                      setOpen(null);
+                    }}
+                  >
+                    Done
+                  </Button>
+                  <Button variant="outline" onClick={() => setOpen(null)}>
+                    Cancel
+                  </Button>
+                </div>
+              </div>
+            )}
           </div>
+          {(refused ?? state).outcome === "taken" && (
+            <div className={styles.notice}>
+              <Notice
+                tone="error"
+                icon
+                urgent
+                title="That day has just been taken"
+              >
+                <p>
+                  That day has just been taken — nothing has changed. Pick
+                  another:
+                </p>
+                <div className={styles.editorActions}>
+                  {((refused ?? state).chips ?? []).map((d) => (
+                    <Button
+                      key={d}
+                      variant="outline"
+                      onClick={() => {
+                        setMove({
+                          date: d,
+                          window: move?.window ?? calendar.window,
+                        });
+                        setRefused(null);
+                      }}
+                    >
+                      {calendar.rowValue[d] ?? d}
+                    </Button>
+                  ))}
+                </div>
+              </Notice>
+            </div>
+          )}
           <p className={styles.foot}>
             Delivery address, allergy notes and anything else: send me a message
             and I will update it by hand.
@@ -583,7 +754,11 @@ export function ChangePage({
               `${window.location.origin}/my-order/${token}/change?paid=${id}`
             }
             onRefused={(r) => {
-              setRefused({ outcome: r.outcome, errors: r.errors });
+              setRefused({
+                outcome: r.outcome,
+                errors: r.errors,
+                chips: r.chips,
+              });
               if (r.outcome === "stale" || r.outcome === "closed") {
                 setEdits({});
                 setSizes({});
@@ -597,7 +772,10 @@ export function ChangePage({
             <Button
               type="submit"
               disabled={
-                (!changed.length && !resized.length && !reoptioned.length) ||
+                (!changed.length &&
+                  !resized.length &&
+                  !reoptioned.length &&
+                  !moved) ||
                 open !== null
               }
               busy={pending}

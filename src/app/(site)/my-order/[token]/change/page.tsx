@@ -21,6 +21,8 @@ import { orderForToken } from "@/db/order-link-repo";
 import { orderLines } from "@/db/schema";
 import { getSiteSettings } from "@/db/site-settings";
 import { WINDOWS } from "@/lib/handover";
+import { buildCalendar, calendarCaption } from "@/lib/capacity";
+import { capacityForOrder } from "@/db/hold-repo";
 import { formatLongDate, londonDate } from "@/lib/london-time";
 import { checkKind, UNLOCK_COOKIE, unlockValid } from "@/lib/order-link";
 import { lastChangeDay, panelDate, statusState } from "@/lib/order-status";
@@ -58,6 +60,7 @@ export default async function Page({
   let lines: (typeof orderLines.$inferSelect)[] = [];
   let sizes: Awaited<ReturnType<typeof sizeChoices>> = {};
   let cakesNow: Awaited<ReturnType<typeof lineCakes>> = {};
+  let cap: Awaited<ReturnType<typeof capacityForOrder>> | null = null;
   try {
     found = await orderForToken(db, token);
     if (found?.valid && unlocked)
@@ -69,6 +72,7 @@ export default async function Page({
     if (lines.length) {
       sizes = await sizeChoices(db, lines);
       cakesNow = await lineCakes(db, lines);
+      cap = await capacityForOrder(db, found!.order.id);
     }
   } finally {
     await close();
@@ -129,8 +133,30 @@ export default async function Page({
       />
     );
   const paid = Number((await searchParams).paid) || null;
+  const capIn = { ...cap!, ownHold: String(o.date) };
+  const { months, start } = buildCalendar(capIn);
+  const longDates = Object.fromEntries(
+    months.flatMap((m) =>
+      m.days.map((d) => [d.date, formatLongDate(d.date, today)]),
+    ),
+  );
+  const rowValue = Object.fromEntries(
+    months.flatMap((m) =>
+      m.days.map((d) => [d.date, panelDate(d.date, today)]),
+    ),
+  );
   return (
     <ChangePage
+      calendar={{
+        months,
+        start,
+        longDates,
+        caption: calendarCaption(capIn.leadTimeDays),
+        date: String(o.date),
+        window: o.deliveryWindow,
+        delivery: o.handover === "delivery",
+        rowValue,
+      }}
       action={saveChange.bind(null, token, o.version)}
       prepare={prepareChange.bind(null, token, o.version)}
       finish={finishChange.bind(null, token)}

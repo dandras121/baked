@@ -335,3 +335,46 @@ test("options: Bramble & Cream vanilla → chocolate shows +£5 and the soya liv
     page.getByRole("button", { name: "Save changes" }),
   ).toBeDisabled();
 });
+
+test("date and window: pick another free day and Evening; saved; the order page shows the new day", async ({
+  page,
+}) => {
+  const { token } = await make(10);
+  await unlockAt(page, `/my-order/${token}/change`);
+  await page
+    .getByRole("button", { name: "Change the date and window" })
+    .click();
+  const free = page
+    .locator("[data-shown] label[data-state=available] input")
+    .nth(3);
+  const picked = await free.getAttribute("value");
+  await free.locator("..").click();
+  await page.locator("label").filter({ hasText: /^Evening/ }).click();
+  await page.getByRole("button", { name: "Done" }).click();
+  await expect(page.getByText(/^Changed · was /)).toBeVisible();
+  await page.getByRole("button", { name: "Save changes" }).click();
+  await expect(page.getByText("Your change is saved.")).toBeVisible();
+  const [, m, d] = picked!.split("-").map(Number);
+  const months = [
+    "January",
+    "February",
+    "March",
+    "April",
+    "May",
+    "June",
+    "July",
+    "August",
+    "September",
+    "October",
+    "November",
+    "December",
+  ];
+  await expect(
+    page
+      .getByRole("region", { name: "Your order" })
+      .getByText(new RegExp(`${d} ${months[m - 1]}`)),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("region", { name: "Your order" }).getByText("4 – 7pm"),
+  ).toBeVisible();
+});

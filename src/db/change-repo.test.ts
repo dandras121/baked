@@ -25,7 +25,7 @@ import {
   orders,
   refunds,
 } from "./schema";
-import { ensureSettings } from "./settings-repo";
+import { ensureSettings, readSettings } from "./settings-repo";
 
 const url = process.env.TEST_DATABASE_URL;
 const now = londonInstant("2026-09-01", 10); // the order's date is 12 September: the window is open until 23:59 on 10 September
@@ -902,6 +902,282 @@ describe.skipIf(!url)(
         .from(orderLines)
         .where(eq(orderLines.id, l.id));
       expect(editableOptions(line)).toBe(false);
+    });
+  },
+);
+
+describe.skipIf(!url)(
+  "database: change your order — the date and window (§6.4, §10.1, §10.4)",
+  () => {
+    const conn = url ? connect(url) : null;
+    const db = () => conn!.db;
+    let seq = 0;
+    async function order(
+      date = "2026-09-12",
+      extra: Record<string, unknown> = {},
+    ) {
+      seq++;
+      const [row] = await db()
+        .insert(orders)
+        .values({
+          number: `BBL-2026-3${String(seq).padStart(3, "0")}`,
+          token: `dt${seq}-${Math.random().toString(36).slice(2)}-padding`,
+          date,
+          earliestDate: date,
+          handover: "delivery",
+          deliveryWindow: "morning",
+          postcode: "EH49 6HH",
+          customerName: "Mairi Sinclair",
+          email: "mairi@example.co.uk",
+          phone: "07700 900 000",
+          consents: {},
+          totalPence: 18500,
+          amountReceivedPence: 18500,
+          paymentIntentId: `pi_dt_${seq}_${Math.random().toString(36).slice(2, 8)}`,
+          snapshot: {},
+          confirmedAt: new Date("2026-08-31T10:00:00Z"),
+          ...extra,
+        })
+        .returning();
+      const [l] = await db()
+        .insert(orderLines)
+        .values({
+          orderId: row.id,
+          position: 1,
+          slug: "the-lothian",
+          name: "The Lothian",
+          sizeLine: "Two tiers · serves 24",
+          message: "Hi",
+          pricePence: 18500,
+          sizePricePence: 18500,
+          allergenText: "Contains eggs.",
+          allergenKeys: [],
+        })
+        .returning();
+      return { o: row, l };
+    }
+    beforeAll(async () => {
+      await migrate(db(), { migrationsFolder: "drizzle" });
+      await ensureSettings(db(), INITIAL_SETTINGS);
+      await ensureSampleCatalogue(db());
+    });
+    beforeEach(async () => {
+      await db().delete(mailSends);
+      await db().delete(refunds);
+      await db().delete(orders);
+    });
+    afterAll(async () => {
+      await db().delete(mailSends);
+      await db().delete(orders);
+      await conn?.close();
+    });
+
+    it("a later free day and another window: saved, no money; the earliest date stays; e-mail 12 gives the new deadline", async () => {
+      const { o } = await order();
+      const r = await saveChanges(
+        db(),
+        countingGateway().gw,
+        { orderId: o.id, version: 1, date: "2026-09-19", window: "evening" },
+        now,
+      );
+      expect(r).toMatchObject({ kind: "saved", money: { kind: "none" } });
+      const [after] = await db()
+        .select()
+        .from(orders)
+        .where(eq(orders.id, o.id));
+      expect(after).toMatchObject({
+        date: "2026-09-19",
+        earliestDate: "2026-09-12",
+        deliveryWindow: "evening",
+      });
+      const [c] = await db()
+        .select()
+        .from(orderChanges)
+        .where(eq(orderChanges.orderId, o.id));
+      expect((c.changes as string[][]).map((x) => x[0])).toEqual([
+        "Date",
+        "Window",
+      ]);
+      const twelve = (await db().select().from(mailSends)).find(
+        (m) => m.template === "change-saved",
+      )!;
+      expect(
+        (twelve.data as { view: { newDeadline: string } }).view.newDeadline,
+      ).toBe("2026-09-17");
+    });
+
+    it("an earlier day becomes the earliest date the order has had (the refund tiers count from it)", async () => {
+      const { o } = await order();
+      await saveChanges(
+        db(),
+        countingGateway().gw,
+        { orderId: o.id, version: 1, date: "2026-09-08" },
+        now,
+      );
+      const [after] = await db()
+        .select()
+        .from(orders)
+        .where(eq(orders.id, o.id));
+      expect(after).toMatchObject({
+        date: "2026-09-08",
+        earliestDate: "2026-09-08",
+      });
+    });
+
+    it("a full day: nothing changed, the three nearest free days; the order's own cakes never count against its week", async () => {
+      const { dailyCap, weeklyCap } = await readSettings(db());
+      const { o } = await order();
+      for (let i = 0; i < dailyCap; i++) await order("2026-09-19");
+      const r = await saveChanges(
+        db(),
+        countingGateway().gw,
+        { orderId: o.id, version: 1, date: "2026-09-19" },
+        now,
+      );
+      expect(r.kind).toBe("taken");
+      expect(r.kind === "taken" && r.chips).toHaveLength(3);
+      const [after] = await db()
+        .select()
+        .from(orders)
+        .where(eq(orders.id, o.id));
+      expect(after.date).toBe("2026-09-12");
+      // A week one cake short of its cap, with this order in it: moving within the week is still allowed.
+      await db().delete(orders);
+      const own = await order("2026-09-21");
+      for (let i = 0; i < weeklyCap - 1; i++)
+        await order(
+          ["2026-09-22", "2026-09-23", "2026-09-24", "2026-09-25"][i % 4],
+        );
+      const r2 = await saveChanges(
+        db(),
+        countingGateway().gw,
+        { orderId: own.o.id, version: 1, date: "2026-09-26" },
+        now,
+      );
+      expect(r2.kind).toBe("saved");
+    });
+
+    it("too soon (inside the lead time): refused with nearby days", async () => {
+      const { o } = await order();
+      const r = await saveChanges(
+        db(),
+        countingGateway().gw,
+        { orderId: o.id, version: 1, date: "2026-09-03" },
+        now,
+      );
+      expect(r.kind).toBe("taken");
+    });
+
+    it("a move paid with a size-up holds the new day for 20 minutes, then moves on payment", async () => {
+      const t = countingGateway();
+      const { o, l } = await order();
+      const [c] = await db()
+        .select()
+        .from(cakes)
+        .where(eq(cakes.slug, "the-lothian"));
+      const [s32] = await db()
+        .select()
+        .from(cakeSizes)
+        .where(and(eq(cakeSizes.cakeId, c.id), eq(cakeSizes.serves, 32)));
+      const r = await prepareChangePayment(
+        db(),
+        t.gw,
+        {
+          orderId: o.id,
+          version: 1,
+          sizes: { [l.id]: s32.id },
+          date: "2026-09-19",
+        },
+        now,
+      );
+      expect(r.kind).toBe("pay");
+      const [held] = await db()
+        .select()
+        .from(orders)
+        .where(eq(orders.id, o.id));
+      expect(held).toMatchObject({
+        date: "2026-09-12",
+        holdDate: "2026-09-19",
+      });
+      const [pc] = await db()
+        .select()
+        .from(orderChanges)
+        .where(eq(orderChanges.orderId, o.id));
+      t.succeed(pc.paymentIntentId!);
+      expect(
+        await applyChangePayment(
+          db(),
+          t.gw,
+          t.intents.get(pc.paymentIntentId!)!,
+          now,
+        ),
+      ).toBe("applied");
+      const [after] = await db()
+        .select()
+        .from(orders)
+        .where(eq(orders.id, o.id));
+      expect(after).toMatchObject({
+        date: "2026-09-19",
+        holdDate: null,
+        totalPence: 24000,
+      });
+    });
+
+    it("an options change paid first is applied with its options (the payload keeps them)", async () => {
+      const t = countingGateway();
+      const [cake] = await db()
+        .select()
+        .from(cakes)
+        .where(eq(cakes.slug, "bramble-and-cream"));
+      const opts = await readOptions(db(), cake.id);
+      const sponge = opts.find((x) => x.label === "Sponge")!;
+      const { o } = await order();
+      const [l] = await db()
+        .update(orderLines)
+        .set({
+          slug: "bramble-and-cream",
+          name: "Bramble & Cream",
+          options: "Sponge: Vanilla",
+          answers: {
+            picks: { [sponge.id]: [sponge.choices[0].id] },
+            texts: {},
+          },
+        })
+        .where(eq(orderLines.orderId, o.id))
+        .returning();
+      await prepareChangePayment(
+        db(),
+        t.gw,
+        {
+          orderId: o.id,
+          version: 1,
+          options: {
+            [l.id]: {
+              picks: { [sponge.id]: [sponge.choices[1].id] },
+              texts: {},
+            },
+          },
+        },
+        now,
+      );
+      const [pc] = await db()
+        .select()
+        .from(orderChanges)
+        .where(eq(orderChanges.orderId, o.id));
+      t.succeed(pc.paymentIntentId!);
+      expect(
+        await applyChangePayment(
+          db(),
+          t.gw,
+          t.intents.get(pc.paymentIntentId!)!,
+          now,
+        ),
+      ).toBe("applied");
+      const [line] = await db()
+        .select()
+        .from(orderLines)
+        .where(eq(orderLines.id, l.id));
+      expect(line.options).toContain("Chocolate");
     });
   },
 );

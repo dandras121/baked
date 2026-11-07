@@ -55,6 +55,8 @@ async function otherHoldCounts(
   to: CalendarDate,
   exceptDraft: string | null,
   now: Date,
+  /** Change your order (§6.4): the order's own cakes count neither against the new day nor its week. */
+  exceptOrder: number | null = null,
 ): Promise<Map<CalendarDate, number>> {
   // Live holds, also while being paid.
   const held = await db
@@ -85,11 +87,27 @@ async function otherHoldCounts(
         exceptDraft
           ? or(isNull(orders.draftId), ne(orders.draftId, exceptDraft))
           : undefined,
+        exceptOrder ? ne(orders.id, exceptOrder) : undefined,
       ),
     )
     .groupBy(orders.date);
+  // An order's own live hold on a new day while its move is being paid (§6.4).
+  const moving = await db
+    .select({ day: orders.holdDate, n: count(orderLines.id) })
+    .from(orders)
+    .innerJoin(orderLines, eq(orderLines.orderId, orders.id))
+    .where(
+      and(
+        isNotNull(orders.holdDate),
+        gt(orders.holdExpiresAt, now),
+        gte(orders.holdDate, from),
+        lte(orders.holdDate, to),
+        exceptOrder ? ne(orders.id, exceptOrder) : undefined,
+      ),
+    )
+    .groupBy(orders.holdDate);
   const counts = new Map<CalendarDate, number>();
-  for (const r of [...held, ...booked])
+  for (const r of [...held, ...booked, ...moving])
     counts.set(r.day!, (counts.get(r.day!) ?? 0) + Number(r.n));
   return counts;
 }
@@ -122,6 +140,27 @@ export async function capacityFor(
     closed: new Set(closed.map((c) => c.day)),
     dayCounts: await otherHoldCounts(db, from, to, draft?.id ?? null, now),
     ownHold: draft ? (liveHold(draft, now)?.date ?? null) : null,
+  };
+}
+
+/** The calendar for moving an order (§6.4): every hold and order counts except the order's own cakes. */
+export async function capacityForOrder(
+  db: Db | Tx,
+  orderId: number,
+  now = new Date(),
+): Promise<CapacityInput> {
+  const c = await capacityFor(db, null, now);
+  const today = londonDate(now);
+  return {
+    ...c,
+    dayCounts: await otherHoldCounts(
+      db,
+      addDays(today, -7),
+      addDays(today, 13 * 31 + 7),
+      null,
+      now,
+      orderId,
+    ),
   };
 }
 
