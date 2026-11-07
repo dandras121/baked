@@ -27,6 +27,12 @@ import {
   type MissedView,
   type PayView,
 } from "@/lib/mail/after-emails";
+import {
+  ALERT_TITLES,
+  ALERTS,
+  SAMPLE_ALERTS,
+  type AlertKind,
+} from "@/lib/mail/alerts";
 import type { Email } from "@/lib/mail/layout";
 import { londonOffsetMinutes } from "@/lib/london-time";
 import {
@@ -139,6 +145,17 @@ export const TEMPLATES: Record<string, Template> = {
     const view = await orderMailView(db, Number(d.orderId));
     return view && orderConfirmedEmail(view, origin, review);
   },
+  /**
+   * E-mails to Linda and system e-mails (§8.3): data { kind, view } (or { kind, sample: true }). Plain, to
+   * business/email (the sign-in code and invite: to the person).
+   */
+  alert: async (d, _db, origin) => {
+    const kind = String(d.kind) as AlertKind;
+    const build = ALERTS[kind] as
+      ((v: unknown, o: string) => Email) | undefined;
+    if (!build) return null;
+    return build(d.sample ? SAMPLE_ALERTS[kind] : d.view, origin);
+  },
   /** E-mail 5 · A year later: data { orderId, late }; on the broadcast stream with List-Unsubscribe (§8.4). */
   "year-later": async (d, db, origin, now) => {
     const v = d.sample
@@ -250,6 +267,11 @@ export const SAMPLES: { template: string; title: string; data: Data }[] = [
     title: "18 · Thank you — how was it? (1800:12959)",
     data: { sample: true },
   },
+  ...(Object.keys(ALERT_TITLES) as AlertKind[]).map((kind) => ({
+    template: "alert",
+    title: `To Linda · ${ALERT_TITLES[kind]} (1800:13441)`,
+    data: { kind, sample: true },
+  })),
   {
     template: "sample",
     title:

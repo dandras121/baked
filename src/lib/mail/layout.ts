@@ -74,6 +74,10 @@ export type Email = {
   attachments?: Attachment[];
   /** An internal e-mail to the team (e-mail 4) has no “— Linda”, as drawn. */
   noSignOff?: boolean;
+  /** E-mails to Linda and system e-mails (§8.3): plain and short — no logo, no frame, no footer, no sign-off. */
+  plain?: boolean;
+  /** The sender's display name when it is not “Baked by Linda” (§7.4: “Baked by Linda website”). */
+  fromName?: string;
   /** A full-width picture under the header (e-mail 5's hero, 2:1). */
   hero?: { src: string; alt: string };
   /** Extra mail headers (e-mail 5: List-Unsubscribe and List-Unsubscribe-Post, §8.4). */
@@ -228,6 +232,7 @@ export function renderEmail(
   e: Email,
   ctx: { business: Business; origin: string; signOff: string },
 ): { subject: string; html: string; text: string } {
+  if (e.plain) return renderPlain(e);
   const business = e.business ?? ctx.business;
   const [f1, f2] = footerLines(business);
   const logo = `${ctx.origin}/email/baked-by-linda-logo-email@2x.png`;
@@ -256,5 +261,28 @@ ${foot.map((b) => blockHtml(b, ctx.origin)).join("\n")}
     ...foot.map(blockText),
     `${f1}\n${f2}`,
   ].join("\n\n");
+  return { subject: e.subject, html, text };
+}
+
+/** §8.3: a plain e-mail — the paragraphs and the link, in the system font, nothing else. */
+function renderPlain(e: Email): {
+  subject: string;
+  html: string;
+  text: string;
+} {
+  const html = `<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="color-scheme" content="light"><title>${esc(e.subject)}</title></head>
+<body style="margin:0;padding:16px;background:${C.white};font-family:${SANS};font-size:${C.size.body};line-height:1.5;color:${C.ink}">
+${e.blocks
+  .map((b) =>
+    b.kind === "linkLine"
+      ? `<p style="margin:0 0 12px"><a href="${esc(b.href)}" style="color:${C.accent}">${esc(b.label)}</a></p>`
+      : b.kind === "para"
+        ? `<p style="margin:0 0 12px;white-space:pre-line">${esc(b.text)}</p>`
+        : "",
+  )
+  .join("\n")}
+</body></html>`;
+  const text = e.blocks.map(blockText).join("\n\n");
   return { subject: e.subject, html, text };
 }

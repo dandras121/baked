@@ -104,17 +104,8 @@ export function validateContact(
   };
 }
 
-export type OutgoingEmail = {
-  stream: "transactional" | "broadcast";
-  from: string;
-  to: string;
-  replyTo: string;
-  subject: string;
-  text: string;
-};
-
 /** London time, e.g. “Saturday 31 October 2026, 2:05pm”. */
-function londonTime(at: Date): string {
+export function londonTime(at: Date): string {
   const parts = new Intl.DateTimeFormat("en-GB", {
     timeZone: "Europe/London",
     weekday: "long",
@@ -127,29 +118,4 @@ function londonTime(at: Date): string {
   }).formatToParts(at);
   const get = (t: string) => parts.find((p) => p.type === t)?.value ?? "";
   return `${get("weekday")} ${get("day")} ${get("month")} ${get("year")}, ${get("hour")}:${get("minute")}${get("dayPeriod").toLowerCase()}`;
-}
-
-/** The e-mail to Linda (§7.4): from the website, Reply-To the customer, every field, the time and the page. */
-export function contactEmail(
-  message: ContactMessage,
-  to: string,
-  at: Date,
-  page: string,
-): OutgoingEmail {
-  return {
-    stream: "transactional",
-    from: "Baked by Linda website",
-    to,
-    replyTo: message.email,
-    subject: `Website message — ${message.name}`,
-    text: [
-      `Name: ${message.name}`,
-      `Email: ${message.email}`,
-      `Phone: ${message.phone ?? "not given"}`,
-      "",
-      message.message,
-      "",
-      `Sent ${londonTime(at)} from ${page}`,
-    ].join("\n"),
-  };
 }

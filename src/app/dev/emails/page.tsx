@@ -75,10 +75,10 @@ export default async function Page() {
           Save
         </button>
       </form>
-      {mails.map(({ s, mail, files }) => {
+      {mails.map(({ s, mail, files }, i) => {
         if (!mail) return null;
         return (
-          <section key={s.template} className={styles.sample}>
+          <section key={i} className={styles.sample}>
             <h2>{s.title}</h2>
             <p className={styles.meta}>
               Subject: <strong>{mail.subject}</strong>
@@ -87,7 +87,7 @@ export default async function Page() {
               )}
             </p>
             <form action={sendSample}>
-              <input type="hidden" name="template" value={s.template} />
+              <input type="hidden" name="sample" value={i} />
               <button type="submit" className={styles.button}>
                 Send to the outbox
               </button>

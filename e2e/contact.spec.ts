@@ -147,6 +147,15 @@ test("§7.4 a correct send: stored, Message sent, the phone line and Back to the
         page: "/contact",
       },
     ]);
+  // §7.4 / §8.3: the e-mail to Linda is in the outbox, Reply-To the customer (desktop only: one look is enough).
+  if (test.info().project.name !== "desktop") return;
+  await page.goto("/dev/mail");
+  const item = page
+    .locator("main ol li")
+    .filter({ hasText: "Website message — Mairi Sinclair" })
+    .first();
+  await expect(item).toBeVisible();
+  await expect(item).toContainText("sent");
 });
 
 test("§10.8 a lost connection: “Nothing was sent — please try again.” under the button, every input kept", async ({

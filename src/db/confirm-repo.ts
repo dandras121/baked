@@ -15,7 +15,10 @@ import {
   type Snapshot,
 } from "./payment-repo";
 import { queueMail } from "./mail-repo";
-import { drafts, orders, paymentAlerts } from "./schema";
+import { drafts, orderLines, orders, paymentAlerts } from "./schema";
+import { readSettings } from "./settings-repo";
+import { WINDOWS } from "@/lib/handover";
+import { londonDate } from "@/lib/london-time";
 
 type Db = ReturnType<typeof connect>["db"];
 
@@ -37,8 +40,24 @@ async function alert(
     .values({ kind, paymentIntentId: intent.id, draftId, detail })
     .onConflictDoNothing()
     .returning({ id: paymentAlerts.id });
-  if (added.length)
-    console.warn(`[payment alert] ${kind} ${intent.id}: ${detail}`);
+  if (!added.length) return;
+  console.warn(`[payment alert] ${kind} ${intent.id}: ${detail}`);
+  // “Check this payment” to Linda (§8.3), once per flag (never-twice key: the flag's id).
+  const why = {
+    "check-payment": "its amount matches no snapshot of its order.",
+    "no-order": "it has no order.",
+    "booked-after-hold":
+      "it was booked after its hold ran out, onto a day that is now full, closed or too soon.",
+  }[kind];
+  await queueMail(db, {
+    key: `alert:payment:${added[0].id}`,
+    template: "alert",
+    data: {
+      kind: "check-payment",
+      view: { amountPence: intent.amountReceivedPence, why },
+    },
+    to: (await readSettings(db)).email,
+  });
 }
 
 /**
@@ -120,7 +139,7 @@ export async function applyIntent(
     if (result === "already-confirmed") return result;
     // E-mail 1 (§8.1), once per order (never-twice key: the order id); sent by the caller's processMail or the job.
     const [o] = await db
-      .select({ id: orders.id, email: orders.email })
+      .select()
       .from(orders)
       .where(eq(orders.draftId, found.id));
     if (o?.email)
@@ -134,6 +153,41 @@ export async function applyIntent(
         },
         now,
       );
+    // “New order” to Linda (§8.3), once per order.
+    if (o) {
+      const lines = await db
+        .select({ id: orderLines.id })
+        .from(orderLines)
+        .where(eq(orderLines.orderId, o.id));
+      const times = WINDOWS.find((w) => w.key === o.deliveryWindow)?.times;
+      await queueMail(
+        db,
+        {
+          key: `alert:new-order:${o.id}`,
+          template: "alert",
+          data: {
+            kind: "new-order",
+            view: {
+              number: o.number,
+              date: String(o.date),
+              today: londonDate(now),
+              cakes: lines.length,
+              totalPence: o.totalPence,
+              handover:
+                o.handover === "delivery"
+                  ? `Delivery ${times ?? ""} to ${o.town || o.postcode || o.address || "the address given"}.`.replace(
+                      "  ",
+                      " ",
+                    )
+                  : "Collection at a time we agree.",
+              allergyNote: o.allergyNote,
+            },
+          },
+          to: (await readSettings(db)).email,
+        },
+        now,
+      );
+    }
     // Refund in Stripe finds the order by its number (§10.6); a failure here changes nothing else.
     await gw
       ?.setOrder(intent.id, number)

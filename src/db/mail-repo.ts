@@ -137,7 +137,9 @@ export async function processMail(
         files.push({ name: a.name, base64, contentType: "application/pdf" });
     }
     const result = await transport.send({
-      from: mailFrom(),
+      from: email.fromName
+        ? mailFrom().replace(/^[^<]*</, `${email.fromName} <`)
+        : mailFrom(),
       to: row.to,
       replyTo: row.replyTo ?? ctx.replyTo,
       subject: mail.subject,

@@ -112,6 +112,15 @@ describe.skipIf(!url)("database: Stripe confirms (§5.5, §10.6, §12)", () => {
     expect((await row(draftId)).status).toBe("confirmed");
     const a = await alerts();
     expect(a.map((x) => x.kind)).toEqual(["check-payment"]);
+    // …and “Check this payment” to Linda, once (§8.3).
+    const toLinda = (await db().select().from(mailSends)).filter((m) =>
+      m.key.startsWith("alert:payment:"),
+    );
+    expect(toLinda).toHaveLength(1);
+    expect(toLinda[0].data).toMatchObject({
+      kind: "check-payment",
+      view: { amountPence: intent.amountPence + 500 },
+    });
   });
 
   it("paid after the hold ran out on a day now full → “Booked after its hold ran out”; on a free day nothing", async () => {
@@ -249,7 +258,12 @@ describe.skipIf(!url)("database: Stripe confirms (§5.5, §10.6, §12)", () => {
     const sends = await db().select().from(mailSends);
     expect(sends.map((m) => [m.key, m.template, m.to])).toEqual([
       [`order:${o.id}:1:${o.id}`, "order-confirmed", "mairi@example.co.uk"],
+      [`alert:new-order:${o.id}`, "alert", "info@bakedbylinda.co.uk"],
     ]);
+    expect(sends[1].data).toMatchObject({
+      kind: "new-order",
+      view: { number: o.number, cakes: 1 },
+    });
     expect(o.facts).toMatchObject({ trading_name: "Baked by Linda" });
   });
 });

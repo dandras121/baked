@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   CONTACT,
   CONTACT_COPY,
-  contactEmail,
+  londonTime,
   contactFieldError,
   validateContact,
 } from "./contact";
@@ -91,36 +91,13 @@ describe("§7.4 / §10.8 contact form rules", () => {
   });
 });
 
-describe("§7.4 the e-mail to Linda", () => {
-  it("from the website, Reply-To the customer, every field, the London time and the page", () => {
-    const mail = contactEmail(
-      { ...good, phone: "+447884199103" },
-      "info@bakedbylinda.co.uk",
-      new Date("2026-10-31T14:05:00Z"), // 2:05pm GMT
-      "/contact",
+describe("§7.4 the time in the e-mail to Linda", () => {
+  it("London time, winter and summer", () => {
+    expect(londonTime(new Date("2026-10-31T14:05:00Z"))).toBe(
+      "Saturday 31 October 2026, 2:05pm",
     );
-    expect(mail).toMatchObject({
-      stream: "transactional",
-      from: "Baked by Linda website",
-      to: "info@bakedbylinda.co.uk",
-      replyTo: "mairi@example.co.uk",
-      subject: "Website message — Mairi Sinclair",
-    });
-    expect(mail.text).toContain("Phone: +447884199103");
-    expect(mail.text).toContain(good.message);
-    expect(mail.text).toContain(
-      "Sent Saturday 31 October 2026, 2:05pm from /contact",
+    expect(londonTime(new Date("2026-07-01T08:30:00Z"))).toBe(
+      "Wednesday 1 July 2026, 9:30am",
     );
-  });
-
-  it("summer time is London time too", () => {
-    const mail = contactEmail(
-      { ...good, phone: null },
-      "x@y.z",
-      new Date("2026-07-01T08:30:00Z"),
-      "/contact",
-    );
-    expect(mail.text).toContain("Wednesday 1 July 2026, 9:30am");
-    expect(mail.text).toContain("Phone: not given");
   });
 });

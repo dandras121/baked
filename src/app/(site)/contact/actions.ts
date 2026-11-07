@@ -14,12 +14,14 @@ import {
   CONTACT,
   CONTACT_COPY,
   CONTACT_FIELDS,
-  contactEmail,
+  londonTime,
   validateContact,
   type ContactErrors,
   type ContactInput,
 } from "@/lib/contact";
-import { emailAdapter } from "@/lib/email/adapter";
+import { SITE_URL } from "@/app/layout";
+import { processMail, queueMail } from "@/db/mail-repo";
+import { mailTransport } from "@/lib/mail/transport";
 import { sentToken } from "@/lib/sent-token";
 
 export type ContactState = {
@@ -81,10 +83,34 @@ export async function sendContact(
         "/contact",
         now,
       );
-      if (id !== null)
-        await emailAdapter().send(
-          contactEmail(checked.value, settings.email, now, "/contact"),
+      // To Linda (§7.4, §8.3): from “Baked by Linda website”, Reply-To the customer; retried for 24 hours.
+      if (id !== null) {
+        await queueMail(
+          db,
+          {
+            key: `alert:message:${id}`,
+            template: "alert",
+            data: {
+              kind: "website-message",
+              view: {
+                id,
+                name: checked.value.name,
+                email: checked.value.email,
+                phone: checked.value.phone ?? null,
+                message: checked.value.message,
+                sentAt: londonTime(now),
+                page: "/contact",
+              },
+            },
+            to: settings.email,
+            replyTo: checked.value.email,
+          },
+          now,
         );
+        await processMail(db, mailTransport(), SITE_URL, now).catch((e) =>
+          console.error("contact mail", e),
+        );
+      }
       outcome = "sent";
     }
   } catch (error) {

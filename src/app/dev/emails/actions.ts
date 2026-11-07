@@ -6,6 +6,7 @@ import { connect, databaseUrl } from "@/db/client";
 import { eq } from "drizzle-orm";
 import { runDueJobs } from "@/db/jobs-repo";
 import { processMail, queueMail } from "@/db/mail-repo";
+import { SAMPLES } from "@/db/mail-templates";
 import { updateMailSettings } from "@/db/mail-settings-repo";
 import { jobRuns } from "@/db/schema";
 import { londonInstant } from "@/lib/london-time";
@@ -13,14 +14,14 @@ import { mailTransport } from "@/lib/mail/transport";
 
 /** Puts one sample into the queue and sends it at once (to the outbox outside the live site), then opens /dev/mail. */
 export async function sendSample(form: FormData) {
-  const template = String(form.get("template") ?? "sample");
+  const s = SAMPLES[Number(form.get("sample"))] ?? SAMPLES[SAMPLES.length - 1];
   if (!databaseUrl()) return;
   const { db, close } = connect();
   try {
     await queueMail(db, {
-      key: `dev-sample:${template}:${Date.now()}`,
-      template,
-      data: { sample: true, collection: template === "collection-day" },
+      key: `dev-sample:${s.template}:${Date.now()}`,
+      template: s.template,
+      data: s.data,
       to: "sample@example.com",
     });
     await processMail(db, mailTransport(), SITE_URL);
