@@ -1,5 +1,6 @@
 // The status page (§6.2, §6.3; states 1036:9106): which state shows — the first match wins — and its words.
-// Nobody was in and After a missed delivery come with 6.5 (delivery attempts); E's refund lines with 6.3.
+// Nobody was in and After a missed delivery come with 6.5 (delivery attempts).
+import type { cancelledCopy } from "./cancel-copy";
 import { WINDOWS } from "./handover";
 import { addDays, formatLongDate, type CalendarDate } from "./london-time";
 
@@ -33,6 +34,8 @@ type View = {
   completed: boolean;
   /** “20 Church View, Winchburgh” (Settings). */
   collectAt: string;
+  /** E: the words of the kept cancellation (§6.3 E). */
+  cancelled?: ReturnType<typeof cancelledCopy> | null;
 };
 
 const times = (w: string | null) => WINDOWS.find((x) => x.key === w)?.times;
@@ -104,13 +107,12 @@ export function statusCopy(v: View) {
       };
     case "E":
       return {
-        // The cancellation date and the refund line arrive with the cancellation record (6.3).
         title: "This order was cancelled",
-        intro: "This order was cancelled.",
-        eyebrow: "Cancelled",
-        nextTitle: long,
-        nextText: "Your date is back in the calendar.",
-        note: null,
+        intro: v.cancelled?.intro ?? "This order was cancelled.",
+        eyebrow: v.cancelled?.eyebrow ?? "Cancelled",
+        nextTitle: v.cancelled?.boxTitle ?? long,
+        nextText: v.cancelled ? v.cancelled.boxText : null,
+        note: "Your date is back in the calendar.",
       };
   }
 }

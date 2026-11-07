@@ -32,6 +32,8 @@ export async function makeSamples() {
       serves?: number;
       /** Another cake with options (6.2d): Bramble & Cream with a vanilla sponge. */
       cake?: string;
+      /** Moved later (6.3): the earliest date it has had, when it differs. */
+      earliest?: string;
     }[] = [
       {
         date: addDays(today, 10),
@@ -46,6 +48,14 @@ export async function makeSamples() {
         name: "Rory Fraser",
         cake: "bramble-and-cream",
       },
+      // Cancelling inside seven days: half back (6.3); and one moved later, counted from its earliest date.
+      { date: addDays(today, 6), handover: "delivery", name: "Iona Grant" },
+      {
+        date: addDays(today, 13),
+        earliest: addDays(today, 6),
+        handover: "delivery",
+        name: "Euan Murray",
+      },
     ];
     for (const [i, s] of samples.entries()) {
       const [o] = await db
@@ -56,7 +66,7 @@ export async function makeSamples() {
           status: s.status ?? "confirmed",
           token: randomBytes(24).toString("base64url"),
           date: s.date,
-          earliestDate: s.date,
+          earliestDate: s.earliest ?? s.date,
           handover: s.handover,
           deliveryWindow: s.handover === "delivery" ? "morning" : null,
           address: s.handover === "delivery" ? "48 Preston Road" : null,

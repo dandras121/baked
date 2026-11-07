@@ -17,6 +17,8 @@ import { cakes, orderLines } from "@/db/schema";
 import { getSiteSettings } from "@/db/site-settings";
 import { formatLongDate, londonDate } from "@/lib/london-time";
 import { formatPrice } from "@/lib/money";
+import { cancelledCopy } from "@/lib/cancel-copy";
+import type { CancelledView } from "@/lib/mail/after-emails";
 import { netPaid, orderRefunds } from "@/db/refund-repo";
 import { checkKind, UNLOCK_COOKIE, unlockValid } from "@/lib/order-link";
 import { statusState } from "@/lib/order-status";
@@ -126,8 +128,30 @@ async function statusView(db: Db, o: Order): Promise<StatusView> {
         ).map((c) => c.slug)
       : [],
   );
+  // E: the cancellation as decided, and how its refunds are getting on (§6.3 E, §10.6).
+  const kept = o.cancellation as CancelledView | null;
+  const cancelRows = refundRows.filter((r) => r.kind === "cancel");
+  const progress = !kept
+    ? "none"
+    : kept.cardPence + kept.handPence === 0
+      ? "none"
+      : o.status === "refunded"
+        ? "done"
+        : cancelRows.some((r) => r.status === "failed")
+          ? "failed"
+          : "pending";
+  const lastCancelRefund = cancelRows.at(-1);
   return {
     token: o.token,
+    cancelled: kept
+      ? cancelledCopy(
+          kept,
+          progress,
+          lastCancelRefund ? londonDate(lastCancelRefund.createdAt) : null,
+          today,
+        )
+      : null,
+    cancelRefundPence: kept ? kept.cardPence + kept.handPence : 0,
     number: o.number,
     state: statusState({ status: o.status, date: String(o.date) }, today),
     date: String(o.date),
@@ -148,8 +172,9 @@ async function statusView(db: Db, o: Order): Promise<StatusView> {
       .filter((x, i, a) => i === 0 || !a[0]!.includes(x!))
       .join(", "),
     reviewHref: reviewLink(mail.googlePlaceId),
+    // The cancellation's own refund is the E state's box and panel row, not a refund line.
     refunds: refundRows
-      .filter((r) => r.status !== "failed")
+      .filter((r) => r.status !== "failed" && r.kind !== "cancel")
       .map(
         (r) =>
           `Refunded ${formatPrice(r.amountPence)} on ${formatLongDate(londonDate(r.createdAt), today).replace(/^\w+ /, "")}`,

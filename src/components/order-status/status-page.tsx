@@ -5,6 +5,7 @@ import { ButtonLink } from "@/components/ui/button";
 import { Link } from "@/components/ui/link";
 import { Notice } from "@/components/ui/notice";
 import { formatPrice } from "@/lib/money";
+import type { cancelledCopy } from "@/lib/cancel-copy";
 import { panelDate, statusCopy, type StatusState } from "@/lib/order-status";
 import { WINDOWS } from "@/lib/handover";
 import styles from "./status.module.css";
@@ -29,6 +30,9 @@ export type StatusView = {
   reviewHref: string | null;
   /** “Refunded £55 on 3 September” — every refund line, whatever its kind (§6.3 Money). */
   refunds: string[];
+  /** E: the kept cancellation's words, and what it refunds (§6.3 E). */
+  cancelled: ReturnType<typeof cancelledCopy> | null;
+  cancelRefundPence: number;
   lines: {
     name: string;
     flavour: string;
@@ -49,6 +53,19 @@ const ClockIcon = () => (
       stroke="currentColor"
       strokeWidth="1.5"
       strokeLinecap="round"
+    />
+  </svg>
+);
+
+const TickIcon = () => (
+  <svg viewBox="0 0 20 20" fill="none" aria-hidden className={styles.boxIcon}>
+    <circle cx="10" cy="10" r="8.25" stroke="currentColor" strokeWidth="1.5" />
+    <path
+      d="M6.5 10.2l2.4 2.4 4.6-4.9"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
     />
   </svg>
 );
@@ -116,7 +133,21 @@ function OrderPanel({ v }: { v: StatusView }) {
       </dl>
       <hr className={styles.rule} />
       <dl className={styles.rows}>
-        {due > 0 ? (
+        {v.cancelled ? (
+          v.cancelRefundPence > 0 ? (
+            <>
+              <dt>{v.cancelled.tick ? "Refunded" : "Refund on its way"}</dt>
+              <dd className={styles.money}>
+                {formatPrice(v.cancelRefundPence)}
+              </dd>
+            </>
+          ) : (
+            <>
+              <dt>Paid</dt>
+              <dd>{formatPrice(v.paidPence)}</dd>
+            </>
+          )
+        ) : due > 0 ? (
           <>
             <dt>Total</dt>
             <dd>{formatPrice(v.totalPence)}</dd>
@@ -137,9 +168,14 @@ function OrderPanel({ v }: { v: StatusView }) {
           {r}
         </p>
       ))}
-      {!v.manual && v.paidPence > 0 && (
-        <p className={styles.receipt}>Receipt sent to {v.email}</p>
-      )}
+      {v.cancelled
+        ? v.cancelled.tick && (
+            <p className={styles.receipt}>Refund receipt sent to {v.email}</p>
+          )
+        : !v.manual &&
+          v.paidPence > 0 && (
+            <p className={styles.receipt}>Receipt sent to {v.email}</p>
+          )}
     </section>
   );
 }
@@ -182,10 +218,14 @@ export function StatusPage({
       <div className={styles.next}>
         <p className={styles.eyebrow}>{copy.eyebrow}</p>
         <div className={styles.box}>
-          <ClockIcon />
+          {v.cancelled?.tick ? (
+            <TickIcon />
+          ) : v.state === "E" && v.cancelled?.eyebrow === "No refund" ? null : (
+            <ClockIcon />
+          )}
           <div>
             <p className={styles.boxTitle}>{copy.nextTitle}</p>
-            <p className={styles.boxText}>{copy.nextText}</p>
+            {copy.nextText && <p className={styles.boxText}>{copy.nextText}</p>}
           </div>
         </div>
       </div>
@@ -212,11 +252,13 @@ export function StatusPage({
               </ButtonLink>
             </span>
           )}
-          {v.state === "E" && (
-            <Link href="/cancellations">Cancellations &amp; refunds</Link>
-          )}
         </div>
         {copy.note && <p className={styles.note}>{copy.note}</p>}
+        {v.state === "E" && (
+          <p className={styles.cancel}>
+            <Link href="/cancellations">Cancellations &amp; refunds</Link>
+          </p>
+        )}
         {v.state === "A" && catalogue && (
           <p className={styles.cancel}>
             <Link href={`${base}/cancel`}>Need to cancel instead? →</Link>

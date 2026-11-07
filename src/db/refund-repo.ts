@@ -9,7 +9,7 @@ import { readSettings } from "./settings-repo";
 
 type Db = ReturnType<typeof connect>["db"];
 
-/** What can still go back on each of the order's card payments: the checkout payment, then its paid changes. */
+/** What can still go back on each of the order's card payments, newest first. */
 async function refundable(db: Db, o: typeof orders.$inferSelect) {
   const paid: { paymentIntentId: string; amount: number }[] = [];
   if (o.paymentIntentId)
@@ -22,12 +22,14 @@ async function refundable(db: Db, o: typeof orders.$inferSelect) {
     .from(orderChanges)
     .where(
       and(eq(orderChanges.orderId, o.id), eq(orderChanges.status, "saved")),
-    );
+    )
+    .orderBy(orderChanges.id);
   for (const c of changes)
     if (c.pi && c.paid > 0)
       paid.push({ paymentIntentId: c.pi, amount: c.paid });
   const out: { paymentIntentId: string; left: number }[] = [];
-  for (const p of paid) {
+  // Newest charge first (§6.6, §9.7): each refunded at most up to what is left of it.
+  for (const p of paid.reverse()) {
     const [r] = await db
       .select({ n: sum(refunds.amountPence) })
       .from(refunds)

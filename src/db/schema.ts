@@ -658,6 +658,9 @@ export const orders = pgTable(
     /** A move paid for with a size-up (§6.4): the new day held for 20 minutes, owned by the order (§11.6). */
     holdDate: date("hold_date"),
     holdExpiresAt: timestamp("hold_expires_at", { withTimezone: true }),
+    /** Cancelled (§6.6, §9.5): when, and what was decided then — by whom, the tier and the refund (CancelledView). */
+    cancelledAt: timestamp("cancelled_at", { withTimezone: true }),
+    cancellation: jsonb("cancellation"),
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
       .defaultNow(),

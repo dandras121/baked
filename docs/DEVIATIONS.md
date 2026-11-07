@@ -100,3 +100,6 @@ Anything built differently from the docs or Figma, and why. Bohoka’s decision 
 | 6.1b | E · Cancelled | Shown with “This order was cancelled.” only; its date and refund lines come with the cancellation record (6.3) |
 | 6.2a | A2 1036:9260 “…possible up to 48 hours before your date.” and the half-refund footer | Left out: changes close at 23:59 on D-2 and online cancelling closes with them (§10.1); A2 keeps “Changes closed on {D-2}” and “Nothing on your order has changed, and {date} is still held.” |
 | 6.2a | 1036:9227 caps “WHAT YOU CAN CHANGE” | Sentence case (Bohoka 2026-11-01) |
+| 6.3 | C 1037:9182 and E 1037:9256 “within five working days” / “inside five working days” | “within 5–10 working days” — §10.6 Refund timing: the customer copy always says the bank takes 5–10 working days |
+| 6.3 | C 1037:9182, E 1037:9256 caps “WHAT YOU GET BACK”, “REFUNDED”, “ORDER BBL-…” | Sentence case (Bohoka 2026-11-01) |
+| 6.3 | E 1037:9256 “Your date is back in the calendar, and it is still free at the moment.” | The §6.3 E text “Your date is back in the calendar.” — whether the day is still free would tell about other customers' bookings |

@@ -1,0 +1,50 @@
+/* C · Cancel your order (§6.6; 1037:9182): the lead line, “What you get back”, the maroon outline button, the ladder. */
+.lead {
+  margin: 0 0 18px;
+  color: var(--colour-body);
+  font: var(--type-state-small);
+}
+
+.refund {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--colour-line-rule);
+  color: var(--colour-body);
+  font: var(--type-state-row-value-phone);
+}
+
+.refund strong {
+  color: var(--colour-accent);
+  font: var(--type-state-strong);
+}
+
+.paid {
+  margin: 12px 0 0;
+  color: var(--colour-body);
+  font: var(--type-state-row-value-phone);
+}
+
+.paid + .paid {
+  margin-top: 4px;
+}
+
+.small {
+  margin: 6px 0 0;
+  color: var(--colour-body);
+  font: var(--type-state-small);
+}
+
+/* The only maroon in the package (1037:9203): white fill, maroon border and label. */
+.danger {
+  border-color: var(--colour-error);
+  color: var(--colour-error);
+}
+
+.ladder {
+  margin: 12px 0 0;
+  color: var(--colour-meta);
+  font: var(--type-state-small);
+}
