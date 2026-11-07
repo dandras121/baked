@@ -23,7 +23,20 @@ export type Gateway = {
   setOrder(id: string, number: string): Promise<void>;
   /** Every PaymentIntent created since this time (the reconciliation job, §12). */
   listSince(since: Date): Promise<Intent[]>;
+  /**
+   * Money back on a PaymentIntent (§10.6). The key makes a repeat return the same refund. A failure is returned, not
+   * thrown, so the caller can record it (§6.4 “Refund failed — try again”).
+   */
+  refund(
+    paymentIntentId: string,
+    amountPence: number,
+    key: string,
+  ): Promise<Refunded>;
 };
+
+export type Refunded =
+  | { ok: true; id: string; status: "succeeded" | "pending" }
+  | { ok: false; error: string };
 
 const fromStripe = (pi: Stripe.PaymentIntent): Intent => ({
   id: pi.id,
@@ -67,6 +80,23 @@ function stripeGateway(secret: string): Gateway {
         metadata: { order: number },
         description: `Baked by Linda order ${number}`,
       });
+    },
+    async refund(paymentIntentId, amountPence, key) {
+      try {
+        const r = await stripe.refunds.create(
+          { payment_intent: paymentIntentId, amount: amountPence },
+          { idempotencyKey: `refund-${key}` },
+        );
+        if (r.status === "failed" || r.status === "canceled")
+          return { ok: false, error: r.failure_reason ?? r.status };
+        return {
+          ok: true,
+          id: r.id,
+          status: r.status === "succeeded" ? "succeeded" : "pending",
+        };
+      } catch (e) {
+        return { ok: false, error: e instanceof Error ? e.message : String(e) };
+      }
     },
     async listSince(since) {
       const out: Intent[] = [];
@@ -119,6 +149,10 @@ const fakeGateway: Gateway = {
   async setOrder() {},
   async listSince() {
     return [...fakes.values()];
+  },
+  async refund(_paymentIntentId, _amountPence, key) {
+    // A refund on the fake Stripe always goes through (the database tests try failures with their own gateway).
+    return { ok: true, id: `re_fake_${key}`, status: "succeeded" };
   },
 };
 

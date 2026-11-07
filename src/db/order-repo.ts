@@ -111,6 +111,9 @@ export async function createOrder(
         pricePence: l.pricePence,
         allergenText: l.allergenText,
         allergenKeys: l.allergenKeys,
+        sizeId: l.sizeId ?? null,
+        sizePricePence: l.sizePricePence ?? null,
+        answers: l.answers ?? null,
       })),
     );
   return number;

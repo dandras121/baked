@@ -72,6 +72,10 @@ export type SnapshotLine = {
   pricePence: number;
   allergenText: string;
   allergenKeys: string[];
+  /** Absent on snapshots taken before slice 6.2b. */
+  sizeId?: number;
+  sizePricePence?: number;
+  answers?: unknown;
 };
 
 export const snapshotLine = (l: LineView): SnapshotLine => ({
@@ -86,6 +90,9 @@ export const snapshotLine = (l: LineView): SnapshotLine => ({
   pricePence: l.pricePence,
   allergenText: l.allergenText,
   allergenKeys: [...l.allergenKeys],
+  sizeId: l.sizeId,
+  sizePricePence: l.sizePricePence,
+  answers: l.answers,
 });
 
 export type Snapshot = {

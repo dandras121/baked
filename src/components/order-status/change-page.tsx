@@ -5,7 +5,10 @@ import { useActionState, useEffect, useRef, useState } from "react";
 import type { ChangeState } from "@/app/(site)/my-order/[token]/change/actions";
 import { Button, ButtonLink } from "@/components/ui/button";
 import { Notice } from "@/components/ui/notice";
+import { Radio } from "@/components/ui/choice";
 import { TextField } from "@/components/ui/text-field";
+import type { SizeChoice } from "@/db/change-repo";
+import { formatPrice } from "@/lib/money";
 import {
   INSCRIPTION_MAX,
   inscriptionError,
@@ -21,7 +24,17 @@ export type ChangeLine = {
   options: string;
   /** null: the cake offers no message. */
   message: string | null;
+  /** The cake's current sizes with the difference against what was paid (§6.4); empty when it has none left. */
+  sizes: SizeChoice[];
 };
+
+/** “−£55”, “+£55”, “current”, “same price”. */
+const diffLabel = (c: SizeChoice) =>
+  c.current
+    ? "current"
+    : c.diffPence === 0
+      ? "same price"
+      : `${c.diffPence > 0 ? "+" : "−"}${formatPrice(Math.abs(c.diffPence))}`;
 
 const shown = (m: string | null) => (m ? `“${m}”` : "No message");
 
@@ -52,7 +65,9 @@ export function ChangePage({
     errors: {},
   });
   const [edits, setEdits] = useState<Record<number, string>>({});
-  const [open, setOpen] = useState<number | null>(null);
+  const [sizes, setSizes] = useState<Record<number, number>>({});
+  /** The open editor: “m{line id}” for a message, “s{line id}” for a size. */
+  const [open, setOpen] = useState<string | null>(null);
   const [draft, setDraft] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [askPlain, setAskPlain] = useState(false);
@@ -65,6 +80,7 @@ export function ChangePage({
     setSeen(state);
     if (state.outcome === "stale" || state.outcome === "closed") {
       setEdits({});
+      setSizes({});
       setOpen(null);
       router.refresh();
     }
@@ -73,9 +89,15 @@ export function ChangePage({
   const changed = lines.filter(
     (l) => l.id in edits && normaliseText(edits[l.id]) !== (l.message ?? ""),
   );
+  const resized = lines.filter((l) =>
+    l.sizes.some((c) => c.id === sizes[l.id] && !c.current),
+  );
+  const chosenSize = (l: ChangeLine) =>
+    l.sizes.find((c) => c.id === sizes[l.id] && !c.current) ?? null;
+  const net = resized.reduce((n, l) => n + (chosenSize(l)?.diffPence ?? 0), 0);
 
   const openEditor = (l: ChangeLine) => {
-    setOpen(l.id);
+    setOpen(`m${l.id}`);
     setDraft(edits[l.id] ?? l.message ?? "");
     setError(null);
     setAskPlain(false);
@@ -91,6 +113,12 @@ export function ChangePage({
   };
   const undo = (id: number) =>
     setEdits((x) => {
+      const rest = { ...x };
+      delete rest[id];
+      return rest;
+    });
+  const undoSize = (id: number) =>
+    setSizes((x) => {
       const rest = { ...x };
       delete rest[id];
       return rest;
@@ -124,6 +152,14 @@ export function ChangePage({
             value={edits[l.id]}
           />
         ))}
+        {resized.map((l) => (
+          <input
+            key={l.id}
+            type="hidden"
+            name={`size-${l.id}`}
+            value={sizes[l.id]}
+          />
+        ))}
         <section className={styles.panel} aria-labelledby="can-change">
           <h2 id="can-change" className={styles.label}>
             What you can change
@@ -134,8 +170,70 @@ export function ChangePage({
               <div key={l.id}>
                 <h3 className={styles.cake}>{l.name}</h3>
                 <div className={styles.row}>
-                  <p className={styles.what}>Size</p>
-                  <p className={styles.value}>{l.sizeLine}</p>
+                  <div className={styles.rowHead}>
+                    <div>
+                      <p className={styles.what}>Size</p>
+                      <p className={styles.value}>
+                        {chosenSize(l)?.label ?? l.sizeLine}
+                      </p>
+                    </div>
+                    {open !== `s${l.id}` &&
+                      // 6.2b: a cake with a size of the same price or smaller to change to.
+                      l.sizes.some((c) => !c.current && c.diffPence <= 0) &&
+                      (chosenSize(l) ? (
+                        <button
+                          type="button"
+                          className={`${styles.rowLink} hit-44`}
+                          aria-label={`Undo the size change on ${l.name}`}
+                          onClick={() => undoSize(l.id)}
+                        >
+                          Undo
+                        </button>
+                      ) : (
+                        <button
+                          type="button"
+                          className={`${styles.rowLink} hit-44`}
+                          aria-label={`Change the size of ${l.name}`}
+                          onClick={() => setOpen(`s${l.id}`)}
+                        >
+                          Change
+                        </button>
+                      ))}
+                  </div>
+                  {chosenSize(l) && open !== `s${l.id}` && (
+                    <p className={styles.was}>Changed · was {l.sizeLine}</p>
+                  )}
+                  {open === `s${l.id}` && (
+                    <fieldset className={styles.sizes}>
+                      <legend className="visually-hidden">
+                        Size of {l.name}
+                      </legend>
+                      {l.sizes
+                        .filter((c) => c.current || c.diffPence <= 0)
+                        .map((c) => (
+                          <div key={c.id} className={styles.sizeRow}>
+                            <Radio
+                              name={`pick-${l.id}`}
+                              label={c.label}
+                              disabled={c.removed}
+                              checked={
+                                (sizes[l.id] ??
+                                  l.sizes.find((x) => x.current)?.id) === c.id
+                              }
+                              onChange={() =>
+                                c.current
+                                  ? undoSize(l.id)
+                                  : setSizes((x) => ({ ...x, [l.id]: c.id }))
+                              }
+                            />
+                            <span className={styles.diff}>{diffLabel(c)}</span>
+                          </div>
+                        ))}
+                      <div className={styles.editorActions}>
+                        <Button onClick={() => setOpen(null)}>Done</Button>
+                      </div>
+                    </fieldset>
+                  )}
                 </div>
                 {l.message !== null && (
                   <div className={styles.row}>
@@ -146,7 +244,7 @@ export function ChangePage({
                           {shown(edited ? edits[l.id] : l.message)}
                         </p>
                       </div>
-                      {open !== l.id &&
+                      {open !== `m${l.id}` &&
                         (edited ? (
                           <button
                             type="button"
@@ -167,7 +265,7 @@ export function ChangePage({
                           </button>
                         ))}
                     </div>
-                    {edited && open !== l.id && (
+                    {edited && open !== `m${l.id}` && (
                       <p className={styles.was}>
                         Changed · was {shown(l.message)}
                       </p>
@@ -175,7 +273,7 @@ export function ChangePage({
                     {(state.errors[l.id] ?? null) && (
                       <p className={styles.was}>{state.errors[l.id]}</p>
                     )}
-                    {open === l.id && (
+                    {open === `m${l.id}` && (
                       <div className={styles.editor}>
                         <TextField
                           label={`Message on ${l.name}`}
@@ -249,10 +347,17 @@ export function ChangePage({
             </Notice>
           </div>
         )}
+        {net < 0 && (
+          <p className={styles.money}>
+            {net <= -30
+              ? `${formatPrice(-net)} goes back to your card when you save — most banks show it within 5–10 working days.`
+              : "The difference is under £0.30, so nothing is charged or refunded."}
+          </p>
+        )}
         <div className={styles.buttons}>
           <Button
             type="submit"
-            disabled={!changed.length || open !== null}
+            disabled={(!changed.length && !resized.length) || open !== null}
             busy={pending}
             busyLabel="Saving"
           >

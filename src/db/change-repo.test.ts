@@ -1,11 +1,21 @@
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { migrate } from "drizzle-orm/postgres-js/migrator";
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 import { londonInstant } from "@/lib/london-time";
 import { INITIAL_SETTINGS } from "@/lib/settings";
-import { saveMessages } from "./change-repo";
+import { ensureSampleCatalogue } from "./cake-repo";
+import { saveChanges, sizeChoices } from "./change-repo";
+import { countingGateway } from "./test-gateway";
 import { connect } from "./client";
-import { mailSends, orderChanges, orderLines, orders } from "./schema";
+import {
+  cakeSizes,
+  cakes,
+  mailSends,
+  orderChanges,
+  orderLines,
+  orders,
+  refunds,
+} from "./schema";
 import { ensureSettings } from "./settings-repo";
 
 const url = process.env.TEST_DATABASE_URL;
@@ -72,8 +82,9 @@ describe.skipIf(!url)(
 
     it("saves a new message: the line, the version, the change, e-mail 12 and Linda's alert — once", async () => {
       const { o, l } = await order();
-      const r = await saveMessages(
+      const r = await saveChanges(
         db(),
+        countingGateway().gw,
         {
           orderId: o.id,
           version: 1,
@@ -111,15 +122,17 @@ describe.skipIf(!url)(
 
     it("an out-of-date page saves nothing (version)", async () => {
       const { o, l } = await order();
-      await saveMessages(
+      await saveChanges(
         db(),
+        countingGateway().gw,
         { orderId: o.id, version: 1, messages: { [l.id]: "First" } },
         now,
       );
       expect(
         (
-          await saveMessages(
+          await saveChanges(
             db(),
+            countingGateway().gw,
             { orderId: o.id, version: 1, messages: { [l.id]: "Second" } },
             now,
           )
@@ -136,8 +149,9 @@ describe.skipIf(!url)(
       const { o, l } = await order();
       expect(
         (
-          await saveMessages(
+          await saveChanges(
             db(),
+            countingGateway().gw,
             { orderId: o.id, version: 1, messages: { [l.id]: "x" } },
             londonInstant("2026-09-10", 23, 59),
           )
@@ -145,8 +159,9 @@ describe.skipIf(!url)(
       ).toBe("saved");
       expect(
         (
-          await saveMessages(
+          await saveChanges(
             db(),
+            countingGateway().gw,
             { orderId: o.id, version: 2, messages: { [l.id]: "y" } },
             londonInstant("2026-09-11", 0, 0),
           )
@@ -155,8 +170,9 @@ describe.skipIf(!url)(
       const m = await order("manual");
       expect(
         (
-          await saveMessages(
+          await saveChanges(
             db(),
+            countingGateway().gw,
             { orderId: m.o.id, version: 1, messages: { [m.l.id]: "x" } },
             now,
           )
@@ -165,8 +181,9 @@ describe.skipIf(!url)(
       const n = await order();
       expect(
         (
-          await saveMessages(
+          await saveChanges(
             db(),
+            countingGateway().gw,
             {
               orderId: n.o.id,
               version: 1,
@@ -176,8 +193,9 @@ describe.skipIf(!url)(
           )
         ).kind,
       ).toBe("nothing");
-      const e = await saveMessages(
+      const e = await saveChanges(
         db(),
+        countingGateway().gw,
         { orderId: n.o.id, version: 1, messages: { [n.l.id]: "Happy 🎂" } },
         now,
       );
@@ -186,8 +204,9 @@ describe.skipIf(!url)(
 
     it("an empty message leaves the cake plain", async () => {
       const { o, l } = await order();
-      await saveMessages(
+      await saveChanges(
         db(),
+        countingGateway().gw,
         { orderId: o.id, version: 1, messages: { [l.id]: "  " } },
         now,
       );
@@ -201,6 +220,238 @@ describe.skipIf(!url)(
         .from(orderChanges)
         .where(eq(orderChanges.orderId, o.id));
       expect(c.changes).toEqual([["Message", "“Happy 30th”", "No message"]]);
+    });
+  },
+);
+
+describe.skipIf(!url)(
+  "database: change your order — the size (§6.4, §10.6)",
+  () => {
+    const conn = url ? connect(url) : null;
+    const db = () => conn!.db;
+    let seq = 0;
+    async function order(
+      o: { serves?: number; sizePaid?: number | null; pi?: string | null } = {},
+    ) {
+      seq++;
+      const serves = o.serves ?? 32;
+      const price =
+        o.sizePaid ?? (serves === 32 ? 24000 : serves === 24 ? 18500 : 30500);
+      const [row] = await db()
+        .insert(orders)
+        .values({
+          number: `BBL-2026-6${String(seq).padStart(3, "0")}`,
+          token: `siz${seq}-${Math.random().toString(36).slice(2)}-padding`,
+          date: "2026-09-12",
+          earliestDate: "2026-09-12",
+          handover: "collection",
+          customerName: "Mairi Sinclair",
+          email: "mairi@example.co.uk",
+          phone: "07700 900 000",
+          consents: {},
+          totalPence: price,
+          amountReceivedPence: price,
+          paymentIntentId:
+            o.pi === undefined
+              ? `pi_size_${seq}_${Math.random().toString(36).slice(2, 8)}`
+              : o.pi,
+          snapshot: {},
+          confirmedAt: new Date("2026-08-31T10:00:00Z"),
+        })
+        .returning();
+      const [l] = await db()
+        .insert(orderLines)
+        .values({
+          orderId: row.id,
+          position: 1,
+          slug: "the-lothian",
+          name: "The Lothian",
+          sizeLine: `Two tiers · serves ${serves}`,
+          message: null,
+          pricePence: price,
+          sizePricePence: o.sizePaid === null ? null : price,
+          allergenText: "Contains eggs.",
+          allergenKeys: [],
+        })
+        .returning();
+      return { o: row, l };
+    }
+    const size = async (serves: number) => {
+      const [c] = await db()
+        .select()
+        .from(cakes)
+        .where(eq(cakes.slug, "the-lothian"));
+      const [s] = await db()
+        .select()
+        .from(cakeSizes)
+        .where(and(eq(cakeSizes.cakeId, c.id), eq(cakeSizes.serves, serves)));
+      return s.id;
+    };
+    beforeAll(async () => {
+      await migrate(db(), { migrationsFolder: "drizzle" });
+      await ensureSettings(db(), INITIAL_SETTINGS);
+      await ensureSampleCatalogue(db());
+    });
+    beforeEach(async () => {
+      await db().delete(mailSends);
+      await db().delete(refunds);
+      await db().delete(orders);
+    });
+    afterAll(async () => {
+      await db().delete(mailSends);
+      await db().delete(refunds);
+      await db().delete(orders);
+      await conn?.close();
+    });
+
+    it("the sizes with their difference against what was paid; the current one marked", async () => {
+      const { l } = await order();
+      const lines = await db()
+        .select()
+        .from(orderLines)
+        .where(eq(orderLines.id, l.id));
+      const list = (await sizeChoices(db(), lines))[l.id];
+      expect(list.map((c) => [c.label, c.diffPence, c.current])).toEqual([
+        ["Serves 24 · two tiers", -5500, false],
+        ["Serves 32 · two tiers", 0, true],
+        ["Serves 40 · three tiers", 6500, false],
+      ]);
+    });
+
+    it("smaller: saved at once, £55 refunded on the payment, the line and total updated, e-mail 12 says so", async () => {
+      const t = countingGateway();
+      const { o, l } = await order();
+      const r = await saveChanges(
+        db(),
+        t.gw,
+        { orderId: o.id, version: 1, sizes: { [l.id]: await size(24) } },
+        now,
+      );
+      expect(r).toMatchObject({
+        kind: "saved",
+        money: { kind: "down", pence: 5500 },
+        refundOk: true,
+      });
+      expect(t.refunds).toEqual([
+        expect.objectContaining({
+          paymentIntentId: o.paymentIntentId,
+          amountPence: 5500,
+        }),
+      ]);
+      const [line] = await db()
+        .select()
+        .from(orderLines)
+        .where(eq(orderLines.id, l.id));
+      expect(line).toMatchObject({
+        sizeLine: "Two tiers · serves 24",
+        pricePence: 18500,
+        sizePricePence: 18500,
+      });
+      const [after] = await db()
+        .select()
+        .from(orders)
+        .where(eq(orders.id, o.id));
+      expect(after.totalPence).toBe(18500);
+      const [rf] = await db()
+        .select()
+        .from(refunds)
+        .where(eq(refunds.orderId, o.id));
+      expect(rf).toMatchObject({
+        kind: "change",
+        amountPence: 5500,
+        status: "succeeded",
+      });
+      const twelve = (await db().select().from(mailSends)).find(
+        (m) => m.template === "change-saved",
+      )!;
+      expect(
+        (twelve.data as { view: { money: unknown; changes: unknown } }).view,
+      ).toMatchObject({
+        money: { kind: "down", pence: 5500 },
+        changes: [["Size", "serves 32", "serves 24"]],
+      });
+    });
+
+    it("bigger: needs a payment first (6.2c) — nothing saved", async () => {
+      const { o, l } = await order();
+      const r = await saveChanges(
+        db(),
+        countingGateway().gw,
+        { orderId: o.id, version: 1, sizes: { [l.id]: await size(40) } },
+        now,
+      );
+      expect(r).toEqual({ kind: "needs-payment", pence: 6500 });
+      const [after] = await db()
+        .select()
+        .from(orders)
+        .where(eq(orders.id, o.id));
+      expect(after.version).toBe(1);
+    });
+
+    it("a difference under £0.30 is waived: size changes, nothing refunded, the price paid stays", async () => {
+      const t = countingGateway();
+      const { o, l } = await order({ serves: 32, sizePaid: 18520 });
+      const r = await saveChanges(
+        db(),
+        t.gw,
+        { orderId: o.id, version: 1, sizes: { [l.id]: await size(24) } },
+        now,
+      );
+      expect(r).toMatchObject({
+        kind: "saved",
+        money: { kind: "waived", pence: -20 },
+      });
+      expect(t.refunds).toEqual([]);
+      const [line] = await db()
+        .select()
+        .from(orderLines)
+        .where(eq(orderLines.id, l.id));
+      expect(line).toMatchObject({
+        sizeLine: "Two tiers · serves 24",
+        pricePence: 18520,
+        sizePricePence: 18520,
+      });
+    });
+
+    it("a refund that fails: the change stays, the refund is recorded as failed and Linda is told", async () => {
+      const t = countingGateway();
+      t.refundControl.fail = true;
+      const { o, l } = await order();
+      const r = await saveChanges(
+        db(),
+        t.gw,
+        { orderId: o.id, version: 1, sizes: { [l.id]: await size(24) } },
+        now,
+      );
+      expect(r).toMatchObject({ kind: "saved", refundOk: false });
+      const [rf] = await db()
+        .select()
+        .from(refunds)
+        .where(eq(refunds.orderId, o.id));
+      expect(rf).toMatchObject({ status: "failed", error: "card_closed" });
+      const alerts = (await db().select().from(mailSends))
+        .filter((m) => m.template === "alert")
+        .map((m) => (m.data as { kind: string }).kind);
+      expect(alerts.sort()).toEqual(["customer-changed", "refund-failed"]);
+    });
+
+    it("a line made before 6.2b is found by its serves; a removed size shows as no longer offered", async () => {
+      const { l } = await order({ serves: 32, sizePaid: null });
+      const lines = await db()
+        .select()
+        .from(orderLines)
+        .where(eq(orderLines.id, l.id));
+      expect(
+        (await sizeChoices(db(), lines))[l.id].find((c) => c.current)?.label,
+      ).toBe("Serves 32 · two tiers");
+      const odd = await order({ serves: 50, sizePaid: 40000 });
+      const oddLines = await db()
+        .select()
+        .from(orderLines)
+        .where(eq(orderLines.id, odd.l.id));
+      expect(
+        (await sizeChoices(db(), oddLines))[odd.l.id].at(-1),
+      ).toMatchObject({ removed: true, current: true });
     });
   },
 );

@@ -4,6 +4,9 @@ import type { Gateway, Intent } from "@/lib/payments";
 export function countingGateway() {
   const intents = new Map<string, Intent>();
   const calls = { create: 0, update: 0 };
+  /** Refunds asked for, and whether the next one fails. */
+  const refunds: { paymentIntentId: string; amountPence: number; key: string }[] = [];
+  const refundControl = { fail: false };
   const orderNumbers = new Map<string, string>();
   const gw: Gateway = {
     async create(draftId, amountPence) {
@@ -36,6 +39,11 @@ export function countingGateway() {
     async listSince() {
       return [...intents.values()];
     },
+    async refund(paymentIntentId, amountPence, key) {
+      if (refundControl.fail) return { ok: false, error: "card_closed" };
+      refunds.push({ paymentIntentId, amountPence, key });
+      return { ok: true, id: `re_${refunds.length}`, status: "succeeded" };
+    },
   };
   /** Stripe took the payment: succeeded with the amount received. */
   const succeed = (id: string, received?: number) => {
@@ -46,5 +54,5 @@ export function countingGateway() {
       amountReceivedPence: received ?? i.amountPence,
     });
   };
-  return { gw, calls, intents, succeed, orderNumbers };
+  return { gw, calls, intents, succeed, orderNumbers, refunds, refundControl };
 }

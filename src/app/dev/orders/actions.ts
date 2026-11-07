@@ -23,6 +23,8 @@ export async function makeSamples() {
       name: string;
       kind?: string;
       status?: string;
+      /** The Lothian's size: 24 (£185) unless given; 32 (£240) can be made smaller (6.2b). */
+      serves?: number;
     }[] = [
       {
         date: addDays(today, 10),
@@ -53,8 +55,10 @@ export async function makeSamples() {
           phoneE164: "+447700900358",
           allergyNote: "No nuts",
           consents: {},
-          totalPence: 18500,
-          amountReceivedPence: 18500,
+          totalPence: s.serves === 32 ? 24000 : 18500,
+          amountReceivedPence: s.serves === 32 ? 24000 : 18500,
+          // A sample has no Stripe payment: on a preview with real test keys its refund fails and Linda is told.
+          paymentIntentId: `pi_dev_${stamp}${i}`,
           snapshot: {},
           confirmedAt: new Date(),
         })
@@ -67,11 +71,11 @@ export async function makeSamples() {
           s.kind === "manual"
             ? "Two-tier wedding cake, white roses"
             : "The Lothian",
-        sizeLine: "Two tiers · serves 24",
+        sizeLine: `Two tiers · serves ${s.serves ?? 24}`,
         flavour:
           s.kind === "manual" ? "" : "Vanilla sponge, raspberry conserve",
         message: s.kind === "manual" ? null : "Happy 30th, Mairi",
-        pricePence: 18500,
+        pricePence: s.serves === 32 ? 24000 : 18500,
         allergenText: "Contains gluten (wheat), eggs and milk.",
         allergenKeys: [],
       });

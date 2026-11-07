@@ -142,3 +142,31 @@
 .rowLink:hover {
   color: var(--colour-display);
 }
+
+/* The size editor (1799:12996): a radio list, the difference on the right. */
+.sizes {
+  display: grid;
+  gap: 10px;
+  margin: 12px 0 0;
+  padding: 0;
+  border: 0;
+}
+
+.sizeRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.diff {
+  flex: none;
+  color: var(--colour-body);
+  font: var(--type-state-row-value-phone);
+}
+
+.money {
+  margin: 16px 0 0;
+  color: var(--colour-ink);
+  font: var(--type-body-sm);
+}

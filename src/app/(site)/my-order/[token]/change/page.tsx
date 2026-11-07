@@ -8,6 +8,7 @@ import { ChangePage } from "@/components/order-status/change-page";
 import { LinkExpired } from "@/components/order-status/link-expired";
 import { OpenOrder } from "@/components/order-status/open-order";
 import styles from "@/components/order-status/state.module.css";
+import { sizeChoices } from "@/db/change-repo";
 import { connect, databaseUrl } from "@/db/client";
 import { orderForToken } from "@/db/order-link-repo";
 import { orderLines } from "@/db/schema";
@@ -46,6 +47,7 @@ export default async function Page({
   const { db, close } = connect();
   let found: Awaited<ReturnType<typeof orderForToken>> = null;
   let lines: (typeof orderLines.$inferSelect)[] = [];
+  let sizes: Awaited<ReturnType<typeof sizeChoices>> = {};
   try {
     found = await orderForToken(db, token);
     if (found?.valid && unlocked)
@@ -54,6 +56,7 @@ export default async function Page({
         .from(orderLines)
         .where(eq(orderLines.orderId, found.order.id))
         .orderBy(orderLines.position);
+    if (lines.length) sizes = await sizeChoices(db, lines);
   } finally {
     await close();
   }
@@ -91,6 +94,7 @@ export default async function Page({
     sizeLine: l.sizeLine,
     options: l.options,
     message: l.message,
+    sizes: sizes[l.id] ?? [],
   }));
   const deadline = formatLongDate(lastChangeDay(String(o.date)), today);
   if (state !== "A")

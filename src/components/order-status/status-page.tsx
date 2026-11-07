@@ -27,6 +27,8 @@ export type StatusView = {
   paidPence: number;
   collectAt: string;
   reviewHref: string | null;
+  /** “Refunded £55 on 3 September” — every refund line, whatever its kind (§6.3 Money). */
+  refunds: string[];
   lines: {
     name: string;
     flavour: string;
@@ -130,6 +132,11 @@ function OrderPanel({ v }: { v: StatusView }) {
           </>
         )}
       </dl>
+      {v.refunds.map((r) => (
+        <p key={r} className={styles.receipt}>
+          {r}
+        </p>
+      ))}
       {!v.manual && v.paidPence > 0 && (
         <p className={styles.receipt}>Receipt sent to {v.email}</p>
       )}

@@ -653,6 +653,8 @@ export const orders = pgTable(
     handedOverAt: timestamp("handed_over_at", { withTimezone: true }),
     /** Raised by every saved change: a save from an out-of-date page changes nothing (§6.4, §9.7). */
     version: integer("version").notNull().default(1),
+    /** A size-up payment is going through (§6.4): nothing else can change until it finishes or the lock lapses. */
+    lockedAt: timestamp("locked_at", { withTimezone: true }),
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
       .defaultNow(),
@@ -688,6 +690,12 @@ export const orderLines = pgTable(
     pricePence: integer("price_pence").notNull(),
     allergenText: text("allergen_text").notNull(),
     allergenKeys: jsonb("allergen_keys").notNull(),
+    /** The size and what was paid for it (§11.6 “Line price paid”, updated with every size change); null on lines
+     *  made before slice 6.2b, which Change your order finds by the serves in `size_line`. */
+    sizeId: integer("size_id"),
+    sizePricePence: integer("size_price_pence"),
+    /** The option answers ({ picks, texts }, §5.8), for changing the options (§6.4). */
+    answers: jsonb("answers"),
   },
   (t) => [index("order_line_order").on(t.orderId, t.position)],
 );
@@ -868,7 +876,45 @@ export const orderChanges = pgTable(
   },
   (t) => [
     check("change_by", sql`${t.by} in ('customer', 'linda')`),
-    check("change_money", sql`${t.moneyKind} in ('none', 'up', 'down', 'owed')`),
+    check(
+      "change_money",
+      sql`${t.moneyKind} in ('none', 'up', 'down', 'owed')`,
+    ),
     index("order_changes_order").on(t.orderId, t.createdAt),
+  ],
+);
+
+/**
+ * Money back to the customer (§10.6): one row per Stripe refund, with what it was for (a change, a cancellation, an
+ * excess payment). A failed call stays here as `failed` for Linda's Try again (§9.x) and raises an alert (§8.3).
+ */
+export const refunds = pgTable(
+  "refunds",
+  {
+    id: serial("id").primaryKey(),
+    orderId: integer("order_id")
+      .notNull()
+      .references(() => orders.id, { onDelete: "cascade" }),
+    changeId: integer("change_id"),
+    kind: text("kind").notNull(),
+    amountPence: integer("amount_pence").notNull(),
+    paymentIntentId: text("payment_intent_id").notNull(),
+    stripeRefundId: text("stripe_refund_id"),
+    status: text("status").notNull().default("pending"),
+    error: text("error"),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [
+    check(
+      "refund_kind",
+      sql`${t.kind} in ('change', 'cancel', 'excess', 'goodwill')`,
+    ),
+    check(
+      "refund_status",
+      sql`${t.status} in ('pending', 'succeeded', 'failed')`,
+    ),
+    index("refunds_order").on(t.orderId),
   ],
 );

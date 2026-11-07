@@ -43,6 +43,10 @@ export type LineView = {
   allergenText: string;
   /** The 14-allergen keys of this cake with its options (for the kitchen sentence, §5.4). */
   allergenKeys: Allergen[];
+  /** The size chosen and what it cost (an order keeps them for Change your order, §6.4, §11.6). */
+  sizeId: number;
+  sizePricePence: number;
+  answers: Answers;
 };
 
 /** The live draft for this cookie value, or null (none, unknown, not a draft any more, or 24 hours idle). */
@@ -180,6 +184,9 @@ export async function draftLineViews(
       allergenText: allergenLine(cake.allergens, cake.options, answers, []),
       allergenKeys: lineAllergens(cake.allergens, cake.options, answers)
         .allergens as Allergen[],
+      sizeId: size.id,
+      sizePricePence: size.pricePence,
+      answers,
     });
   }
   return views;

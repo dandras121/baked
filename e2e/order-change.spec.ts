@@ -13,7 +13,7 @@ test.beforeEach(async ({ page }) => {
   });
 });
 
-async function make(days: number, kind = "catalogue") {
+async function make(days: number, kind = "catalogue", serves = 24) {
   process.loadEnvFile?.(".env.local");
   const date = addDays(londonDate(new Date()), days);
   const token = randomBytes(24).toString("base64url");
@@ -36,8 +36,9 @@ async function make(days: number, kind = "catalogue") {
         email: `chg-${octet()}@example.com`,
         phone: "07700 900 358",
         consents: {},
-        totalPence: 18500,
-        amountReceivedPence: 18500,
+        totalPence: serves === 32 ? 24000 : 18500,
+        amountReceivedPence: serves === 32 ? 24000 : 18500,
+        paymentIntentId: `pi_e2e_${number}`,
         snapshot: {},
         confirmedAt: new Date(),
       })
@@ -47,10 +48,10 @@ async function make(days: number, kind = "catalogue") {
       position: 1,
       slug: "the-lothian",
       name: "The Lothian",
-      sizeLine: "Two tiers · serves 24",
+      sizeLine: `Two tiers · serves ${serves}`,
       flavour: "Vanilla sponge",
       message: "Happy 30th",
-      pricePence: 18500,
+      pricePence: serves === 32 ? 24000 : 18500,
       allergenText: "Contains gluten (wheat), eggs and milk.",
       allergenKeys: [],
     });
@@ -180,4 +181,57 @@ test("from D-1 the change page is A2; a manual order goes back to its page", asy
   const m = await make(10, "manual");
   await unlockAt(page, `/my-order/${m.token}/change`);
   await expect(page).toHaveURL(new RegExp(`/my-order/${m.token}$`));
+});
+
+test("a smaller size: −£55 in the list, the refund line before saving; saved with the refund on the order page", async ({
+  page,
+}, info) => {
+  const { token, number } = await make(10, "catalogue", 32);
+  await unlockAt(page, `/my-order/${token}/change`);
+  await page
+    .getByRole("button", { name: "Change the size of The Lothian" })
+    .click();
+  await expect(page.getByText("−£55")).toBeVisible();
+  await expect(page.getByText("current")).toBeVisible();
+  await page.getByText("Serves 24 · two tiers").click();
+  await page.getByRole("button", { name: "Done" }).click();
+  await expect(
+    page.getByText("Changed · was Two tiers · serves 32"),
+  ).toBeVisible();
+  await expect(
+    page.getByText(/^£55 goes back to your card when you save/),
+  ).toBeVisible();
+  await page.getByRole("button", { name: "Save changes" }).click();
+  await expect(
+    page.getByText(/£55 back to your card within 5–10 working days/),
+  ).toBeVisible();
+  const panel = page.getByRole("region", { name: "Your order" });
+  await expect(panel.getByText("Two tiers · serves 24")).toBeVisible();
+  await expect(panel.getByText(/^Refunded £55 on /)).toBeVisible();
+  await expect(panel.getByText("Paid in full")).toBeVisible();
+  await expect(panel.getByText("£185")).toBeVisible();
+  if (info.project.name !== "desktop") return;
+  await page.goto("/dev/mail");
+  await expect(
+    page
+      .locator("main ol li")
+      .filter({ hasText: "Your change is saved — £55 on its way back" })
+      .first(),
+  ).toBeVisible();
+  await expect(
+    page
+      .locator("main ol li")
+      .filter({ hasText: `Customer changed ${number}` })
+      .first(),
+  ).toBeVisible();
+});
+
+test("the smallest size offers no Change for the size (a bigger one is paid for in 6.2c)", async ({
+  page,
+}) => {
+  const { token } = await make(10);
+  await unlockAt(page, `/my-order/${token}/change`);
+  await expect(
+    page.getByRole("button", { name: "Change the size of The Lothian" }),
+  ).toHaveCount(0);
 });

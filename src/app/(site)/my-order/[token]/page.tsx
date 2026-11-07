@@ -15,7 +15,9 @@ import { readMailSettings, reviewLink } from "@/db/mail-settings-repo";
 import { orderForToken } from "@/db/order-link-repo";
 import { cakes, orderLines } from "@/db/schema";
 import { getSiteSettings } from "@/db/site-settings";
-import { londonDate } from "@/lib/london-time";
+import { formatLongDate, londonDate } from "@/lib/london-time";
+import { formatPrice } from "@/lib/money";
+import { orderRefunds } from "@/db/refund-repo";
 import { checkKind, UNLOCK_COOKIE, unlockValid } from "@/lib/order-link";
 import { statusState } from "@/lib/order-status";
 import { openOrder, resendLink } from "./actions";
@@ -53,10 +55,16 @@ export default async function Page({
       if (found?.valid && unlocked) {
         view = await statusView(db, found.order);
         const saved = Number((await searchParams).saved);
-        if (saved && (await recentChange(db, found.order.id, saved)))
+        const change = saved
+          ? await recentChange(db, found.order.id, saved)
+          : null;
+        if (change)
           banner = {
             title: "Your change is saved.",
-            text: "The details are in your inbox.",
+            text:
+              change.moneyKind === "down"
+                ? `The details are in your inbox. ${formatPrice(change.moneyPence)} back to your card within 5–10 working days.`
+                : "The details are in your inbox.",
           };
       }
     } finally {
@@ -89,7 +97,7 @@ type Order = NonNullable<Awaited<ReturnType<typeof orderForToken>>>["order"];
 /** Everything the status page shows, read now (§6.2: the state is worked out on every visit). */
 async function statusView(db: Db, o: Order): Promise<StatusView> {
   const today = londonDate(new Date());
-  const [lines, mail, s] = await Promise.all([
+  const [lines, mail, s, refundRows] = await Promise.all([
     db
       .select()
       .from(orderLines)
@@ -97,6 +105,7 @@ async function statusView(db: Db, o: Order): Promise<StatusView> {
       .orderBy(orderLines.position),
     readMailSettings(db),
     getSiteSettings(),
+    orderRefunds(db, o.id),
   ]);
   const slugs = lines.map((l) => l.slug).filter(Boolean);
   const visible = new Set(
@@ -130,12 +139,23 @@ async function statusView(db: Db, o: Order): Promise<StatusView> {
     completed: o.status === "completed",
     email: o.email,
     totalPence: o.totalPence,
-    paidPence: o.amountReceivedPence,
+    // Net paid (§10.6): what Stripe took less what went back.
+    paidPence:
+      o.amountReceivedPence -
+      refundRows
+        .filter((r) => r.status !== "failed")
+        .reduce((n, r) => n + r.amountPence, 0),
     collectAt: [s?.addressLine, s?.town]
       .filter(Boolean)
       .filter((x, i, a) => i === 0 || !a[0]!.includes(x!))
       .join(", "),
     reviewHref: reviewLink(mail.googlePlaceId),
+    refunds: refundRows
+      .filter((r) => r.status !== "failed")
+      .map(
+        (r) =>
+          `Refunded ${formatPrice(r.amountPence)} on ${formatLongDate(londonDate(r.createdAt), today).replace(/^\w+ /, "")}`,
+      ),
     lines: lines.map((l) => ({
       name: l.name,
       flavour: l.flavour,
