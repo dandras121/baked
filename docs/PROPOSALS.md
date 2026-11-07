@@ -166,6 +166,6 @@ Bohoka’s decision is added when he gives it (“jó” = keep, “ne legyen”
 | 4.6b | §5.6 Two days before | “{Thursday 10 September} is the last day to change or cancel online.” (the §5.6 words as one sentence) | `src/lib/confirmed.ts` | Accepted 2026-11-06 |
 | 4.6b | §5.6 / Appendix A help line | The change line is shown only while online changes are open (until 23:59 on D-2) | `src/lib/confirmed.ts` | Accepted 2026-11-06 |
 | 4.6b | ANIM-25 storage | Without session storage the greeting is skipped, so it can never play twice | `src/components/checkout/greeting-mascot.tsx` | Accepted 2026-11-06 |
-| 5.1 | §8.4 Failures backoff | Retries after 1, 2, 4, 8 … minutes, at most 30, until the e-mail's deadline | `src/lib/mail/queue.ts` | Waiting for Bohoka |
-| 5.1 | §8.4 Sender in development (Bohoka 1A) | Every e-mail stays in the site's outbox (`/dev/mail`) unless Postmark's token and `BBL_MAIL_LIVE=1` are both set | `src/lib/mail/transport.ts` | Waiting for Bohoka |
-| 5.1 | §8.4 Header and footer: sign-off | “— Linda” until Settings → Emails has its own (9.16) | `src/db/mail-repo.ts` | Waiting for Bohoka |
+| 5.1 | §8.4 Failures backoff | Retries after 1, 2, 4, 8 … minutes, at most 30, until the e-mail's deadline | `src/lib/mail/queue.ts` | Accepted 2026-11-07 |
+| 5.1 | §8.4 Sender in development (Bohoka 1A) | Every e-mail stays in the site's outbox (`/dev/mail`) unless Postmark's token and `BBL_MAIL_LIVE=1` are both set | `src/lib/mail/transport.ts` | Accepted 2026-11-07 |
+| 5.1 | §8.4 Header and footer: sign-off | “— Linda” until Settings → Emails has its own (9.16) | `src/db/mail-repo.ts` | Accepted 2026-11-07 |
