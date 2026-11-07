@@ -4,7 +4,9 @@ import Link from "next/link";
 import { connection } from "next/server";
 import { connect, databaseUrl } from "@/db/client";
 import { orders } from "@/db/schema";
+import { londonDate } from "@/lib/london-time";
 import { checkKind, statusLinkValid } from "@/lib/order-link";
+import { statusState } from "@/lib/order-status";
 import styles from "../mail/mail.module.css";
 import { makeSamples } from "./actions";
 
@@ -35,15 +37,20 @@ export default async function Page() {
           Make sample orders
         </button>{" "}
         <span className={styles.meta}>
-          a delivery and a collection in ten days, and one whose link has
-          expired
+          one for each state of the order page (A, B, B2, C; delivery,
+          collection, a manual order) and one whose link has expired
         </span>
       </form>
       <ol className={styles.sample}>
         {rows.map((o) => (
           <li key={o.id} className={styles.meta}>
             <Link href={`/my-order/${o.token}`}>{o.number}</Link> ·{" "}
-            {String(o.date)} · {o.handover} · {o.status} · answer:{" "}
+            {String(o.date)} · {o.handover} · {o.kind} · state{" "}
+            {statusState(
+              { status: o.status, date: String(o.date) },
+              londonDate(new Date()),
+            )}{" "}
+            · answer:{" "}
             <strong>
               {checkKind(o.handover) === "postcode"
                 ? (o.postcode ?? "—")

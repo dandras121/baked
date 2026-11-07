@@ -1,9 +1,9 @@
 "use client";
 
-import Link from "next/link";
 import { useActionState, useEffect, useRef } from "react";
 import type { ResendState } from "@/app/(site)/my-order/[token]/actions";
 import { Button } from "@/components/ui/button";
+import { Link } from "@/components/ui/link";
 import { Notice } from "@/components/ui/notice";
 import { TextField } from "@/components/ui/text-field";
 import { LINK_COPY } from "@/lib/order-link";
@@ -37,9 +37,9 @@ export function LinkExpired({
         <Notice icon title={LINK_COPY.sentTitle}>
           <p>{LINK_COPY.sentText}</p>
         </Notice>
-        <Link className={styles.link} href="/find-my-order">
-          {LINK_COPY.find}
-        </Link>
+        <p className={styles.link}>
+          <Link href="/find-my-order">{LINK_COPY.find}</Link>
+        </p>
       </div>
     );
 

@@ -3,6 +3,7 @@
 import { useActionState, useEffect, useRef } from "react";
 import type { OpenState } from "@/app/(site)/my-order/[token]/actions";
 import { Button } from "@/components/ui/button";
+import { Link } from "@/components/ui/link";
 import { Notice } from "@/components/ui/notice";
 import { TextField } from "@/components/ui/text-field";
 import { LINK_COPY, type CheckKind } from "@/lib/order-link";
@@ -68,9 +69,9 @@ export function OpenOrder({
           {failed ? LINK_COPY.retry : LINK_COPY.open}
         </Button>
       </form>
-      <a className={styles.link} href={tel}>
-        {LINK_COPY.call(phone)}
-      </a>
+      <p className={styles.link}>
+        <Link href={tel}>{LINK_COPY.call(phone)}</Link>
+      </p>
     </div>
   );
 }

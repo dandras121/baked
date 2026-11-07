@@ -80,13 +80,13 @@ test("delivery: nothing personal before the answer; wrong keeps the value; right
 
   await answer(page).fill("eh496hh");
   await page.getByRole("button", { name: "Try again" }).click();
-  await expect(page.getByRole("heading", { level: 1 })).toContainText(number);
+  await expect(page.getByText(`Order ${number}`)).toBeVisible();
   const cookie = (await page.context().cookies()).find(
     (c) => c.name === "bbl_unlock",
   );
   expect(cookie).toMatchObject({ httpOnly: true, path: `/my-order/${token}` });
   await page.reload();
-  await expect(page.getByRole("heading", { level: 1 })).toContainText(number);
+  await expect(page.getByText(`Order ${number}`)).toBeVisible();
 });
 
 test("collection asks the last four digits; five wrong lock the link for 15 minutes", async ({

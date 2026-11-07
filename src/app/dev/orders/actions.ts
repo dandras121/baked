@@ -7,8 +7,9 @@ import { orderLines, orders } from "@/db/schema";
 import { addDays, londonDate } from "@/lib/london-time";
 
 /**
- * Sample orders for trying the status link (phase 6, Bohoka 2026-11-07): a delivery and a collection ten days
- * ahead, and one whose link has expired (its date 40 days ago). Development and previews only.
+ * Sample orders for trying the status link (phase 6, Bohoka 2026-11-07): one for each state of the status page —
+ * A booked (delivery, collection, a manual order), B tomorrow, B2 today, C after the date (and handed over today) —
+ * and one whose link has expired (its date 40 days ago). Development and previews only.
  */
 export async function makeSamples() {
   if (!databaseUrl()) return;
@@ -16,7 +17,13 @@ export async function makeSamples() {
   const { db, close } = connect();
   try {
     const stamp = Date.now().toString().slice(-4);
-    const samples = [
+    const samples: {
+      date: string;
+      handover: string;
+      name: string;
+      kind?: string;
+      status?: string;
+    }[] = [
       {
         date: addDays(today, 10),
         handover: "delivery",
@@ -30,6 +37,8 @@ export async function makeSamples() {
         .insert(orders)
         .values({
           number: `BBL-DEV-${stamp}${i}`,
+          kind: s.kind ?? "catalogue",
+          status: s.status ?? "confirmed",
           token: randomBytes(24).toString("base64url"),
           date: s.date,
           earliestDate: s.date,
@@ -53,11 +62,15 @@ export async function makeSamples() {
       await db.insert(orderLines).values({
         orderId: o.id,
         position: 1,
-        slug: "the-lothian",
-        name: "The Lothian",
+        slug: s.kind === "manual" ? "" : "the-lothian",
+        name:
+          s.kind === "manual"
+            ? "Two-tier wedding cake, white roses"
+            : "The Lothian",
         sizeLine: "Two tiers · serves 24",
-        flavour: "Vanilla sponge, raspberry conserve",
-        message: "Happy 30th, Mairi",
+        flavour:
+          s.kind === "manual" ? "" : "Vanilla sponge, raspberry conserve",
+        message: s.kind === "manual" ? null : "Happy 30th, Mairi",
         pricePence: 18500,
         allergenText: "Contains gluten (wheat), eggs and milk.",
         allergenKeys: [],

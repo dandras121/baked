@@ -636,3 +636,32 @@
   font: var(--type-summary-name);
   font-variation-settings: var(--font-display-axes);
 }
+
+.type-state-title {
+  font: var(--type-state-title);
+  font-variation-settings: var(--font-display-axes);
+}
+
+.type-state-small {
+  font: var(--type-state-small);
+}
+
+.type-state-strong {
+  font: var(--type-state-strong);
+}
+
+.type-state-label {
+  font: var(--type-state-label);
+}
+
+.type-state-row-label {
+  font: var(--type-state-row-label);
+}
+
+.type-state-row-value {
+  font: var(--type-state-row-value);
+}
+
+.type-state-row-value-phone {
+  font: var(--type-state-row-value-phone);
+}

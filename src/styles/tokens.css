@@ -40,6 +40,8 @@
   --colour-calm-wash: rgb(122 87 194 / 0.08); /* calm notice background (in progress, not the buyer's fault) · 975:9101 */
   --colour-calm-border: rgb(122 87 194 / 0.35); /* calm notice border · 975:9101 */
   --colour-calm-icon: rgb(122 87 194 / 0.5); /* calm notice ring icon · 975:9102 */
+  --colour-next-border: rgb(122 87 194 / 0.45); /* the status page NEXT box border · 1036:9117 */
+  --colour-panel-border: rgb(201 167 232 / 0.55); /* “Your order” panel border · 1036:9129 */
   --colour-focus-stroke: rgb(201 167 232 / 0.7); /* focused field stroke, 1.5 px · payment states 983:9121 */
   --colour-focus-ring: #7a57c2; /* keyboard focus ring, 2 px at 3 px offset · SITE-FLOWS §10.13 */
 
@@ -197,6 +199,13 @@
   --type-cake-from: 600 max(calc(15px * var(--type-scale)), min(15px, 14px))/normal var(--font-ui); /* cake page “From £185” · 609:2947 */
   --type-option: 200 max(calc(31px * var(--type-scale)), min(31px, 14px))/1.2 var(--font-display); /* cake page headings “Size”, “Sponge”, “Allergens” · Fraunces ExtraLight, Bohoka 2026-11-01 */
   --type-option-phone: 200 27px/1.2 var(--font-display); /* the same on the phone · Bohoka 2026-11-01 */
+  --type-state-title: 300 30px/1.2 var(--font-display); /* status link screens' heading “Your cake is booked” · 1036:9114, 1055:9109 */
+  --type-state-small: 400 12px/1.35 var(--font-ui); /* status page notes, NEXT box text, panel lines · 1036:9127, 1036:9122 */
+  --type-state-strong: 600 14px/18px var(--font-ui); /* NEXT box title, cake name, the paid amount · 1036:9121, 1036:9132, 1036:9147 */
+  --type-state-label: 600 12px/normal var(--font-ui); /* “Your order” panel label (sentence case) · 1036:9130 */
+  --type-state-row-label: 500 11px/18px var(--font-ui); /* panel row label “Date”, “Window” · 1036:9137 */
+  --type-state-row-value: 400 12px/18px var(--font-ui); /* panel row value · 1036:9138 */
+  --type-state-row-value-phone: 400 14px/18px var(--font-ui); /* panel row value on the phone · 1055:9127 */
   --type-summary-name: 200 max(calc(20px * var(--type-scale)), min(20px, 14px))/1.2 var(--font-display); /* cake name in the order summary · 1674:11950, thin like the cake page headings */
   --type-pill-name-phone: 400 14px/18px var(--font-display); /* size / choice pill name on the phone · 815:5896 */
   --type-pill-extra-phone: 400 10px/13px var(--font-ui); /* “included” / “+£55” on the phone · 815:5896 */

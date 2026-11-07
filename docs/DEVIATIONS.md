@@ -94,3 +94,7 @@ Anything built differently from the docs or Figma, and why. Bohoka’s decision 
 | 5.3 | J 1199:9206 / 1199:9408 “off the yearly reminder — you won’t hear from me again unless you ask” | The §6.10 wording; the box's round sign without the check mark (the site's calm notice) |
 | 6.1a | D 1037:9232 caps eyebrow “THIS LINK HAS EXPIRED”; text “Status links last 30 days…” | Sentence case in the error colour (Bohoka 2026-11-01); the §6.1 text |
 | 6.1a | F 1037:9244 “If that email has an order, the link is on its way” | The §6.1 F: “New link sent” · “Check your inbox — it usually arrives within a minute.” |
+| 6.1b | 1036:9106 caps “ORDER BBL-…”, “NEXT”, “YOUR ORDER”, “THAT DATE HAS PASSED” | Sentence case (Bohoka 2026-11-01) |
+| 6.1b | 1036:9156 B “I am baking yours this week. The details are fixed now.”; 1036:9197 C “Anything not right? Tell me as soon as you can…” | The §6.3 NEXT box texts |
+| 6.1b | 1036:9131 photo slot 4 : 5 | 1 : 1, as §6.3 Order panel rows say |
+| 6.1b | E · Cancelled | Shown with “This order was cancelled.” only; its date and refund lines come with the cancellation record (6.3) |
