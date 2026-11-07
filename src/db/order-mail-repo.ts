@@ -1,6 +1,6 @@
 // The data e-mails about an order are made from (§8.1): the order, its lines, the kept facts, the accepted revisions.
-import { eq, inArray } from "drizzle-orm";
-import { londonDate } from "@/lib/london-time";
+import { and, eq, gte, inArray, lt } from "drizzle-orm";
+import { addDays, londonDate, type CalendarDate } from "@/lib/london-time";
 import type { OrderMailView } from "@/lib/mail/order-confirmed";
 import { placeholderValues, type Placeholder } from "@/lib/placeholders";
 import type { connect } from "./client";
@@ -62,6 +62,9 @@ export async function orderMailView(
     postcode: o.postcode,
     totalPence: o.totalPence,
     manual: o.kind === "manual",
+    allergyNote: o.allergyNote,
+    phone: o.phone,
+    phoneE164: o.phoneE164,
     lines: lines.map((l) => ({
       name: l.name,
       flavour: l.flavour,
@@ -73,5 +76,57 @@ export async function orderMailView(
     facts,
     terms: rev("terms"),
     cancellations: rev("cancellations"),
+  };
+}
+
+/** Today's rows for e-mail 4: the handovers of the day and yesterday's collections not marked (§9.3). */
+export async function todayRows(db: Db, day: CalendarDate) {
+  const list = await db
+    .select()
+    .from(orders)
+    .where(
+      and(
+        gte(orders.date, addDays(day, -1)),
+        lt(orders.date, addDays(day, 1)),
+        inArray(orders.status, ["confirmed"]),
+      ),
+    );
+  const lines = list.length
+    ? await db
+        .select({ orderId: orderLines.orderId, name: orderLines.name })
+        .from(orderLines)
+        .where(
+          inArray(
+            orderLines.orderId,
+            list.map((o) => o.id),
+          ),
+        )
+    : [];
+  const row = (o: (typeof list)[number]) => ({
+    number: o.number,
+    name: o.customerName,
+    phone: o.phone,
+    phoneE164: o.phoneE164,
+    handover: (o.handover === "delivery" ? "delivery" : "collection") as
+      "delivery" | "collection",
+    window: o.deliveryWindow,
+    cakes: lines.filter((l) => l.orderId === o.id).map((l) => l.name),
+    address: [o.address, o.town].filter(Boolean).join(", ") || null,
+    allergyNote: o.allergyNote,
+  });
+  const order = (w: string | null) =>
+    ["morning", "afternoon", "evening"].indexOf(w ?? "") + 1 || 9;
+  return {
+    date: day,
+    handovers: list
+      .filter((o) => String(o.date) === day)
+      .sort((a, b) => order(a.deliveryWindow) - order(b.deliveryWindow))
+      .map(row),
+    notCollected: list
+      .filter(
+        (o) =>
+          String(o.date) === addDays(day, -1) && o.handover === "collection",
+      )
+      .map(row),
   };
 }

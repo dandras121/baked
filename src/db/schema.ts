@@ -750,3 +750,14 @@ export const legalPdfs = pgTable(
   },
   (t) => [primaryKey({ columns: [t.revisionId, t.factsHash] })],
 );
+
+/** Each daily job once per London day (§12): marked done only when it has completed; a missed one runs again. */
+export const jobRuns = pgTable(
+  "job_runs",
+  {
+    job: text("job").notNull(),
+    day: date("day").notNull(),
+    doneAt: timestamp("done_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [primaryKey({ columns: [t.job, t.day] })],
+);

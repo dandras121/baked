@@ -85,3 +85,4 @@ Anything built differently from the docs or Figma, and why. Bohoka’s decision 
 | 4 gate | ANIMATIONS ANIM-05: the Stripe card Payment Element's wrapper grows 10 % on hover | Not built: the whole card form (about 300 px tall) does not grow (Bohoka 2026-11-06, 2A — too large an element, as with the FAQ rows) |
 | 5.2a | 1800:13257 caps panel titles (“THE LOTHIAN”, “HANDOVER”, “KEY TERMS”) | Sentence case in the accent colour (“The Lothian”, “Handover”, “Key terms”), as on the site (Bohoka 2026-11-01) |
 | 5.2a | §8.4 fonts in the legal PDFs | Helvetica (built into PDF readers) instead of embedding Quicksand / Fraunces, so the file stays small and opens everywhere |
+| 5.2b | 1155:9360 e-mail 4 card first line “12pm collection” | “Collection”: an order has no collection time yet (§9.3, later) |

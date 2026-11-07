@@ -22,6 +22,9 @@ export type OrderMailView = {
   postcode: string | null;
   totalPence: number;
   manual: boolean;
+  allergyNote: string | null;
+  phone: string;
+  phoneE164: string | null;
   lines: {
     name: string;
     flavour: string;
@@ -232,6 +235,9 @@ export const SAMPLE_ORDER: OrderMailView = {
   postcode: "EH49 6HH",
   totalPence: 18500,
   manual: false,
+  allergyNote: "No nuts",
+  phone: "07700 900 000",
+  phoneE164: "+447700900000",
   lines: [
     {
       name: "The Lothian",

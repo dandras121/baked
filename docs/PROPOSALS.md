@@ -172,3 +172,7 @@ Bohoka’s decision is added when he gives it (“jó” = keep, “ne legyen”
 | 5.2a | §8.1 e-mail 1 rights (three variants) | As written in §8.1, worked out from the confirmation day: until D-8 of the earliest date the full-refund line, then the half-refund line until D-2, then “go through me” | `src/lib/mail/rights.ts` | Accepted 2026-11-07 |
 | 5.2a | §8.1 PDF cache | One PDF per legal revision and facts version (kept in the database), so a resend attaches the same file; named `{terms|cancellations}-{revision date}.pdf` | `src/db/legal-pdf-repo.ts` | Accepted 2026-11-07 |
 | 5.2a | §8.1 Paid row | “£185 · card · 31 August” (Apple Pay and Google Pay are cards too) | `src/lib/mail/order-confirmed.ts` | Accepted 2026-11-07 |
+| 5.2b | §8.1 e-mail 3 “setting off from the window” | Morning → “this morning”, Afternoon → “around midday”, Evening → “this afternoon” | `src/lib/mail/day-emails.ts` | Reported 2026-11-07 |
+| 5.2b | §12 jobs catch-up | Each morning job runs once a day; if a tick is missed it runs at the next one, still inside the e-mail's deadline (2: 23:59 on D-2; 3: window start; 3b and 4: 12:00) | `src/db/jobs-repo.ts` | Reported 2026-11-07 |
+| 5.2b | §8.1 e-mail 4 recipients | The Settings e-mail address until the admin has Team (8.x) | `src/db/jobs-repo.ts` | Reported 2026-11-07 |
+| 5.2b | §8.1 e-mail 3b collection time | “At the time we agreed” until an order can hold a collection time (§9.3) | `src/lib/mail/day-emails.ts` | Reported 2026-11-07 |

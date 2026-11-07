@@ -9,6 +9,7 @@ export type Block =
   | { kind: "rows"; title?: string; rows: [label: string, value: string][] }
   | { kind: "textPanel"; title: string; paras: string[] }
   | { kind: "small"; text: string }
+  | { kind: "card"; lines: string[]; links: [label: string, href: string][] }
   | { kind: "links"; links: [label: string, href: string][] }
   | { kind: "steps"; steps: { label: string; date?: string; done: boolean }[] }
   | { kind: "notice"; title: string; text: string; icon?: "clock" }
@@ -38,6 +39,8 @@ export type Email = {
   business?: Business;
   /** E-mail 1's legal PDFs (§8.1 Durable record). */
   attachments?: Attachment[];
+  /** An internal e-mail to the team (e-mail 4) has no “— Linda”, as drawn. */
+  noSignOff?: boolean;
 };
 
 // Single quotes only: these go inside style="…" attributes.
@@ -81,6 +84,23 @@ function blockHtml(b: Block, origin: string): string {
             `<div style="padding:8px 0;${i ? `border-top:1px solid ${C.rule};` : ""}font-family:${SANS};font-size:${C.size.small};line-height:1.5;color:${C.body}">${esc(t)}</div>`,
         )
         .join("")}</td></tr></table></td></tr>`;
+    case "card":
+      // E-mail 4's handover card (1155:9360): the first line in ink, the rest in body grey, the links underlined.
+      return `<tr><td style="padding:12px 0 0"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border:1px solid ${C.frame};border-radius:14px;border-collapse:separate"><tr><td style="padding:14px 15px">${b.lines
+        .map(
+          (l, i) =>
+            `<div style="${i ? "padding-top:6px;" : ""}font-family:${SANS};font-size:${i ? C.size.small : C.size.body};line-height:1.5;color:${i ? C.body : C.ink}">${esc(l)}</div>`,
+        )
+        .join(
+          "",
+        )}<div style="padding-top:8px;font-family:${SANS};font-size:${C.size.body}">${b.links
+        .map(
+          ([l, h]) =>
+            `<a href="${esc(h)}" style="color:${C.accent};text-decoration:underline">${esc(l)}</a>`,
+        )
+        .join(
+          "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;",
+        )}</div></td></tr></table></td></tr>`;
     case "small":
       return `<tr><td style="padding:16px 0 0;font-family:${SANS};font-size:${C.size.body};line-height:1.5;color:${C.body}">${esc(b.text)}</td></tr>`;
     case "links":
@@ -117,6 +137,8 @@ function blockText(b: Block): string {
         .join("\n");
     case "textPanel":
       return [b.title, ...b.paras].join("\n\n");
+    case "card":
+      return [...b.lines, ...b.links.map(([l, h]) => `${l}: ${h}`)].join("\n");
     case "small":
       return b.text;
     case "links":
@@ -153,14 +175,14 @@ export function renderEmail(
 <tr><td bgcolor="${C.headerBand}" style="background:${C.headerBand};padding:15px 24px"><table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr><td><a href="${esc(ctx.origin)}/"><img src="${logo}" width="177" height="27" alt="${esc(business.tradingName)}" style="display:block;border:0"></a></td><td align="right" style="font-family:${SANS};font-size:${C.size.small};color:${C.accent}">${esc(business.town)}</td></tr></table></td></tr>
 <tr><td style="padding:0 31px 24px"><table role="presentation" width="100%" cellpadding="0" cellspacing="0">
 ${e.blocks.map((b) => blockHtml(b, ctx.origin)).join("\n")}
-<tr><td style="padding:24px 0 0;font-family:${SANS};font-size:${C.size.body};color:${C.body}">— ${esc(ctx.signOff)}</td></tr>
+${e.noSignOff ? "" : `<tr><td style="padding:24px 0 0;font-family:${SANS};font-size:${C.size.body};color:${C.body}">— ${esc(ctx.signOff)}</td></tr>`}
 <tr><td style="padding:24px 0 0"><div style="border-top:1px solid ${C.rule};padding-top:18px;font-family:${SANS};font-size:${C.size.small};line-height:1.5;color:${C.meta}">${esc(f1)}<br>${esc(f2.replace(` · ${business.phone}`, ""))} · <a href="${tel(business.phone)}" style="color:${C.meta};text-decoration:none">${esc(business.phone)}</a></div></td></tr>
 </table></td></tr></table>
 </td></tr></table>
 </body></html>`;
   const text = [
     ...e.blocks.map(blockText),
-    `— ${ctx.signOff}`,
+    ...(e.noSignOff ? [] : [`— ${ctx.signOff}`]),
     `${f1}\n${f2}`,
   ].join("\n\n");
   return { subject: e.subject, html, text };
