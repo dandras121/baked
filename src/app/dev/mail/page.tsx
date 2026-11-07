@@ -54,7 +54,20 @@ export default async function Page({
               To {open.to} · {open.status} · via {open.transport ?? "—"} · key{" "}
               {open.key}
               {open.lastError ? ` · ${open.lastError}` : ""}
+              {open.stream === "broadcast" ? " · broadcast stream" : ""}
             </p>
+            {open.headers != null && typeof open.headers === "object" && (
+              <p className={styles.meta}>
+                {Object.entries(open.headers as Record<string, string>).map(
+                  ([k, v]) => (
+                    <span key={k}>
+                      {k}: {v}
+                      <br />
+                    </span>
+                  ),
+                )}
+              </p>
+            )}
             {Array.isArray(open.attachments) && open.attachments.length > 0 && (
               <p className={styles.meta}>
                 Attached:{" "}

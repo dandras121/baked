@@ -41,6 +41,14 @@ async function draftOf(request: NextRequest) {
 }
 
 export async function proxy(request: NextRequest) {
+  // §6.10: a POST to the unsubscribe link (its button, or the mail app's RFC 8058 one-click) is handled by the API
+  // route of the same token; opening the link (GET) shows the page and changes nothing.
+  if (request.nextUrl.pathname.startsWith("/unsubscribe/")) {
+    if (request.method !== "POST") return NextResponse.next();
+    const to = request.nextUrl.clone();
+    to.pathname = `/api${request.nextUrl.pathname}`;
+    return NextResponse.rewrite(to);
+  }
   // /order/confirmed shows a draft that is being paid or paid; the page reads the cookie itself (§5.6).
   if (request.nextUrl.pathname === "/order/confirmed")
     return NextResponse.next();
@@ -71,5 +79,10 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/cakes/:slug", "/contact/sent", "/order/:path*"],
+  matcher: [
+    "/cakes/:slug",
+    "/contact/sent",
+    "/order/:path*",
+    "/unsubscribe/:token",
+  ],
 };

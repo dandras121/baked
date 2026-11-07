@@ -649,6 +649,8 @@ export const orders = pgTable(
      *  are filled from these, never from today's Settings (§8.1). */
     facts: jsonb("facts"),
     confirmedAt: timestamp("confirmed_at", { withTimezone: true }).notNull(),
+    /** Mark handed over (admin Today, §9.3); e-mail 18 goes at 10:00 the day after (§8.1). */
+    handedOverAt: timestamp("handed_over_at", { withTimezone: true }),
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
       .defaultNow(),
@@ -718,6 +720,8 @@ export const mailSends = pgTable(
     attachments: jsonb("attachments"),
     html: text("html"),
     text: text("text"),
+    /** Extra headers it was sent with (e-mail 5: List-Unsubscribe, §8.4). */
+    headers: jsonb("headers"),
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
       .defaultNow(),
@@ -760,4 +764,60 @@ export const jobRuns = pgTable(
     doneAt: timestamp("done_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (t) => [primaryKey({ columns: [t.job, t.day] })],
+);
+
+/**
+ * Settings → Emails (§11.5): the switches of 3, 3b, 4, 5 and 18, the sign-off, e-mail 5's note, and the Google
+ * Place ID the review links need (§11.4). One row. Each switch keeps when it was last turned on, so switching it
+ * back on sends nothing late (§8.1 e-mail 5).
+ */
+export const mailSettings = pgTable("mail_settings", {
+  id: integer("id").primaryKey().default(1),
+  onTheDay: boolean("on_the_day").notNull().default(true),
+  collectionDay: boolean("collection_day").notNull().default(true),
+  dailyList: boolean("daily_list").notNull().default(true),
+  yearLater: boolean("year_later").notNull().default(true),
+  yearLaterSince: timestamp("year_later_since", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+  thankYou: boolean("thank_you").notNull().default(true),
+  signOff: text("sign_off").notNull().default("Linda"),
+  yearNote: text("year_note").notNull(),
+  googlePlaceId: text("google_place_id"),
+  updatedAt: timestamp("updated_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+});
+
+/** One unsubscribe link per e-mail address (§10.5: never expires). The address is kept only as its hash. */
+export const mailAddresses = pgTable("mail_addresses", {
+  emailHash: text("email_hash").primaryKey(),
+  token: text("token").notNull().unique(),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+});
+
+/**
+ * Consent per address (§10.10 Marketing consent, §6.10): every explicit event with its time and wording; the latest
+ * wins. list = “yearly” (e-mail 5) or “thanks” (e-mail 18). The tick at an order counts from the order itself
+ * (orders.marketing_opt_in at confirmed_at), so only unsubscribes, complaints, deletions and Turn emails back on
+ * are rows here; a hashed address keeps its “out” after the customer is deleted.
+ */
+export const consentEvents = pgTable(
+  "consent_events",
+  {
+    id: serial("id").primaryKey(),
+    emailHash: text("email_hash").notNull(),
+    list: text("list").notNull(),
+    kind: text("kind").notNull(),
+    reason: text("reason").notNull(),
+    wording: text("wording"),
+    at: timestamp("at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    check("consent_list", sql`${t.list} in ('yearly', 'thanks')`),
+    check("consent_kind", sql`${t.kind} in ('in', 'out')`),
+    index("consent_latest").on(t.emailHash, t.list, t.at),
+  ],
 );

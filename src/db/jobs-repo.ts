@@ -1,7 +1,7 @@
 // The daily jobs (§12, Europe/London): 06:00 e-mail 4, 07:00 e-mails 3 / 3b, 08:00 e-mail 2. Each runs once per day
 // (job + date), is marked done only when it has completed, and a later tick runs a missed one, still within the
 // e-mails' deadlines (§8.4 Late jobs). The never-twice keys make a re-run or a second worker harmless.
-import { and, eq, lt } from "drizzle-orm";
+import { and, desc, eq, gte, inArray, isNull, lt, or, sql } from "drizzle-orm";
 import {
   addDays,
   londonDate,
@@ -10,8 +10,15 @@ import {
 } from "@/lib/london-time";
 import type { connect } from "./client";
 import { queueMail } from "./mail-repo";
+import {
+  emailHash,
+  normalEmail,
+  thanksAllowed,
+  yearlyOptedIn,
+} from "./consent-repo";
+import { readMailSettings, reviewLink } from "./mail-settings-repo";
 import { todayRows } from "./order-mail-repo";
-import { jobRuns, orders } from "./schema";
+import { jobRuns, mailSends, orders } from "./schema";
 import { readSettings } from "./settings-repo";
 
 type Db = ReturnType<typeof connect>["db"];
@@ -80,9 +87,12 @@ async function onTheDay(db: Db, day: CalendarDate, now: Date) {
         lt(orders.confirmedAt, at),
       ),
     );
+  const sw = await readMailSettings(db);
   let n = 0;
   for (const o of rows) {
     const delivery = o.handover === "delivery";
+    // Switched off on the Emails screen (§11.5): nothing goes, and nothing goes late when it is switched back on.
+    if (delivery ? !sw.onTheDay : !sw.collectionDay) continue;
     const deadline = londonInstant(
       day,
       delivery ? (WINDOW_START[o.window ?? ""] ?? 12) : 12,
@@ -108,6 +118,7 @@ async function onTheDay(db: Db, day: CalendarDate, now: Date) {
 
 /** 06:00 · e-mail 4 to the team when Today has any row (until 12:00). The team is Linda until the admin's Team (8.x). */
 async function dailyList(db: Db, day: CalendarDate, now: Date) {
+  if (!(await readMailSettings(db)).dailyList) return 0;
   const rows = await todayRows(db, day);
   if (!rows.handovers.length && !rows.notCollected.length) return 0;
   const team = [(await readSettings(db)).email];
@@ -130,10 +141,136 @@ async function dailyList(db: Db, day: CalendarDate, now: Date) {
   return n;
 }
 
+/** The order dates whose anniversary is `day`: a year earlier; on 28 February also a leap year's 29 February. */
+export function anniversaryDates(day: CalendarDate): CalendarDate[] {
+  const [y, m, d] = day.split("-").map(Number);
+  const prev = `${y - 1}-${day.slice(5)}`;
+  const leap = (n: number) => (n % 4 === 0 && n % 100 !== 0) || n % 400 === 0;
+  const out = m === 2 && d === 29 ? [] : [prev];
+  if (m === 2 && d === 28 && leap(y - 1)) out.push(`${y - 1}-02-29`);
+  return out;
+}
+
+/**
+ * 10:00 · e-mail 5 (§8.1, §12): catalogue orders, confirmed or completed, whose anniversary is today or one of the 6
+ * days before that has no key yet (days while the switch was off are skipped); only for an address opted in; at
+ * most one per address in any 30 days; several on one day → the newest order. On the broadcast stream.
+ */
+async function yearLater(db: Db, day: CalendarDate, now: Date) {
+  const sw = await readMailSettings(db);
+  if (!sw.yearLater) return 0;
+  const since = londonDate(sw.yearLaterSince);
+  let n = 0;
+  for (let k = 0; k < 7; k++) {
+    const anniversary = addDays(day, -k);
+    if (anniversary < since) break;
+    const dates = anniversaryDates(anniversary);
+    if (!dates.length) continue;
+    const rows = await db
+      .select({
+        id: orders.id,
+        email: orders.email,
+        confirmedAt: orders.confirmedAt,
+      })
+      .from(orders)
+      .where(
+        and(
+          eq(orders.kind, "catalogue"),
+          inArray(orders.status, ["confirmed", "completed"]),
+          inArray(orders.date, dates),
+        ),
+      )
+      .orderBy(desc(orders.confirmedAt));
+    const seen = new Set<string>();
+    for (const o of rows) {
+      const to = normalEmail(o.email);
+      if (!to || seen.has(to)) continue;
+      seen.add(to);
+      if (!(await yearlyOptedIn(db, emailHash(to)))) continue;
+      const [recent] = await db
+        .select({ id: mailSends.id })
+        .from(mailSends)
+        .where(
+          and(
+            eq(mailSends.template, "year-later"),
+            sql`lower(${mailSends.to}) = ${to}`,
+            gte(mailSends.createdAt, new Date(now.getTime() - 30 * 86_400_000)),
+            sql`${mailSends.status} not in ('failed', 'failed-too-late')`,
+          ),
+        )
+        .limit(1);
+      if (recent) continue;
+      if (
+        (await queueMail(
+          db,
+          {
+            key: `order:${o.id}:5:${anniversary.slice(0, 4)}`,
+            template: "year-later",
+            data: { orderId: o.id, late: k > 0 },
+            to: o.email,
+            stream: "broadcast",
+            deadline: new Date(
+              londonInstant(anniversary, 10).getTime() + 7 * 86_400_000,
+            ),
+          },
+          now,
+        )) === "queued"
+      )
+        n++;
+    }
+  }
+  return n;
+}
+
+/**
+ * 10:00 · e-mail 18 (§8.1): the day after Mark handed over, or two days after the date when nobody marked it.
+ * Not for a cancelled or refunded order, not without a Place ID, not after No more thank-you e-mails; once per order.
+ */
+async function thankYou(db: Db, day: CalendarDate, now: Date) {
+  const sw = await readMailSettings(db);
+  if (!sw.thankYou || !reviewLink(sw.googlePlaceId)) return 0;
+  const yesterday = addDays(day, -1);
+  const rows = await db
+    .select({ id: orders.id, email: orders.email })
+    .from(orders)
+    .where(
+      and(
+        inArray(orders.status, ["confirmed", "completed"]),
+        or(
+          and(isNull(orders.handedOverAt), eq(orders.date, addDays(day, -2))),
+          and(
+            gte(orders.handedOverAt, londonInstant(yesterday, 0)),
+            lt(orders.handedOverAt, londonInstant(day, 0)),
+          ),
+        ),
+      ),
+    );
+  let n = 0;
+  for (const o of rows) {
+    if (!o.email || !(await thanksAllowed(db, emailHash(o.email)))) continue;
+    if (
+      (await queueMail(
+        db,
+        {
+          key: `order:${o.id}:18`,
+          template: "thank-you",
+          data: { orderId: o.id },
+          to: o.email,
+        },
+        now,
+      )) === "queued"
+    )
+      n++;
+  }
+  return n;
+}
+
 export const JOBS: Job[] = [
   { name: "daily-list", hour: 6, run: dailyList },
   { name: "on-the-day", hour: 7, run: onTheDay },
   { name: "two-days-before", hour: 8, run: twoDaysBefore },
+  { name: "year-later", hour: 10, run: yearLater },
+  { name: "thank-you", hour: 10, run: thankYou },
 ];
 
 /** Every job whose time has passed today and that has not completed today runs now (called every 15 minutes). */

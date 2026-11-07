@@ -1,0 +1,36 @@
+/*
+ * Unsubscribe (§6.10; J desktop in 1199:9206, phone 1199:9408): one narrow column with the state box and its
+ * button. The first state (“Stop the once-a-year e-mail?”) is not drawn and uses the same layout.
+ */
+.page {
+  width: min(100%, 560px);
+  margin-inline: auto;
+  padding: 48px 24px 64px;
+}
+
+.title {
+  margin: 0;
+  color: var(--colour-ink);
+  font: var(--type-option-phone);
+  font-variation-settings: var(--font-display-axes);
+}
+
+.title:focus {
+  outline: none;
+}
+
+.text {
+  margin: 12px 0 0;
+  color: var(--colour-body);
+  font: var(--type-body-sm);
+}
+
+.text a {
+  color: var(--colour-accent);
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  margin-top: 24px;
+}

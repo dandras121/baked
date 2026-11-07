@@ -140,7 +140,9 @@ describe("fold-out rows (FAQ, Bohoka 2026-11-05)", () => {
       const row = rowsFor("row", part, "mouse")!;
       const fold = rowsFor("fold", part, "mouse")!;
       expect(fold.map(([t]) => t)).toEqual(row.map(([t]) => t));
-      fold.forEach(([, v], i) => expect(v - 1).toBeCloseTo((row[i][1] - 1) / 4));
+      fold.forEach(([, v], i) =>
+        expect(v - 1).toBeCloseTo((row[i][1] - 1) / 4),
+      );
     }
   });
 });

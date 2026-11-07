@@ -5,6 +5,7 @@ import { afterFailure, DEFAULT_DEADLINE_MS, whenDue } from "@/lib/mail/queue";
 import { mailFrom, type Transport } from "@/lib/mail/transport";
 import type { connect } from "./client";
 import { legalPdfFor } from "./legal-pdf-repo";
+import { readMailSettings } from "./mail-settings-repo";
 import { TEMPLATES } from "./mail-templates";
 import { mailSends } from "./schema";
 import { readSettings } from "./settings-repo";
@@ -47,7 +48,7 @@ export async function queueMail(
 
 /** The frame's facts: business facts from Settings (§11.1), the site's address, the sign-off. */
 export async function mailContext(db: Db, origin: string) {
-  const s = await readSettings(db);
+  const [s, m] = await Promise.all([readSettings(db), readMailSettings(db)]);
   const business: Business = {
     tradingName: s.tradingName,
     legalName: s.legalName,
@@ -56,8 +57,8 @@ export async function mailContext(db: Db, origin: string) {
     postcode: s.postcode,
     phone: s.phone,
   };
-  // Settings → Emails sign-off arrives with the admin (9.16).
-  return { business, origin, signOff: "Linda", replyTo: s.email };
+  // Settings → Emails sign-off (§11.5); its admin field arrives with 9.16.
+  return { business, origin, signOff: m.signOff, replyTo: s.email };
 }
 
 /** Sends what is due: each row claimed, rendered from its template now, sent, and its result recorded. */
@@ -117,6 +118,7 @@ export async function processMail(
       row.data as Record<string, unknown>,
       db,
       origin,
+      now,
     );
     if (!email) {
       await db
@@ -142,6 +144,7 @@ export async function processMail(
       html: mail.html,
       text: mail.text,
       stream: row.stream === "broadcast" ? "broadcast" : "transactional",
+      headers: email.headers,
       attachments: files,
     });
     const rendered = {
@@ -151,6 +154,7 @@ export async function processMail(
       transport: transport.name,
       attempts,
       attachments: files.map((f) => f.name),
+      headers: email.headers ?? null,
     };
     if (result.ok) {
       await db

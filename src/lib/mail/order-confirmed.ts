@@ -68,7 +68,12 @@ export const factsBusiness = (f: Record<Placeholder, string>): Business => ({
 export const pdfName = (kind: "terms" | "cancellations", updatedOn: string) =>
   `${kind}-${updatedOn}.pdf`;
 
-export function orderConfirmedEmail(v: OrderMailView, origin: string): Email {
+export function orderConfirmedEmail(
+  v: OrderMailView,
+  origin: string,
+  /** The Google review link (§8.1 e-mail 1 variant); the block is left out without a Place ID. */
+  reviewHref: string | null = null,
+): Email {
   const today = v.confirmedOn;
   const long = (d: CalendarDate) => formatLongDate(d, today);
   const several = v.lines.length > 1;
@@ -216,6 +221,16 @@ export function orderConfirmedEmail(v: OrderMailView, origin: string): Email {
           ["Terms and conditions", `${origin}/terms`],
         ],
       },
+      ...(reviewHref
+        ? [
+            {
+              kind: "linkLine",
+              text: "Once you have had your cake, a Google review would mean a lot.",
+              label: "Leave a Google review →",
+              href: reviewHref,
+            } as Block,
+          ]
+        : []),
     ],
   };
 }

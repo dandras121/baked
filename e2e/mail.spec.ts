@@ -9,7 +9,7 @@ test("/dev/emails: e-mail 1 at 600 px and phone width with its plain text; Send 
 }, testInfo) => {
   test.skip(testInfo.project.name !== "desktop", "a developer page");
   await page.goto("/dev/emails");
-  await expect(page.locator("iframe")).toHaveCount(12);
+  await expect(page.locator("iframe")).toHaveCount(30);
   const mail = page.frameLocator("iframe").first();
   await expect(
     mail

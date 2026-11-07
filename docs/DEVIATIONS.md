@@ -86,3 +86,9 @@ Anything built differently from the docs or Figma, and why. Bohoka’s decision 
 | 5.2a | 1800:13257 caps panel titles (“THE LOTHIAN”, “HANDOVER”, “KEY TERMS”) | Sentence case in the accent colour (“The Lothian”, “Handover”, “Key terms”), as on the site (Bohoka 2026-11-01) |
 | 5.2a | §8.4 fonts in the legal PDFs | Helvetica (built into PDF readers) instead of embedding Quicksand / Fraunces, so the file stays small and opens everywhere |
 | 5.2b | 1155:9360 e-mail 4 card first line “12pm collection” | “Collection”: an order has no collection time yet (§9.3, later) |
+| 5.3 | §8.4 “A missing photo hides its slot or tile” (e-mail 5) | Until cake photos exist (9.13) the hero and tiles show the neutral placeholder of the drawn shape, so the layout can be checked (CLAUDE.md §7) |
+| 5.3 | 1155:9310 e-mail 8 “Most banks show it inside five working days” | “Most banks show it within 5–10 working days.” (§8.1 variants) |
+| 5.3 | 1153:9316 e-mail 6 “Thank you, Mairi”, venue row, sketch-and-price steps | “Hello,” with no name, Where = area only, the §8.1 steps (§8.1, Appendix A.2) |
+| 5.3 | 1167:9106 caps “A YEAR AGO TODAY”, “A FEW THAT ARE NEW THIS YEAR” | Sentence case in the accent colour (Bohoka 2026-11-01) |
+| 5.3 | 1800:13148 e-mail 17 “18:42” | “6:42pm” (§10.7 customer times) |
+| 5.3 | J 1199:9206 / 1199:9408 “off the yearly reminder — you won’t hear from me again unless you ask” | The §6.10 wording; the box's round sign without the check mark (the site's calm notice) |

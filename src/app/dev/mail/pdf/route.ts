@@ -17,7 +17,12 @@ export async function GET(req: Request) {
     const template = row && TEMPLATES[row.template];
     const email =
       template &&
-      (await template(row.data as Record<string, unknown>, db, SITE_URL));
+      (await template(
+        row.data as Record<string, unknown>,
+        db,
+        SITE_URL,
+        new Date(),
+      ));
     const file = email?.attachments?.find((a) => a.name === name);
     const base64 =
       file && (await legalPdfFor(db, file.revisionId, file.facts, file.name));
