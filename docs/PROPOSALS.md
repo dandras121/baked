@@ -169,3 +169,6 @@ Bohoka’s decision is added when he gives it (“jó” = keep, “ne legyen”
 | 5.1 | §8.4 Failures backoff | Retries after 1, 2, 4, 8 … minutes, at most 30, until the e-mail's deadline | `src/lib/mail/queue.ts` | Accepted 2026-11-07 |
 | 5.1 | §8.4 Sender in development (Bohoka 1A) | Every e-mail stays in the site's outbox (`/dev/mail`) unless Postmark's token and `BBL_MAIL_LIVE=1` are both set | `src/lib/mail/transport.ts` | Accepted 2026-11-07 |
 | 5.1 | §8.4 Header and footer: sign-off | “— Linda” until Settings → Emails has its own (9.16) | `src/db/mail-repo.ts` | Accepted 2026-11-07 |
+| 5.2a | §8.1 e-mail 1 rights (three variants) | As written in §8.1, worked out from the confirmation day: until D-8 of the earliest date the full-refund line, then the half-refund line until D-2, then “go through me” | `src/lib/mail/rights.ts` | Waiting for Bohoka |
+| 5.2a | §8.1 PDF cache | One PDF per legal revision and facts version (kept in the database), so a resend attaches the same file; named `{terms|cancellations}-{revision date}.pdf` | `src/db/legal-pdf-repo.ts` | Waiting for Bohoka |
+| 5.2a | §8.1 Paid row | “£185 · card · 31 August” (Apple Pay and Google Pay are cards too) | `src/lib/mail/order-confirmed.ts` | Waiting for Bohoka |

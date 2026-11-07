@@ -2,9 +2,11 @@
 import { randomBytes } from "node:crypto";
 import { eq, sql } from "drizzle-orm";
 import { londonDate } from "@/lib/london-time";
+import { placeholderValues } from "@/lib/placeholders";
 import type { connect } from "./client";
 import type { SnapshotLine } from "./payment-repo";
 import { drafts, orderCounters, orderLines, orders } from "./schema";
+import { readSettings } from "./settings-repo";
 
 type Db = ReturnType<typeof connect>["db"];
 type Tx = Parameters<Parameters<Db["transaction"]>[0]>[0];
@@ -91,6 +93,7 @@ export async function createOrder(
       amountReceivedPence,
       paymentIntentId: d.paymentIntentId,
       snapshot: snapshot ?? { takenAt: now.toISOString(), lines },
+      facts: placeholderValues(await readSettings(tx as unknown as Db)),
       confirmedAt: now,
     })
     .returning({ id: orders.id });
@@ -102,6 +105,7 @@ export async function createOrder(
         slug: l.slug,
         name: l.name,
         sizeLine: l.sizeLine,
+        flavour: l.flavour ?? "",
         options: l.options,
         message: l.message,
         pricePence: l.pricePence,

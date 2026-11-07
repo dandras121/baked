@@ -2,9 +2,10 @@
 import { and, desc, eq, lte } from "drizzle-orm";
 import { renderEmail, type Business } from "@/lib/mail/layout";
 import { afterFailure, DEFAULT_DEADLINE_MS, whenDue } from "@/lib/mail/queue";
-import { TEMPLATES } from "@/lib/mail/templates";
 import { mailFrom, type Transport } from "@/lib/mail/transport";
 import type { connect } from "./client";
+import { legalPdfFor } from "./legal-pdf-repo";
+import { TEMPLATES } from "./mail-templates";
 import { mailSends } from "./schema";
 import { readSettings } from "./settings-repo";
 
@@ -112,10 +113,27 @@ export async function processMail(
       tally.failed++;
       continue;
     }
-    const mail = renderEmail(
-      template(row.data as Record<string, unknown>),
-      ctx,
+    const email = await template(
+      row.data as Record<string, unknown>,
+      db,
+      origin,
     );
+    if (!email) {
+      await db
+        .update(mailSends)
+        .set({ status: "failed", attempts, lastError: "Nothing to send" })
+        .where(eq(mailSends.id, row.id));
+      tally.failed++;
+      continue;
+    }
+    const mail = renderEmail(email, ctx);
+    // E-mail 1's legal PDFs, filled with the facts kept with the order (§8.1); the same file on a resend.
+    const files: { name: string; base64: string; contentType: string }[] = [];
+    for (const a of email.attachments ?? []) {
+      const base64 = await legalPdfFor(db, a.revisionId, a.facts, a.name);
+      if (base64)
+        files.push({ name: a.name, base64, contentType: "application/pdf" });
+    }
     const result = await transport.send({
       from: mailFrom(),
       to: row.to,
@@ -124,6 +142,7 @@ export async function processMail(
       html: mail.html,
       text: mail.text,
       stream: row.stream === "broadcast" ? "broadcast" : "transactional",
+      attachments: files,
     });
     const rendered = {
       subject: mail.subject,
@@ -131,6 +150,7 @@ export async function processMail(
       text: mail.text,
       transport: transport.name,
       attempts,
+      attachments: files.map((f) => f.name),
     };
     if (result.ok) {
       await db

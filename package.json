@@ -22,6 +22,7 @@
     "vercel-build": "pnpm db:deploy && pnpm build"
   },
   "dependencies": {
+    "@react-pdf/renderer": "^4.9.0",
     "@stripe/react-stripe-js": "^7.0.1",
     "@stripe/stripe-js": "^10.2.1",
     "drizzle-orm": "^0.45.4",

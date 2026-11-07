@@ -66,6 +66,7 @@ export type SnapshotLine = {
   title: string;
   name: string;
   sizeLine: string;
+  flavour?: string;
   options: string;
   message: string | null;
   pricePence: number;
@@ -79,6 +80,7 @@ export const snapshotLine = (l: LineView): SnapshotLine => ({
   title: l.title,
   name: l.name,
   sizeLine: l.sizeLine,
+  flavour: l.flavour,
   options: l.options,
   message: l.message,
   pricePence: l.pricePence,

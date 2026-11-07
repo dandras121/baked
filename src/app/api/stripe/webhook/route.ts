@@ -1,6 +1,9 @@
 import { NextResponse } from "next/server";
 import { connect, databaseUrl } from "@/db/client";
+import { SITE_URL } from "@/app/layout";
 import { applyIntent } from "@/db/confirm-repo";
+import { processMail } from "@/db/mail-repo";
+import { mailTransport } from "@/lib/mail/transport";
 import { gateway, verifiedEvent } from "@/lib/payments";
 
 const HANDLED = new Set([
@@ -36,6 +39,11 @@ export async function POST(req: Request) {
       event.type === "payment_intent.payment_failed",
       gw,
     );
+    // E-mail 1 goes at once (the mail job retries what fails, §8.4).
+    if (applied === "confirmed")
+      await processMail(db, mailTransport(), SITE_URL).catch((e) =>
+        console.warn("[mail] after confirmation", e),
+      );
     return NextResponse.json({ received: true, applied });
   } finally {
     await close();

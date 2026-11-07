@@ -5,7 +5,7 @@ import { SITE_URL } from "@/app/layout";
 import { connect, databaseUrl } from "@/db/client";
 import { mailContext } from "@/db/mail-repo";
 import { renderEmail } from "@/lib/mail/layout";
-import { SAMPLES, TEMPLATES } from "@/lib/mail/templates";
+import { SAMPLES, TEMPLATES } from "@/db/mail-templates";
 import { sendSample } from "./actions";
 import styles from "../mail/mail.module.css";
 
@@ -19,7 +19,17 @@ export default async function Page() {
   await connection();
   if (!databaseUrl()) return <p>No database.</p>;
   const { db, close } = connect();
-  const ctx = await mailContext(db, SITE_URL).finally(close);
+  const ctx = await mailContext(db, SITE_URL);
+  const mails = await Promise.all(
+    SAMPLES.map(async (s) => {
+      const email = await TEMPLATES[s.template](s.data, db, SITE_URL);
+      return {
+        s,
+        mail: email && renderEmail(email, ctx),
+        files: email?.attachments ?? [],
+      };
+    }),
+  ).finally(close);
   return (
     <main className={styles.page}>
       <h1>E-mails</h1>
@@ -28,13 +38,16 @@ export default async function Page() {
         Nothing is sent from this page; “Send to the outbox” queues one copy and
         shows it in <Link href="/dev/mail">/dev/mail</Link>.
       </p>
-      {SAMPLES.map((s) => {
-        const mail = renderEmail(TEMPLATES[s.template](s.data), ctx);
+      {mails.map(({ s, mail, files }) => {
+        if (!mail) return null;
         return (
           <section key={s.template} className={styles.sample}>
             <h2>{s.title}</h2>
             <p className={styles.meta}>
               Subject: <strong>{mail.subject}</strong>
+              {files.length > 0 && (
+                <> · Attached: {files.map((f) => f.name).join(", ")}</>
+              )}
             </p>
             <form action={sendSample}>
               <input type="hidden" name="template" value={s.template} />

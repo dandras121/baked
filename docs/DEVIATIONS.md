@@ -83,3 +83,5 @@ Anything built differently from the docs or Figma, and why. Bohoka’s decision 
 | 2026-11-04 | Figma header 1421:9315, footer 1411:9627, Home band 1363:9952, catalogue band, menu: the ombre is an image fill with a noise effect | CSS gradients fitted to those images (mean ΔE ≤ 0.7) plus a CSS noise layer; no picture is loaded (Bohoka 2026-11-04) |
 | 4.6b | 643:3478 / 836:6509 “WHAT HAPPENS NEXT”, “YOUR ORDER NUMBER” caps labels | “What happens next” as the plain thin Fraunces heading and “Your order number” in sentence case, as on the checkout steps (Bohoka 2026-11-01) |
 | 4 gate | ANIMATIONS ANIM-05: the Stripe card Payment Element's wrapper grows 10 % on hover | Not built: the whole card form (about 300 px tall) does not grow (Bohoka 2026-11-06, 2A — too large an element, as with the FAQ rows) |
+| 5.2a | 1800:13257 caps panel titles (“THE LOTHIAN”, “HANDOVER”, “KEY TERMS”) | Sentence case in the accent colour (“The Lothian”, “Handover”, “Key terms”), as on the site (Bohoka 2026-11-01) |
+| 5.2a | §8.4 fonts in the legal PDFs | Helvetica (built into PDF readers) instead of embedding Quicksand / Fraunces, so the file stays small and opens everywhere |

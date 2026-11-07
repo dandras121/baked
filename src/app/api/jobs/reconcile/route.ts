@@ -1,6 +1,9 @@
 import { NextResponse } from "next/server";
 import { connect, databaseUrl } from "@/db/client";
+import { SITE_URL } from "@/app/layout";
 import { reconcile } from "@/db/confirm-repo";
+import { processMail } from "@/db/mail-repo";
+import { mailTransport } from "@/lib/mail/transport";
 import { gateway } from "@/lib/payments";
 
 /**
@@ -16,7 +19,9 @@ export async function GET(req: Request) {
     return NextResponse.json({ skipped: "payments are off" });
   const { db, close } = connect();
   try {
-    return NextResponse.json(await reconcile(db, gw));
+    const seen = await reconcile(db, gw);
+    if (seen.confirmed) await processMail(db, mailTransport(), SITE_URL);
+    return NextResponse.json(seen);
   } finally {
     await close();
   }

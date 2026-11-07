@@ -55,6 +55,21 @@ export default async function Page({
               {open.key}
               {open.lastError ? ` · ${open.lastError}` : ""}
             </p>
+            {Array.isArray(open.attachments) && open.attachments.length > 0 && (
+              <p className={styles.meta}>
+                Attached:{" "}
+                {(open.attachments as string[]).map((n, i) => (
+                  <span key={n}>
+                    {i > 0 && " · "}
+                    <a
+                      href={`/dev/mail/pdf?id=${open.id}&name=${encodeURIComponent(n)}`}
+                    >
+                      {n}
+                    </a>
+                  </span>
+                ))}
+              </p>
+            )}
             {open.html ? (
               <iframe
                 title={open.subject ?? "E-mail"}

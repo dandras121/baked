@@ -10,6 +10,7 @@ export type Outgoing = {
   text: string;
   stream: "transactional" | "broadcast";
   headers?: Record<string, string>;
+  attachments?: { name: string; base64: string; contentType: string }[];
 };
 
 export type Sent =
@@ -52,6 +53,11 @@ function postmark(token: string): Transport {
               Value,
             })),
             // No open or click tracking in any e-mail (§8.4 Tracking).
+            Attachments: (m.attachments ?? []).map((a) => ({
+              Name: a.name,
+              Content: a.base64,
+              ContentType: a.contentType,
+            })),
             TrackOpens: false,
             TrackLinks: "None",
           }),

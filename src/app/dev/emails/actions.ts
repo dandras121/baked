@@ -15,7 +15,7 @@ export async function sendSample(form: FormData) {
     await queueMail(db, {
       key: `dev-sample:${template}:${Date.now()}`,
       template,
-      data: {},
+      data: { sample: true },
       to: "sample@example.com",
     });
     await processMail(db, mailTransport(), SITE_URL);

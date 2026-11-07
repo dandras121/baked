@@ -14,7 +14,8 @@ import {
   snapshotLine,
   type Snapshot,
 } from "./payment-repo";
-import { drafts, paymentAlerts } from "./schema";
+import { queueMail } from "./mail-repo";
+import { drafts, orders, paymentAlerts } from "./schema";
 
 type Db = ReturnType<typeof connect>["db"];
 
@@ -117,6 +118,22 @@ export async function applyIntent(
       return "confirmed" as const;
     });
     if (result === "already-confirmed") return result;
+    // E-mail 1 (§8.1), once per order (never-twice key: the order id); sent by the caller's processMail or the job.
+    const [o] = await db
+      .select({ id: orders.id, email: orders.email })
+      .from(orders)
+      .where(eq(orders.draftId, found.id));
+    if (o?.email)
+      await queueMail(
+        db,
+        {
+          key: `order:${o.id}:1:${o.id}`,
+          template: "order-confirmed",
+          data: { orderId: o.id },
+          to: o.email,
+        },
+        now,
+      );
     // Refund in Stripe finds the order by its number (§10.6); a failure here changes nothing else.
     await gw
       ?.setOrder(intent.id, number)

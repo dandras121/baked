@@ -33,6 +33,8 @@ export type LineView = {
   name: string;
   slug: string;
   sizeLine: string;
+  /** “Vanilla sponge, raspberry conserve” — the cake's flavour line (e-mail 1). */
+  flavour: string;
   /** The inscription as it goes on the cake, “” for none; null when the cake offers none. */
   message: string | null;
   /** “The Lothian contains gluten (wheat), eggs and milk.” — the cake with its chosen options (§5.3). */
@@ -169,6 +171,7 @@ export async function draftLineViews(
       name: cake.name,
       slug: cake.slug,
       sizeLine: `${tierWords(size.tiers)} · serves ${size.serves}`,
+      flavour: cake.flavour,
       message: cake.offerInscription ? line.inscription : null,
       contains: containsLine(
         cake.name,

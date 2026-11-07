@@ -13,6 +13,8 @@ export type CakePageData = {
   slug: string;
   name: string;
   whatItIs: string;
+  /** The flavour line, “Vanilla sponge, raspberry conserve” (cards, e-mail 1). */
+  flavour: string;
   /** The smallest size's tier line, “TWO TIERS · SERVES 24” (it follows the chosen size in 3.6). */
   tierLine: string;
   /** “From £185”: always the smallest price (§5.1). */
@@ -33,6 +35,7 @@ export function cakePage(
     slug: string;
     name: string;
     whatItIs: string;
+    flavour?: string;
     offerInscription: boolean;
   } & AllergenSet,
   sizes: SizeView[],
@@ -46,6 +49,7 @@ export function cakePage(
     slug: cake.slug,
     name: cake.name,
     whatItIs: cake.whatItIs,
+    flavour: cake.flavour ?? "",
     offerInscription: cake.offerInscription,
     allergens: {
       allergens: cake.allergens,

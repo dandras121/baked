@@ -12,6 +12,7 @@ import {
   cakeSizes,
   drafts,
   orderCounters,
+  mailSends,
   orderLines,
   orders,
   paymentAlerts,
@@ -55,6 +56,7 @@ describe.skipIf(!url)("database: Stripe confirms (§5.5, §10.6, §12)", () => {
     };
   });
   beforeEach(async () => {
+    await db().delete(mailSends);
     await db().delete(orders);
     await db().delete(orderCounters);
     await db().delete(paymentAlerts);
@@ -232,5 +234,22 @@ describe.skipIf(!url)("database: Stripe confirms (§5.5, §10.6, §12)", () => {
         .set({ pricePence: size.pricePence })
         .where(eq(cakeSizes.id, size.id));
     }
+  });
+
+  it("e-mail 1 is queued once per order at confirmation, to the order's e-mail (§8.1, §8.4 never twice)", async () => {
+    const a = await paying();
+    await db()
+      .update(drafts)
+      .set({ email: "mairi@example.co.uk", customerName: "Mairi Sinclair" })
+      .where(eq(drafts.id, a.draftId));
+    a.succeed(a.intent.id);
+    await applyIntent(db(), a.intents.get(a.intent.id)!, minutes(1));
+    await applyIntent(db(), a.intents.get(a.intent.id)!, minutes(2));
+    const o = (await orderForDraft(db(), a.draftId))!;
+    const sends = await db().select().from(mailSends);
+    expect(sends.map((m) => [m.key, m.template, m.to])).toEqual([
+      [`order:${o.id}:1:${o.id}`, "order-confirmed", "mairi@example.co.uk"],
+    ]);
+    expect(o.facts).toMatchObject({ trading_name: "Baked by Linda" });
   });
 });

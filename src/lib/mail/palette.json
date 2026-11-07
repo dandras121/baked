@@ -1,5 +1,5 @@
 {
-  "//": "E-mail colours (e-mails cannot read CSS variables). Values from the e-mail frames, section 1128:9106 (State / 2, 1128:9160); they match tokens.css where the site has the same colour. Type sizes as in the frames (heading Fraunces Light 30, text 14, labels and footer 12, button 15).",
+  "//": "E-mail colours (e-mails cannot read CSS variables). Values from the e-mail frames, section 1128:9106 (State / 2, 1128:9160); they match tokens.css where the site has the same colour. Type sizes as in the frames (heading Fraunces Light 30, text 14, labels and footer 12, button 15). pdf: the legal PDFs' type sizes in points (A4).",
   "ink": "#241b33",
   "body": "#6f6579",
   "meta": "#756c82",
@@ -19,5 +19,12 @@
     "body": "14px",
     "small": "12px",
     "button": "15px"
+  },
+  "pdf": {
+    "title": 20,
+    "heading": 12,
+    "body": 9.5,
+    "meta": 8,
+    "margin": 48
   }
 }

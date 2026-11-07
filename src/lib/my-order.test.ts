@@ -10,6 +10,7 @@ const line = (id: number, pricePence: number): LineView => ({
   name: "The Lothian",
   slug: "the-lothian",
   sizeLine: "Two tiers · serves 24",
+  flavour: "Vanilla sponge, raspberry conserve",
   message: "Happy 30th",
   contains: "The Lothian contains gluten (wheat), eggs and milk.",
   allergenText: "Contains gluten (wheat), eggs and milk.",

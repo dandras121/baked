@@ -8,6 +8,7 @@ import {
   integer,
   jsonb,
   pgTable,
+  primaryKey,
   real,
   serial,
   text,
@@ -644,6 +645,9 @@ export const orders = pgTable(
     amountReceivedPence: integer("amount_received_pence").notNull(),
     paymentIntentId: text("payment_intent_id").unique(),
     snapshot: jsonb("snapshot").notNull(),
+    /** The business facts at confirmation (§11.8 placeholder values): e-mail 1's key terms, footer and legal PDFs
+     *  are filled from these, never from today's Settings (§8.1). */
+    facts: jsonb("facts"),
     confirmedAt: timestamp("confirmed_at", { withTimezone: true }).notNull(),
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
@@ -672,6 +676,7 @@ export const orderLines = pgTable(
     slug: text("slug").notNull(),
     name: text("name").notNull(),
     sizeLine: text("size_line").notNull(),
+    flavour: text("flavour").notNull().default(""),
     options: text("options").notNull().default(""),
     /** The inscription; null when the cake offers none. */
     message: text("message"),
@@ -709,6 +714,8 @@ export const mailSends = pgTable(
     transport: text("transport"),
     providerId: text("provider_id"),
     subject: text("subject"),
+    /** The attachments' file names (e-mail 1's legal PDFs); their bytes come from `legal_pdfs`. */
+    attachments: jsonb("attachments"),
     html: text("html"),
     text: text("text"),
     createdAt: timestamp("created_at", { withTimezone: true })
@@ -724,4 +731,22 @@ export const mailSends = pgTable(
     check("mail_stream", sql`${t.stream} in ('transactional', 'broadcast')`),
     index("mail_due").on(t.status, t.nextAttemptAt),
   ],
+);
+
+/**
+ * The Terms and Cancellations PDFs of e-mail 1 (§8.1 Durable record): one per legal revision and business-facts
+ * version, so a resend attaches the same file. Stored base64.
+ */
+export const legalPdfs = pgTable(
+  "legal_pdfs",
+  {
+    revisionId: integer("revision_id").notNull(),
+    factsHash: text("facts_hash").notNull(),
+    fileName: text("file_name").notNull(),
+    base64: text("base64").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [primaryKey({ columns: [t.revisionId, t.factsHash] })],
 );

@@ -47,17 +47,3 @@ const sample: Template = () => ({
 });
 
 export const TEMPLATES: Record<string, Template> = { sample };
-
-/** What /dev/emails shows: each template with its sample data. */
-export const SAMPLES: {
-  template: string;
-  title: string;
-  data: Record<string, unknown>;
-}[] = [
-  {
-    template: "sample",
-    title:
-      "Layout sample — every part of the frame (drawn as e-mail 2, 1128:9160)",
-    data: {},
-  },
-];
