@@ -75,8 +75,11 @@ export default async function Page({
       {state === "unknown" ? (
         <Notice title="This link didn’t work.">
           <p>
-            Email <a href={`mailto:${email}`}>{email}</a> and I’ll take you off
-            by hand.
+            Email{" "}
+            <a className={styles.mailLink} href={`mailto:${email}`}>
+              {email}
+            </a>{" "}
+            and I’ll take you off by hand.
           </p>
         </Notice>
       ) : state === "in" && q.note === "back" ? (

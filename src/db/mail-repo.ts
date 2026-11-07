@@ -67,6 +67,8 @@ export async function processMail(
   transport: Transport,
   origin: string,
   now = new Date(),
+  /** Further batches of 25 while more are due (a busy morning), at most 10 in all. */
+  rounds = 10,
 ): Promise<{ sent: number; failed: number; retrying: number }> {
   const due = await db
     .select()
@@ -74,6 +76,7 @@ export async function processMail(
     .where(
       and(eq(mailSends.status, "queued"), lte(mailSends.nextAttemptAt, now)),
     )
+    .orderBy(mailSends.deadline)
     .limit(25);
   const ctx = await mailContext(db, origin);
   const tally = { sent: 0, failed: 0, retrying: 0 };
@@ -184,6 +187,12 @@ export async function processMail(
       if (next.status === "failed") tally.failed++;
       else tally.retrying++;
     }
+  }
+  if (due.length === 25 && rounds > 1) {
+    const more = await processMail(db, transport, origin, now, rounds - 1);
+    tally.sent += more.sent;
+    tally.failed += more.failed;
+    tally.retrying += more.retrying;
   }
   return tally;
 }

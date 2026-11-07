@@ -28,10 +28,14 @@ test("/dev/emails: e-mail 1 at 600 px and phone width with its plain text; Send 
     .first()
     .click();
   await expect(page).toHaveURL(/\/dev\/mail/);
-  await expect(page.locator("main ol li").first()).toContainText(
-    "Your cake is booked — Saturday 12 September",
-  );
-  await expect(page.locator("main ol li").first()).toContainText("sent");
+  // Its own e-mail by subject (another test may send at the same moment), opened.
+  const mine = page
+    .locator("main ol li")
+    .filter({ hasText: "Your cake is booked — Saturday 12 September" })
+    .first();
+  await expect(mine).toContainText("sent");
+  await mine.getByRole("link").click();
+  await expect(page).toHaveURL(/\/dev\/mail\?id=/);
   await expect(page.getByText(/via outbox/)).toBeVisible();
   const pdf = page.getByRole("link", { name: /^terms-.+\.pdf$/ });
   const res = await page.request.get((await pdf.getAttribute("href"))!);
@@ -44,7 +48,9 @@ test("/dev/emails: Play a morning sends e-mails 3 and 4 for that day's order to 
 }, testInfo) => {
   test.skip(testInfo.project.name !== "desktop", "a developer page");
   process.loadEnvFile?.(".env.local");
-  const day = "2031-03-14";
+  // A day of its own each run: e-mail 4 goes once per day (never-twice key), so a day used before sends nothing new.
+  const year = 2040 + Math.floor(Math.random() * 50);
+  const day = `${year}-03-${String(1 + Math.floor(Math.random() * 28)).padStart(2, "0")}`;
   const { db, close } = connect();
   try {
     // A day of its own, cleared first: the test's order is the only one on it.
@@ -53,7 +59,7 @@ test("/dev/emails: Play a morning sends e-mails 3 and 4 for that day's order to 
     const [o] = await db
       .insert(orders)
       .values({
-        number: `BBL-2031-${String(Date.now()).slice(-5)}`,
+        number: `BBL-${year}-${String(Date.now()).slice(-5)}`,
         token: `e2e-morning-${Date.now()}`,
         date: day,
         earliestDate: day,
@@ -71,7 +77,7 @@ test("/dev/emails: Play a morning sends e-mails 3 and 4 for that day's order to 
         amountReceivedPence: 18500,
         snapshot: {},
         facts: {},
-        confirmedAt: new Date("2031-03-01T10:00:00Z"),
+        confirmedAt: new Date(`${year}-02-01T10:00:00Z`),
       })
       .returning({ id: orders.id });
     await db.insert(orderLines).values({

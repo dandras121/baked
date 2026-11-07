@@ -34,3 +34,9 @@
   flex-direction: column;
   margin-top: 24px;
 }
+
+/* The address in the “didn’t work” box: ink on the lilac box (contrast, §10.13). */
+.mailLink {
+  color: var(--colour-ink);
+  text-decoration: underline;
+}
