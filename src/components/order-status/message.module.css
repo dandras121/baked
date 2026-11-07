@@ -1,0 +1,18 @@
+/* B · Message Linda (§6.5; 1037:9164, phone 1058:9130): the reply-time line, the routing note and the foot line. */
+.lead {
+  margin: 0 0 16px;
+  color: var(--colour-body);
+  font: var(--type-state-small);
+}
+
+.routing {
+  margin: 0 0 16px;
+  color: var(--colour-body);
+  font: var(--type-state-small);
+}
+
+.foot {
+  margin: 12px 0 0;
+  color: var(--colour-meta);
+  font: var(--type-state-small);
+}

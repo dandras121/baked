@@ -11,6 +11,7 @@ import { OpenOrder } from "@/components/order-status/open-order";
 import styles from "@/components/order-status/state.module.css";
 import { connect, databaseUrl } from "@/db/client";
 import { recentChange } from "@/db/change-repo";
+import { recentMessage } from "@/db/message-repo";
 import { readMailSettings, reviewLink } from "@/db/mail-settings-repo";
 import { orderForToken } from "@/db/order-link-repo";
 import { cakes, orderLines } from "@/db/schema";
@@ -37,7 +38,7 @@ export default async function Page({
   searchParams,
 }: {
   params: Promise<{ token: string }>;
-  searchParams: Promise<{ saved?: string }>;
+  searchParams: Promise<{ saved?: string; message?: string }>;
 }) {
   await connection();
   const { token } = await params;
@@ -56,7 +57,9 @@ export default async function Page({
       found = await orderForToken(db, token);
       if (found?.valid && unlocked) {
         view = await statusView(db, found.order);
-        const saved = Number((await searchParams).saved);
+        const query = await searchParams;
+        const saved = Number(query.saved);
+        const sentId = Number(query.message);
         const change = saved
           ? await recentChange(db, found.order.id, saved)
           : null;
@@ -69,6 +72,12 @@ export default async function Page({
                 : change.moneyKind === "up"
                   ? `The details are in your inbox. ${formatPrice(change.moneyPence)} paid today.`
                   : "The details are in your inbox.",
+          };
+        // “Message sent.” (§6.5), right after sending only.
+        if (sentId && (await recentMessage(db, found.order.id, sentId)))
+          banner = {
+            title: "Message sent.",
+            text: `I’ll reply to ${found.order.email} within 24 hours. If it is urgent, call ${phone}.`,
           };
       }
     } finally {

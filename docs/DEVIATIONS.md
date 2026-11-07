@@ -103,3 +103,7 @@ Anything built differently from the docs or Figma, and why. Bohoka’s decision 
 | 6.3 | C 1037:9182 and E 1037:9256 “within five working days” / “inside five working days” | “within 5–10 working days” — §10.6 Refund timing: the customer copy always says the bank takes 5–10 working days |
 | 6.3 | C 1037:9182, E 1037:9256 caps “WHAT YOU GET BACK”, “REFUNDED”, “ORDER BBL-…” | Sentence case (Bohoka 2026-11-01) |
 | 6.3 | E 1037:9256 “Your date is back in the calendar, and it is still free at the moment.” | The §6.3 E text “Your date is back in the calendar.” — whether the day is still free would tell about other customers' bookings |
+| 6.4 | 1037:9164 “She answers every message within 24 hours, usually sooner.” | “I answer every message within 24 hours, usually sooner.” (§6.5 Copy) |
+| 6.4 | Phone 1058:9130: no field label, no counter | The desktop label and the n / 400 counter on every width (§6.5) |
+| 6.4 | 654:3665 “It works for 30 days from your delivery date.” | “It works until 30 days after your date.” (Appendix A) |
+| 6.4 | Caps labels “YOUR MESSAGE”, “ORDER NUMBER (OPTIONAL)”, “EMAIL” | Sentence case (Bohoka 2026-11-01) |

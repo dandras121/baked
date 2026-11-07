@@ -195,4 +195,39 @@ describe.skipIf(!url)("database: the status link (§6.1, §6.7, §10.5)", () => 
       ),
     ).toEqual([a.number]);
   });
+
+  it("a number typed any way matches; another address's order is never sent", async () => {
+    const a = await order("2026-09-12");
+    const b = await order("2026-09-13", "callum@example.com");
+    const now = new Date("2026-09-05T10:00:00Z");
+    const digits = a.number.replace(/\D/g, "");
+    for (const [i, typed] of [
+      a.number.toLowerCase(),
+      ` bbl ${digits.slice(0, 4)} ${digits.slice(4)} `,
+      digits,
+    ].entries())
+      await sendOrderLinks(
+        db(),
+        { email: " MAIRI@example.co.uk ", number: typed, connection: `t${i}` },
+        new Date(now.getTime() + i * 1000),
+      );
+    // Callum's number with Mairi's address: the same answer, and nothing goes out.
+    expect(
+      await sendOrderLinks(
+        db(),
+        { email: "mairi@example.co.uk", number: b.number, connection: "t9" },
+        new Date(now.getTime() + 2 * 60 * 60_000),
+      ),
+    ).toBe("sent");
+    const mails = await db().select().from(mailSends);
+    expect(mails).toHaveLength(3);
+    for (const m of mails) {
+      expect(m.to).toBe("MAIRI@example.co.uk");
+      expect(
+        (m.data as { view: { orders: { number: string }[] } }).view.orders.map(
+          (o) => o.number,
+        ),
+      ).toEqual([a.number]);
+    }
+  });
 });

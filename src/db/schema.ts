@@ -902,6 +902,27 @@ export const orderChanges = pgTable(
  * Money back to the customer (§10.6): one row per Stripe refund, with what it was for (a change, a cancellation, an
  * excess payment). A failed call stays here as `failed` for Linda's Try again (§9.x) and raises an alert (§8.3).
  */
+/** Message Linda (§6.5): what the customer wrote from the status link, kept on the order (admin Order detail →
+ *  Messages, 9.x). One per form key, so a repeated press is one message (§10.8). */
+export const orderMessages = pgTable(
+  "order_messages",
+  {
+    id: serial("id").primaryKey(),
+    orderId: integer("order_id")
+      .notNull()
+      .references(() => orders.id, { onDelete: "cascade" }),
+    body: text("body").notNull(),
+    formKey: uuid("form_key"),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [
+    index("order_messages_order").on(t.orderId, t.createdAt),
+    uniqueIndex("order_messages_key").on(t.orderId, t.formKey),
+  ],
+);
+
 export const refunds = pgTable(
   "refunds",
   {
