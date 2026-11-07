@@ -8,7 +8,13 @@ import { ChangePage } from "@/components/order-status/change-page";
 import { LinkExpired } from "@/components/order-status/link-expired";
 import { OpenOrder } from "@/components/order-status/open-order";
 import styles from "@/components/order-status/state.module.css";
-import { paymentInProgress, sizeChoices } from "@/db/change-repo";
+import {
+  editableOptions,
+  lineCakes,
+  paymentInProgress,
+  sizeChoices,
+} from "@/db/change-repo";
+import type { Answers } from "@/lib/cake-config";
 import { PUBLISHABLE_KEY } from "@/lib/payments";
 import { connect, databaseUrl } from "@/db/client";
 import { orderForToken } from "@/db/order-link-repo";
@@ -51,6 +57,7 @@ export default async function Page({
   let found: Awaited<ReturnType<typeof orderForToken>> = null;
   let lines: (typeof orderLines.$inferSelect)[] = [];
   let sizes: Awaited<ReturnType<typeof sizeChoices>> = {};
+  let cakesNow: Awaited<ReturnType<typeof lineCakes>> = {};
   try {
     found = await orderForToken(db, token);
     if (found?.valid && unlocked)
@@ -59,7 +66,10 @@ export default async function Page({
         .from(orderLines)
         .where(eq(orderLines.orderId, found.order.id))
         .orderBy(orderLines.position);
-    if (lines.length) sizes = await sizeChoices(db, lines);
+    if (lines.length) {
+      sizes = await sizeChoices(db, lines);
+      cakesNow = await lineCakes(db, lines);
+    }
   } finally {
     await close();
   }
@@ -98,6 +108,12 @@ export default async function Page({
     options: l.options,
     message: l.message,
     sizes: sizes[l.id] ?? [],
+    optionViews: cakesNow[l.id]?.options ?? [],
+    answers: editableOptions(l)
+      ? ((l.answers as Answers | null) ?? { picks: {}, texts: {} })
+      : null,
+    optionsPaidPence: l.pricePence - (l.sizePricePence ?? l.pricePence),
+    cakeAllergens: cakesNow[l.id]?.allergens ?? null,
   }));
   const deadline = formatLongDate(lastChangeDay(String(o.date)), today);
   if (state !== "A")

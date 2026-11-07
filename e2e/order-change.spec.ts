@@ -2,7 +2,9 @@ import AxeBuilder from "@axe-core/playwright";
 import { randomBytes } from "node:crypto";
 import { expect, test, type Page } from "@playwright/test";
 import { connect } from "../src/db/client";
-import { orderLines, orders } from "../src/db/schema";
+import { eq } from "drizzle-orm";
+import { readOptions } from "../src/db/cake-page-repo";
+import { cakes, orderLines, orders } from "../src/db/schema";
 import { addDays, londonDate } from "../src/lib/london-time";
 
 // Slice 6.2a: Change your order — the message (§6.4), A2, the saved banner and e-mail 12.
@@ -259,4 +261,77 @@ test("a bigger size: +£55 in the list, Pay the difference with “Pay £55 and 
   await expect(
     page.getByRole("button", { name: "Save changes" }),
   ).toBeVisible();
+});
+
+test("options: Bramble & Cream vanilla → chocolate shows +£5 and the soya live, then Pay the difference", async ({
+  page,
+}) => {
+  process.loadEnvFile?.(".env.local");
+  const date = addDays(londonDate(new Date()), 10);
+  const token = randomBytes(24).toString("base64url");
+  const { db, close } = connect();
+  try {
+    const [cake] = await db
+      .select()
+      .from(cakes)
+      .where(eq(cakes.slug, "bramble-and-cream"));
+    const opts = await readOptions(db, cake.id);
+    const sponge = opts.find((o) => o.label === "Sponge")!;
+    const [r] = await db
+      .insert(orders)
+      .values({
+        number: `BBL-E2E-${Date.now().toString().slice(-6)}${octet()}`,
+        token,
+        date,
+        earliestDate: date,
+        handover: "collection",
+        customerName: "Rory Fraser",
+        email: `opt-${octet()}@example.com`,
+        phone: "07700 900 358",
+        consents: {},
+        totalPence: 18500,
+        amountReceivedPence: 18500,
+        paymentIntentId: `pi_e2e_opt_${token.slice(0, 6)}`,
+        snapshot: {},
+        confirmedAt: new Date(),
+      })
+      .returning({ id: orders.id });
+    await db.insert(orderLines).values({
+      orderId: r.id,
+      position: 1,
+      slug: "bramble-and-cream",
+      name: "Bramble & Cream",
+      sizeLine: "Two tiers · serves 24",
+      options: "Sponge: Vanilla",
+      answers: { picks: { [sponge.id]: [sponge.choices[0].id] }, texts: {} },
+      message: "",
+      pricePence: 18500,
+      sizePricePence: 18500,
+      allergenText: "Contains gluten (wheat), eggs and milk.",
+      allergenKeys: [],
+    });
+  } finally {
+    await close();
+  }
+  await page.goto(`/my-order/${token}/change`);
+  await page.getByRole("textbox").fill("0358");
+  await page.getByRole("button", { name: "Open my order" }).click();
+  await page
+    .getByRole("button", { name: "Change the options on Bramble & Cream" })
+    .click();
+  await page.getByText("Chocolate", { exact: true }).click();
+  await expect(page.getByText(/^\+£5 · Contains .*soya/)).toBeVisible();
+  await page.getByRole("button", { name: "Done" }).click();
+  await expect(
+    page.getByText(/^Changed · was Sponge: Vanilla · \+£5$/),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Pay £5 and save" }),
+  ).toBeVisible();
+  await page
+    .getByRole("button", { name: "Undo the options change on Bramble & Cream" })
+    .click();
+  await expect(
+    page.getByRole("button", { name: "Save changes" }),
+  ).toBeDisabled();
 });

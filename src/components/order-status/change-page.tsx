@@ -12,6 +12,15 @@ import { Notice } from "@/components/ui/notice";
 import { Radio } from "@/components/ui/choice";
 import { TextField } from "@/components/ui/text-field";
 import type { SizeChoice } from "@/db/change-repo";
+import { OptionBlock } from "@/components/cake-page/option-block";
+import {
+  allergenLine,
+  chosen,
+  type Answers,
+  type OptionView,
+} from "@/lib/cake-config";
+import type { AllergenSet } from "@/lib/cakes";
+import { optionErrors, optionsLine } from "@/lib/order-line";
 import { formatPrice } from "@/lib/money";
 import {
   INSCRIPTION_MAX,
@@ -30,7 +39,15 @@ export type ChangeLine = {
   message: string | null;
   /** The cake's current sizes with the difference against what was paid (§6.4); empty when it has none left. */
   sizes: SizeChoice[];
+  /** The cake's options now (§5.8), the line's answers, what was paid for them; null answers: not changeable here. */
+  optionViews: OptionView[];
+  answers: Answers | null;
+  optionsPaidPence: number;
+  cakeAllergens: AllergenSet | null;
 };
+
+const optionPrice = (l: ChangeLine, a: Answers) =>
+  chosen(l.optionViews, a).reduce((n, { choice }) => n + choice.pricePence, 0);
 
 /** “−£55”, “+£55”, “current”, “same price”. */
 const diffLabel = (c: SizeChoice) =>
@@ -82,6 +99,10 @@ export function ChangePage({
   });
   const [edits, setEdits] = useState<Record<number, string>>({});
   const [sizes, setSizes] = useState<Record<number, number>>({});
+  /** Option answers per line: the edited ones (applied) and the open editor's draft. */
+  const [optEdits, setOptEdits] = useState<Record<number, Answers>>({});
+  const [optDraft, setOptDraft] = useState<Answers | null>(null);
+  const [optErrors, setOptErrors] = useState<Record<number, string>>({});
   /** The open editor: “m{line id}” for a message, “s{line id}” for a size. */
   const [open, setOpen] = useState<string | null>(null);
   const [draft, setDraft] = useState("");
@@ -116,6 +137,7 @@ export function ChangePage({
     if (state.outcome === "stale" || state.outcome === "closed") {
       setEdits({});
       setSizes({});
+      setOptEdits({});
       setOpen(null);
       router.refresh();
     }
@@ -129,12 +151,28 @@ export function ChangePage({
   );
   const chosenSize = (l: ChangeLine) =>
     l.sizes.find((c) => c.id === sizes[l.id] && !c.current) ?? null;
-  const net = resized.reduce((n, l) => n + (chosenSize(l)?.diffPence ?? 0), 0);
+  const reoptioned = lines.filter(
+    (l) =>
+      l.id in optEdits &&
+      optionsLine(l.optionViews, optEdits[l.id]) !== l.options,
+  );
+  const net =
+    resized.reduce((n, l) => n + (chosenSize(l)?.diffPence ?? 0), 0) +
+    reoptioned.reduce(
+      (n, l) => n + optionPrice(l, optEdits[l.id]) - l.optionsPaidPence,
+      0,
+    );
+  const diffText = (pence: number) =>
+    pence === 0
+      ? "same price"
+      : `${pence > 0 ? "+" : "−"}${formatPrice(Math.abs(pence))}`;
   const payUp = net >= 30;
   const what =
-    resized.length === 1
+    resized.length === 1 && !reoptioned.length
       ? `the size goes up from ${resized[0].sizeLine.replace(/^.* · /, "")} to ${chosenSize(resized[0])!.label.split(" · ")[0].toLowerCase()}`
-      : "the new sizes";
+      : resized.length
+        ? "the new sizes and options"
+        : "the new options";
 
   if (paying && !paidChangeId)
     return (
@@ -226,6 +264,14 @@ export function ChangePage({
             type="hidden"
             name={`size-${l.id}`}
             value={sizes[l.id]}
+          />
+        ))}
+        {reoptioned.map((l) => (
+          <input
+            key={l.id}
+            type="hidden"
+            name={`options-${l.id}`}
+            value={JSON.stringify(optEdits[l.id])}
           />
         ))}
         <section className={styles.panel} aria-labelledby="can-change">
@@ -387,10 +433,107 @@ export function ChangePage({
                     )}
                   </div>
                 )}
-                {l.options && (
+                {(l.optionViews.length > 0 || l.options) && (
                   <div className={styles.row}>
-                    <p className={styles.what}>Options</p>
-                    <p className={styles.value}>{l.options}</p>
+                    <div className={styles.rowHead}>
+                      <div>
+                        <p className={styles.what}>Options</p>
+                        <p className={styles.value}>
+                          {(reoptioned.includes(l)
+                            ? optionsLine(l.optionViews, optEdits[l.id])
+                            : l.options) || "None"}
+                        </p>
+                      </div>
+                      {open !== `o${l.id}` &&
+                        l.answers &&
+                        l.optionViews.length > 0 &&
+                        (reoptioned.includes(l) ? (
+                          <button
+                            type="button"
+                            className={`${styles.rowLink} hit-44`}
+                            aria-label={`Undo the options change on ${l.name}`}
+                            onClick={() =>
+                              setOptEdits((x) => {
+                                const rest = { ...x };
+                                delete rest[l.id];
+                                return rest;
+                              })
+                            }
+                          >
+                            Undo
+                          </button>
+                        ) : (
+                          <button
+                            type="button"
+                            className={`${styles.rowLink} hit-44`}
+                            aria-label={`Change the options on ${l.name}`}
+                            onClick={() => {
+                              setOpen(`o${l.id}`);
+                              setOptDraft(optEdits[l.id] ?? l.answers);
+                              setOptErrors({});
+                            }}
+                          >
+                            Change
+                          </button>
+                        ))}
+                    </div>
+                    {reoptioned.includes(l) && open !== `o${l.id}` && (
+                      <p className={styles.was}>
+                        Changed · was {l.options || "None"} ·{" "}
+                        {diffText(
+                          optionPrice(l, optEdits[l.id]) - l.optionsPaidPence,
+                        )}
+                      </p>
+                    )}
+                    {state.errors[l.id] && (
+                      <p className={styles.was}>{state.errors[l.id]}</p>
+                    )}
+                    {open === `o${l.id}` && optDraft && (
+                      <div className={styles.editor}>
+                        {l.optionViews.map((o) => (
+                          <OptionBlock
+                            key={o.id}
+                            option={o}
+                            answers={optDraft}
+                            error={optErrors[o.id]}
+                            onChange={(a) => {
+                              setOptDraft(a);
+                              if (Object.keys(optErrors).length)
+                                setOptErrors(optionErrors(l.optionViews, a));
+                            }}
+                          />
+                        ))}
+                        <p className={styles.was}>
+                          {diffText(
+                            optionPrice(l, optDraft) - l.optionsPaidPence,
+                          )}
+                          {l.cakeAllergens &&
+                            ` · ${allergenLine(l.cakeAllergens, l.optionViews, optDraft, [])}`}
+                        </p>
+                        <div className={styles.editorActions}>
+                          <Button
+                            onClick={() => {
+                              const errs = optionErrors(
+                                l.optionViews,
+                                optDraft,
+                              );
+                              setOptErrors(errs);
+                              if (Object.keys(errs).length) return;
+                              setOptEdits((x) => ({ ...x, [l.id]: optDraft }));
+                              setOpen(null);
+                            }}
+                          >
+                            Done
+                          </Button>
+                          <Button
+                            variant="outline"
+                            onClick={() => setOpen(null)}
+                          >
+                            Cancel
+                          </Button>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
@@ -453,7 +596,10 @@ export function ChangePage({
           {!payUp && (
             <Button
               type="submit"
-              disabled={(!changed.length && !resized.length) || open !== null}
+              disabled={
+                (!changed.length && !resized.length && !reoptioned.length) ||
+                open !== null
+              }
               busy={pending}
               busyLabel="Saving"
             >

@@ -3,10 +3,12 @@ import { migrate } from "drizzle-orm/postgres-js/migrator";
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 import { londonInstant } from "@/lib/london-time";
 import { INITIAL_SETTINGS } from "@/lib/settings";
+import { readOptions } from "./cake-page-repo";
 import { ensureSampleCatalogue } from "./cake-repo";
 import {
   applyChangePayment,
   dropChangePayment,
+  editableOptions,
   prepareChangePayment,
   saveChanges,
   sizeChoices,
@@ -691,6 +693,215 @@ describe.skipIf(!url)(
         .from(orderChanges)
         .where(eq(orderChanges.id, r.changeId));
       expect(c.status).toBe("dropped");
+    });
+  },
+);
+
+describe.skipIf(!url)(
+  "database: change your order — the options (§6.4, §5.8)",
+  () => {
+    const conn = url ? connect(url) : null;
+    const db = () => conn!.db;
+    let seq = 0;
+    async function ids() {
+      const [c] = await db()
+        .select()
+        .from(cakes)
+        .where(eq(cakes.slug, "bramble-and-cream"));
+      const opts = await readOptions(db(), c.id);
+      const sponge = opts.find((o) => o.label === "Sponge")!;
+      const box = opts.find((o) => o.label === "Gift box")!;
+      return {
+        sponge: sponge.id,
+        vanilla: sponge.choices.find((x) => x.label === "Vanilla")!.id,
+        chocolate: sponge.choices.find((x) => x.label === "Chocolate")!.id,
+        box: box.id,
+        boxChoice: box.choices[0].id,
+      };
+    }
+    async function order(
+      answers: object | null,
+      options: string,
+      price: number,
+    ) {
+      seq++;
+      const [row] = await db()
+        .insert(orders)
+        .values({
+          number: `BBL-2026-4${String(seq).padStart(3, "0")}`,
+          token: `opt${seq}-${Math.random().toString(36).slice(2)}-padding`,
+          date: "2026-09-12",
+          earliestDate: "2026-09-12",
+          handover: "collection",
+          customerName: "Mairi Sinclair",
+          email: "mairi@example.co.uk",
+          phone: "07700 900 000",
+          consents: {},
+          totalPence: price,
+          amountReceivedPence: price,
+          paymentIntentId: `pi_opt_${seq}_${Math.random().toString(36).slice(2, 8)}`,
+          snapshot: {},
+          confirmedAt: new Date("2026-08-31T10:00:00Z"),
+        })
+        .returning();
+      const [l] = await db()
+        .insert(orderLines)
+        .values({
+          orderId: row.id,
+          position: 1,
+          slug: "bramble-and-cream",
+          name: "Bramble & Cream",
+          sizeLine: "Two tiers · serves 24",
+          options,
+          message: null,
+          pricePence: price,
+          sizePricePence: 18500,
+          answers,
+          allergenText: "Contains gluten (wheat), eggs, milk and soya.",
+          allergenKeys: [],
+        })
+        .returning();
+      return { o: row, l };
+    }
+    beforeAll(async () => {
+      await migrate(db(), { migrationsFolder: "drizzle" });
+      await ensureSettings(db(), INITIAL_SETTINGS);
+      await ensureSampleCatalogue(db());
+    });
+    beforeEach(async () => {
+      await db().delete(mailSends);
+      await db().delete(refunds);
+      await db().delete(orders);
+    });
+    afterAll(async () => {
+      await db().delete(mailSends);
+      await db().delete(refunds);
+      await db().delete(orders);
+      await conn?.close();
+    });
+
+    it("chocolate → vanilla: £5 back, the options line, the answers and the allergens updated; e-mail 12 names both", async () => {
+      const i = await ids();
+      const t = countingGateway();
+      const { o, l } = await order(
+        { picks: { [i.sponge]: [i.chocolate] }, texts: {} },
+        "Sponge: Chocolate",
+        19000,
+      );
+      const r = await saveChanges(
+        db(),
+        t.gw,
+        {
+          orderId: o.id,
+          version: 1,
+          options: {
+            [l.id]: { picks: { [i.sponge]: [i.vanilla] }, texts: {} },
+          },
+        },
+        now,
+      );
+      expect(r).toMatchObject({
+        kind: "saved",
+        money: { kind: "down", pence: 500 },
+      });
+      const [line] = await db()
+        .select()
+        .from(orderLines)
+        .where(eq(orderLines.id, l.id));
+      expect(line.pricePence).toBe(18500);
+      expect(line.options).not.toContain("Chocolate");
+      expect(line.allergenText).not.toMatch(/soya/);
+      expect(line.answers).toEqual({
+        picks: { [i.sponge]: [i.vanilla] },
+        texts: {},
+      });
+      const [c] = await db()
+        .select()
+        .from(orderChanges)
+        .where(eq(orderChanges.orderId, o.id));
+      const whats = (c.changes as string[][]).map((x) => x[0]);
+      expect(whats).toEqual(["Options", "Contains"]);
+    });
+
+    it("adding the gift box (+£8): needs a payment first; a required sponge left empty is refused", async () => {
+      const i = await ids();
+      const { o, l } = await order(
+        { picks: { [i.sponge]: [i.vanilla] }, texts: {} },
+        "Sponge: Vanilla",
+        18500,
+      );
+      const r = await saveChanges(
+        db(),
+        countingGateway().gw,
+        {
+          orderId: o.id,
+          version: 1,
+          options: {
+            [l.id]: {
+              picks: { [i.sponge]: [i.vanilla], [i.box]: [i.boxChoice] },
+              texts: {},
+            },
+          },
+        },
+        now,
+      );
+      expect(r).toEqual({ kind: "needs-payment", pence: 800 });
+      const bad = await saveChanges(
+        db(),
+        countingGateway().gw,
+        {
+          orderId: o.id,
+          version: 1,
+          options: { [l.id]: { picks: {}, texts: {} } },
+        },
+        now,
+      );
+      expect(bad.kind).toBe("invalid");
+    });
+
+    it("size and options together: one net difference on the line", async () => {
+      const i = await ids();
+      const t = countingGateway();
+      const { o, l } = await order(
+        { picks: { [i.sponge]: [i.chocolate] }, texts: {} },
+        "Sponge: Chocolate",
+        19000,
+      );
+      const [c] = await db()
+        .select()
+        .from(cakes)
+        .where(eq(cakes.slug, "bramble-and-cream"));
+      const sizes = await db()
+        .select()
+        .from(cakeSizes)
+        .where(eq(cakeSizes.cakeId, c.id));
+      const bigger = sizes.find((s) => s.serves === 32)!;
+      const r = await prepareChangePayment(
+        db(),
+        t.gw,
+        {
+          orderId: o.id,
+          version: 1,
+          sizes: { [l.id]: bigger.id },
+          options: {
+            [l.id]: { picks: { [i.sponge]: [i.vanilla] }, texts: {} },
+          },
+        },
+        now,
+      );
+      expect(r).toMatchObject({
+        kind: "pay",
+        amountPence: bigger.pricePence - 18500 - 500,
+      });
+    });
+
+    it("a line made before its answers were kept, with options: not editable here", async () => {
+      const { l } = await order(null, "Sponge: Chocolate", 19000);
+      const [line] = await db()
+        .select()
+        .from(orderLines)
+        .where(eq(orderLines.id, l.id));
+      expect(editableOptions(line)).toBe(false);
     });
   },
 );

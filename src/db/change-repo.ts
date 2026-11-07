@@ -11,9 +11,23 @@ import {
 import { londonDate } from "@/lib/london-time";
 import type { ChangeView } from "@/lib/mail/after-emails";
 import { formatPrice } from "@/lib/money";
-import { inscriptionError, normaliseText } from "@/lib/order-line";
+import {
+  allergenLine,
+  chosen,
+  lineAllergens,
+  type Answers,
+  type OptionView,
+} from "@/lib/cake-config";
+import type { AllergenSet } from "@/lib/cakes";
+import {
+  inscriptionError,
+  normaliseText,
+  optionErrors,
+  optionsLine,
+} from "@/lib/order-line";
 import { statusState } from "@/lib/order-status";
 import type { Gateway, Intent } from "@/lib/payments";
+import { readOptions } from "./cake-page-repo";
 import type { connect } from "./client";
 import { queueMail } from "./mail-repo";
 import { refundOrder } from "./refund-repo";
@@ -109,23 +123,41 @@ export type ChangeInput = {
   messages?: Record<number, string>;
   /** { line id: new size id } */
   sizes?: Record<number, number>;
+  /** { line id: new option answers } (§5.8) */
+  options?: Record<number, Answers>;
 };
 
 type SizeRow = typeof cakeSizes.$inferSelect;
 type Order = typeof orders.$inferSelect;
 
+/** Per line: the cake's options and own allergens now, and the kitchen list (for the allergen line, §5.1). */
+export type LineCake = { options: OptionView[]; allergens: AllergenSet };
+type Ctx = {
+  choices: Record<number, SizeChoice[]>;
+  sizeRows: SizeRow[];
+  cakes: Record<number, LineCake>;
+};
+
+/** What was paid for the line's options: its price less what was paid for its size. */
+const optionsPaid = (l: Line) => l.pricePence - sizePaid(l);
+
 /** What a set of edits would do to these lines: the rows of e-mail 12, the line updates and the net difference. */
-function plan(
-  lines: Line[],
-  choices: Record<number, SizeChoice[]>,
-  sizeRows: SizeRow[],
-  input: ChangeInput,
-) {
+function plan(lines: Line[], ctx: Ctx, input: ChangeInput) {
   const several = lines.length > 1;
+  const on = (what: string, l: Line, joint: string) =>
+    several ? `${what} ${joint} ${l.name}` : what;
   const errors: Record<number, string> = {};
   const changes: [string, string, string][] = [];
   const messages = new Map<number, string>();
   const moves: { line: Line; size: SizeRow; diff: number }[] = [];
+  const opts: {
+    line: Line;
+    answers: Answers;
+    text: string;
+    allergenText: string;
+    allergenKeys: string[];
+    diff: number;
+  }[] = [];
   for (const [key, raw] of Object.entries(input.messages ?? {})) {
     const line = lines.find((l) => l.id === Number(key));
     if (!line || line.message === null) continue;
@@ -137,47 +169,113 @@ function plan(
     const text = normaliseText(raw);
     if (text === line.message) continue;
     messages.set(line.id, text);
-    changes.push([
-      several ? `Message on ${line.name}` : "Message",
-      shown(line.message),
-      shown(text),
-    ]);
+    changes.push([on("Message", line, "on"), shown(line.message), shown(text)]);
   }
   for (const [key, sizeId] of Object.entries(input.sizes ?? {})) {
     const line = lines.find((l) => l.id === Number(key));
     const choice =
-      line && choices[line.id]?.find((c) => c.id === Number(sizeId));
+      line && ctx.choices[line.id]?.find((c) => c.id === Number(sizeId));
     if (!line || !choice || choice.current || choice.removed) continue;
-    const size = sizeRows.find((s) => s.id === choice.id);
+    const size = ctx.sizeRows.find((s) => s.id === choice.id);
     if (!size) continue;
     moves.push({ line, size, diff: size.pricePence - sizePaid(line) });
     changes.push([
-      several ? `Size of ${line.name}` : "Size",
+      on("Size", line, "of"),
       line.sizeLine.replace(/^.* · /, ""),
       `serves ${size.serves}`,
     ]);
   }
-  const net = moves.reduce((n, m) => n + m.diff, 0);
-  return { errors, changes, messages, moves, net };
+  for (const [key, answers] of Object.entries(input.options ?? {})) {
+    const line = lines.find((l) => l.id === Number(key));
+    const cake = line && ctx.cakes[line.id];
+    if (!line || !cake?.options.length || !editableOptions(line)) continue;
+    const errs = optionErrors(cake.options, answers);
+    if (Object.keys(errs).length) {
+      errors[line.id] = Object.values(errs)[0];
+      continue;
+    }
+    const text = optionsLine(cake.options, answers);
+    if (text === line.options) continue;
+    const price = chosen(cake.options, answers).reduce(
+      (n, { choice }) => n + choice.pricePence,
+      0,
+    );
+    // As the checkout keeps it (§5.3): the cake with its options, without the kitchen's traces sentence.
+    const allergenText = allergenLine(
+      cake.allergens,
+      cake.options,
+      answers,
+      [],
+    );
+    const allergenKeys = lineAllergens(cake.allergens, cake.options, answers)
+      .allergens as string[];
+    opts.push({
+      line,
+      answers,
+      text,
+      allergenText,
+      allergenKeys,
+      diff: price - optionsPaid(line),
+    });
+    changes.push([
+      on("Options", line, "on"),
+      line.options || "None",
+      text || "None",
+    ]);
+    if (allergenText !== line.allergenText)
+      changes.push([
+        on("Contains", line, "—"),
+        line.allergenText,
+        allergenText,
+      ]);
+  }
+  const net =
+    moves.reduce((n, m) => n + m.diff, 0) +
+    opts.reduce((n, o) => n + o.diff, 0);
+  return { errors, changes, messages, moves, opts, net };
 }
 type Plan = ReturnType<typeof plan>;
+
+/** A line's options can be changed when its answers were kept (lines made before 6.2b without options too). */
+export const editableOptions = (l: Line) => l.answers !== null || !l.options;
 
 /** Writes a plan's line updates; the lines take the new prices unless the difference was waived. */
 async function writeLines(tx: Tx, orderId: number, p: Plan, waived: boolean) {
   const updates = new Map<number, Partial<Line>>();
+  const priceDiff = new Map<number, number>();
+  const base = new Map<number, Line>();
   for (const [id, message] of p.messages) updates.set(id, { message });
-  for (const m of p.moves)
+  for (const m of p.moves) {
+    base.set(m.line.id, m.line);
+    priceDiff.set(m.line.id, (priceDiff.get(m.line.id) ?? 0) + m.diff);
     updates.set(m.line.id, {
       ...updates.get(m.line.id),
       sizeId: m.size.id,
       sizeLine: sizeLine(m.size),
-      ...(waived
-        ? {}
-        : {
-            sizePricePence: m.size.pricePence,
-            pricePence: m.line.pricePence + m.diff,
-          }),
+      ...(waived ? {} : { sizePricePence: m.size.pricePence }),
     });
+  }
+  for (const o of p.opts) {
+    base.set(o.line.id, o.line);
+    priceDiff.set(o.line.id, (priceDiff.get(o.line.id) ?? 0) + o.diff);
+    updates.set(o.line.id, {
+      ...updates.get(o.line.id),
+      options: o.text,
+      answers: o.answers,
+      allergenText: o.allergenText,
+      allergenKeys: o.allergenKeys,
+      // The size's own price paid is kept apart, so the options' share stays the line's price less it.
+      ...(o.line.sizePricePence === null
+        ? { sizePricePence: sizePaid(o.line) }
+        : {}),
+    });
+  }
+  if (!waived)
+    for (const [id, diff] of priceDiff)
+      updates.set(id, {
+        ...updates.get(id),
+        pricePence: base.get(id)!.pricePence + diff,
+      });
   for (const [id, set] of updates)
     await tx
       .update(orderLines)
@@ -187,8 +285,8 @@ async function writeLines(tx: Tx, orderId: number, p: Plan, waived: boolean) {
 
 type Tx = Parameters<Parameters<Db["transaction"]>[0]>[0];
 
-/** The lines, their size choices and every size row: read before a transaction. */
-async function context(db: Db, orderId: number) {
+/** The lines' size choices, every size row, each line's cake options and allergens, the kitchen list. */
+async function context(db: Db, orderId: number): Promise<Ctx> {
   const lines = await db
     .select()
     .from(orderLines)
@@ -196,7 +294,34 @@ async function context(db: Db, orderId: number) {
     .orderBy(orderLines.position);
   const choices = await sizeChoices(db, lines);
   const sizeRows = await db.select().from(cakeSizes);
-  return { choices, sizeRows };
+  const cakeInfo = await lineCakes(db, lines);
+  return { choices, sizeRows, cakes: cakeInfo };
+}
+
+/** Each line's cake as it is now: its options and own allergens (§5.8). */
+export async function lineCakes(
+  db: Db,
+  lines: Line[],
+): Promise<Record<number, LineCake>> {
+  const out: Record<number, LineCake> = {};
+  for (const l of lines) {
+    if (!l.slug) continue;
+    const [cake] = await db
+      .select()
+      .from(cakes)
+      .where(and(eq(cakes.slug, l.slug), isNull(cakes.deletedAt)));
+    if (!cake) continue;
+    out[l.id] = {
+      options: await readOptions(db, cake.id),
+      allergens: {
+        allergens: cake.allergens as AllergenSet["allergens"],
+        glutenKinds: cake.glutenKinds,
+        nutKinds: cake.nutKinds,
+        alsoContains: cake.alsoContains,
+      },
+    };
+  }
+  return out;
 }
 
 const locked = (o: Order, now: Date) =>
@@ -217,7 +342,7 @@ export async function saveChanges(
   now = new Date(),
 ): Promise<SaveResult> {
   const today = londonDate(now);
-  const { choices, sizeRows } = await context(db, input.orderId);
+  const ctx = await context(db, input.orderId);
   const result = await db.transaction(async (tx) => {
     const [o] = await tx
       .select()
@@ -237,7 +362,7 @@ export async function saveChanges(
       .from(orderLines)
       .where(eq(orderLines.orderId, o.id))
       .orderBy(orderLines.position);
-    const p = plan(lines, choices, sizeRows, input);
+    const p = plan(lines, ctx, input);
     if (Object.keys(p.errors).length)
       return { kind: "invalid", errors: p.errors } as const;
     if (!p.changes.length) return { kind: "nothing" } as const;
@@ -306,7 +431,7 @@ export async function prepareChangePayment(
   now = new Date(),
 ): Promise<PrepareResult> {
   const today = londonDate(now);
-  const { choices, sizeRows } = await context(db, input.orderId);
+  const ctx = await context(db, input.orderId);
   const pending = await db.transaction(async (tx) => {
     const [o] = await tx
       .select()
@@ -326,7 +451,7 @@ export async function prepareChangePayment(
       .from(orderLines)
       .where(eq(orderLines.orderId, o.id))
       .orderBy(orderLines.position);
-    const p = plan(lines, choices, sizeRows, input);
+    const p = plan(lines, ctx, input);
     if (Object.keys(p.errors).length)
       return { kind: "invalid", errors: p.errors } as const;
     if (!p.changes.length) return { kind: "nothing" } as const;
@@ -439,7 +564,7 @@ export async function applyChangePayment(
     .where(eq(orderChanges.paymentIntentId, intent.id));
   if (!c0) return "nothing";
   if (c0.status === "saved") return "already";
-  const { choices, sizeRows } = await context(db, c0.orderId);
+  const ctx = await context(db, c0.orderId);
   const result = await db.transaction(async (tx) => {
     const [c] = await tx
       .select()
@@ -457,7 +582,7 @@ export async function applyChangePayment(
       .from(orderLines)
       .where(eq(orderLines.orderId, o.id))
       .orderBy(orderLines.position);
-    const p = plan(lines, choices, sizeRows, (c.payload ?? {}) as ChangeInput);
+    const p = plan(lines, ctx, (c.payload ?? {}) as ChangeInput);
     const sameOrder =
       o.version === c.baseVersion &&
       o.status === "confirmed" &&
@@ -575,6 +700,7 @@ async function tell(
   const delivery = o.handover === "delivery";
   const same = [
     p.moves.length ? "" : "size",
+    p.opts.length ? "" : "options",
     p.messages.size ? "" : "message",
     "date",
     delivery ? "delivery time" : "",

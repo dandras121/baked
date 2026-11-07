@@ -17,6 +17,7 @@ import { orderForToken } from "@/db/order-link-repo";
 import { mailTransport } from "@/lib/mail/transport";
 import { UNLOCK_COOKIE, unlockValid } from "@/lib/order-link";
 import { gateway } from "@/lib/payments";
+import type { Answers } from "@/lib/cake-config";
 
 /** Without Stripe keys a refund cannot go: it is recorded as failed and Linda is told (§6.4). */
 const PAYMENTS_OFF = {
@@ -52,13 +53,7 @@ export async function saveChange(
   if (!unlockValid(token, (await cookies()).get(UNLOCK_COOKIE)?.value))
     redirect(`/my-order/${token}/change`);
   if (!databaseUrl()) return { outcome: "failed", errors: {} };
-  const messages: Record<number, string> = {};
-  const sizes: Record<number, number> = {};
-  for (const [key, value] of form.entries()) {
-    if (key.startsWith("message-"))
-      messages[Number(key.slice(8))] = String(value).slice(0, 100);
-    if (key.startsWith("size-")) sizes[Number(key.slice(5))] = Number(value);
-  }
+  const { messages, sizes, options } = editsFrom(form);
   const { db, close } = connect();
   let changeId = 0;
   try {
@@ -69,6 +64,7 @@ export async function saveChange(
       version,
       messages,
       sizes,
+      options,
     });
     if (r.kind === "invalid") return { outcome: "invalid", errors: r.errors };
     if (r.kind !== "saved") return { outcome: r.kind, errors: {} };
@@ -94,12 +90,34 @@ export type PrepareState =
 function editsFrom(form: FormData) {
   const messages: Record<number, string> = {};
   const sizes: Record<number, number> = {};
+  const options: Record<number, Answers> = {};
   for (const [key, value] of form.entries()) {
     if (key.startsWith("message-"))
       messages[Number(key.slice(8))] = String(value).slice(0, 100);
     if (key.startsWith("size-")) sizes[Number(key.slice(5))] = Number(value);
+    if (key.startsWith("options-")) {
+      const a = answersFrom(String(value));
+      if (a) options[Number(key.slice(8))] = a;
+    }
   }
-  return { messages, sizes };
+  return { messages, sizes, options };
+}
+
+/** Option answers as the page sends them (JSON); anything malformed is ignored. */
+function answersFrom(raw: string): Answers | null {
+  try {
+    const v = JSON.parse(raw.slice(0, 5000)) as Answers;
+    const picks: Answers["picks"] = {};
+    const texts: Answers["texts"] = {};
+    for (const [k, ids] of Object.entries(v.picks ?? {}))
+      if (Array.isArray(ids))
+        picks[Number(k)] = ids.map(Number).filter(Number.isFinite);
+    for (const [k, t] of Object.entries(v.texts ?? {}))
+      texts[Number(k)] = String(t).slice(0, 500);
+    return { picks, texts };
+  } catch {
+    return null;
+  }
 }
 
 async function openOrder(token: string) {

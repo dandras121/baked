@@ -62,10 +62,44 @@ export async function readCakePage(
             alt: m.altText || `${cake.name}, video`,
           },
     );
+  const options = await readOptions(db, cake.id);
+  return cakePage(
+    {
+      ...cake,
+      allergens: cake.allergens as CakePageData["allergens"]["allergens"],
+    },
+    sizes.map((s) => ({
+      id: s.id,
+      serves: s.serves,
+      tiers: s.tiers,
+      pricePence: s.pricePence,
+    })),
+    items,
+    options,
+  );
+}
+
+export async function getCakePage(slug: string): Promise<CakePageData | null> {
+  "use cache";
+  cacheTag(CAKES_TAG);
+  if (!databaseUrl()) return null;
+  const { db, close } = connect();
+  try {
+    return await readCakePage(db, slug);
+  } finally {
+    await close();
+  }
+}
+
+/** A cake's options with their choices (§5.8), as the cake page and Change your order show them. */
+export async function readOptions(
+  db: Db,
+  cakeId: number,
+): Promise<OptionView[]> {
   const optionRows = await db
     .select()
     .from(cakeOptions)
-    .where(eq(cakeOptions.cakeId, cake.id))
+    .where(eq(cakeOptions.cakeId, cakeId))
     .orderBy(asc(cakeOptions.position));
   const choiceRows = optionRows.length
     ? await db
@@ -100,30 +134,5 @@ export async function readCakePage(
         alsoContains: c.alsoContains,
       })),
   }));
-  return cakePage(
-    {
-      ...cake,
-      allergens: cake.allergens as CakePageData["allergens"]["allergens"],
-    },
-    sizes.map((s) => ({
-      id: s.id,
-      serves: s.serves,
-      tiers: s.tiers,
-      pricePence: s.pricePence,
-    })),
-    items,
-    options,
-  );
-}
-
-export async function getCakePage(slug: string): Promise<CakePageData | null> {
-  "use cache";
-  cacheTag(CAKES_TAG);
-  if (!databaseUrl()) return null;
-  const { db, close } = connect();
-  try {
-    return await readCakePage(db, slug);
-  } finally {
-    await close();
-  }
+  return options;
 }
