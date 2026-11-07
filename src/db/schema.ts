@@ -651,6 +651,8 @@ export const orders = pgTable(
     confirmedAt: timestamp("confirmed_at", { withTimezone: true }).notNull(),
     /** Mark handed over (admin Today, §9.3); e-mail 18 goes at 10:00 the day after (§8.1). */
     handedOverAt: timestamp("handed_over_at", { withTimezone: true }),
+    /** Raised by every saved change: a save from an out-of-date page changes nothing (§6.4, §9.7). */
+    version: integer("version").notNull().default(1),
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
       .defaultNow(),
@@ -840,5 +842,33 @@ export const linkChecks = pgTable(
   (t) => [
     index("link_checks_order").on(t.orderId, t.at),
     index("link_checks_connection").on(t.connection, t.at),
+  ],
+);
+
+/**
+ * A saved change to an order (§6.4, §9.7): who made it, what changed (old → new, as e-mail 12 shows it) and the money.
+ * E-mail 12 is rendered from this record, never from today's order (§8.4 Send again).
+ */
+export const orderChanges = pgTable(
+  "order_changes",
+  {
+    id: serial("id").primaryKey(),
+    orderId: integer("order_id")
+      .notNull()
+      .references(() => orders.id, { onDelete: "cascade" }),
+    by: text("by").notNull(),
+    /** [what, before, after] rows, e.g. ["Message", "“Happy 30th”", "“Happy 30th, Mairi”"]. */
+    changes: jsonb("changes").notNull(),
+    moneyKind: text("money_kind").notNull().default("none"),
+    moneyPence: integer("money_pence").notNull().default(0),
+    newTotalPence: integer("new_total_pence").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [
+    check("change_by", sql`${t.by} in ('customer', 'linda')`),
+    check("change_money", sql`${t.moneyKind} in ('none', 'up', 'down', 'owed')`),
+    index("order_changes_order").on(t.orderId, t.createdAt),
   ],
 );

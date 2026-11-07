@@ -3,6 +3,7 @@
 import { useEffect, useRef } from "react";
 import { ButtonLink } from "@/components/ui/button";
 import { Link } from "@/components/ui/link";
+import { Notice } from "@/components/ui/notice";
 import { formatPrice } from "@/lib/money";
 import { panelDate, statusCopy, type StatusState } from "@/lib/order-status";
 import { WINDOWS } from "@/lib/handover";
@@ -140,7 +141,14 @@ function OrderPanel({ v }: { v: StatusView }) {
  * The status page (§6.2 states A, B, B2, C, E; §6.3 actions). The first match of §6.2 decides the state on the server;
  * this draws it: the order number, the heading, the NEXT box, the actions and “Your order”.
  */
-export function StatusPage({ v }: { v: StatusView }) {
+export function StatusPage({
+  v,
+  banner = null,
+}: {
+  v: StatusView;
+  /** “Your change is saved.” and its line (§6.3 status banners), straight after a save only. */
+  banner?: { title: string; text: string } | null;
+}) {
   const copy = statusCopy(v);
   const base = `/my-order/${v.token}`;
   const title = useRef<HTMLHeadingElement>(null);
@@ -151,6 +159,13 @@ export function StatusPage({ v }: { v: StatusView }) {
   return (
     <div className={styles.page}>
       <div className={styles.head}>
+        {banner && (
+          <div className={styles.banner}>
+            <Notice icon title={banner.title}>
+              <p>{banner.text}</p>
+            </Notice>
+          </div>
+        )}
         <p className={styles.number}>Order {v.number}</p>
         <h1 ref={title} tabIndex={-1} className={styles.title}>
           {copy.title}

@@ -10,6 +10,7 @@ import {
 import { OpenOrder } from "@/components/order-status/open-order";
 import styles from "@/components/order-status/state.module.css";
 import { connect, databaseUrl } from "@/db/client";
+import { recentChange } from "@/db/change-repo";
 import { readMailSettings, reviewLink } from "@/db/mail-settings-repo";
 import { orderForToken } from "@/db/order-link-repo";
 import { cakes, orderLines } from "@/db/schema";
@@ -29,8 +30,10 @@ export const metadata: Metadata = {
 
 export default async function Page({
   params,
+  searchParams,
 }: {
   params: Promise<{ token: string }>;
+  searchParams: Promise<{ saved?: string }>;
 }) {
   await connection();
   const { token } = await params;
@@ -38,6 +41,7 @@ export default async function Page({
   const phone = settings?.phone ?? "";
   let found: Awaited<ReturnType<typeof orderForToken>> = null;
   let view: StatusView | null = null;
+  let banner: { title: string; text: string } | null = null;
   const unlocked = unlockValid(
     token,
     (await cookies()).get(UNLOCK_COOKIE)?.value,
@@ -46,7 +50,15 @@ export default async function Page({
     const { db, close } = connect();
     try {
       found = await orderForToken(db, token);
-      if (found?.valid && unlocked) view = await statusView(db, found.order);
+      if (found?.valid && unlocked) {
+        view = await statusView(db, found.order);
+        const saved = Number((await searchParams).saved);
+        if (saved && (await recentChange(db, found.order.id, saved)))
+          banner = {
+            title: "Your change is saved.",
+            text: "The details are in your inbox.",
+          };
+      }
     } finally {
       await close();
     }
@@ -68,7 +80,7 @@ export default async function Page({
         />
       </div>
     );
-  return <StatusPage v={view} />;
+  return <StatusPage v={view} banner={banner} />;
 }
 
 type Db = ReturnType<typeof connect>["db"];

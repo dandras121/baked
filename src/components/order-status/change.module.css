@@ -1,0 +1,144 @@
+/*
+ * Change your order (§6.4; A 1036:9227, A3 editors 1799:12959, phone 1799:13052; A2 1036:9260). One column of 700
+ * inside the 760 page (§0.6); the panel's rows are grouped per cake, then the date row.
+ */
+.page {
+  width: min(100%, 760px);
+  margin-inline: auto;
+  padding: 48px 24px 80px;
+}
+
+@media (min-width: 768px) {
+  .page {
+    padding: 64px 30px 80px;
+  }
+}
+
+.number {
+  margin: 0 0 6px;
+  color: var(--colour-meta);
+  font: var(--type-state-small);
+}
+
+.title {
+  margin: 0 0 16px;
+  color: var(--colour-display);
+  font: var(--type-state-title);
+  font-variation-settings: var(--font-display-axes);
+}
+
+.title:focus {
+  outline: none;
+}
+
+.panel {
+  margin-top: 18px;
+  padding: 20px;
+  border: 1px solid var(--colour-panel-border);
+  border-radius: 14px;
+  background: var(--colour-white);
+}
+
+@media (max-width: 767.98px) {
+  .panel {
+    padding: 16px;
+  }
+}
+
+.label {
+  margin: 0 0 12px;
+  color: var(--colour-accent);
+  font: var(--type-state-label);
+}
+
+.cake {
+  margin: 14px 0 4px;
+  color: var(--colour-ink);
+  font: var(--type-state-strong);
+}
+
+.row {
+  padding: 12px 0;
+  border-top: 1px solid var(--colour-line-rule);
+}
+
+.cake + .row {
+  border-top: 0;
+}
+
+.rowHead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.what {
+  margin: 0 0 2px;
+  color: var(--colour-meta);
+  font: var(--type-state-row-label);
+}
+
+.value {
+  margin: 0;
+  color: var(--colour-ink);
+  font: var(--type-state-row-value-phone);
+  overflow-wrap: anywhere;
+}
+
+.was {
+  margin: 4px 0 0;
+  color: var(--colour-meta);
+  font: var(--type-state-small);
+}
+
+.editor {
+  display: grid;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.editorActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.foot {
+  margin: 16px 0 0;
+  color: var(--colour-meta);
+  font: var(--type-state-small);
+}
+
+.buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 18px;
+}
+
+@media (min-width: 768px) {
+  .buttons {
+    flex-direction: row;
+  }
+}
+
+.notice {
+  margin-top: 18px;
+}
+
+/* “Change” / “Undo” (Link / Change 1799:13009): a text link, colour only. */
+.rowLink {
+  flex: none;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--colour-accent);
+  font: var(--type-body-sm);
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.rowLink:hover {
+  color: var(--colour-display);
+}

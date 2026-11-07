@@ -98,3 +98,5 @@ Anything built differently from the docs or Figma, and why. Bohoka’s decision 
 | 6.1b | 1036:9156 B “I am baking yours this week. The details are fixed now.”; 1036:9197 C “Anything not right? Tell me as soon as you can…” | The §6.3 NEXT box texts |
 | 6.1b | 1036:9131 photo slot 4 : 5 | 1 : 1, as §6.3 Order panel rows say |
 | 6.1b | E · Cancelled | Shown with “This order was cancelled.” only; its date and refund lines come with the cancellation record (6.3) |
+| 6.2a | A2 1036:9260 “…possible up to 48 hours before your date.” and the half-refund footer | Left out: changes close at 23:59 on D-2 and online cancelling closes with them (§10.1); A2 keeps “Changes closed on {D-2}” and “Nothing on your order has changed, and {date} is still held.” |
+| 6.2a | 1036:9227 caps “WHAT YOU CAN CHANGE” | Sentence case (Bohoka 2026-11-01) |
