@@ -92,3 +92,5 @@ Anything built differently from the docs or Figma, and why. Bohoka’s decision 
 | 5.3 | 1167:9106 caps “A YEAR AGO TODAY”, “A FEW THAT ARE NEW THIS YEAR” | Sentence case in the accent colour (Bohoka 2026-11-01) |
 | 5.3 | 1800:13148 e-mail 17 “18:42” | “6:42pm” (§10.7 customer times) |
 | 5.3 | J 1199:9206 / 1199:9408 “off the yearly reminder — you won’t hear from me again unless you ask” | The §6.10 wording; the box's round sign without the check mark (the site's calm notice) |
+| 6.1a | D 1037:9232 caps eyebrow “THIS LINK HAS EXPIRED”; text “Status links last 30 days…” | Sentence case in the error colour (Bohoka 2026-11-01); the §6.1 text |
+| 6.1a | F 1037:9244 “If that email has an order, the link is on its way” | The §6.1 F: “New link sent” · “Check your inbox — it usually arrives within a minute.” |

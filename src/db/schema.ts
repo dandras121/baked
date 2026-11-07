@@ -821,3 +821,24 @@ export const consentEvents = pgTable(
     index("consent_latest").on(t.emailHash, t.list, t.at),
   ],
 );
+
+/**
+ * Answers to a status link's second check (§6.1): 5 wrong on one link within 15 minutes lock it for 15 minutes;
+ * at most 20 wrong per connection per hour across all links. The connection is a salted hash (§10.10).
+ */
+export const linkChecks = pgTable(
+  "link_checks",
+  {
+    id: serial("id").primaryKey(),
+    orderId: integer("order_id")
+      .notNull()
+      .references(() => orders.id, { onDelete: "cascade" }),
+    connection: text("connection").notNull(),
+    ok: boolean("ok").notNull(),
+    at: timestamp("at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    index("link_checks_order").on(t.orderId, t.at),
+    index("link_checks_connection").on(t.connection, t.at),
+  ],
+);

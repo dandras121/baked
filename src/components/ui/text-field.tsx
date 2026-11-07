@@ -29,6 +29,8 @@ type FrameProps = {
   labelStyle?: "caps" | "plain" | "heading";
   hint?: ReactNode;
   error?: string | null;
+  /** The error look without a message under the field (the message is in a notice below, e.g. §6.1 A). */
+  invalid?: boolean;
   counter?: ReactNode;
   /** The counter under the box instead of inside it (Contact 656:3895). */
   counterBelow?: boolean;
@@ -41,21 +43,23 @@ function Frame({
   labelStyle = "caps",
   hint,
   error,
+  invalid = false,
   counter,
   counterBelow = false,
   id,
   children,
 }: FrameProps) {
+  const bad = !!error || invalid;
   return (
     <div className={styles.frame}>
       <label
         htmlFor={id}
-        className={`${styles.label} ${styles[labelStyle]} ${error ? styles.labelError : ""}`}
+        className={`${styles.label} ${styles[labelStyle]} ${bad ? styles.labelError : ""}`}
       >
         {label}
       </label>
       <div
-        className={`${styles.box} ${error ? styles.boxError : ""}`}
+        className={`${styles.box} ${bad ? styles.boxError : ""}`}
         data-writable
       >
         {children}
@@ -117,6 +121,7 @@ type Shared = {
   labelStyle?: "caps" | "plain" | "heading";
   hint?: ReactNode;
   error?: string | null;
+  invalid?: boolean;
 };
 
 export function TextField({
@@ -124,6 +129,7 @@ export function TextField({
   labelStyle,
   hint,
   error,
+  invalid,
   id: given,
   max,
   counterMode = "always",
@@ -141,12 +147,12 @@ export function TextField({
     counterMode,
   );
   return (
-    <Frame {...{ label, labelStyle, hint, error, id, counter }}>
+    <Frame {...{ label, labelStyle, hint, error, invalid, id, counter }}>
       <input
         {...input}
         id={id}
         className={styles.control}
-        aria-invalid={error || over ? true : undefined}
+        aria-invalid={error || invalid || over ? true : undefined}
         aria-describedby={describedBy(id, hint, error)}
         onChange={(e) => {
           setText(e.target.value);

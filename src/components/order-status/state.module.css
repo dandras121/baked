@@ -1,0 +1,62 @@
+/*
+ * State screens of the status link (§6.1; A 1199:9211, D 1037:9232, F 1037:9244). §0.6: the card's content sits on
+ * the page background, at most 760 px wide, centred, 64 px under the header; its serif heading is the page's h1.
+ */
+.page {
+  width: min(100%, 760px);
+  margin-inline: auto;
+  padding: 64px 24px 80px;
+}
+
+.narrow {
+  width: min(100%, 460px);
+  margin-inline: auto;
+}
+
+.centre {
+  text-align: center;
+}
+
+.eyebrow {
+  margin: 0 0 8px;
+  color: var(--colour-error);
+  font: var(--type-body-sm);
+}
+
+.title {
+  margin: 0;
+  color: var(--colour-display);
+  font: var(--type-option-phone);
+  font-variation-settings: var(--font-display-axes);
+}
+
+.title:focus {
+  outline: none;
+}
+
+.text {
+  margin: 12px 0 0;
+  color: var(--colour-body);
+  font: var(--type-body-sm);
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-top: 24px;
+  text-align: left;
+}
+
+.link {
+  display: inline-block;
+  margin-top: 16px;
+  color: var(--colour-accent);
+  font: var(--type-body-sm);
+}
+
+.small {
+  margin: 16px 0 0;
+  color: var(--colour-meta);
+  font: var(--type-body-sm);
+}

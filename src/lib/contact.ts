@@ -34,6 +34,8 @@ export const CONTACT_FIELDS: ContactField[] = [
 
 /** Standard format: something@domain.tld, no spaces (§10.8). */
 const EMAIL = /^[^\s@]+@[^\s@.]+(\.[^\s@.]+)+$/;
+export const isEmail = (value: string) =>
+  EMAIL.test(value) && value.length <= 254;
 
 export const CONTACT_COPY = {
   nameMissing: "Please tell me your name.",
@@ -69,9 +71,7 @@ export function contactFieldError(
     }
     case "email":
       if (!value) return CONTACT_COPY.emailMissing;
-      return EMAIL.test(value) && value.length <= 254
-        ? null
-        : CONTACT_COPY.emailInvalid;
+      return isEmail(value) ? null : CONTACT_COPY.emailInvalid;
     case "phone":
       if (!value) return null;
       return toE164(value) ? null : CONTACT_COPY.phoneInvalid;
