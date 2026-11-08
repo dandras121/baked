@@ -987,6 +987,51 @@ export const paymentLinks = pgTable(
   ],
 );
 
+/** Running numbers of enquiries (E) and complaints (C) per year: BBL-YYYY-E-NNNN, BBL-YYYY-C-NNNN (§10.7). */
+export const referenceCounters = pgTable(
+  "reference_counters",
+  {
+    kind: text("kind").notNull(),
+    year: integer("year").notNull(),
+    last: integer("last").notNull(),
+  },
+  (t) => [primaryKey({ columns: [t.kind, t.year] })],
+);
+
+/**
+ * A bespoke enquiry (§7.1): the answers as sent (pills, date, venue, dietary, anything else), the contact, and whether
+ * it came with gaps or looked like spam. The token is its read-only page `/my-enquiry/[token]` (§7.2, 12 months).
+ */
+export const enquiries = pgTable(
+  "enquiries",
+  {
+    id: serial("id").primaryKey(),
+    reference: text("reference").notNull().unique(),
+    token: text("token").notNull().unique(),
+    formKey: text("form_key").notNull().unique(),
+    /** new · spam (a filled honeypot: hidden from New, deleted after 30 days, §10.10). */
+    status: text("status").notNull().default("new"),
+    answers: jsonb("answers").notNull(),
+    withGaps: boolean("with_gaps").notNull().default(false),
+    callMe: boolean("call_me").notNull().default(false),
+    name: text("name").notNull(),
+    email: text("email"),
+    /** E.164 (§10.8), or null. */
+    phone: text("phone"),
+    inspiredPhotoId: integer("inspired_photo_id").references(
+      () => galleryPhotos.id,
+      { onDelete: "set null" },
+    ),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [
+    check("enquiry_status", sql`${t.status} in ('new', 'spam')`),
+    index("enquiries_created").on(t.createdAt),
+  ],
+);
+
 /** Message Linda (§6.5): what the customer wrote from the status link, kept on the order (admin Order detail →
  *  Messages, 9.x). One per form key, so a repeated press is one message (§10.8). */
 export const orderMessages = pgTable(

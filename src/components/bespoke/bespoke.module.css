@@ -1,0 +1,293 @@
+/*
+ * Bespoke enquiry (§7.1). Phone 847:8028 (402 wide, 24 side margins, How this works under the form); tablet and
+ * desktop 660:4068 in desktop design px × --u: two columns of 524 with 72 between, 80 at the sides (1559:11694 = × 0.8).
+ * The title and intro are Contact's (contact.module.css).
+ */
+.title {
+  white-space: normal;
+}
+
+.body {
+  display: grid;
+  gap: 40px;
+  padding: 26px calc(24 * var(--u)) 48px;
+}
+
+.form {
+  display: grid;
+  gap: 0;
+}
+
+.block {
+  margin-top: 30px;
+}
+
+.block:first-of-type {
+  margin-top: 8px;
+}
+
+/* “01 · The occasion” and its violet hint (sentence case, Bohoka 2026-11-01). */
+.heading {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 12px;
+  margin: 0 0 12px;
+  color: var(--colour-meta);
+  font: var(--type-label);
+  letter-spacing: 0.02em;
+}
+
+.hint {
+  color: var(--colour-helper);
+  font: var(--type-small);
+}
+
+.pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.second {
+  margin-top: 10px;
+}
+
+.date {
+  max-width: calc(340 * var(--u));
+  margin-bottom: 10px;
+}
+
+.long {
+  margin: -4px 0 10px;
+  color: var(--colour-meta);
+  font: var(--type-small);
+}
+
+/* The calm date warning under the field (L 1608:11057): violet, never a block. */
+.warning {
+  margin: 0 0 10px;
+  color: var(--colour-accent);
+  font: var(--type-small);
+}
+
+.notice {
+  margin-bottom: 12px;
+}
+
+.note {
+  margin: 12px 0;
+  color: var(--colour-meta);
+  font: var(--type-small);
+}
+
+.consent {
+  margin-top: 14px;
+}
+
+.fields {
+  display: grid;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+/* Inspired by (M 1633:12343): thumbnail, label and caption, Remove ×. */
+.inspired {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 10px 16px 10px 10px;
+  border: 1px solid var(--colour-line-rule);
+  border-radius: 10px;
+  background: var(--colour-surface-soft, var(--colour-white));
+}
+
+.thumb {
+  flex: none;
+  width: 64px;
+  height: 64px;
+  border-radius: 6px;
+  background: var(--colour-placeholder);
+  object-fit: cover;
+}
+
+.inspiredText {
+  display: grid;
+  flex: 1;
+  gap: 4px;
+  min-width: 0;
+  color: var(--colour-ink);
+  font: var(--type-body-sm);
+}
+
+.inspiredLabel {
+  color: var(--colour-meta);
+  font: var(--type-label);
+}
+
+.remove {
+  flex: none;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--colour-display);
+  font: var(--type-small);
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.send {
+  display: grid;
+  justify-items: stretch;
+  gap: 16px;
+  margin-top: 34px;
+}
+
+.summary {
+  display: grid;
+  gap: 16px;
+}
+
+.summaryActions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px 16px;
+}
+
+.anyway {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--colour-accent);
+  font: var(--type-contact-note);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.small {
+  margin: 16px 0 0;
+  color: var(--colour-body);
+  font: var(--type-contact-note-phone);
+}
+
+/* Never seen or reached (§7.1): off the screen, out of the tab order, hidden from screen readers. */
+.honeypot {
+  position: absolute;
+  left: -10000px;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}
+
+/* How this works (660:4268) and How far ahead to ask (660:4293). */
+.panel {
+  padding: 26px 28px 10px;
+  border-radius: 10px;
+  background: var(--colour-selected-wash);
+}
+
+.panelTitle {
+  margin: 0 0 18px;
+  color: var(--colour-ink);
+  font: var(--type-label);
+  letter-spacing: 0.02em;
+}
+
+.steps {
+  display: grid;
+  gap: 18px;
+  margin: 0 0 18px;
+  padding: 0;
+  list-style: none;
+}
+
+.steps li {
+  display: flex;
+  gap: 14px;
+}
+
+.disc {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--colour-display);
+  color: var(--colour-ink-inverse);
+  font: var(--type-label);
+  font-weight: 600;
+}
+
+.stepTitle {
+  display: block;
+  color: var(--colour-ink);
+  font: var(--type-contact-detail-phone);
+  font-variation-settings: var(--font-display-axes);
+}
+
+.stepText {
+  display: block;
+  margin-top: 4px;
+  color: var(--colour-body);
+  font: var(--type-contact-note-phone);
+}
+
+.aside .heading {
+  margin-top: 28px;
+}
+
+.ahead {
+  margin: 0;
+}
+
+.ahead div {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--colour-line-rule);
+}
+
+.ahead div:first-child {
+  padding-top: 2px;
+}
+
+.ahead dt {
+  color: var(--colour-ink);
+  font: var(--type-body-sm);
+}
+
+.ahead dd {
+  margin: 0;
+  color: var(--colour-display);
+  font: var(--type-body-sm);
+  font-family: var(--font-display);
+  font-variation-settings: var(--font-display-axes);
+}
+
+@media (min-width: 768px) {
+  .body {
+    grid-template-columns: 1fr 1fr;
+    align-items: start;
+    gap: calc(72 * var(--u));
+    padding: calc(56 * var(--u)) calc(80 * var(--u)) calc(84 * var(--u));
+  }
+
+  .send {
+    justify-items: start;
+  }
+
+  .small {
+    font: var(--type-contact-note);
+  }
+
+  .stepTitle {
+    font: var(--type-contact-detail);
+  }
+
+  .stepText {
+    font: var(--type-contact-note);
+  }
+}

@@ -25,8 +25,8 @@ export function counterVisible(
 
 type FrameProps = {
   label: string;
-  /** caps: “YOUR NAME” (V2 · Input 630:3004); plain: “Card number” (checkout fields). */
-  labelStyle?: "caps" | "plain" | "heading";
+  /** caps: “YOUR NAME” (V2 · Input 630:3004); plain: “Card number” (checkout fields); hidden: a heading above names it. */
+  labelStyle?: "caps" | "plain" | "heading" | "hidden";
   hint?: ReactNode;
   error?: string | null;
   /** The error look without a message under the field (the message is in a notice below, e.g. §6.1 A). */
@@ -54,7 +54,11 @@ function Frame({
     <div className={styles.frame}>
       <label
         htmlFor={id}
-        className={`${styles.label} ${styles[labelStyle]} ${bad ? styles.labelError : ""}`}
+        className={
+          labelStyle === "hidden"
+            ? "visually-hidden"
+            : `${styles.label} ${styles[labelStyle]} ${bad ? styles.labelError : ""}`
+        }
       >
         {label}
       </label>
@@ -118,7 +122,7 @@ const describedBy = (id: string, hint: unknown, error: unknown) =>
 
 type Shared = {
   label: string;
-  labelStyle?: "caps" | "plain" | "heading";
+  labelStyle?: "caps" | "plain" | "heading" | "hidden";
   hint?: ReactNode;
   error?: string | null;
   invalid?: boolean;
@@ -133,11 +137,14 @@ export function TextField({
   id: given,
   max,
   counterMode = "always",
+  inputMax,
   onChange,
   ...input
 }: Shared &
-  CounterProps &
-  Omit<InputHTMLAttributes<HTMLInputElement>, "maxLength">) {
+  CounterProps & {
+    /** The input's own max (a date's last day): `max` is the character counter's limit. */
+    inputMax?: string;
+  } & Omit<InputHTMLAttributes<HTMLInputElement>, "maxLength">) {
   const auto = useId();
   const id = given ?? auto;
   const { setText, over, counter, announce } = useCounter(
@@ -150,6 +157,7 @@ export function TextField({
     <Frame {...{ label, labelStyle, hint, error, invalid, id, counter }}>
       <input
         {...input}
+        max={inputMax}
         id={id}
         className={styles.control}
         aria-invalid={error || invalid || over ? true : undefined}

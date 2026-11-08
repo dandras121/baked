@@ -116,3 +116,6 @@ Anything built differently from the docs or Figma, and why. Bohoka’s decision 
 | 6.6 | M 1598:10573 caps “ORDER BBL-…”; “Call Linda on 01506 000 000” | Sentence case; the phone from Settings (§11.1) |
 | 6.6 | Pay-link “no longer needed” notice: the phone in the accent violet | The notice's own text colour, underlined (the accent is 4.37 : 1 on the violet wash) |
 | 7 (stack) | §0.8 / CLAUDE.md §3 Files: a private S3-compatible bucket with signed URLs | Vercel Blob for the customer pictures until Linda's storage account exists (Bohoka 2026-11-08), behind a storage adapter so moving to S3 is configuration; the pictures stay reachable only through the site (admin and the customer's own enquiry page) |
+| 7.1a | 660:4068 caps labels “01 · THE OCCASION”, “DATE OF THE EVENT”, “HOW THIS WORKS” | Sentence case (Bohoka 2026-11-01) |
+| 7.1a | 660:4230 the three picture tiles; M “+ Add your own pictures” | Not yet: pictures are slice 7.1b (Bohoka 2026-11-08 split) |
+| 7.1a | 654:3805 Enquiry sent | For now only “Enquiry sent.” and the reference; the drawn page is slice 7.2 |
