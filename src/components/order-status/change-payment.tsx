@@ -203,6 +203,8 @@ function PayForm({
           options={{
             // Cards only (§5.4): no Apple Pay, Google Pay or Link here.
             wallets: { applePay: "never", googlePay: "never", link: "never" },
+            // As at checkout: the country starts as the United Kingdom, so the postcode takes letters (not a US ZIP).
+            defaultValues: { billingDetails: { address: { country: "GB" } } },
           }}
         />
       </div>
