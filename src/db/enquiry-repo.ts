@@ -9,6 +9,7 @@ import { toE164 } from "@/lib/phone";
 import type { connect } from "./client";
 import { queueMail } from "./mail-repo";
 import { enquiries, galleryPhotos, referenceCounters } from "./schema";
+import { attachPictures } from "./upload-repo";
 import { readSettings } from "./settings-repo";
 
 type Db = ReturnType<typeof connect>["db"];
@@ -42,11 +43,13 @@ export async function inspiredPhoto(db: Db, id: number) {
 }
 
 /** Linda's alert line: servings, budget, a call, or how to reach them without an e-mail. */
-function alertDetail(e: Enquiry, phone: string | null) {
+function alertDetail(e: Enquiry, phone: string | null, pictures: number) {
   return [
     e.servings && `Serves ${e.servings.toLowerCase()}`,
     e.budget && `budget ${e.budget}`,
     e.callMe && "they would like a phone call",
+    pictures === 1 && "1 picture",
+    pictures > 1 && `${pictures} pictures`,
     !e.email.trim() && phone && `no e-mail — ring ${phone}`,
   ]
     .filter(Boolean)
@@ -62,6 +65,8 @@ export async function saveEnquiry(
     inspiredId: number | null;
     formKey: string;
     spam: boolean;
+    /** The ids of this form's uploaded pictures, in order (at most three are attached). */
+    pictures?: string[];
   },
   today: CalendarDate,
   now = new Date(),
@@ -85,21 +90,31 @@ export async function saveEnquiry(
     delete answers.name;
     delete answers.email;
     delete answers.phone;
-    await tx.insert(enquiries).values({
-      reference,
-      token,
-      formKey: input.formKey,
-      status: input.spam ? "spam" : "new",
-      answers,
-      withGaps: missing(e).length > 0,
-      callMe: e.callMe,
-      name: e.name.trim(),
-      email: e.email.trim() || null,
-      phone,
-      inspiredPhotoId: inspired?.id ?? null,
-      createdAt: now,
-    });
-    return { reference, token };
+    const [row] = await tx
+      .insert(enquiries)
+      .values({
+        reference,
+        token,
+        formKey: input.formKey,
+        status: input.spam ? "spam" : "new",
+        answers,
+        withGaps: missing(e).length > 0,
+        callMe: e.callMe,
+        name: e.name.trim(),
+        email: e.email.trim() || null,
+        phone,
+        inspiredPhotoId: inspired?.id ?? null,
+        createdAt: now,
+      })
+      .returning({ id: enquiries.id });
+    const pictures = await attachPictures(
+      tx,
+      input.pictures ?? [],
+      input.formKey,
+      { enquiryId: row.id },
+      now,
+    );
+    return { reference, token, pictures };
   });
   if (!input.spam)
     await queueMail(
@@ -114,7 +129,7 @@ export async function saveEnquiry(
             occasion: e.occasion || "Occasion not answered",
             date: e.date || null,
             today,
-            detail: `${alertDetail(e, phone)} When: ${dateAnswer(e, today)}.`,
+            detail: `${alertDetail(e, phone, saved.pictures)} When: ${dateAnswer(e, today)}.`,
           },
         },
         to: (await readSettings(db)).email,
@@ -122,5 +137,9 @@ export async function saveEnquiry(
       },
       now,
     );
-  return { ...saved, email: e.email.trim() || null };
+  return {
+    reference: saved.reference,
+    token: saved.token,
+    email: e.email.trim() || null,
+  };
 }

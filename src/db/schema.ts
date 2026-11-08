@@ -3,6 +3,7 @@ import { sql } from "drizzle-orm";
 import {
   boolean,
   check,
+  customType,
   date,
   index,
   integer,
@@ -1031,6 +1032,52 @@ export const enquiries = pgTable(
     index("enquiries_created").on(t.createdAt),
   ],
 );
+
+/** Postgres bytea for the database file store (a Buffer in and out). */
+const bytea = customType<{ data: Buffer; driverData: Buffer }>({
+  dataType: () => "bytea",
+});
+
+/** Customer pictures (§7.1, §7.5, §10.10): the processed JPEG and its thumbnail in the file store, private. Bound to
+ *  the form that uploaded them; attached on send. Never attached after 24 hours: deleted by the 03:00 job. */
+export const uploads = pgTable(
+  "uploads",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    /** enquiry · complaint */
+    purpose: text("purpose").notNull(),
+    formKey: uuid("form_key").notNull(),
+    /** The file name as picked (shown on the tile and to Linda). */
+    name: text("name").notNull(),
+    fileKey: text("file_key").notNull(),
+    thumbKey: text("thumb_key").notNull(),
+    bytes: integer("bytes").notNull(),
+    width: integer("width").notNull(),
+    height: integer("height").notNull(),
+    enquiryId: integer("enquiry_id").references(() => enquiries.id, {
+      onDelete: "cascade",
+    }),
+    attachedAt: timestamp("attached_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [
+    check("upload_purpose", sql`${t.purpose} in ('enquiry', 'complaint')`),
+    index("uploads_form").on(t.formKey),
+    index("uploads_enquiry").on(t.enquiryId),
+  ],
+);
+
+/** The database file store: used when no Vercel Blob store is connected (development and previews). */
+export const storedFiles = pgTable("stored_files", {
+  key: text("key").primaryKey(),
+  contentType: text("content_type").notNull(),
+  data: bytea("data").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+});
 
 /** Message Linda (§6.5): what the customer wrote from the status link, kept on the order (admin Order detail →
  *  Messages, 9.x). One per form key, so a repeated press is one message (§10.8). */

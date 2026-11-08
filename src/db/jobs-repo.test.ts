@@ -101,11 +101,13 @@ describe.skipIf(!url)("database: the morning jobs (§12, §8.1 rows 2–4)", () 
     await conn?.close();
   });
 
-  it("before 06:00 nothing; at 07:30 the daily list and on-the-day e-mails; 2 waits for 08:00", async () => {
+  it("before 06:00 only the 03:00 clean-up; at 07:30 the daily list and on-the-day e-mails; 2 waits for 08:00", async () => {
     await order({ date: day });
     await order({ date: day, handover: "collection" });
     await order({ date: "2026-09-12" });
-    expect(await runDueJobs(db(), londonInstant(day, 5, 59))).toEqual({});
+    expect(await runDueJobs(db(), londonInstant(day, 5, 59))).toEqual({
+      "stale-uploads": 0,
+    });
     await runDueJobs(db(), londonInstant(day, 7, 30));
     expect(await keys()).toEqual([
       "collection-day",
@@ -125,6 +127,7 @@ describe.skipIf(!url)("database: the morning jobs (§12, §8.1 rows 2–4)", () 
     await order({ date: day });
     await order({ date: "2026-09-12" });
     expect(await runDueJobs(db(), londonInstant(day, 10))).toEqual({
+      "stale-uploads": 0,
       "daily-list": 1,
       "on-the-day": 1,
       "two-days-before": 1,
