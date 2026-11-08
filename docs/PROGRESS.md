@@ -103,7 +103,7 @@ Branch per phase (`phase-00-foundations`, …), one commit per accepted slice, t
 
 | Slice | Title | Status | Commit | Accepted by Bohoka |
 |---|---|---|---|---|
-| 7.1 | Bespoke enquiry form | ☐ | | |
+| 7.1a/b | Bespoke enquiry form | ☐ | | |
 | 7.2 | Enquiry sent and Your enquiry | ☐ | | |
 | 7.3 | Complaints | ☐ | | |
 
@@ -304,6 +304,8 @@ Branch per phase (`phase-00-foundations`, …), one commit per accepted slice, t
   - /dev/orders made faster (still to pay in grouped queries: a button there took ~20 s on the preview, now ~6 s — sample making and the outbox run in the same press).
 
 - **Phase 6 second check (2026-11-08, Bohoka: “futtass le még egy ellenőrzést, és a dokumentumban lépésenként legyen megnyitható az oldal”)**: `/dev/orders` **Reset the check orders** makes 24 BBL-CHK orders with fixed status, delivery, payment and unsubscribe links (`src/app/dev/orders/check-pack.ts` + test; dates from the day of the reset), so every step of the Word document opens its page directly. A walker (`.shots/tmp/walk6.mjs`) went through the whole document on the preview with those links: 79/79 — 43 steps (three real Stripe test payments: £55 size-up, £15 redelivery, £120 deposit), axe on every page, 12 pages at 402 / 1024 / 1280 without horizontal scroll; it resets the orders at the end. Every website link in the document answers (40 × 200, the unknown-link step 404 by design). Full suite again: 975 passed, 190 skipped, 2 failed — the known ANIM-09 `#question` test under full parallel load (10.1), 27/27 alone; 888 unit and database tests green.
+
+- **Phase 7 plan (2026-11-08)** — waiting for Bohoka's OK. Branch `phase-07-bespoke` (from phase 6). Decisions (Bohoka): customer pictures in **Vercel Blob** for now, behind a small storage adapter (S3 later is configuration plus one adapter; logged in DEVIATIONS); **sharp** for resizing, removing location data and thumbnails, plus a pure-JavaScript **HEIC decoder** (heic-convert) for HEIC dragged in on a Mac; 7.1 split into 7.1a (the form without pictures) and 7.1b (pictures); slice by slice with a short report each. Slices: 7.1a bespoke form · 7.1b pictures (also used by complaints) · 7.2 Enquiry sent, Your enquiry, e-mail 6 · 7.3 complaints, e-mail 17 · gate.
 
 ## Later (noticed, belongs to another slice)
 - E-mail 1's “Once you have had your cake — Leave a Google review →” block shows only with a Google Place ID, which arrives with the Google reviews settings (§11.4, 9.x); 5.3 builds the review links.
