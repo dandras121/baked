@@ -63,8 +63,9 @@ export default async function Page() {
             ),
           )
       : [];
-    for (const o of rows)
-      due.set(o.id, Math.max(0, o.totalPence - (await netPaid(db, o))));
+    // In parallel: one by one this is ~100 round trips to the database and makes every button here slow.
+    const paid = await Promise.all(rows.map((o) => netPaid(db, o)));
+    rows.forEach((o, i) => due.set(o.id, Math.max(0, o.totalPence - paid[i])));
     feePence = (await readSettings(db)).secondAttemptFeePence;
     tomorrowClosed =
       (
