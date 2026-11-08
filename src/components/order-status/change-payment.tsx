@@ -85,6 +85,8 @@ export function ChangePayment(props: Props) {
         mode: "payment",
         amount: props.amountPence,
         currency: "gbp",
+        // The site is in British English, so Stripe's labels are too (not the browser's language).
+        locale: "en-GB",
         allowedPaymentMethodTypes: ["card"],
         appearance: {
           theme: "stripe",

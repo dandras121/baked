@@ -83,6 +83,8 @@ export function PaymentBlock({
       stripe={stripeFor(publishableKey)}
       options={{
         clientSecret,
+        // The site is in British English, so Stripe's labels are too (not the browser's language).
+        locale: "en-GB",
         appearance: {
           theme: "stripe",
           // Stripe's fields cannot read CSS variables: the design tokens are passed in as values.
