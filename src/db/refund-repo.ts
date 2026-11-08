@@ -1,6 +1,6 @@
 // Refunds (§10.6): money back to the card, recorded per Stripe refund. A failed call keeps its row as `failed`,
 // raises “Refund failed — try again” for Linda (§8.3), and changes nothing else: the change or cancellation stays.
-import { and, eq, inArray, sum } from "drizzle-orm";
+import { and, eq, inArray, ne, sum } from "drizzle-orm";
 import type { Gateway } from "@/lib/payments";
 import type { connect } from "./client";
 import { queueMail } from "./mail-repo";
@@ -47,7 +47,7 @@ async function refundable(db: Db, o: typeof orders.$inferSelect) {
   return out;
 }
 
-/** Net paid (§10.6): what the order received and its paid changes, less every refund that has not failed. */
+/** Net paid (§10.6): what the order received and its paid changes, less every refund that has not failed (fees aside). */
 export async function netPaid(db: Db, o: typeof orders.$inferSelect) {
   const [c] = await db
     .select({ n: sum(orderChanges.paidPence) })
@@ -62,6 +62,8 @@ export async function netPaid(db: Db, o: typeof orders.$inferSelect) {
       and(
         eq(refunds.orderId, o.id),
         inArray(refunds.status, ["pending", "succeeded"]),
+        // A redelivery fee and its refund never count (§10.6).
+        ne(refunds.kind, "fee"),
       ),
     );
   return o.amountReceivedPence + Number(c?.n ?? 0) - Number(r?.n ?? 0);

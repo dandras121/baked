@@ -1,6 +1,6 @@
 /* The delivery link (§6.8; 1102:9131, G 1199:9305): the question line, G's rows and the foot lines. */
 .lead {
-  margin: 0 0 6px;
+  margin: 0 0 18px;
   color: var(--colour-body);
   font: var(--type-state-row-value-phone);
 }

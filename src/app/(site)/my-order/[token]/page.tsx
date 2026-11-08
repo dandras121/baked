@@ -13,10 +13,16 @@ import { connect, databaseUrl } from "@/db/client";
 import { recentChange } from "@/db/change-repo";
 import { recentMessage } from "@/db/message-repo";
 import { attemptByToken, latestAttempt } from "@/db/delivery-repo";
-import { collectingCopy, deliveryPhase, nobodyCopy } from "@/lib/delivery";
+import {
+  collectingCopy,
+  deliveryPhase,
+  nobodyCopy,
+  redeliveryCopy,
+} from "@/lib/delivery";
 import { readMailSettings, reviewLink } from "@/db/mail-settings-repo";
 import { orderForToken } from "@/db/order-link-repo";
-import { cakes, orderLines } from "@/db/schema";
+import { cakes, deliveryAttempts, orderLines } from "@/db/schema";
+import { WINDOWS } from "@/lib/handover";
 import { getSiteSettings } from "@/db/site-settings";
 import { formatLongDate, londonDate } from "@/lib/london-time";
 import { formatPrice } from "@/lib/money";
@@ -161,6 +167,7 @@ async function statusView(db: Db, o: Order): Promise<StatusView> {
     choice: latest.choice,
     recordedOn: latest.recordedOn && String(latest.recordedOn),
     collectDay: latest.collectDay && String(latest.collectDay),
+    day: String(latest.day),
   };
   const collectAt = [s?.addressLine, s?.town]
     .filter(Boolean)
@@ -193,6 +200,32 @@ async function statusView(db: Db, o: Order): Promise<StatusView> {
         : null,
     nobodyOpen: !!attempt && deliveryPhase(attempt, now) === "choose",
     deliveryHref: latest?.token ? `/delivery/${latest.token}` : null,
+    redelivery:
+      state === "MISSED" && latest && latest.attempt > 1
+        ? {
+            ...redeliveryCopy({
+              day: String(latest.day),
+              today,
+              window: latest.deliveryWindow,
+              feePaidPence: 0,
+              cakes: "",
+            }),
+            day: String(latest.day),
+            times:
+              WINDOWS.find((w) => w.key === latest.deliveryWindow)?.times ?? "",
+          }
+        : null,
+    // The redelivery fees paid, less any given back (§6.3 Money; never part of net paid).
+    feePaidPence:
+      (
+        await db
+          .select({ paid: deliveryAttempts.feePaidPence })
+          .from(deliveryAttempts)
+          .where(eq(deliveryAttempts.orderId, o.id))
+      ).reduce((t, x) => t + x.paid, 0) -
+      refundRows
+        .filter((r) => r.kind === "fee" && r.status !== "failed")
+        .reduce((t, x) => t + x.amountPence, 0),
     collecting:
       state === "MISSED" && attempt?.collectDay && attempt.recordedOn
         ? collectingCopy({
@@ -230,7 +263,9 @@ async function statusView(db: Db, o: Order): Promise<StatusView> {
     reviewHref: reviewLink(mail.googlePlaceId),
     // The cancellation's own refund is the E state's box and panel row, not a refund line.
     refunds: refundRows
-      .filter((r) => r.status !== "failed" && r.kind !== "cancel")
+      .filter(
+        (r) => r.status !== "failed" && r.kind !== "cancel" && r.kind !== "fee",
+      )
       .map(
         (r) =>
           `Refunded ${formatPrice(r.amountPence)} on ${formatLongDate(londonDate(r.createdAt), today).replace(/^\w+ /, "")}`,

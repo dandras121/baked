@@ -1,7 +1,7 @@
 // Cancel your order (§6.6, §10.1, §10.6): the refund the terms give today, and the cancellation itself. The order is
 // cancelled first; its Stripe refund follows at once (newest charge first). A refund that fails leaves the order
 // cancelled and tells Linda (refund-repo); e-mail 8 still says it is on its way (§9.5).
-import { and, eq, inArray } from "drizzle-orm";
+import { and, eq, inArray, ne } from "drizzle-orm";
 import type { CancelQuote } from "@/lib/cancel-copy";
 import type { CancelledView } from "@/lib/mail/after-emails";
 import { isChangeWindowOpen, refundAmount, refundTier } from "@/lib/deadlines";
@@ -44,6 +44,7 @@ export async function cancelQuote(
         and(
           eq(refunds.orderId, o.id),
           inArray(refunds.status, ["pending", "succeeded"]),
+          ne(refunds.kind, "fee"),
         ),
       )
       .orderBy(refunds.id),

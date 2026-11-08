@@ -6,11 +6,17 @@ import { londonInstant } from "@/lib/london-time";
 import { INITIAL_SETTINGS } from "@/lib/settings";
 import { connect } from "./client";
 import {
+  applyRedelivery,
   attemptByToken,
   chooseCollect,
+  finishRedelivery,
   latestAttempt,
+  prepareRedelivery,
   recordNobodyIn,
 } from "./delivery-repo";
+import { netPaid } from "./refund-repo";
+import { countingGateway } from "./test-gateway";
+import { refunds, settings } from "./schema";
 import { closedDays, deliveryAttempts, mailSends, orders } from "./schema";
 import { ensureSettings } from "./settings-repo";
 
@@ -208,5 +214,176 @@ describe.skipIf(!url)("database: Nobody was in (§6.8)", () => {
     expect(await chooseCollect(db(), "x".repeat(32))).toEqual({
       kind: "missing",
     });
+  });
+
+  async function missed() {
+    const o = await order();
+    const r = await recordNobodyIn(db(), o.id, morning);
+    if (r.kind !== "recorded") throw new Error(r.kind);
+    return { o, token: r.token };
+  }
+
+  it("Redeliver: the £15 is taken first; once it succeeds the next day is booked in the chosen window", async () => {
+    const { o, token } = await missed();
+    const t = countingGateway();
+    expect(
+      await prepareRedelivery(db(), t.gw, { token, window: "" }, morning),
+    ).toEqual({ kind: "no-window" });
+    const p = await prepareRedelivery(
+      db(),
+      t.gw,
+      { token, window: "evening" },
+      morning,
+    );
+    expect(p).toMatchObject({ kind: "pay", amountPence: 1500 });
+    // Not paid yet: nothing booked.
+    expect((await latestAttempt(db(), o.id))!.attempt).toBe(1);
+    expect(await finishRedelivery(db(), t.gw, token, morning)).toBe("failed");
+    const [a] = await db()
+      .select()
+      .from(deliveryAttempts)
+      .where(eq(deliveryAttempts.orderId, o.id));
+    t.succeed(a.paymentIntentId!);
+    expect(await finishRedelivery(db(), t.gw, token, morning)).toBe("booked");
+    const next = await latestAttempt(db(), o.id);
+    expect(next).toMatchObject({
+      attempt: 2,
+      day: "2026-09-13",
+      deliveryWindow: "evening",
+      outcome: "none",
+    });
+    const first = (await attemptByToken(db(), token))!.attempt;
+    expect(first).toMatchObject({ choice: "redeliver", feePaidPence: 1500 });
+    // The webhook arriving too books nothing more; the fee never counts in net paid.
+    expect(
+      await applyRedelivery(
+        db(),
+        t.gw,
+        t.intents.get(a.paymentIntentId!)!,
+        morning,
+      ),
+    ).toBe("already");
+    expect(await netPaid(db(), o)).toBe(18500);
+    const alerts = (await db().select().from(mailSends)).filter(
+      (m) => m.template === "alert",
+    );
+    expect(alerts.map((m) => m.data)).toEqual([
+      expect.objectContaining({
+        kind: "delivery-choice",
+        view: expect.objectContaining({
+          choice: "redeliver",
+          date: "2026-09-13",
+        }),
+      }),
+    ]);
+    // Nobody in again on the redelivery day: a new token and the one-button e-mail.
+    await db().delete(mailSends);
+    const again = await recordNobodyIn(
+      db(),
+      o.id,
+      londonInstant("2026-09-13", 20),
+    );
+    expect(again).toMatchObject({ kind: "recorded", attempt: 2 });
+    expect((await missedViews())[0].redeliveryOffered).toBe(false);
+  });
+
+  it("a payment that succeeds after 23:59 still books the day after Nobody was in", async () => {
+    const { o, token } = await missed();
+    const t = countingGateway();
+    await prepareRedelivery(
+      db(),
+      t.gw,
+      { token, window: "morning" },
+      londonInstant(day, 23, 58),
+    );
+    const [a] = await db()
+      .select()
+      .from(deliveryAttempts)
+      .where(eq(deliveryAttempts.orderId, o.id));
+    t.succeed(a.paymentIntentId!);
+    expect(
+      await applyRedelivery(
+        db(),
+        t.gw,
+        t.intents.get(a.paymentIntentId!)!,
+        londonInstant("2026-09-13", 0, 2),
+      ),
+    ).toBe("booked");
+    expect((await latestAttempt(db(), o.id))!.day).toBe("2026-09-13");
+  });
+
+  it("Collect while the fee is being paid: the payment is stopped, and one that succeeds anyway goes back as a fee refund", async () => {
+    const { o, token } = await missed();
+    const t = countingGateway();
+    await prepareRedelivery(db(), t.gw, { token, window: "morning" }, morning);
+    const [a] = await db()
+      .select()
+      .from(deliveryAttempts)
+      .where(eq(deliveryAttempts.orderId, o.id));
+    t.succeed(a.paymentIntentId!);
+    await chooseCollect(db(), token, morning, t.gw);
+    expect(
+      await applyRedelivery(
+        db(),
+        t.gw,
+        t.intents.get(a.paymentIntentId!)!,
+        morning,
+      ),
+    ).toBe("refunded");
+    expect(t.refunds).toEqual([
+      expect.objectContaining({
+        paymentIntentId: a.paymentIntentId,
+        amountPence: 1500,
+      }),
+    ]);
+    const [r] = await db()
+      .select()
+      .from(refunds)
+      .where(eq(refunds.orderId, o.id));
+    expect(r.kind).toBe("fee");
+    expect(await netPaid(db(), o)).toBe(18500);
+    expect((await latestAttempt(db(), o.id))!.attempt).toBe(1);
+  });
+
+  it("a payment still in progress is cancelled when Collect is chosen", async () => {
+    const { o, token } = await missed();
+    const t = countingGateway();
+    await prepareRedelivery(db(), t.gw, { token, window: "morning" }, morning);
+    const [a] = await db()
+      .select()
+      .from(deliveryAttempts)
+      .where(eq(deliveryAttempts.orderId, o.id));
+    await chooseCollect(db(), token, morning, t.gw);
+    expect(t.intents.get(a.paymentIntentId!)!.status).toBe("canceled");
+  });
+
+  it("with the fee set to £0 the redelivery is booked at once; not offered when tomorrow is closed", async () => {
+    await db().update(settings).set({ secondAttemptFeePence: 0 });
+    try {
+      const { o, token } = await missed();
+      expect(
+        await prepareRedelivery(
+          db(),
+          null,
+          { token, window: "afternoon" },
+          morning,
+        ),
+      ).toEqual({ kind: "booked" });
+      expect((await latestAttempt(db(), o.id))!.deliveryWindow).toBe(
+        "afternoon",
+      );
+    } finally {
+      await db().update(settings).set({ secondAttemptFeePence: 1500 });
+    }
+    await db().insert(closedDays).values({ day: "2026-09-13" });
+    const { token } = await missed();
+    expect(
+      await prepareRedelivery(
+        db(),
+        countingGateway().gw,
+        { token, window: "morning" },
+        morning,
+      ),
+    ).toEqual({ kind: "not-offered" });
   });
 });

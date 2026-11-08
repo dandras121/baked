@@ -92,6 +92,8 @@ export default async function Page() {
                     collectDay:
                       latest(o.id)!.collectDay &&
                       String(latest(o.id)!.collectDay),
+                    attempt: latest(o.id)!.attempt,
+                    day: String(latest(o.id)!.day),
                   }
                 : null,
             )}{" "}

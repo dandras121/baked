@@ -7,6 +7,7 @@ import {
   londonOffsetMinutes,
   type CalendarDate,
 } from "./london-time";
+import { WINDOWS } from "./handover";
 import { formatPrice } from "./money";
 
 /** From 18:00 London, collection moves to the next day before 12 noon (§6.8 Collect, §8.1 e-mail 13 late). */
@@ -59,8 +60,7 @@ export function nobodyCopy(v: {
   const c = collectOffer(v.recordedOn, v.now);
   const fee =
     v.feePence > 0 ? `for ${formatPrice(v.feePence)}` : "free of charge";
-  const feeButton =
-    v.feePence > 0 ? `— ${formatPrice(v.feePence)}` : "— free";
+  const feeButton = v.feePence > 0 ? `— ${formatPrice(v.feePence)}` : "— free";
   return {
     intro: `I waited fifteen minutes on ${formatLongDate(v.day, v.today)}, then brought your cake back to ${v.town}.`,
     collectLine: `Collect it ${c.when} — free, any time before ${c.by}, from ${v.collectAt}.`,
@@ -73,7 +73,9 @@ export function nobodyCopy(v: {
         ? "A cake is always best on the day it was made, so today is the better of the two."
         : null,
     collectButton: `I will collect it ${c.when}`,
-    redeliverButton: v.offerRedelivery ? `Try again tomorrow ${feeButton}` : null,
+    redeliverButton: v.offerRedelivery
+      ? `Try again tomorrow ${feeButton}`
+      : null,
     neither: `Ring me on ${v.phone} if neither of those works and we will sort something out.`,
     closed: `These choices have closed. Ring me on ${v.phone} and we will sort it out.`,
     confirmCollect: `Collect it ${c.when} from ${v.collectAt}, before ${c.by}?`,
@@ -101,5 +103,36 @@ export function collectingCopy(v: {
     ready: `Any time before ${by} ${when}`,
     nextTitle: `Collect it ${when} before ${by}`,
     nextText: `From ${v.collectAt}.`,
+  };
+}
+
+/** H · Redelivery (1199:9325) and the status page's NEXT box before the redelivery day (§6.3 After a missed delivery). */
+export function redeliveryCopy(v: {
+  day: CalendarDate;
+  today: CalendarDate;
+  window: string | null;
+  feePaidPence: number;
+  cakes: string;
+}) {
+  const times = WINDOWS.find((w) => w.key === v.window)?.times ?? "";
+  const long = formatLongDate(v.day, v.today);
+  const when =
+    v.day === v.today
+      ? "today"
+      : v.day === addDays(v.today, 1)
+        ? "tomorrow"
+        : `on ${long}`;
+  return {
+    noticeTitle: `${when === "today" ? "Today" : when === "tomorrow" ? "Tomorrow" : long}, confirmed`,
+    noticeText: `I’ll bring ${v.cakes} back out on ${long}, ${times}${
+      v.feePaidPence > 0
+        ? ` — the ${formatPrice(v.feePaidPence)} redelivery fee is paid and on your receipt.`
+        : " — there is nothing to pay."
+    }`,
+    newDate: formatLongDate(v.day, v.today).replace(/^(\w{3})\w*/, "$1"),
+    window: times,
+    fee: v.feePaidPence > 0 ? `${formatPrice(v.feePaidPence)} · paid` : "Free",
+    nextTitle: `Redelivery ${long}, ${times}`,
+    nextText: "I will text you a tighter time that morning.",
   };
 }

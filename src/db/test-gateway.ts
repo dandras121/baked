@@ -59,6 +59,27 @@ export function countingGateway() {
         });
       return intents.get(id)!;
     },
+    async createForRedelivery(attemptId, _number, amountPence) {
+      calls.create++;
+      const id = `pi_redelivery_${attemptId}`;
+      if (!intents.has(id))
+        intents.set(id, {
+          id,
+          clientSecret: `${id}_s`,
+          amountPence,
+          status: "requires_payment_method",
+          amountReceivedPence: 0,
+          kind: "redelivery",
+          draftId: null,
+          attemptId,
+        });
+      return intents.get(id)!;
+    },
+    async cancel(id) {
+      const i = intents.get(id);
+      if (i && i.status !== "succeeded")
+        intents.set(id, { ...i, status: "canceled" });
+    },
     async refund(paymentIntentId, amountPence, key) {
       if (refundControl.fail) return { ok: false, error: "card_closed" };
       refunds.push({ paymentIntentId, amountPence, key });

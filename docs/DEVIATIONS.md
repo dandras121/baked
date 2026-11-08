@@ -110,3 +110,5 @@ Anything built differently from the docs or Figma, and why. Bohoka’s decision 
 | 6.5a | 1102:9131 What now: label and last line in the accent violet (#7a57c2) on the violet wash | The display violet (#563b83): the accent is 4.37 : 1 there at 12 px, under the 4.5 : 1 of §10.13 |
 | 6.5a | 1102:9106 caps “WHAT NOW”, “YOUR ORDER”; 1199:9305 caps | Sentence case (Bohoka 2026-11-01) |
 | 6.5a | Redeliver tomorrow (1199:9325 H) | Not bookable yet: its screen says “Booking a redelivery here is not ready yet” with the phone and Collect — built in 6.5b |
+| 6.5b | H 1199:9325 Window “You choose a time”, “Paid now with your card — the redelivery is booked once it goes through.” | H shows after the payment, so the window row holds the chosen times and the line reads “I text you a tighter time that morning.” (§6.8: “Window = the chosen window”) |
+| 6.5b | H 1199:9325 caps “REDELIVERY” | Sentence case (Bohoka 2026-11-01) |

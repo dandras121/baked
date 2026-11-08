@@ -4,10 +4,15 @@ import { expect, test, type Page } from "@playwright/test";
 import { connect } from "../src/db/client";
 import { eq } from "drizzle-orm";
 import { deliveryAttempts, orderLines, orders } from "../src/db/schema";
-import { recordNobodyIn } from "../src/db/delivery-repo";
+import {
+  applyRedelivery,
+  prepareRedelivery,
+  recordNobodyIn,
+} from "../src/db/delivery-repo";
+import { countingGateway } from "../src/db/test-gateway";
 import { addDays, londonDate } from "../src/lib/london-time";
 
-// Slice 6.5a: Nobody was in (§6.8): the status page, the delivery link, Collect and G.
+// Slices 6.5a–b: Nobody was in (§6.8): the status page, the delivery link, Collect and G, Redeliver and H.
 const octet = () => Math.floor(Math.random() * 254) + 1;
 test.beforeEach(async ({ page }) => {
   await page.setExtraHTTPHeaders({
@@ -212,6 +217,73 @@ test("an unknown delivery link is a 404", async ({ page }) => {
   expect(r?.status()).toBe(404);
 });
 
+/** The £15 paid (Stripe's answer played in the test): the redelivery is booked in the evening. */
+async function paidRedelivery(delivery: string) {
+  const { db, close } = connect();
+  try {
+    const t = countingGateway();
+    const p = await prepareRedelivery(db, t.gw, {
+      token: delivery,
+      window: "evening",
+    });
+    if (p.kind !== "pay") throw new Error(p.kind);
+    const id = `pi_redelivery_${p.attemptId}`;
+    t.succeed(id);
+    const r = await applyRedelivery(db, t.gw, t.intents.get(id)!);
+    if (r !== "booked") throw new Error(r);
+  } finally {
+    await close();
+  }
+}
+
+test("Redeliver: the next day's times and the fee before anything is booked; once paid, H and the status page", async ({
+  page,
+}) => {
+  const { token } = await make(0);
+  const delivery = await nobody(token);
+  await unlockAt(page, `/my-order/${token}`);
+  await page.getByRole("link", { name: "Try again tomorrow — £15" }).click();
+  await expect(page).toHaveURL(
+    new RegExp(`/delivery/${delivery}\\?choice=redeliver$`),
+  );
+  await expect(
+    page.getByRole("heading", { level: 1, name: "Redeliver tomorrow" }),
+  ).toBeVisible();
+  await expect(page.getByText(/^I bring it back on /)).toBeVisible();
+  for (const name of [
+    "Morning · 9am – 12pm",
+    "Afternoon · 12 – 4pm",
+    "Evening · 4 – 7pm",
+  ])
+    await expect(page.getByRole("radio", { name })).toBeAttached();
+  await expect(page.getByText("Pay the redelivery fee")).toBeVisible();
+  await expect(
+    page.getByRole("link", { name: "Collect it free instead" }),
+  ).toBeVisible();
+  expect(await axe(page)).toEqual([]);
+
+  await paidRedelivery(delivery);
+  await page.reload();
+  await expect(
+    page.getByRole("heading", { level: 1, name: "Your cake is coming again" }),
+  ).toBeVisible();
+  await expect(page.getByText("Tomorrow, confirmed")).toBeVisible();
+  await expect(
+    page.getByText(/redelivery fee is paid and on your receipt\.$/),
+  ).toBeVisible();
+  await expect(page.getByText("4 – 7pm", { exact: true })).toBeVisible();
+  await expect(page.getByText("£15 · paid")).toBeVisible();
+  expect(await axe(page)).toEqual([]);
+
+  await page.goto(`/my-order/${token}`);
+  await expect(
+    page.getByRole("heading", { level: 1, name: "Your cake is coming again" }),
+  ).toBeVisible();
+  await expect(page.getByText(/^Redelivery .+, 4 – 7pm$/)).toBeVisible();
+  await expect(page.locator("dd", { hasText: "£15 · paid" })).toBeVisible();
+  await expect(page.getByText("Paid in full")).toBeVisible();
+});
+
 for (const [w, h] of [
   [402, 902],
   [1024, 1366],
@@ -239,6 +311,22 @@ for (const [w, h] of [
     await expect(page.getByText(/confirmed$/)).toBeVisible();
     await page.screenshot({
       path: `.shots/6.5/collecting-${w}.png`,
+      fullPage: true,
+    });
+    // 6.5b: the redeliver screen and H on another order.
+    const second = await make(0);
+    const d2 = await nobody(second.token);
+    await page.goto(`/delivery/${d2}?choice=redeliver`);
+    await page.locator("label", { hasText: "Evening" }).click();
+    await page.screenshot({
+      path: `.shots/6.5/redeliver-${w}.png`,
+      fullPage: true,
+    });
+    await paidRedelivery(d2);
+    await page.reload();
+    await expect(page.getByText("Tomorrow, confirmed")).toBeVisible();
+    await page.screenshot({
+      path: `.shots/6.5/redelivery-${w}.png`,
       fullPage: true,
     });
   });

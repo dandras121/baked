@@ -48,6 +48,9 @@ type Props = {
   finish: (changeId: number) => Promise<"saved" | "processing" | "failed">;
   returnUrl: (changeId: number) => string;
   onRefused: (state: Extract<PrepareState, { kind: "error" }>) => void;
+  /** The panel's label and the button (the redelivery fee, §6.8, uses its own). */
+  label?: string;
+  button?: string;
 };
 
 /**
@@ -59,7 +62,7 @@ export function ChangePayment(props: Props) {
   if (!props.publishableKey)
     return (
       <div className={styles.payPanel}>
-        <h2 className={styles.label}>Pay the difference</h2>
+        <h2 className={styles.label}>{props.label ?? "Pay the difference"}</h2>
         <p className={styles.value}>
           {formatPrice(props.amountPence)} today — {props.what}.
         </p>
@@ -68,7 +71,7 @@ export function ChangePayment(props: Props) {
         </div>
         <div className={styles.buttons}>
           <Button disabled>
-            Pay {formatPrice(props.amountPence)} and save
+            {props.button ?? `Pay ${formatPrice(props.amountPence)} and save`}
           </Button>
         </div>
       </div>
@@ -105,6 +108,8 @@ function PayForm({
   finish,
   returnUrl,
   onRefused,
+  label = "Pay the difference",
+  button,
 }: Props) {
   const stripe = useStripe();
   const elements = useElements();
@@ -187,7 +192,7 @@ function PayForm({
 
   return (
     <div className={styles.payPanel}>
-      <h2 className={styles.label}>Pay the difference</h2>
+      <h2 className={styles.label}>{label}</h2>
       <p className={styles.value}>
         {formatPrice(amountPence)} today — {what}.
       </p>
@@ -205,7 +210,7 @@ function PayForm({
       )}
       <div className={styles.buttons}>
         <Button onClick={pay} busy={busy} busyLabel="Taking payment">
-          Pay {formatPrice(amountPence)} and save
+          {button ?? `Pay ${formatPrice(amountPence)} and save`}
         </Button>
       </div>
     </div>

@@ -1,6 +1,6 @@
 // The status page (§6.2, §6.3; states 1036:9106): which state shows — the first match wins — and its words.
 import type { cancelledCopy } from "./cancel-copy";
-import type { collectingCopy, nobodyCopy } from "./delivery";
+import type { collectingCopy, nobodyCopy, redeliveryCopy } from "./delivery";
 import { WINDOWS } from "./handover";
 import { addDays, formatLongDate, type CalendarDate } from "./london-time";
 
@@ -11,6 +11,9 @@ type LatestAttempt = {
   outcome: string;
   choice: string;
   collectDay: CalendarDate | null;
+  /** 2+ = a booked redelivery, on `day`. */
+  attempt?: number;
+  day?: CalendarDate;
 } | null;
 
 /**
@@ -26,11 +29,18 @@ export function statusState(
   if (attempt && o.status !== "completed") {
     if (attempt.outcome === "nobody-in" && attempt.choice === "none")
       return "NOBODY";
-    // Collect (6.5a); a redelivery's day comes with 6.5b.
     if (
       attempt.choice === "collect" &&
       attempt.collectDay &&
       attempt.collectDay >= today
+    )
+      return "MISSED";
+    // A booked redelivery, up to and on its day.
+    if (
+      (attempt.attempt ?? 1) > 1 &&
+      attempt.outcome === "none" &&
+      attempt.day &&
+      attempt.day >= today
     )
       return "MISSED";
   }
@@ -59,6 +69,10 @@ type View = {
   nobody?: ReturnType<typeof nobodyCopy> | null;
   /** MISSED: the collection the customer chose. */
   collecting?: ReturnType<typeof collectingCopy> | null;
+  /** MISSED: the redelivery booked, and its day. */
+  redelivery?:
+    | (ReturnType<typeof redeliveryCopy> & { day: CalendarDate; times: string })
+    | null;
 };
 
 const times = (w: string | null) => WINDOWS.find((x) => x.key === w)?.times;
@@ -138,6 +152,27 @@ export function statusCopy(v: View) {
         note: null,
       };
     case "MISSED":
+      // Redelivery: its NEXT box before the day, the B2 words on it (§6.3 After a missed delivery).
+      if (v.redelivery)
+        return v.redelivery.day === v.today
+          ? {
+              title: "Today is the day",
+              intro:
+                "It leaves my kitchen today. Everything below is what is coming.",
+              eyebrow: "Today",
+              nextTitle: `Today, ${v.redelivery.times}`,
+              nextText:
+                "It leaves my kitchen today. I will text you when I set off.",
+              note: null,
+            }
+          : {
+              title: "Your cake is coming again",
+              intro: "Nobody was in, so I am bringing it back.",
+              eyebrow: "Next",
+              nextTitle: v.redelivery.nextTitle,
+              nextText: v.redelivery.nextText,
+              note: null,
+            };
       return {
         title: "Your cake is waiting for you",
         intro: "Nobody was in, so you are collecting it instead.",

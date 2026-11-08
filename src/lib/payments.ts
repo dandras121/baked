@@ -14,6 +14,8 @@ export type Intent = {
   draftId: string | null;
   /** `metadata.change_id`: a customer's size-up (kind `change`, §6.4). */
   changeId?: number | null;
+  /** `metadata.attempt_id`: a redelivery fee (kind `redelivery`, §6.8). */
+  attemptId?: number | null;
 };
 
 export type Gateway = {
@@ -40,6 +42,14 @@ export type Gateway = {
     orderNumber: string,
     amountPence: number,
   ): Promise<Intent>;
+  /** The redelivery fee (§6.8, metadata kind `redelivery`): one per delivery attempt (idempotency key). */
+  createForRedelivery(
+    attemptId: number,
+    orderNumber: string,
+    amountPence: number,
+  ): Promise<Intent>;
+  /** Stops a payment still in progress (Collect chosen meanwhile, §6.8). A finished one is left as it is. */
+  cancel(id: string): Promise<void>;
 };
 
 export type Refunded =
@@ -55,6 +65,7 @@ const fromStripe = (pi: Stripe.PaymentIntent): Intent => ({
   kind: pi.metadata?.kind ?? null,
   draftId: pi.metadata?.draft_id ?? null,
   changeId: pi.metadata?.change_id ? Number(pi.metadata.change_id) : null,
+  attemptId: pi.metadata?.attempt_id ? Number(pi.metadata.attempt_id) : null,
 });
 
 function stripeGateway(secret: string): Gateway {
@@ -107,6 +118,31 @@ function stripeGateway(secret: string): Gateway {
           { idempotencyKey: `change-${changeId}` },
         ),
       );
+    },
+    async createForRedelivery(attemptId, orderNumber, amountPence) {
+      return fromStripe(
+        await stripe.paymentIntents.create(
+          {
+            amount: amountPence,
+            currency: "gbp",
+            allowed_payment_method_types: ["card"],
+            metadata: {
+              kind: "redelivery",
+              attempt_id: String(attemptId),
+              order: orderNumber,
+            },
+            description: `Baked by Linda order ${orderNumber} — redelivery`,
+          },
+          { idempotencyKey: `redelivery-${attemptId}` },
+        ),
+      );
+    },
+    async cancel(id) {
+      try {
+        await stripe.paymentIntents.cancel(id);
+      } catch {
+        // Already succeeded or cancelled: nothing to stop.
+      }
     },
     async refund(paymentIntentId, amountPence, key) {
       try {
@@ -191,6 +227,26 @@ const fakeGateway: Gateway = {
         changeId,
       });
     return fakes.get(id)!;
+  },
+  async createForRedelivery(attemptId, _orderNumber, amountPence) {
+    const id = `pi_fake_redelivery_${attemptId}`;
+    if (!fakes.has(id))
+      fakes.set(id, {
+        id,
+        clientSecret: `${id}_secret`,
+        amountPence,
+        status: "requires_payment_method",
+        amountReceivedPence: 0,
+        kind: "redelivery",
+        draftId: null,
+        attemptId,
+      });
+    return fakes.get(id)!;
+  },
+  async cancel(id) {
+    const i = fakes.get(id);
+    if (i && i.status !== "succeeded")
+      fakes.set(id, { ...i, status: "canceled" });
   },
   async refund(_paymentIntentId, _amountPence, key) {
     // A refund on the fake Stripe always goes through (the database tests try failures with their own gateway).

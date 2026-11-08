@@ -3,7 +3,13 @@
 import { useEffect, useRef } from "react";
 import { Button, ButtonLink } from "@/components/ui/button";
 import { Notice } from "@/components/ui/notice";
-import type { collectingCopy, nobodyCopy } from "@/lib/delivery";
+import type {
+  collectingCopy,
+  nobodyCopy,
+  redeliveryCopy,
+} from "@/lib/delivery";
+import type { RedeliverResult } from "@/db/delivery-repo";
+import { RedeliverForm } from "./redeliver-form";
 import change from "./change.module.css";
 import styles from "./delivery.module.css";
 import { WhatNow } from "./what-now";
@@ -24,6 +30,8 @@ export function DeliveryPage({
   collectAt,
   paidInFull,
   collect,
+  redelivery,
+  redeliver,
 }: {
   token: string;
   number: string;
@@ -36,6 +44,16 @@ export function DeliveryPage({
   collectAt: string;
   paidInFull: boolean;
   collect: () => Promise<void>;
+  /** H once booked. */
+  redelivery: ReturnType<typeof redeliveryCopy> | null;
+  /** The redeliver screen: the next day, the fee and the actions. */
+  redeliver: {
+    dayLong: string;
+    feePence: number;
+    publishableKey: string;
+    action: (window: string) => Promise<RedeliverResult | { kind: "failed" }>;
+    finish: () => Promise<"booked" | "processing" | "failed">;
+  };
 }) {
   const title = useRef<HTMLHeadingElement>(null);
   useEffect(() => title.current?.focus(), []);
@@ -116,21 +134,51 @@ export function DeliveryPage({
     return (
       <div className={change.page}>
         {head("Redeliver tomorrow")}
-        <Notice icon title="Booking a redelivery here is not ready yet">
-          <p>
-            Ring me on {phone} and I will book it with you — or collect it free
-            instead.
-          </p>
-        </Notice>
-        <div className={change.buttons}>
-          <ButtonLink href={`${base}?choice=collect`}>
-            {nobody.collectButton}
-          </ButtonLink>
-        </div>
+        <p className={styles.lead}>
+          I bring it back on {redeliver.dayLong}. Pick a time — I text a tighter
+          one that morning.
+        </p>
+        <RedeliverForm
+          token={token}
+          dayLong={redeliver.dayLong}
+          feePence={redeliver.feePence}
+          phone={phone}
+          publishableKey={redeliver.publishableKey}
+          redeliver={redeliver.action}
+          finish={redeliver.finish}
+        />
       </div>
     );
 
-  // The two ways forward (1102:9131), or a redelivery already chosen (6.5b).
+  // H · Redelivery (1199:9325): final.
+  if (phase === "redeliver" && redelivery)
+    return (
+      <div className={change.page}>
+        {head("Your cake is coming again")}
+        <Notice icon title={redelivery.noticeTitle}>
+          <p>{redelivery.noticeText}</p>
+        </Notice>
+        <section className={change.panel} aria-labelledby="redelivery">
+          <h2 id="redelivery" className={change.label}>
+            Redelivery
+          </h2>
+          <dl className={styles.rows}>
+            <dt>New date</dt>
+            <dd>{redelivery.newDate}</dd>
+            <dt>Window</dt>
+            <dd>{redelivery.window}</dd>
+            <dt>Redelivery fee</dt>
+            <dd>{redelivery.fee}</dd>
+          </dl>
+          <p className={styles.small}>
+            I text you a tighter time that morning.
+          </p>
+        </section>
+        {ringToChange}
+      </div>
+    );
+
+  // The two ways forward (1102:9131).
   return (
     <div className={change.page}>
       {head("Nobody was in")}

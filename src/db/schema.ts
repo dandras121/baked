@@ -926,6 +926,12 @@ export const deliveryAttempts = pgTable(
     chosenAt: timestamp("chosen_at", { withTimezone: true }),
     /** Collect: the day it is collected (the recorded day, or the next before 12 noon after 18:00). */
     collectDay: date("collect_day"),
+    /** Redeliver (§6.8): the window asked for while its fee is being paid, the fee, its payment and what Stripe took.
+     *  A fee is never part of net paid (§10.6). */
+    pendingWindow: text("pending_window"),
+    feePence: integer("fee_pence"),
+    paymentIntentId: text("payment_intent_id").unique(),
+    feePaidPence: integer("fee_paid_pence").notNull().default(0),
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
       .defaultNow(),
@@ -985,7 +991,7 @@ export const refunds = pgTable(
   (t) => [
     check(
       "refund_kind",
-      sql`${t.kind} in ('change', 'cancel', 'excess', 'goodwill')`,
+      sql`${t.kind} in ('change', 'cancel', 'excess', 'goodwill', 'fee')`,
     ),
     check(
       "refund_status",

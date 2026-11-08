@@ -10,7 +10,11 @@ import { panelDate, statusCopy, type StatusState } from "@/lib/order-status";
 import { WINDOWS } from "@/lib/handover";
 import styles from "./status.module.css";
 import { WhatNow } from "./what-now";
-import type { collectingCopy, nobodyCopy } from "@/lib/delivery";
+import type {
+  collectingCopy,
+  nobodyCopy,
+  redeliveryCopy,
+} from "@/lib/delivery";
 
 export type StatusView = {
   token: string;
@@ -39,8 +43,12 @@ export type StatusView = {
   nobody: ReturnType<typeof nobodyCopy> | null;
   nobodyOpen: boolean;
   deliveryHref: string | null;
-  /** MISSED: the collection the customer chose. */
+  /** MISSED: the collection the customer chose, or the redelivery booked. */
   collecting: ReturnType<typeof collectingCopy> | null;
+  redelivery:
+    (ReturnType<typeof redeliveryCopy> & { day: string; times: string }) | null;
+  /** “Redelivery £15 · paid” (§6.3 Money): a fee never counts in net paid. */
+  feePaidPence: number;
   lines: {
     name: string;
     flavour: string;
@@ -171,6 +179,12 @@ function OrderPanel({ v }: { v: StatusView }) {
           </>
         )}
       </dl>
+      {v.feePaidPence > 0 && (
+        <dl className={styles.rows}>
+          <dt>Redelivery</dt>
+          <dd>{formatPrice(v.feePaidPence)} · paid</dd>
+        </dl>
+      )}
       {v.refunds.map((r) => (
         <p key={r} className={styles.receipt}>
           {r}

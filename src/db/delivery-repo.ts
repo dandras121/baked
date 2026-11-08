@@ -1,16 +1,14 @@
 // Delivery attempts (§6.8): Linda's Nobody was in, e-mail 13, and the customer's choice through `/delivery/[token]`.
 import { randomBytes } from "node:crypto";
 import { and, desc, eq } from "drizzle-orm";
-import {
-  collectOffer,
-  deliveryPhase,
-  redeliveryOffered,
-} from "@/lib/delivery";
+import { collectOffer, deliveryPhase, redeliveryOffered } from "@/lib/delivery";
 import { addDays, londonDate, type CalendarDate } from "@/lib/london-time";
 import type { MissedView } from "@/lib/mail/after-emails";
+import { WINDOWS } from "@/lib/handover";
+import type { Gateway, Intent } from "@/lib/payments";
 import type { connect } from "./client";
 import { queueMail } from "./mail-repo";
-import { closedDays, deliveryAttempts, orders } from "./schema";
+import { closedDays, deliveryAttempts, orders, refunds } from "./schema";
 import { readSettings } from "./settings-repo";
 
 type Db = ReturnType<typeof connect>["db"];
@@ -61,7 +59,8 @@ export async function recordNobodyIn(
     if (!o || o.handover !== "delivery" || o.status !== "confirmed")
       return { kind: "not-delivery" } as const;
     const latest = await latestAttempt(tx as unknown as Db, o.id);
-    if (latest && latest.outcome !== "none") return { kind: "already" } as const;
+    if (latest && latest.outcome !== "none")
+      return { kind: "already" } as const;
     const day = latest ? String(latest.day) : String(o.date);
     if (day > today) return { kind: "not-yet" } as const;
     const token = randomBytes(24).toString("base64url");
@@ -149,6 +148,7 @@ export async function chooseCollect(
   db: Db,
   token: string,
   now = new Date(),
+  gw: Pick<Gateway, "cancel"> | null = null,
 ): Promise<ChooseResult> {
   const result = await db.transaction(async (tx) => {
     const [a] = await tx
@@ -173,10 +173,7 @@ export async function chooseCollect(
       .update(deliveryAttempts)
       .set({ choice: "collect", chosenAt: now, collectDay })
       .where(
-        and(
-          eq(deliveryAttempts.id, a.id),
-          eq(deliveryAttempts.choice, "none"),
-        ),
+        and(eq(deliveryAttempts.id, a.id), eq(deliveryAttempts.choice, "none")),
       );
     const [o] = await tx
       .select({ id: orders.id, number: orders.number, email: orders.email })
@@ -185,6 +182,9 @@ export async function chooseCollect(
     return { kind: "chosen", collectDay, order: o, attempt: a } as const;
   });
   if (result.kind !== "chosen") return result;
+  // A redelivery payment still in progress is stopped; one that succeeds anyway goes back (applyRedelivery).
+  if (result.attempt.paymentIntentId && gw)
+    await gw.cancel(result.attempt.paymentIntentId);
   await queueMail(
     db,
     {
@@ -205,4 +205,195 @@ export async function chooseCollect(
     now,
   );
   return { kind: "chosen", collectDay: result.collectDay };
+}
+
+export type RedeliverResult =
+  | {
+      kind: "pay";
+      clientSecret: string;
+      amountPence: number;
+      attemptId: number;
+    }
+  | { kind: "booked" }
+  | { kind: "no-window" }
+  | { kind: "closed" }
+  | { kind: "not-offered" }
+  | { kind: "already" }
+  | { kind: "missing" };
+
+/**
+ * Pay £15 / Book the redelivery (§6.8): while the choices are open and redelivery is offered. With a fee, its
+ * PaymentIntent (one per attempt) — the redelivery is booked only once Stripe says it succeeded; with no fee, booked at
+ * once. The window asked for is kept with the payment.
+ */
+export async function prepareRedelivery(
+  db: Db,
+  gw: Pick<Gateway, "createForRedelivery"> | null,
+  input: { token: string; window: string },
+  now = new Date(),
+): Promise<RedeliverResult> {
+  if (!WINDOWS.some((w) => w.key === input.window))
+    return { kind: "no-window" };
+  const found = await attemptByToken(db, input.token);
+  if (!found || found.attempt.outcome !== "nobody-in")
+    return { kind: "missing" };
+  const { attempt: a, order: o, offerRedelivery } = found;
+  const phase = deliveryPhase(
+    { ...a, recordedOn: String(a.recordedOn), collectDay: null },
+    now,
+  );
+  if (phase === "collect" || phase === "redeliver") return { kind: "already" };
+  if (phase === "closed") return { kind: "closed" };
+  if (!offerRedelivery) return { kind: "not-offered" };
+  const fee = (await readSettings(db)).secondAttemptFeePence;
+  await db
+    .update(deliveryAttempts)
+    .set({ pendingWindow: input.window, feePence: fee })
+    .where(eq(deliveryAttempts.id, a.id));
+  if (fee <= 0) {
+    await bookRedelivery(db, a.id, 0, now);
+    return { kind: "booked" };
+  }
+  if (!gw) return { kind: "not-offered" };
+  const intent = await gw.createForRedelivery(a.id, o.number, fee);
+  await db
+    .update(deliveryAttempts)
+    .set({ paymentIntentId: intent.id })
+    .where(eq(deliveryAttempts.id, a.id));
+  return {
+    kind: "pay",
+    clientSecret: intent.clientSecret,
+    amountPence: fee,
+    attemptId: a.id,
+  };
+}
+
+/**
+ * The choice redeliver, final: the next attempt on the day after Nobody was in was recorded, in the window asked for.
+ * Not checked against the change window or the caps (§6.8). Linda is told.
+ */
+async function bookRedelivery(
+  db: Db,
+  attemptId: number,
+  paidPence: number,
+  now: Date,
+) {
+  const booked = await db.transaction(async (tx) => {
+    const [a] = await tx
+      .select()
+      .from(deliveryAttempts)
+      .where(eq(deliveryAttempts.id, attemptId))
+      .for("update");
+    if (!a || a.choice !== "none") return null;
+    const day = addDays(String(a.recordedOn), 1);
+    await tx
+      .update(deliveryAttempts)
+      .set({ choice: "redeliver", chosenAt: now, feePaidPence: paidPence })
+      .where(eq(deliveryAttempts.id, a.id));
+    await tx.insert(deliveryAttempts).values({
+      orderId: a.orderId,
+      attempt: a.attempt + 1,
+      day,
+      deliveryWindow: a.pendingWindow,
+    });
+    const [o] = await tx
+      .select({ number: orders.number, email: orders.email })
+      .from(orders)
+      .where(eq(orders.id, a.orderId));
+    return { a, o, day };
+  });
+  if (!booked) return false;
+  await queueMail(
+    db,
+    {
+      key: `alert:delivery-choice:${booked.a.id}`,
+      template: "alert",
+      data: {
+        kind: "delivery-choice",
+        view: {
+          number: booked.o.number,
+          choice: "redeliver",
+          date: booked.day,
+          today: londonDate(now),
+        },
+      },
+      to: (await readSettings(db)).email,
+      replyTo: booked.o.email || null,
+    },
+    now,
+  );
+  return true;
+}
+
+/**
+ * A redelivery fee Stripe says succeeded (the page after paying, the webhook or the reconciliation job — whichever
+ * comes first). Booked even after 23:59 when it was started before (§6.8 Timing); if Collect was chosen meanwhile, the
+ * fee goes back in full as a `fee` refund.
+ */
+export async function applyRedelivery(
+  db: Db,
+  gw: Pick<Gateway, "refund">,
+  intent: Intent,
+  now = new Date(),
+): Promise<"booked" | "already" | "refunded" | "nothing"> {
+  if (intent.kind !== "redelivery" || intent.status !== "succeeded")
+    return "nothing";
+  const [a] = await db
+    .select()
+    .from(deliveryAttempts)
+    .where(eq(deliveryAttempts.paymentIntentId, intent.id));
+  if (!a) return "nothing";
+  if (a.choice === "redeliver") return "already";
+  if (a.choice === "collect") {
+    const [done] = await db
+      .select({ id: refunds.id })
+      .from(refunds)
+      .where(eq(refunds.paymentIntentId, intent.id));
+    if (done) return "already";
+    const [row] = await db
+      .insert(refunds)
+      .values({
+        orderId: a.orderId,
+        kind: "fee",
+        amountPence: intent.amountReceivedPence,
+        paymentIntentId: intent.id,
+        createdAt: now,
+      })
+      .returning({ id: refunds.id });
+    const r = await gw.refund(
+      intent.id,
+      intent.amountReceivedPence,
+      `fee-${row.id}`,
+    );
+    await db
+      .update(refunds)
+      .set(
+        r.ok
+          ? { stripeRefundId: r.id, status: r.status }
+          : { status: "failed", error: r.error },
+      )
+      .where(eq(refunds.id, row.id));
+    return "refunded";
+  }
+  return (await bookRedelivery(db, a.id, intent.amountReceivedPence, now))
+    ? "booked"
+    : "already";
+}
+
+/** After Stripe answered on the page: booked, still processing, or not taken (nothing changed). */
+export async function finishRedelivery(
+  db: Db,
+  gw: Pick<Gateway, "retrieve" | "refund">,
+  token: string,
+  now = new Date(),
+): Promise<"booked" | "processing" | "failed"> {
+  const found = await attemptByToken(db, token);
+  const pi = found?.attempt.paymentIntentId;
+  if (!pi) return "failed";
+  if (found.attempt.choice === "redeliver") return "booked";
+  const intent = await gw.retrieve(pi);
+  if (intent.status === "processing") return "processing";
+  if (intent.status !== "succeeded") return "failed";
+  const r = await applyRedelivery(db, gw, intent, now);
+  return r === "booked" || r === "already" ? "booked" : "failed";
 }

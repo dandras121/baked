@@ -7,6 +7,7 @@ import type { connect } from "./client";
 import { draftLineViews } from "./draft-repo";
 import { capacityFor } from "./hold-repo";
 import { applyChangePayment } from "./change-repo";
+import { applyRedelivery } from "./delivery-repo";
 import { createOrder } from "./order-repo";
 import {
   draftAmount,
@@ -266,6 +267,12 @@ export async function reconcile(
           intent,
           now,
         );
+      continue;
+    }
+    // A paid redelivery fee likewise (§6.8).
+    if (intent.kind === "redelivery") {
+      if ("refund" in gw)
+        await applyRedelivery(db, gw as Pick<Gateway, "refund">, intent, now);
       continue;
     }
     seen[await applyIntent(db, intent, now, false, gw)]++;
