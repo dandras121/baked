@@ -11,6 +11,7 @@ import styles from "../mail/mail.module.css";
 import {
   makeSamples,
   nobodyWasIn,
+  resetChecks,
   sendPayLink,
   toggleRedeliveryFee,
   toggleTomorrowClosed,
@@ -44,7 +45,7 @@ export default async function Page() {
   let feePence = 0;
   let tomorrowClosed = false;
   try {
-    rows = await db.select().from(orders).orderBy(desc(orders.id)).limit(30);
+    rows = await db.select().from(orders).orderBy(desc(orders.id)).limit(60);
     attempts = rows.length
       ? await db
           .select()
@@ -157,6 +158,16 @@ export default async function Page() {
         Linda&rsquo;s own buttons (Nobody was in, payment links) are added here
         in later slices until the admin exists.
       </p>
+      <form action={resetChecks} className={styles.sample}>
+        <button type="submit" className={styles.button}>
+          Reset the check orders
+        </button>{" "}
+        <span className={styles.meta}>
+          the BBL-CHK orders of the phase 6 document: always the same links,
+          dates counted from today — press it before you start, or to do a step
+          again
+        </span>
+      </form>
       <form action={makeSamples} className={styles.sample}>
         <button type="submit" className={styles.button}>
           Make sample orders

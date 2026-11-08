@@ -4,14 +4,12 @@ import { randomBytes } from "node:crypto";
 import { redirect } from "next/navigation";
 import { connect, databaseUrl } from "@/db/client";
 import { eq } from "drizzle-orm";
-import { readOptions } from "@/db/cake-page-repo";
-import { cakes, closedDays, orderLines, orders, settings } from "@/db/schema";
+import { closedDays, settings } from "@/db/schema";
+import { insertSample, type Sample } from "./samples";
+import { resetCheckOrders } from "./check-pack";
 import { readSettings } from "@/db/settings-repo";
 import { SETTINGS_TAG } from "@/db/site-settings";
 import { updateTag } from "next/cache";
-import { allergenLine, type Answers } from "@/lib/cake-config";
-import type { AllergenSet } from "@/lib/cakes";
-import { optionsLine } from "@/lib/order-line";
 import { addDays, londonDate } from "@/lib/london-time";
 import { SITE_URL } from "@/app/layout";
 import { recordNobodyIn } from "@/db/delivery-repo";
@@ -35,21 +33,7 @@ export async function makeSamples() {
   const { db, close } = connect();
   try {
     const stamp = Date.now().toString().slice(-4);
-    const samples: {
-      date: string;
-      handover: string;
-      name: string;
-      kind?: string;
-      status?: string;
-      /** The Lothian's size: 24 (£185) unless given; 32 (£240) can be made smaller (6.2b). */
-      serves?: number;
-      /** Another cake with options (6.2d): Bramble & Cream with a vanilla sponge. */
-      cake?: string;
-      /** Moved later (6.3): the earliest date it has had, when it differs. */
-      earliest?: string;
-      /** Nothing paid yet (6.6): £380 to pay through payment links. */
-      unpaid?: boolean;
-    }[] = [
+    const samples: Sample[] = [
       {
         date: addDays(today, 10),
         handover: "delivery",
@@ -102,86 +86,13 @@ export async function makeSamples() {
         unpaid: true,
       },
     ];
-    for (const [i, s] of samples.entries()) {
-      const [o] = await db
-        .insert(orders)
-        .values({
-          number: `BBL-DEV-${stamp}${i}`,
-          kind: s.kind ?? "catalogue",
-          status: s.status ?? "confirmed",
-          token: randomBytes(24).toString("base64url"),
-          date: s.date,
-          earliestDate: s.earliest ?? s.date,
-          handover: s.handover,
-          deliveryWindow: s.handover === "delivery" ? "morning" : null,
-          address: s.handover === "delivery" ? "48 Preston Road" : null,
-          town: s.handover === "delivery" ? "Linlithgow" : null,
-          postcode: s.handover === "delivery" ? "EH49 6HH" : null,
-          customerName: s.name,
-          email: "sample@example.com",
-          phone: "07700 900 358",
-          phoneE164: "+447700900358",
-          allergyNote: "No nuts",
-          consents: {},
-          totalPence: s.unpaid ? 38000 : s.serves === 32 ? 24000 : 18500,
-          amountReceivedPence: s.unpaid ? 0 : s.serves === 32 ? 24000 : 18500,
-          // A sample has no Stripe payment: on a preview with real test keys its refund fails and Linda is told.
-          paymentIntentId: s.unpaid ? null : `pi_dev_${stamp}${i}`,
-          snapshot: {},
-          confirmedAt: new Date(),
-        })
-        .returning({ id: orders.id });
-      if (s.cake) {
-        const [cake] = await db
-          .select()
-          .from(cakes)
-          .where(eq(cakes.slug, s.cake));
-        const opts = cake ? await readOptions(db, cake.id) : [];
-        const sponge = opts.find((x) => x.label === "Sponge");
-        const answers: Answers = {
-          picks: sponge ? { [sponge.id]: [sponge.choices[0].id] } : {},
-          texts: {},
-        };
-        const own = cake && {
-          allergens: cake.allergens as AllergenSet["allergens"],
-          glutenKinds: cake.glutenKinds,
-          nutKinds: cake.nutKinds,
-          alsoContains: cake.alsoContains,
-        };
-        await db.insert(orderLines).values({
-          orderId: o.id,
-          position: 1,
-          slug: s.cake,
-          name: cake?.name ?? "Bramble & Cream",
-          sizeLine: "Two tiers · serves 24",
-          flavour: cake?.flavour ?? "",
-          options: optionsLine(opts, answers),
-          answers,
-          message: "",
-          pricePence: 18500,
-          sizePricePence: 18500,
-          allergenText: own ? allergenLine(own, opts, answers, []) : "",
-          allergenKeys: [],
-        });
-        continue;
-      }
-      await db.insert(orderLines).values({
-        orderId: o.id,
-        position: 1,
-        slug: s.kind === "manual" ? "" : "the-lothian",
-        name:
-          s.kind === "manual"
-            ? "Two-tier wedding cake, white roses"
-            : "The Lothian",
-        sizeLine: `Two tiers · serves ${s.serves ?? 24}`,
-        flavour:
-          s.kind === "manual" ? "" : "Vanilla sponge, raspberry conserve",
-        message: s.kind === "manual" ? null : "Happy 30th, Mairi",
-        pricePence: s.unpaid ? 38000 : s.serves === 32 ? 24000 : 18500,
-        allergenText: "Contains gluten (wheat), eggs and milk.",
-        allergenKeys: [],
+    for (const [i, s] of samples.entries())
+      await insertSample(db, s, {
+        number: `BBL-DEV-${stamp}${i}`,
+        token: randomBytes(24).toString("base64url"),
+        paymentIntentId: `pi_dev_${stamp}${i}`,
+        email: "sample@example.com",
       });
-    }
   } finally {
     await close();
   }
@@ -274,6 +185,19 @@ export async function toggleTomorrowClosed() {
       await db
         .insert(closedDays)
         .values({ day: tomorrow, note: "Closed from /dev/orders" });
+  } finally {
+    await close();
+  }
+  redirect("/dev/orders");
+}
+
+/** Reset the check orders (Bohoka's phase 6 document): the same links, dates from today. */
+export async function resetChecks() {
+  if (!databaseUrl()) return;
+  const { db, close } = connect();
+  try {
+    const now = new Date();
+    await resetCheckOrders(db, londonDate(now), now);
   } finally {
     await close();
   }
