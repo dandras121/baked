@@ -7,7 +7,9 @@ import {
   useElements,
   useStripe,
 } from "@stripe/react-stripe-js";
-import { loadStripe, type Stripe, type StripeError } from "@stripe/stripe-js";
+// The pure entry: Stripe.js loads only when the payment block is shown (§10.11).
+import { loadStripe } from "@stripe/stripe-js/pure";
+import type { Stripe, StripeError } from "@stripe/stripe-js";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import {

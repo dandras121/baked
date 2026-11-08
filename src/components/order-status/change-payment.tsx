@@ -6,7 +6,9 @@ import {
   useElements,
   useStripe,
 } from "@stripe/react-stripe-js";
-import { loadStripe, type Stripe } from "@stripe/stripe-js";
+// The pure entry: Stripe.js loads only when a card field is shown, not on every page that imports this (§10.11).
+import { loadStripe } from "@stripe/stripe-js/pure";
+import type { Stripe } from "@stripe/stripe-js";
 import { useState } from "react";
 import type { PrepareState } from "@/app/(site)/my-order/[token]/change/actions";
 import { Button } from "@/components/ui/button";
