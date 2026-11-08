@@ -71,6 +71,26 @@ export async function makeSamples() {
         handover: "delivery",
         name: "Euan Murray",
       },
+      // B tomorrow, C after the date (handed over), a serves-32 cake to make smaller (6.2b), a paid bespoke order.
+      { date: addDays(today, 1), handover: "delivery", name: "Fiona Clark" },
+      {
+        date: addDays(today, -5),
+        handover: "delivery",
+        name: "Graeme Hay",
+        status: "completed",
+      },
+      {
+        date: addDays(today, 11),
+        handover: "delivery",
+        name: "Kirsty Lamb",
+        serves: 32,
+      },
+      {
+        date: addDays(today, 15),
+        handover: "collection",
+        name: "Morven Bell",
+        kind: "manual",
+      },
       // Delivery day (6.5): today, for Linda's Nobody was in.
       { date: today, handover: "delivery", name: "Ailsa Ross" },
       // A bespoke order with nothing paid yet (6.6): Linda sends a deposit and the rest as payment links.
