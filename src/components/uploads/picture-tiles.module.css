@@ -1,0 +1,141 @@
+/*
+ * Picture tiles (§7.1): desktop 660:4230 three of 166 × 150 with 12 between (× --u; tablet × 0.8), phone 847:8173
+ * three of 112 × 100 with 9 between. Placeholder grey, radius 10.
+ */
+.tiles {
+  display: flex;
+  gap: 9px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.tile {
+  position: relative;
+  flex: 1 1 0;
+  min-width: 0;
+  aspect-ratio: 112 / 100;
+  overflow: hidden;
+  border-radius: 10px;
+  background: var(--colour-placeholder);
+}
+
+.add,
+.retry {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 100%;
+  padding: 8px;
+  border: 0;
+  background: none;
+  color: var(--colour-meta);
+  cursor: pointer;
+}
+
+.add {
+  font: var(--type-tile-plus);
+}
+
+.retry {
+  align-content: center;
+  gap: 6px;
+  color: var(--colour-display);
+  font: var(--type-small);
+  font-weight: 600;
+}
+
+.name {
+  max-width: 100%;
+  overflow: hidden;
+  color: var(--colour-ink);
+  font-weight: 400;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.thumb {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* × in the corner: a 44 × 44 hit area around a small white disc. */
+.remove {
+  position: absolute;
+  top: 0;
+  right: 0;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--colour-ink);
+  font: var(--type-body-sm);
+  cursor: pointer;
+  isolation: isolate;
+}
+
+.remove::before {
+  content: "";
+  position: absolute;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: var(--colour-white);
+  z-index: -1;
+}
+
+.ring {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 100%;
+}
+
+.ring svg {
+  width: 40px;
+  height: 40px;
+  transform: rotate(-90deg);
+}
+
+.track,
+.arc {
+  fill: none;
+  stroke-width: 3;
+}
+
+.track {
+  stroke: var(--colour-line-rule);
+}
+
+.arc {
+  stroke: var(--colour-display);
+  stroke-linecap: round;
+}
+
+.hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.notice {
+  margin-top: 12px;
+}
+
+@media (min-width: 768px) {
+  .tiles {
+    gap: calc(12 * var(--u));
+  }
+
+  .tile {
+    aspect-ratio: 166 / 150;
+  }
+}

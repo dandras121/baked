@@ -70,6 +70,13 @@ export async function sendEnquiry(
   const given = String(form.get("formKey") ?? "");
   const formKey = UUID.test(given) ? given : crypto.randomUUID();
   const inspired = Number(form.get("inspired")) || null;
+  let pictures: string[] = [];
+  try {
+    const list = JSON.parse(String(form.get("pictures") ?? "[]"));
+    if (Array.isArray(list)) pictures = list.map(String).slice(0, 3);
+  } catch {
+    // No pictures.
+  }
   if (!databaseUrl() || !settings)
     return { errors: {}, missing: [], notice: ENQUIRY_COPY.failed };
   const { db, close } = connect();
@@ -92,7 +99,7 @@ export async function sendEnquiry(
     reference = (
       await saveEnquiry(
         db,
-        { enquiry, inspiredId: inspired, formKey, spam },
+        { enquiry, inspiredId: inspired, formKey, spam, pictures },
         today,
         now,
       )

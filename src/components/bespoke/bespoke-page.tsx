@@ -20,11 +20,13 @@ export function BespokePage({
   settings,
   today,
   inspired,
+  direct,
   action,
 }: {
   settings: Settings | null;
   today: string;
   inspired: { id: number; caption: string; src: string | null } | null;
+  direct: boolean;
   action: (s: EnquiryState, f: FormData) => Promise<EnquiryState>;
 }) {
   const minimum = settings?.bespokeMinimumPence ?? 16000;
@@ -47,6 +49,7 @@ export function BespokePage({
             deliveryArea={settings?.deliveryArea ?? "Edinburgh & the Lothians"}
             today={today}
             inspired={inspired}
+            direct={direct}
             action={action}
           />
         </div>

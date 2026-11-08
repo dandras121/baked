@@ -3,6 +3,10 @@
 import { useActionState, useRef, useState, startTransition } from "react";
 import type { EnquiryState } from "@/app/(site)/bespoke/actions";
 import { Button } from "@/components/ui/button";
+import {
+  PictureTiles,
+  type PicturesState,
+} from "@/components/uploads/picture-tiles";
 import { Checkbox } from "@/components/ui/choice";
 import { FieldError } from "@/components/ui/field-error";
 import { Notice } from "@/components/ui/notice";
@@ -32,6 +36,7 @@ import {
   type MissingKey,
 } from "@/lib/bespoke";
 import { CONTACT } from "@/lib/contact";
+import { PICTURE_COPY } from "@/lib/uploads/rules";
 import styles from "./bespoke.module.css";
 
 /** One question's heading: “01 · The occasion”, an optional violet hint beside it. */
@@ -97,7 +102,8 @@ const FIELD_OF: Record<MissingKey, string> = {
 /**
  * The bespoke enquiry form (§7.1; desktop 660:4068, tablet 1559:11694, phone 847:8028). Mostly tap-and-go pills; the
  * date warnings are calm and never block; with answers missing a summary sits beside the button (K 975:9128).
- * Pictures arrive with 7.1b; the “Inspired by” card (M 1633:12328) shows when the form came from the gallery.
+ * Up to three pictures upload as soon as they are picked; the “Inspired by” card (M 1633:12328) sits above them when
+ * the form came from the gallery. Send waits for unfinished uploads.
  */
 export function BespokeForm({
   minimumPence,
@@ -105,6 +111,7 @@ export function BespokeForm({
   deliveryArea,
   today,
   inspired,
+  direct,
   action,
 }: {
   minimumPence: number;
@@ -112,6 +119,7 @@ export function BespokeForm({
   deliveryArea: string;
   today: string;
   inspired: { id: number; caption: string; src: string | null } | null;
+  direct: boolean;
   action: (s: EnquiryState, f: FormData) => Promise<EnquiryState>;
 }) {
   const [v, setV] = useState<Enquiry>(EMPTY_ENQUIRY);
@@ -124,6 +132,14 @@ export function BespokeForm({
     notice: null,
   });
   const formKey = useRef("");
+  const keyOf = () => (formKey.current ||= crypto.randomUUID());
+  const [pictures, setPictures] = useState<PicturesState>({
+    ids: [],
+    pending: 0,
+  });
+  /** Send was pressed while pictures were still uploading: send (anyway or not) once they are done. */
+  const [waiting, setWaiting] = useState<{ anyway: boolean } | null>(null);
+  const picturesNow = useRef(pictures);
   const honeypot = useRef<HTMLInputElement>(null);
   const range = dateRange(today);
   const warning = dateWarning(v, today, leadWeeks);
@@ -178,10 +194,15 @@ export function BespokeForm({
       setSummary(gaps);
       return;
     }
-    if (!formKey.current) formKey.current = crypto.randomUUID();
+    if (picturesNow.current.pending) {
+      setWaiting({ anyway });
+      return;
+    }
+    setWaiting(null);
     const data = new FormData();
     data.set("enquiry", JSON.stringify(v));
-    data.set("formKey", formKey.current);
+    data.set("formKey", keyOf());
+    data.set("pictures", JSON.stringify(picturesNow.current.ids));
     data.set(CONTACT.honeypot, honeypot.current?.value ?? "");
     if (keepInspired && inspired) data.set("inspired", String(inspired.id));
     if (anyway) data.set("sendAnyway", "1");
@@ -398,35 +419,49 @@ export function BespokeForm({
         />
       </section>
 
-      {inspired && keepInspired && (
-        <section className={styles.block}>
-          <h2 className={styles.heading}>Add up to three pictures</h2>
-          <div className={styles.inspired}>
-            {inspired.src ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={inspired.src} alt="" className={styles.thumb} />
-            ) : (
-              <span className={styles.thumb} aria-hidden />
-            )}
-            <div className={styles.inspiredText}>
-              <span className={styles.inspiredLabel}>Inspired by</span>
-              <span>{inspired.caption}</span>
+      <section className={styles.block}>
+        <h2 className={styles.heading}>{PICTURE_COPY.heading}</h2>
+        {inspired && keepInspired && (
+          <>
+            <div className={styles.inspired}>
+              {inspired.src ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={inspired.src} alt="" className={styles.thumb} />
+              ) : (
+                <span className={styles.thumb} aria-hidden />
+              )}
+              <div className={styles.inspiredText}>
+                <span className={styles.inspiredLabel}>Inspired by</span>
+                <span>{inspired.caption}</span>
+              </div>
+              <button
+                type="button"
+                className={styles.remove}
+                data-pressable
+                onClick={() => setKeepInspired(false)}
+              >
+                Remove ×
+              </button>
             </div>
-            <button
-              type="button"
-              className={styles.remove}
-              data-pressable
-              onClick={() => setKeepInspired(false)}
-            >
-              Remove ×
-            </button>
-          </div>
-          <p className={styles.note}>
-            You came from my gallery — I will see this picture with your
-            enquiry.
-          </p>
-        </section>
-      )}
+            <p className={styles.note}>
+              You came from my gallery — I will see this picture with your
+              enquiry.
+            </p>
+          </>
+        )}
+        <PictureTiles
+          purpose="enquiry"
+          formKey={keyOf}
+          direct={direct}
+          onChange={(next) => {
+            picturesNow.current = next;
+            setPictures(next);
+            // The last upload finished: carry on with the send that was asked for.
+            if (waiting && !next.pending) send(waiting.anyway);
+          }}
+        />
+        <p className={styles.note}>{PICTURE_COPY.note}</p>
+      </section>
 
       <section className={styles.block}>
         <Heading id="q-you" n="09">
@@ -479,7 +514,15 @@ export function BespokeForm({
       </section>
 
       <div className={styles.send}>
-        <Button type="submit" busy={pending} busyLabel="Sending">
+        <Button
+          type="submit"
+          busy={pending || !!waiting}
+          busyLabel={
+            waiting && pictures.pending
+              ? PICTURE_COPY.waiting(pictures.pending)
+              : "Sending"
+          }
+        >
           Send my enquiry
         </Button>
         {summary && summary.length > 0 && (

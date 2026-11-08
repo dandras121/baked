@@ -164,6 +164,10 @@
   font: var(--type-social);
 }
 
+.type-tile-plus {
+  font: var(--type-tile-plus);
+}
+
 .type-label {
   font: var(--type-label);
   letter-spacing: var(--type-label-ls);

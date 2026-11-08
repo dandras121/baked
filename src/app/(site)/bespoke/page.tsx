@@ -3,6 +3,7 @@ import { connection } from "next/server";
 import { BespokePage } from "@/components/bespoke/bespoke-page";
 import { connect, databaseUrl } from "@/db/client";
 import { inspiredPhoto } from "@/db/enquiry-repo";
+import { blobConnected } from "@/lib/storage";
 import { getSiteSettings } from "@/db/site-settings";
 import { londonDate } from "@/lib/london-time";
 import { sendEnquiry } from "./actions";
@@ -39,6 +40,7 @@ export default async function Page({
       settings={settings}
       today={londonDate(new Date())}
       inspired={inspired}
+      direct={blobConnected()}
       action={sendEnquiry}
     />
   );
