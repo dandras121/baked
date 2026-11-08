@@ -38,6 +38,8 @@ export default defineConfig({
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: 0,
+  // Leftover test orders would fill the caps over many runs (Later from 6.5b).
+  globalSetup: "./e2e/global-setup.ts",
   reporter: process.env.CI ? [["list"], ["html", { open: "never" }]] : "list",
   use: {
     baseURL: `http://localhost:${PORT}`,

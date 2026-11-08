@@ -1,4 +1,4 @@
-import { desc, eq } from "drizzle-orm";
+import { and, desc, eq, ne, sum } from "drizzle-orm";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { connection } from "next/server";
@@ -19,8 +19,12 @@ import {
 import { closedDays } from "@/db/schema";
 import { readSettings } from "@/db/settings-repo";
 import { addDays } from "@/lib/london-time";
-import { deliveryAttempts, paymentLinks } from "@/db/schema";
-import { netPaid } from "@/db/refund-repo";
+import {
+  deliveryAttempts,
+  orderChanges,
+  paymentLinks,
+  refunds,
+} from "@/db/schema";
 import { formatPrice } from "@/lib/money";
 import { inArray } from "drizzle-orm";
 
@@ -63,9 +67,62 @@ export default async function Page() {
             ),
           )
       : [];
-    // In parallel: one by one this is ~100 round trips to the database and makes every button here slow.
-    const paid = await Promise.all(rows.map((o) => netPaid(db, o)));
-    rows.forEach((o, i) => due.set(o.id, Math.max(0, o.totalPence - paid[i])));
+    // Still to pay in three grouped queries (one by one it was ~100 round trips and every button here was slow).
+    // The same sums as netPaid (§10.6): received + paid changes + link money − refunds that did not fail, fees aside.
+    const ids = rows.map((o) => o.id);
+    const byOrder = (r: { id: number; n: string | null }[]) =>
+      new Map(r.map((x) => [x.id, Number(x.n ?? 0)]));
+    const [changed, linked, refunded] = ids.length
+      ? await Promise.all([
+          db
+            .select({
+              id: orderChanges.orderId,
+              n: sum(orderChanges.paidPence),
+            })
+            .from(orderChanges)
+            .where(
+              and(
+                inArray(orderChanges.orderId, ids),
+                eq(orderChanges.status, "saved"),
+              ),
+            )
+            .groupBy(orderChanges.orderId)
+            .then(byOrder),
+          db
+            .select({
+              id: paymentLinks.orderId,
+              n: sum(paymentLinks.paidPence),
+            })
+            .from(paymentLinks)
+            .where(inArray(paymentLinks.orderId, ids))
+            .groupBy(paymentLinks.orderId)
+            .then(byOrder),
+          db
+            .select({ id: refunds.orderId, n: sum(refunds.amountPence) })
+            .from(refunds)
+            .where(
+              and(
+                inArray(refunds.orderId, ids),
+                inArray(refunds.status, ["pending", "succeeded"]),
+                ne(refunds.kind, "fee"),
+              ),
+            )
+            .groupBy(refunds.orderId)
+            .then(byOrder),
+        ])
+      : [
+          new Map<number, number>(),
+          new Map<number, number>(),
+          new Map<number, number>(),
+        ];
+    for (const o of rows) {
+      const net =
+        o.amountReceivedPence +
+        (changed.get(o.id) ?? 0) +
+        (linked.get(o.id) ?? 0) -
+        (refunded.get(o.id) ?? 0);
+      due.set(o.id, Math.max(0, o.totalPence - net));
+    }
     feePence = (await readSettings(db)).secondAttemptFeePence;
     tomorrowClosed =
       (

@@ -344,9 +344,11 @@ test("date and window: pick another free day and Evening; saved; the order page 
   await page
     .getByRole("button", { name: "Change the date and window" })
     .click();
+  // Any free day other than its own (the order's day is not “available” for itself); one is enough, as other tests
+  // fill the nearby weeks during a full run.
   const free = page
     .locator("[data-shown] label[data-state=available] input")
-    .nth(3);
+    .first();
   const picked = await free.getAttribute("value");
   await free.locator("..").click();
   await page.locator("label").filter({ hasText: /^Evening/ }).click();
