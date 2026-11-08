@@ -949,6 +949,44 @@ export const deliveryAttempts = pgTable(
   ],
 );
 
+/**
+ * Payment links (§6.9, §9.8): Linda asks for money — a deposit, the rest, a difference — and the customer pays it at
+ * `/pay/[token]`. One PaymentIntent per link, reused; paid, withdrawn by Linda, or no longer valid (§10.5).
+ */
+export const paymentLinks = pgTable(
+  "payment_links",
+  {
+    id: serial("id").primaryKey(),
+    orderId: integer("order_id")
+      .notNull()
+      .references(() => orders.id, { onDelete: "cascade" }),
+    token: text("token").notNull().unique(),
+    purpose: text("purpose").notNull(),
+    amountPence: integer("amount_pence").notNull(),
+    status: text("status").notNull().default("open"),
+    paymentIntentId: text("payment_intent_id").unique(),
+    /** What Stripe took (net paid counts it, §10.6). */
+    paidPence: integer("paid_pence").notNull().default(0),
+    sentOn: date("sent_on").notNull(),
+    paidAt: timestamp("paid_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [
+    index("payment_links_order").on(t.orderId),
+    check(
+      "payment_link_purpose",
+      sql`${t.purpose} in ('deposit', 'rest', 'difference')`,
+    ),
+    check(
+      "payment_link_status",
+      sql`${t.status} in ('open', 'paid', 'withdrawn')`,
+    ),
+    check("payment_link_amount", sql`${t.amountPence} >= 30`),
+  ],
+);
+
 /** Message Linda (§6.5): what the customer wrote from the status link, kept on the order (admin Order detail →
  *  Messages, 9.x). One per form key, so a repeated press is one message (§10.8). */
 export const orderMessages = pgTable(

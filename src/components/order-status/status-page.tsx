@@ -49,6 +49,8 @@ export type StatusView = {
     (ReturnType<typeof redeliveryCopy> & { day: string; times: string }) | null;
   /** “Redelivery £15 · paid” (§6.3 Money): a fee never counts in net paid. */
   feePaidPence: number;
+  /** One “Pay £… →” per open payment link (§6.3 Money). */
+  payLinks: { href: string; label: string }[];
   lines: {
     name: string;
     flavour: string;
@@ -179,6 +181,11 @@ function OrderPanel({ v }: { v: StatusView }) {
           </>
         )}
       </dl>
+      {v.payLinks.map((l) => (
+        <p key={l.href} className={styles.payLink}>
+          <Link href={l.href}>{l.label}</Link>
+        </p>
+      ))}
       {v.feePaidPence > 0 && (
         <dl className={styles.rows}>
           <dt>Redelivery</dt>

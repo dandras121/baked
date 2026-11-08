@@ -7,6 +7,7 @@ import {
 } from "@/db/change-repo";
 import { applyIntent } from "@/db/confirm-repo";
 import { applyRedelivery } from "@/db/delivery-repo";
+import { applyPayLink } from "@/db/pay-link-repo";
 import { processMail } from "@/db/mail-repo";
 import { mailTransport } from "@/lib/mail/transport";
 import { gateway, verifiedEvent } from "@/lib/payments";
@@ -46,6 +47,17 @@ export async function POST(req: Request) {
           : await applyChangePayment(db, gw, intent);
       await processMail(db, mailTransport(), SITE_URL).catch((e) =>
         console.warn("[mail] after a change payment", e),
+      );
+      return NextResponse.json({ received: true, applied: done });
+    }
+    // A payment link (§6.9): recorded once paid; a failed payment changes nothing.
+    if (intent.kind === "payment_link") {
+      const done =
+        event.type === "payment_intent.payment_failed"
+          ? "nothing"
+          : await applyPayLink(db, gw, intent);
+      await processMail(db, mailTransport(), SITE_URL).catch((e) =>
+        console.warn("[mail] after a link payment", e),
       );
       return NextResponse.json({ received: true, applied: done });
     }

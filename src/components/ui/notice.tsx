@@ -14,6 +14,8 @@ type NoticeProps = {
   urgent?: boolean;
   /** ANIM-19: the box opens from 0 height in 200 ms and closes in 120 ms. */
   open?: boolean;
+  /** The title is the page's h1 (a state page whose notice names the state, §0.6). */
+  asHeading?: boolean;
 };
 
 export function Notice({
@@ -23,7 +25,9 @@ export function Notice({
   icon = false,
   urgent = false,
   open = true,
+  asHeading = false,
 }: NoticeProps) {
+  const Title = asHeading ? "h1" : "p";
   const [kept, setKept] = useState(open);
   if (open && !kept) setKept(true);
   useEffect(() => {
@@ -44,7 +48,7 @@ export function Notice({
               {tone === "error" ? "!" : ""}
             </span>
           )}
-          <p className={styles.title}>{title}</p>
+          <Title className={styles.title}>{title}</Title>
           {children && <div className={styles.body}>{children}</div>}
         </div>
       </div>

@@ -198,7 +198,10 @@ function PayForm({
       </p>
       <div className={styles.cardField}>
         <PaymentElement
-          options={{ wallets: { applePay: "never", googlePay: "never" } }}
+          options={{
+            // Cards only (§5.4): no Apple Pay, Google Pay or Link here.
+            wallets: { applePay: "never", googlePay: "never", link: "never" },
+          }}
         />
       </div>
       {notice && (

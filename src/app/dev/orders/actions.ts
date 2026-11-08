@@ -5,13 +5,22 @@ import { redirect } from "next/navigation";
 import { connect, databaseUrl } from "@/db/client";
 import { eq } from "drizzle-orm";
 import { readOptions } from "@/db/cake-page-repo";
-import { cakes, orderLines, orders } from "@/db/schema";
+import { cakes, closedDays, orderLines, orders, settings } from "@/db/schema";
+import { readSettings } from "@/db/settings-repo";
+import { SETTINGS_TAG } from "@/db/site-settings";
+import { updateTag } from "next/cache";
 import { allergenLine, type Answers } from "@/lib/cake-config";
 import type { AllergenSet } from "@/lib/cakes";
 import { optionsLine } from "@/lib/order-line";
 import { addDays, londonDate } from "@/lib/london-time";
 import { SITE_URL } from "@/app/layout";
 import { recordNobodyIn } from "@/db/delivery-repo";
+import {
+  createPayLink,
+  withdrawPayLink,
+  type PayPurpose,
+} from "@/db/pay-link-repo";
+import { gateway } from "@/lib/payments";
 import { processMail } from "@/db/mail-repo";
 import { mailTransport } from "@/lib/mail/transport";
 
@@ -38,6 +47,8 @@ export async function makeSamples() {
       cake?: string;
       /** Moved later (6.3): the earliest date it has had, when it differs. */
       earliest?: string;
+      /** Nothing paid yet (6.6): £380 to pay through payment links. */
+      unpaid?: boolean;
     }[] = [
       {
         date: addDays(today, 10),
@@ -62,6 +73,14 @@ export async function makeSamples() {
       },
       // Delivery day (6.5): today, for Linda's Nobody was in.
       { date: today, handover: "delivery", name: "Ailsa Ross" },
+      // A bespoke order with nothing paid yet (6.6): Linda sends a deposit and the rest as payment links.
+      {
+        date: addDays(today, 20),
+        handover: "collection",
+        name: "Isla Morrison",
+        kind: "manual",
+        unpaid: true,
+      },
     ];
     for (const [i, s] of samples.entries()) {
       const [o] = await db
@@ -84,10 +103,10 @@ export async function makeSamples() {
           phoneE164: "+447700900358",
           allergyNote: "No nuts",
           consents: {},
-          totalPence: s.serves === 32 ? 24000 : 18500,
-          amountReceivedPence: s.serves === 32 ? 24000 : 18500,
+          totalPence: s.unpaid ? 38000 : s.serves === 32 ? 24000 : 18500,
+          amountReceivedPence: s.unpaid ? 0 : s.serves === 32 ? 24000 : 18500,
           // A sample has no Stripe payment: on a preview with real test keys its refund fails and Linda is told.
-          paymentIntentId: `pi_dev_${stamp}${i}`,
+          paymentIntentId: s.unpaid ? null : `pi_dev_${stamp}${i}`,
           snapshot: {},
           confirmedAt: new Date(),
         })
@@ -138,7 +157,7 @@ export async function makeSamples() {
         flavour:
           s.kind === "manual" ? "" : "Vanilla sponge, raspberry conserve",
         message: s.kind === "manual" ? null : "Happy 30th, Mairi",
-        pricePence: s.serves === 32 ? 24000 : 18500,
+        pricePence: s.unpaid ? 38000 : s.serves === 32 ? 24000 : 18500,
         allergenText: "Contains gluten (wheat), eggs and milk.",
         allergenKeys: [],
       });
@@ -161,6 +180,80 @@ export async function nobodyWasIn(orderId: number) {
     await processMail(db, mailTransport(), SITE_URL).catch((e) =>
       console.error("missed-you mail", e),
     );
+  } finally {
+    await close();
+  }
+  redirect("/dev/orders");
+}
+
+/** Linda's Send a payment link (§9.8) until the admin exists: e-mail 15 to the outbox with the link. */
+export async function sendPayLink(orderId: number, form: FormData) {
+  if (!databaseUrl()) return;
+  const purpose = String(form.get("purpose") ?? "rest") as PayPurpose;
+  const pounds = Number(
+    String(form.get("amount") ?? "").replace(/[£,\s]/g, ""),
+  );
+  const { db, close } = connect();
+  try {
+    await createPayLink(db, {
+      orderId,
+      purpose,
+      amountPence: Math.round(pounds * 100),
+    });
+    await processMail(db, mailTransport(), SITE_URL).catch((e) =>
+      console.error("pay-link mail", e),
+    );
+  } finally {
+    await close();
+  }
+  redirect("/dev/orders");
+}
+
+/** Linda's Cancel this link (§9.5). */
+export async function withdrawLink(linkId: number) {
+  if (!databaseUrl()) return;
+  const { db, close } = connect();
+  try {
+    await withdrawPayLink(db, gateway(), linkId);
+  } finally {
+    await close();
+  }
+  redirect("/dev/orders");
+}
+
+/**
+ * Settings Linda changes in the admin (§11.1, §11.2) that the phase 6 checks need (Bohoka's list 6.5): the redelivery
+ * fee £15 or free, and tomorrow closed or open.
+ */
+export async function toggleRedeliveryFee() {
+  if (!databaseUrl()) return;
+  const { db, close } = connect();
+  try {
+    const s = await readSettings(db);
+    await db
+      .update(settings)
+      .set({ secondAttemptFeePence: s.secondAttemptFeePence > 0 ? 0 : 1500 });
+  } finally {
+    await close();
+  }
+  // The public pages read Settings through a cache; saving them refreshes it, as the admin will (9.x).
+  updateTag(SETTINGS_TAG);
+  redirect("/dev/orders");
+}
+
+export async function toggleTomorrowClosed() {
+  if (!databaseUrl()) return;
+  const tomorrow = addDays(londonDate(new Date()), 1);
+  const { db, close } = connect();
+  try {
+    const gone = await db
+      .delete(closedDays)
+      .where(eq(closedDays.day, tomorrow))
+      .returning();
+    if (!gone.length)
+      await db
+        .insert(closedDays)
+        .values({ day: tomorrow, note: "Closed from /dev/orders" });
   } finally {
     await close();
   }

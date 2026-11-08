@@ -1,24 +1,29 @@
 // Refunds (§10.6): money back to the card, recorded per Stripe refund. A failed call keeps its row as `failed`,
 // raises “Refund failed — try again” for Linda (§8.3), and changes nothing else: the change or cancellation stays.
-import { and, eq, inArray, ne, sum } from "drizzle-orm";
+import { and, eq, gt, inArray, ne, sum } from "drizzle-orm";
 import type { Gateway } from "@/lib/payments";
 import type { connect } from "./client";
 import { queueMail } from "./mail-repo";
-import { orderChanges, orders, refunds } from "./schema";
+import { orderChanges, orders, paymentLinks, refunds } from "./schema";
 import { readSettings } from "./settings-repo";
 
 type Db = ReturnType<typeof connect>["db"];
 
 /** What can still go back on each of the order's card payments, newest first. */
 async function refundable(db: Db, o: typeof orders.$inferSelect) {
-  const paid: { paymentIntentId: string; amount: number }[] = [];
+  const paid: { paymentIntentId: string; amount: number; at: number }[] = [];
   if (o.paymentIntentId)
     paid.push({
       paymentIntentId: o.paymentIntentId,
       amount: o.amountReceivedPence,
+      at: o.confirmedAt.getTime(),
     });
   const changes = await db
-    .select({ pi: orderChanges.paymentIntentId, paid: orderChanges.paidPence })
+    .select({
+      pi: orderChanges.paymentIntentId,
+      paid: orderChanges.paidPence,
+      at: orderChanges.createdAt,
+    })
     .from(orderChanges)
     .where(
       and(eq(orderChanges.orderId, o.id), eq(orderChanges.status, "saved")),
@@ -26,7 +31,27 @@ async function refundable(db: Db, o: typeof orders.$inferSelect) {
     .orderBy(orderChanges.id);
   for (const c of changes)
     if (c.pi && c.paid > 0)
-      paid.push({ paymentIntentId: c.pi, amount: c.paid });
+      paid.push({ paymentIntentId: c.pi, amount: c.paid, at: c.at.getTime() });
+  // Paid payment links (§6.9) are card payments of the order too.
+  const links = await db
+    .select({
+      pi: paymentLinks.paymentIntentId,
+      paid: paymentLinks.paidPence,
+      at: paymentLinks.paidAt,
+    })
+    .from(paymentLinks)
+    .where(
+      // Whatever Stripe took through a link counts, also through a withdrawn one (its refund nets it out).
+      and(eq(paymentLinks.orderId, o.id), gt(paymentLinks.paidPence, 0)),
+    );
+  for (const l of links)
+    if (l.pi && l.paid > 0)
+      paid.push({
+        paymentIntentId: l.pi,
+        amount: l.paid,
+        at: l.at?.getTime() ?? 0,
+      });
+  paid.sort((a, b) => a.at - b.at);
   const out: { paymentIntentId: string; left: number }[] = [];
   // Newest charge first (§6.6, §9.7): each refunded at most up to what is left of it.
   for (const p of paid.reverse()) {
@@ -47,7 +72,10 @@ async function refundable(db: Db, o: typeof orders.$inferSelect) {
   return out;
 }
 
-/** Net paid (§10.6): what the order received and its paid changes, less every refund that has not failed (fees aside). */
+/**
+ * Net paid (§10.6): what the order received, its paid changes and paid payment links, less every refund that has not
+ * failed (fees aside).
+ */
 export async function netPaid(db: Db, o: typeof orders.$inferSelect) {
   const [c] = await db
     .select({ n: sum(orderChanges.paidPence) })
@@ -66,7 +94,19 @@ export async function netPaid(db: Db, o: typeof orders.$inferSelect) {
         ne(refunds.kind, "fee"),
       ),
     );
-  return o.amountReceivedPence + Number(c?.n ?? 0) - Number(r?.n ?? 0);
+  const [l] = await db
+    .select({ n: sum(paymentLinks.paidPence) })
+    .from(paymentLinks)
+    .where(
+      // Whatever Stripe took through a link counts, also through a withdrawn one (its refund nets it out).
+      and(eq(paymentLinks.orderId, o.id), gt(paymentLinks.paidPence, 0)),
+    );
+  return (
+    o.amountReceivedPence +
+    Number(c?.n ?? 0) +
+    Number(l?.n ?? 0) -
+    Number(r?.n ?? 0)
+  );
 }
 
 /**

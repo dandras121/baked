@@ -71,9 +71,9 @@ export default async function Page({
 
   return (
     <div className={styles.page}>
-      <h1 className="visually-hidden">Your e-mails</h1>
+      {/* The page's h1 names its state (§0.6 state cards): the question, or the notice's title. */}
       {state === "unknown" ? (
-        <Notice title="This link didn’t work.">
+        <Notice asHeading title="This link didn’t work.">
           <p>
             Email{" "}
             <a className={styles.mailLink} href={`mailto:${email}`}>
@@ -84,14 +84,14 @@ export default async function Page({
         </Notice>
       ) : state === "in" && q.note === "back" ? (
         <>
-          <Notice icon title="You’re back on the list.">
+          <Notice icon asHeading title="You’re back on the list.">
             <p>{copy.back}</p>
           </Notice>
           {form("stop")}
         </>
       ) : state === "in" ? (
         <>
-          <h2 className={styles.title}>{copy.ask}</h2>
+          <h1 className={styles.title}>{copy.ask}</h1>
           <p className={styles.text}>
             You will still get e-mails about any order you place.
           </p>
@@ -99,7 +99,7 @@ export default async function Page({
         </>
       ) : (
         <>
-          <Notice icon title="You’re off the list">
+          <Notice icon asHeading title="You’re off the list">
             <p>{copy.off}</p>
           </Notice>
           {state === "out" && form("back")}

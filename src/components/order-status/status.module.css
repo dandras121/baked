@@ -242,3 +242,9 @@
 .banner {
   margin-bottom: 20px;
 }
+
+/* “Pay £… →” per open payment link (§6.3 Money). */
+.payLink {
+  margin: 10px 0 0;
+  font: var(--type-state-row-value-phone);
+}

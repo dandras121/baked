@@ -75,6 +75,22 @@ export function countingGateway() {
         });
       return intents.get(id)!;
     },
+    async createForPayLink(linkId, _number, amountPence) {
+      calls.create++;
+      const id = `pi_link_${linkId}`;
+      if (!intents.has(id))
+        intents.set(id, {
+          id,
+          clientSecret: `${id}_s`,
+          amountPence,
+          status: "requires_payment_method",
+          amountReceivedPence: 0,
+          kind: "payment_link",
+          draftId: null,
+          linkId,
+        });
+      return intents.get(id)!;
+    },
     async cancel(id) {
       const i = intents.get(id);
       if (i && i.status !== "succeeded")

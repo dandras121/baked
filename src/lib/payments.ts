@@ -16,6 +16,8 @@ export type Intent = {
   changeId?: number | null;
   /** `metadata.attempt_id`: a redelivery fee (kind `redelivery`, §6.8). */
   attemptId?: number | null;
+  /** `metadata.link_id`: a payment link (kind `payment_link`, §6.9). */
+  linkId?: number | null;
 };
 
 export type Gateway = {
@@ -48,6 +50,12 @@ export type Gateway = {
     orderNumber: string,
     amountPence: number,
   ): Promise<Intent>;
+  /** A payment link's PaymentIntent (§6.9, metadata kind `payment_link`): one per link (idempotency key). */
+  createForPayLink(
+    linkId: number,
+    orderNumber: string,
+    amountPence: number,
+  ): Promise<Intent>;
   /** Stops a payment still in progress (Collect chosen meanwhile, §6.8). A finished one is left as it is. */
   cancel(id: string): Promise<void>;
 };
@@ -66,6 +74,7 @@ const fromStripe = (pi: Stripe.PaymentIntent): Intent => ({
   draftId: pi.metadata?.draft_id ?? null,
   changeId: pi.metadata?.change_id ? Number(pi.metadata.change_id) : null,
   attemptId: pi.metadata?.attempt_id ? Number(pi.metadata.attempt_id) : null,
+  linkId: pi.metadata?.link_id ? Number(pi.metadata.link_id) : null,
 });
 
 function stripeGateway(secret: string): Gateway {
@@ -134,6 +143,24 @@ function stripeGateway(secret: string): Gateway {
             description: `Baked by Linda order ${orderNumber} — redelivery`,
           },
           { idempotencyKey: `redelivery-${attemptId}` },
+        ),
+      );
+    },
+    async createForPayLink(linkId, orderNumber, amountPence) {
+      return fromStripe(
+        await stripe.paymentIntents.create(
+          {
+            amount: amountPence,
+            currency: "gbp",
+            allowed_payment_method_types: ["card"],
+            metadata: {
+              kind: "payment_link",
+              link_id: String(linkId),
+              order: orderNumber,
+            },
+            description: `Baked by Linda order ${orderNumber} — payment link`,
+          },
+          { idempotencyKey: `pay-link-${linkId}` },
         ),
       );
     },
@@ -240,6 +267,21 @@ const fakeGateway: Gateway = {
         kind: "redelivery",
         draftId: null,
         attemptId,
+      });
+    return fakes.get(id)!;
+  },
+  async createForPayLink(linkId, _orderNumber, amountPence) {
+    const id = `pi_fake_link_${linkId}`;
+    if (!fakes.has(id))
+      fakes.set(id, {
+        id,
+        clientSecret: `${id}_secret`,
+        amountPence,
+        status: "requires_payment_method",
+        amountReceivedPence: 0,
+        kind: "payment_link",
+        draftId: null,
+        linkId,
       });
     return fakes.get(id)!;
   },

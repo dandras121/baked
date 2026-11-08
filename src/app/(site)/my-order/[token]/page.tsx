@@ -12,6 +12,7 @@ import styles from "@/components/order-status/state.module.css";
 import { connect, databaseUrl } from "@/db/client";
 import { recentChange } from "@/db/change-repo";
 import { recentMessage } from "@/db/message-repo";
+import { openPayLinks } from "@/db/pay-link-repo";
 import { attemptByToken, latestAttempt } from "@/db/delivery-repo";
 import {
   collectingCopy,
@@ -215,6 +216,10 @@ async function statusView(db: Db, o: Order): Promise<StatusView> {
               WINDOWS.find((w) => w.key === latest.deliveryWindow)?.times ?? "",
           }
         : null,
+    payLinks: (await openPayLinks(db, o, today)).map((l) => ({
+      href: `/pay/${l.token}`,
+      label: `Pay ${formatPrice(l.amountPence)} →`,
+    })),
     // The redelivery fees paid, less any given back (§6.3 Money; never part of net paid).
     feePaidPence:
       (

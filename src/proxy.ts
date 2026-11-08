@@ -6,7 +6,7 @@ import { and, eq, isNull } from "drizzle-orm";
 import { NextResponse, type NextRequest } from "next/server";
 import { connect, databaseUrl } from "@/db/client";
 import { DRAFT_COOKIE, draftStatus } from "@/db/draft-repo";
-import { cakes, deliveryAttempts } from "@/db/schema";
+import { cakes, deliveryAttempts, paymentLinks } from "@/db/schema";
 import { sentTokenValid } from "@/lib/sent-token";
 
 const TTL_MS = 60_000;
@@ -55,10 +55,30 @@ async function deliveryKnown(token: string) {
   }
 }
 
+/** A payment link (§6.9) the site sent; an unknown or tampered one is a real 404 (§10.5). */
+async function payLinkKnown(token: string) {
+  if (!/^[A-Za-z0-9_-]{20,64}$/.test(token) || !databaseUrl()) return false;
+  const { db, close } = connect();
+  try {
+    const rows = await db
+      .select({ id: paymentLinks.id })
+      .from(paymentLinks)
+      .where(eq(paymentLinks.token, token));
+    return rows.length > 0;
+  } finally {
+    await close();
+  }
+}
+
 export async function proxy(request: NextRequest) {
   if (request.nextUrl.pathname.startsWith("/delivery/")) {
     const token = request.nextUrl.pathname.split("/")[2] ?? "";
     if (await deliveryKnown(token)) return NextResponse.next();
+    return NextResponse.rewrite(new URL("/__not-found", request.url));
+  }
+  if (request.nextUrl.pathname.startsWith("/pay/")) {
+    const token = request.nextUrl.pathname.split("/")[2] ?? "";
+    if (await payLinkKnown(token)) return NextResponse.next();
     return NextResponse.rewrite(new URL("/__not-found", request.url));
   }
   // §6.10: a POST to the unsubscribe link (its button, or the mail app's RFC 8058 one-click) is handled by the API
@@ -103,6 +123,7 @@ export const config = {
     "/cakes/:slug",
     "/contact/sent",
     "/delivery/:token",
+    "/pay/:token",
     "/order/:path*",
     "/unsubscribe/:token",
   ],

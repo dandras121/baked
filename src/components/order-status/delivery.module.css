@@ -44,3 +44,38 @@
   color: var(--colour-meta);
   font: var(--type-state-small);
 }
+
+/* M (1598:10575): label left, value right, a rule between rows. */
+.payRows {
+  margin: 0;
+}
+
+.payRows > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 10px 0;
+  border-top: 1px solid var(--colour-line-rule);
+  font: var(--type-state-row-value);
+}
+
+.payRows > div:first-child {
+  border-top: 0;
+  padding-top: 0;
+}
+
+.payRows dt {
+  color: var(--colour-body);
+}
+
+.payRows dd {
+  margin: 0;
+  color: var(--colour-ink);
+  text-align: right;
+}
+
+/* A phone link inside a calm notice: the notice's own text colour, underlined (the accent fails AA on the wash). */
+.noticeLink {
+  color: inherit;
+  text-decoration: underline;
+}

@@ -1,7 +1,7 @@
 // Cancel your order (§6.6, §10.1, §10.6): the refund the terms give today, and the cancellation itself. The order is
 // cancelled first; its Stripe refund follows at once (newest charge first). A refund that fails leaves the order
 // cancelled and tells Linda (refund-repo); e-mail 8 still says it is on its way (§9.5).
-import { and, eq, inArray, ne } from "drizzle-orm";
+import { and, eq, gt, inArray, ne } from "drizzle-orm";
 import type { CancelQuote } from "@/lib/cancel-copy";
 import type { CancelledView } from "@/lib/mail/after-emails";
 import { isChangeWindowOpen, refundAmount, refundTier } from "@/lib/deadlines";
@@ -13,7 +13,13 @@ import type { connect } from "./client";
 import { paymentInProgress } from "./change-repo";
 import { queueMail } from "./mail-repo";
 import { netPaid, refundOrder } from "./refund-repo";
-import { orderChanges, orderLines, orders, refunds } from "./schema";
+import {
+  orderChanges,
+  orderLines,
+  orders,
+  paymentLinks,
+  refunds,
+} from "./schema";
 import { readSettings } from "./settings-repo";
 
 type Db = ReturnType<typeof connect>["db"];
@@ -29,7 +35,7 @@ export async function cancelQuote(
   const date = String(o.date);
   const earliest = String(o.earliestDate);
   const tier = refundTier(earliest, date, today);
-  const [changes, made, net] = await Promise.all([
+  const [changes, made, net, links] = await Promise.all([
     db
       .select({ paid: orderChanges.paidPence, at: orderChanges.createdAt })
       .from(orderChanges)
@@ -49,6 +55,12 @@ export async function cancelQuote(
       )
       .orderBy(refunds.id),
     netPaid(db as Db, o),
+    db
+      .select({ paid: paymentLinks.paidPence, at: paymentLinks.paidAt })
+      .from(paymentLinks)
+      .where(
+        and(eq(paymentLinks.orderId, o.id), gt(paymentLinks.paidPence, 0)),
+      ),
   ]);
   const basis = Math.max(0, net);
   return {
@@ -63,8 +75,12 @@ export async function cancelQuote(
       ...(o.amountReceivedPence > 0
         ? [{ pence: o.amountReceivedPence, on: londonDate(o.confirmedAt) }]
         : []),
-      ...changes
+      ...[
+        ...changes.map((c) => ({ paid: c.paid, at: c.at })),
+        ...links.map((l) => ({ paid: l.paid, at: l.at ?? o.confirmedAt })),
+      ]
         .filter((c) => c.paid > 0)
+        .sort((a, b) => a.at.getTime() - b.at.getTime())
         .map((c) => ({ pence: c.paid, on: londonDate(c.at) })),
     ],
     refundsMade: made.map((r) => ({ pence: r.pence, on: londonDate(r.at) })),
@@ -123,6 +139,13 @@ export async function cancelOrder(
         holdExpiresAt: null,
       })
       .where(eq(orders.id, o.id));
+    // Open payment links are withdrawn (§6.6); a payment through one that still lands goes back (applyPayLink).
+    await tx
+      .update(paymentLinks)
+      .set({ status: "withdrawn" })
+      .where(
+        and(eq(paymentLinks.orderId, o.id), eq(paymentLinks.status, "open")),
+      );
     // A change still waiting for its payment is dropped; a payment that lands later is refunded (§10.6 Stray payments).
     await tx
       .update(orderChanges)

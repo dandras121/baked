@@ -69,6 +69,7 @@
 }
 
 .title {
+  margin: 0;
   font: var(--type-body-sm);
   font-weight: 600;
   line-height: 19px;

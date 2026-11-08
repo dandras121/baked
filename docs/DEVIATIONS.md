@@ -112,3 +112,6 @@ Anything built differently from the docs or Figma, and why. Bohoka’s decision 
 | 6.5a | Redeliver tomorrow (1199:9325 H) | Not bookable yet: its screen says “Booking a redelivery here is not ready yet” with the phone and Collect — built in 6.5b |
 | 6.5b | H 1199:9325 Window “You choose a time”, “Paid now with your card — the redelivery is booked once it goes through.” | H shows after the payment, so the window row holds the chosen times and the line reads “I text you a tighter time that morning.” (§6.8: “Window = the chosen window”) |
 | 6.5b | H 1199:9325 caps “REDELIVERY” | Sentence case (Bohoka 2026-11-01) |
+| 6.6 | §6.9 “One PaymentIntent per link … created when the link is first opened” | Made at the first Pay press and reused after; still one per link and cancelled when the link is withdrawn. Opening a token link never changes data (§10.5), and the deferred card field needs no PaymentIntent to show |
+| 6.6 | M 1598:10573 caps “ORDER BBL-…”; “Call Linda on 01506 000 000” | Sentence case; the phone from Settings (§11.1) |
+| 6.6 | Pay-link “no longer needed” notice: the phone in the accent violet | The notice's own text colour, underlined (the accent is 4.37 : 1 on the violet wash) |

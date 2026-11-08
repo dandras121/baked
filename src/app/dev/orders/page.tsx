@@ -1,4 +1,4 @@
-import { desc } from "drizzle-orm";
+import { desc, eq } from "drizzle-orm";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { connection } from "next/server";
@@ -8,8 +8,20 @@ import { londonDate } from "@/lib/london-time";
 import { checkKind, statusLinkValid } from "@/lib/order-link";
 import { statusState } from "@/lib/order-status";
 import styles from "../mail/mail.module.css";
-import { makeSamples, nobodyWasIn } from "./actions";
-import { deliveryAttempts } from "@/db/schema";
+import {
+  makeSamples,
+  nobodyWasIn,
+  sendPayLink,
+  toggleRedeliveryFee,
+  toggleTomorrowClosed,
+  withdrawLink,
+} from "./actions";
+import { closedDays } from "@/db/schema";
+import { readSettings } from "@/db/settings-repo";
+import { addDays } from "@/lib/london-time";
+import { deliveryAttempts, paymentLinks } from "@/db/schema";
+import { netPaid } from "@/db/refund-repo";
+import { formatPrice } from "@/lib/money";
 import { inArray } from "drizzle-orm";
 
 export const instant = false;
@@ -23,6 +35,10 @@ export default async function Page() {
   const today = londonDate(new Date());
   let rows: (typeof orders.$inferSelect)[] = [];
   let attempts: (typeof deliveryAttempts.$inferSelect)[] = [];
+  let links: (typeof paymentLinks.$inferSelect)[] = [];
+  const due = new Map<number, number>();
+  let feePence = 0;
+  let tomorrowClosed = false;
   try {
     rows = await db.select().from(orders).orderBy(desc(orders.id)).limit(30);
     attempts = rows.length
@@ -36,6 +52,27 @@ export default async function Page() {
             ),
           )
       : [];
+    links = rows.length
+      ? await db
+          .select()
+          .from(paymentLinks)
+          .where(
+            inArray(
+              paymentLinks.orderId,
+              rows.map((o) => o.id),
+            ),
+          )
+      : [];
+    for (const o of rows)
+      due.set(o.id, Math.max(0, o.totalPence - (await netPaid(db, o))));
+    feePence = (await readSettings(db)).secondAttemptFeePence;
+    tomorrowClosed =
+      (
+        await db
+          .select()
+          .from(closedDays)
+          .where(eq(closedDays.day, addDays(today, 1)))
+      ).length > 0;
   } finally {
     await close();
   }
@@ -69,10 +106,25 @@ export default async function Page() {
         <span className={styles.meta}>
           one for each state of the order page (A, B, B2, C; delivery,
           collection, a manual order), two inside seven days for cancelling (one
-          moved later), one for today (Nobody was in) and one whose link has
-          expired
+          moved later), one for today (Nobody was in), a bespoke one with £380
+          to pay (payment links) and one whose link has expired
         </span>
       </form>
+      <div className={styles.sample}>
+        Redelivery fee:{" "}
+        <strong>{feePence ? formatPrice(feePence) : "free"}</strong>{" "}
+        <form action={toggleRedeliveryFee} className={styles.inline}>
+          <button type="submit" className={styles.button}>
+            {feePence ? "Make it free" : "Set it to £15"}
+          </button>
+        </form>{" "}
+        · tomorrow is <strong>{tomorrowClosed ? "closed" : "open"}</strong>{" "}
+        <form action={toggleTomorrowClosed} className={styles.inline}>
+          <button type="submit" className={styles.button}>
+            {tomorrowClosed ? "Open tomorrow" : "Close tomorrow"}
+          </button>
+        </form>
+      </div>
       <ol className={styles.sample}>
         {rows.map((o) => (
           <li key={o.id} className={styles.meta}>
@@ -115,7 +167,58 @@ export default async function Page() {
                   ? ` (chose ${latest(o.id)!.choice})`
                   : ""}
               </>
-            )}
+            )}{" "}
+            · still to pay {formatPrice(due.get(o.id) ?? 0)}
+            {links
+              .filter((l) => l.orderId === o.id)
+              .map((l) => (
+                <span key={l.id}>
+                  {" "}
+                  ·{" "}
+                  <Link href={`/pay/${l.token}`}>
+                    pay link {formatPrice(l.amountPence)}
+                  </Link>{" "}
+                  ({l.purpose}, {l.status})
+                  {l.status === "open" && (
+                    <form
+                      action={withdrawLink.bind(null, l.id)}
+                      className={styles.inline}
+                    >
+                      <button type="submit" className={styles.button}>
+                        Withdraw
+                      </button>
+                    </form>
+                  )}
+                </span>
+              ))}
+            {o.status !== "cancelled" &&
+              o.status !== "refunded" &&
+              (due.get(o.id) ?? 0) >= 30 && (
+                <form
+                  action={sendPayLink.bind(null, o.id)}
+                  className={styles.inline}
+                >
+                  <select
+                    name="purpose"
+                    defaultValue="deposit"
+                    aria-label="What the link is for"
+                  >
+                    <option value="deposit">Deposit</option>
+                    <option value="rest">The rest</option>
+                    <option value="difference">A difference</option>
+                  </select>{" "}
+                  £
+                  <input
+                    name="amount"
+                    aria-label="Amount in pounds"
+                    defaultValue={((due.get(o.id) ?? 0) / 100).toFixed(2)}
+                    size={7}
+                  />{" "}
+                  <button type="submit" className={styles.button}>
+                    Send a payment link
+                  </button>
+                </form>
+              )}
             {canMiss(o) && (
               <form
                 action={nobodyWasIn.bind(null, o.id)}

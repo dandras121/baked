@@ -8,6 +8,7 @@ import { draftLineViews } from "./draft-repo";
 import { capacityFor } from "./hold-repo";
 import { applyChangePayment } from "./change-repo";
 import { applyRedelivery } from "./delivery-repo";
+import { applyPayLink } from "./pay-link-repo";
 import { createOrder } from "./order-repo";
 import {
   draftAmount,
@@ -264,6 +265,17 @@ export async function reconcile(
         await applyChangePayment(
           db,
           gw as Pick<Gateway, "refund">,
+          intent,
+          now,
+        );
+      continue;
+    }
+    // A paid payment link likewise (§6.9).
+    if (intent.kind === "payment_link") {
+      if ("refund" in gw && "cancel" in gw)
+        await applyPayLink(
+          db,
+          gw as Pick<Gateway, "refund" | "cancel">,
           intent,
           now,
         );
