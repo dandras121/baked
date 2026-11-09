@@ -259,6 +259,12 @@
   font: var(--type-body-sm);
 }
 
+.later {
+  margin: 14px 0 0;
+  color: var(--colour-body);
+  font: var(--type-contact-note-phone);
+}
+
 .ahead dd {
   margin: 0;
   color: var(--colour-display);
@@ -287,7 +293,8 @@
     font: var(--type-contact-detail);
   }
 
-  .stepText {
+  .stepText,
+  .later {
     font: var(--type-contact-note);
   }
 }

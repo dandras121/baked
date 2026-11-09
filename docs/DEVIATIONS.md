@@ -121,3 +121,4 @@ Anything built differently from the docs or Figma, and why. Bohoka’s decision 
 | 7.1a | 654:3805 Enquiry sent | For now only “Enquiry sent.” and the reference; the drawn page is slice 7.2 |
 | 7.1b | §0.8 Files: signed upload URLs to the bucket | Until a Vercel Blob store is connected, pictures are kept in the database and sent through the site (on Vercel at most 4.5 MB a request; a larger one says it did not upload). With the store connected the browser uploads straight to it (8 MB) — no code change |
 | 7.1b | CLAUDE.md §4.4 about 600 lines a slice | About 1,000 hand-written lines (storage, processing, tiles); committed as two commits; told Bohoka |
+| 7.1b | 660:4293 / §7.1 Intro facts “HOW FAR AHEAD TO ASK” | “Ideally, ask this far ahead” and a line under the rows: “Later is often fine too — send it anyway and I will tell you within 24 hours whether I can fit it in.” — a guide, not a deadline (Bohoka 2026-11-09) |

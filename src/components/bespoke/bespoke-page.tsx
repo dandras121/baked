@@ -14,7 +14,7 @@ const STEPS = [
 
 /**
  * Bespoke enquiry (§7.1; desktop 660:4068, tablet 1559:11694, phone 847:8028): “Dreams come true.”, the form, and
- * How this works with How far ahead to ask beside it (under it on the phone). The figures come from Settings.
+ * How this works with Ideally, ask this far ahead beside it (under it on the phone). The figures come from Settings.
  */
 export function BespokePage({
   settings,
@@ -72,7 +72,7 @@ export function BespokePage({
               ))}
             </ol>
           </section>
-          <h2 className={styles.heading}>How far ahead to ask</h2>
+          <h2 className={styles.heading}>Ideally, ask this far ahead</h2>
           <dl className={styles.ahead}>
             <div>
               <dt>Celebration cakes</dt>
@@ -85,6 +85,11 @@ export function BespokePage({
               <dd>six months or more</dd>
             </div>
           </dl>
+          {/* A guide, not a deadline (Bohoka 2026-11-09). */}
+          <p className={styles.later}>
+            Later is often fine too — send it anyway and I will tell you within
+            24 hours whether I can fit it in.
+          </p>
         </aside>
       </div>
     </div>

@@ -58,6 +58,15 @@ test("the page: intro from Settings, How this works, axe", async ({ page }) => {
     page.getByText("Bespoke cakes start at £160.", { exact: false }),
   ).toBeVisible();
   await expect(page.getByText("three to four weeks")).toBeVisible();
+  // A guide, not a deadline (Bohoka 2026-11-09).
+  await expect(
+    page.getByRole("heading", { name: "Ideally, ask this far ahead" }),
+  ).toBeVisible();
+  await expect(
+    page.getByText("Later is often fine too — send it anyway", {
+      exact: false,
+    }),
+  ).toBeVisible();
   await expect(
     page.getByText("Free delivery covers Edinburgh & the Lothians.", {
       exact: false,
