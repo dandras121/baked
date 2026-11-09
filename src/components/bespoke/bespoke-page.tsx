@@ -38,21 +38,11 @@ export function BespokePage({
         come true.
       </h1>
       <div className={styles.body}>
-        <div>
-          <p className={contact.intro}>
-            Most of this is tap-and-go. Only the description and your contact
-            details need typing. Bespoke cakes start at {formatPrice(minimum)}.
-          </p>
-          <BespokeForm
-            minimumPence={minimum}
-            leadWeeks={weeks}
-            deliveryArea={settings?.deliveryArea ?? "Edinburgh & the Lothians"}
-            today={today}
-            inspired={inspired}
-            direct={direct}
-            action={action}
-          />
-        </div>
+        <p className={`${contact.intro} ${styles.intro}`}>
+          Most of this is tap-and-go. Only the description and your contact
+          details need typing. Bespoke cakes start at {formatPrice(minimum)}.
+        </p>
+        {/* On the phone How this works comes before the form (Bohoka 2026-11-09); beside it from the tablet up. */}
         <aside className={styles.aside} aria-labelledby="how-this-works">
           <section className={styles.panel}>
             <h2 id="how-this-works" className={styles.panelTitle}>
@@ -91,6 +81,17 @@ export function BespokePage({
             24 hours whether I can fit it in.
           </p>
         </aside>
+        <div className={styles.main}>
+          <BespokeForm
+            minimumPence={minimum}
+            leadWeeks={weeks}
+            deliveryArea={settings?.deliveryArea ?? "Edinburgh & the Lothians"}
+            today={today}
+            inspired={inspired}
+            direct={direct}
+            action={action}
+          />
+        </div>
       </div>
     </div>
   );

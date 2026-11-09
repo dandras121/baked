@@ -7,10 +7,27 @@
   white-space: normal;
 }
 
+/* Phone: the intro, How this works, then the form (Bohoka 2026-11-09). From the tablet up: the intro and the form on
+   the left, How this works beside them, as drawn. */
 .body {
   display: grid;
-  gap: 40px;
+  grid-template-areas: "intro" "aside" "main";
+  row-gap: 24px;
   padding: 26px calc(24 * var(--u)) 48px;
+}
+
+.body .intro {
+  grid-area: intro;
+  margin-bottom: 0;
+}
+
+.aside {
+  grid-area: aside;
+}
+
+.main {
+  grid-area: main;
+  min-width: 0;
 }
 
 .form {
@@ -276,9 +293,16 @@
 @media (min-width: 768px) {
   .body {
     grid-template-columns: 1fr 1fr;
+    grid-template-rows: auto 1fr;
+    grid-template-areas: "intro aside" "main aside";
     align-items: start;
-    gap: calc(72 * var(--u));
+    row-gap: 0;
+    column-gap: calc(72 * var(--u));
     padding: calc(56 * var(--u)) calc(80 * var(--u)) calc(84 * var(--u));
+  }
+
+  .body .intro {
+    margin-bottom: calc(30px * var(--type-scale));
   }
 
   .send {
