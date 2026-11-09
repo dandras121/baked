@@ -207,6 +207,31 @@ test("a tile opens the lightbox: ?photo=, caption, occasion, I’d like one like
   await expect(dialog(page)).toHaveAccessibleName("Rosette wedding · 2025");
 });
 
+test("I’d like one like this → leaves no open lightbox behind: the bespoke page scrolls and takes clicks", async ({
+  page,
+}) => {
+  await page.goto("/gallery");
+  await openTile(page, "Rosette wedding · 2025");
+  await dialog(page)
+    .getByRole("link", { name: "I’d like one like this →" })
+    .click();
+  await expect(page).toHaveURL(/\/bespoke\?inspired=\d+/);
+  await expect(page.getByText("Inspired by")).toBeVisible();
+  expect(
+    await page.evaluate(() => ({
+      open: document.querySelectorAll("dialog[open]").length,
+      overflow: getComputedStyle(document.documentElement).overflowY,
+    })),
+  ).toEqual({ open: 0, overflow: "visible" });
+  await page.mouse.wheel(0, 800);
+  await expect.poll(() => page.evaluate(() => scrollY)).toBeGreaterThan(0);
+  const flexible = page.getByRole("button", {
+    name: "My date is still flexible",
+  });
+  await flexible.click();
+  await expect(flexible).toHaveAttribute("aria-pressed", "true");
+});
+
 test("Esc and × close it, focus returns to the tile, the address loses ?photo=", async ({
   page,
 }) => {

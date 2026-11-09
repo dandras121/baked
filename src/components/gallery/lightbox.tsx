@@ -68,7 +68,7 @@ export function Lightbox({
   // Open: show the dialog and grow the photo from the tile.
   useLayoutEffect(() => {
     const d = dialog.current!;
-    d.showModal();
+    if (!d.open) d.showModal();
     if (isMotionReduced()) return;
     const from = origin()?.getBoundingClientRect();
     const to = photo.current!.getBoundingClientRect();
@@ -96,6 +96,16 @@ export function Lightbox({
       });
     // Only on opening.
     // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Leaving the gallery with the lightbox open (I’d like one like this →, Back, a header link): the router keeps the
+  // page hidden, so close the dialog now — an open modal dialog would keep the next page from scrolling and clicking.
+  // Back on the gallery it opens again where it was.
+  useLayoutEffect(() => {
+    const d = dialog.current;
+    return () => {
+      if (d?.open) d.close();
+    };
   }, []);
 
   // Close: back into the tile, then hand back.
