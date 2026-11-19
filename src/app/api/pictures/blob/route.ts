@@ -1,5 +1,10 @@
-import { del, get } from "@vercel/blob";
-import { handleUpload, type HandleUploadBody } from "@vercel/blob/client";
+import { del, get, issueSignedToken } from "@vercel/blob";
+import {
+  handleUpload,
+  handleUploadPresigned,
+  type HandleUploadBody,
+  type HandleUploadPresignedBody,
+} from "@vercel/blob/client";
 import { NextResponse } from "next/server";
 import { connect, databaseUrl } from "@/db/client";
 import { savePicture } from "@/db/upload-repo";
@@ -9,6 +14,7 @@ import { PICTURES } from "@/lib/uploads/rules";
 import { failure, formOf, mayAdd, NO_STORE } from "../shared";
 
 const INCOMING = "incoming/";
+const TYPES = ["image/jpeg", "image/png", "image/heic", "image/heif"];
 
 /**
  * POST /api/pictures/blob (§7.1, with a Vercel Blob store): the browser asks here for a short-lived token and uploads
@@ -42,31 +48,46 @@ export async function POST(req: Request) {
       });
       return NextResponse.json(saved, { headers: NO_STORE });
     }
-    const result = await handleUpload({
-      body,
-      request: req,
-      onBeforeGenerateToken: async (pathname, payload) => {
-        const p = JSON.parse(payload ?? "{}");
-        const which = formOf(p.formKey, p.purpose);
-        if (
-          !which ||
-          !pathname.startsWith(`${INCOMING}${which.formKey}/`) ||
-          !(await mayAdd(db, req, which.formKey))
-        )
-          throw new Error("not allowed");
-        return {
-          allowedContentTypes: [
-            "image/jpeg",
-            "image/png",
-            "image/heic",
-            "image/heif",
-          ],
-          maximumSizeInBytes: PICTURES.maxBytes,
-          addRandomSuffix: true,
-          validUntil: Date.now() + 10 * 60 * 1000,
-        };
-      },
-    });
+    // Only this form's own incoming/ folder, within its three pictures and the hourly limit.
+    const allowed = async (pathname: string, payload: string | null) => {
+      const p = JSON.parse(payload ?? "{}");
+      const which = formOf(p.formKey, p.purpose);
+      if (
+        !which ||
+        !pathname.startsWith(`${INCOMING}${which.formKey}/`) ||
+        !(await mayAdd(db, req, which.formKey))
+      )
+        throw new Error("not allowed");
+    };
+    const limits = {
+      allowedContentTypes: TYPES,
+      maximumSizeInBytes: PICTURES.maxBytes,
+      validUntil: Date.now() + 10 * 60 * 1000,
+    };
+    const result =
+      (body.type as string) === "blob.generate-presigned-url"
+        ? // A store connected the current way (store id and Vercel's own sign-in): a presigned URL for this one name.
+          await handleUploadPresigned({
+            body: body as unknown as HandleUploadPresignedBody,
+            request: req,
+            getSignedToken: async (pathname, payload) => {
+              await allowed(pathname, payload);
+              const token = await issueSignedToken({
+                ...limits,
+                pathname,
+                operations: ["put"],
+              });
+              return { token, urlOptions: limits };
+            },
+          })
+        : await handleUpload({
+            body,
+            request: req,
+            onBeforeGenerateToken: async (pathname, payload) => {
+              await allowed(pathname, payload);
+              return { ...limits, addRandomSuffix: true };
+            },
+          });
     return NextResponse.json(result, { headers: NO_STORE });
   } catch (error) {
     if (error instanceof PictureError) return failure(error.reason);

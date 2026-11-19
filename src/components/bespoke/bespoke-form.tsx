@@ -1,5 +1,6 @@
 "use client";
 
+import type { BlobMode } from "@/lib/storage";
 import { useActionState, useRef, useState, startTransition } from "react";
 import type { EnquiryState } from "@/app/(site)/bespoke/actions";
 import { Button } from "@/components/ui/button";
@@ -119,7 +120,7 @@ export function BespokeForm({
   deliveryArea: string;
   today: string;
   inspired: { id: number; caption: string; src: string | null } | null;
-  direct: boolean;
+  direct: BlobMode;
   action: (s: EnquiryState, f: FormData) => Promise<EnquiryState>;
 }) {
   const [v, setV] = useState<Enquiry>(EMPTY_ENQUIRY);

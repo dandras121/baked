@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { Notice } from "@/components/ui/notice";
+import type { BlobMode } from "@/lib/storage";
 import {
   PICTURE_COPY,
   PICTURES,
@@ -54,16 +55,20 @@ function sendThroughSite(
 
 /** Straight to the private Blob store, then the server makes its copy. */
 async function sendToStore(
+  mode: "token" | "presigned",
   file: File,
   fields: { formKey: string; purpose: string },
   onProgress: (p: number) => void,
 ): Promise<Answer> {
   try {
-    const { upload } = await import("@vercel/blob/client");
+    const { upload, uploadPresigned } = await import("@vercel/blob/client");
     const kind = pictureKind(file.name, file.type);
     const type = kind === "heic" ? "image/heic" : `image/${kind}`;
     const safe = file.name.replace(/[^\w.-]+/g, "-").slice(-80) || "picture";
-    const stored = await upload(`incoming/${fields.formKey}/${safe}`, file, {
+    // A fresh name each time: a presigned URL is for one exact pathname.
+    const send = mode === "token" ? upload : uploadPresigned;
+    const name = `incoming/${fields.formKey}/${crypto.randomUUID()}-${safe}`;
+    const stored = await send(name, file, {
       access: "private",
       handleUploadUrl: "/api/pictures/blob",
       clientPayload: JSON.stringify(fields),
@@ -100,8 +105,8 @@ export function PictureTiles({
   purpose: "enquiry" | "complaint";
   /** The form's key (made on first use): the server binds each picture to it. */
   formKey: () => string;
-  /** A Blob store is connected: upload straight to it. */
-  direct: boolean;
+  /** A Blob store is connected (and how): upload straight to it. */
+  direct: BlobMode;
   onChange: (state: PicturesState) => void;
 }) {
   const [tiles, setTiles] = useState<Tile[]>([]);
@@ -133,7 +138,7 @@ export function PictureTiles({
     const fields = { formKey: formKey(), purpose };
     const progress = (p: number) => patch(tile.key, { progress: p });
     const answer = await (direct
-      ? sendToStore(tile.file, fields, progress)
+      ? sendToStore(direct, tile.file, fields, progress)
       : sendThroughSite(tile.file, fields, progress));
     if ("id" in answer) {
       patch(tile.key, { status: "done", id: answer.id, thumb: answer.thumb });

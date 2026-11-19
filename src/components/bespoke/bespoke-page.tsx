@@ -1,4 +1,5 @@
 import type { EnquiryState } from "@/app/(site)/bespoke/actions";
+import type { BlobMode } from "@/lib/storage";
 import contact from "@/components/contact/contact.module.css";
 import { formatPrice } from "@/lib/money";
 import type { Settings } from "@/lib/settings";
@@ -26,7 +27,7 @@ export function BespokePage({
   settings: Settings | null;
   today: string;
   inspired: { id: number; caption: string; src: string | null } | null;
-  direct: boolean;
+  direct: BlobMode;
   action: (s: EnquiryState, f: FormData) => Promise<EnquiryState>;
 }) {
   const minimum = settings?.bespokeMinimumPence ?? 16000;

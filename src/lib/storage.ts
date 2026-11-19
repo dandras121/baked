@@ -15,9 +15,21 @@ export type FileStore = {
   remove(keys: string[]): Promise<void>;
 };
 
-/** True when a Vercel Blob store is connected: then the browser uploads straight to it (no 4.5 MB request limit). */
+/**
+ * How a connected Vercel Blob store lets the browser upload straight to it (no 4.5 MB request limit): with a
+ * read–write token (an older connection) a client token; with a store id and Vercel's short-lived sign-in (OIDC, how
+ * Vercel connects a store now) a presigned URL. null: no store, the database keeps the files.
+ */
+export type BlobMode = "token" | "presigned" | null;
+
+export function blobMode(): BlobMode {
+  if (process.env.BLOB_READ_WRITE_TOKEN) return "token";
+  if (process.env.BLOB_STORE_ID) return "presigned";
+  return null;
+}
+
 export function blobConnected() {
-  return !!process.env.BLOB_READ_WRITE_TOKEN;
+  return blobMode() !== null;
 }
 
 async function readAll(stream: ReadableStream<Uint8Array>) {
