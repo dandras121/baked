@@ -6,7 +6,7 @@ import { and, eq, isNull } from "drizzle-orm";
 import { NextResponse, type NextRequest } from "next/server";
 import { connect, databaseUrl } from "@/db/client";
 import { DRAFT_COOKIE, draftStatus } from "@/db/draft-repo";
-import { cakes, deliveryAttempts, paymentLinks } from "@/db/schema";
+import { cakes, deliveryAttempts, enquiries, paymentLinks } from "@/db/schema";
 import { sentTokenValid } from "@/lib/sent-token";
 
 const TTL_MS = 60_000;
@@ -70,7 +70,30 @@ async function payLinkKnown(token: string) {
   }
 }
 
+/** Your enquiry (§7.2): a link the site sent, for 12 months from sending; never for possible spam. Else a real 404. */
+async function enquiryLinkOpen(token: string) {
+  if (!/^[A-Za-z0-9_-]{20,64}$/.test(token) || !databaseUrl()) return false;
+  const { db, close } = connect();
+  try {
+    const [row] = await db
+      .select({ status: enquiries.status, createdAt: enquiries.createdAt })
+      .from(enquiries)
+      .where(eq(enquiries.token, token));
+    if (!row || row.status === "spam") return false;
+    const expires = new Date(row.createdAt);
+    expires.setUTCFullYear(expires.getUTCFullYear() + 1);
+    return Date.now() < expires.getTime();
+  } finally {
+    await close();
+  }
+}
+
 export async function proxy(request: NextRequest) {
+  if (request.nextUrl.pathname.startsWith("/my-enquiry/")) {
+    const token = request.nextUrl.pathname.split("/")[2] ?? "";
+    if (await enquiryLinkOpen(token)) return NextResponse.next();
+    return NextResponse.rewrite(new URL("/__not-found", request.url));
+  }
   if (request.nextUrl.pathname.startsWith("/delivery/")) {
     const token = request.nextUrl.pathname.split("/")[2] ?? "";
     if (await deliveryKnown(token)) return NextResponse.next();
@@ -123,6 +146,7 @@ export const config = {
     "/cakes/:slug",
     "/contact/sent",
     "/delivery/:token",
+    "/my-enquiry/:token",
     "/pay/:token",
     "/order/:path*",
     "/unsubscribe/:token",

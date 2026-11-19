@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
+  enquiryEmailRows,
+  enquiryPageRows,
   budgets,
   cleanEnquiry,
   dateAnswer,
@@ -131,5 +133,58 @@ describe("bespoke enquiry (§7.1)", () => {
     expect(dateAnswer({ date: "", flexible: false }, today)).toBe(
       "Not answered",
     );
+  });
+});
+
+describe("Your enquiry rows (§7.2)", () => {
+  it("shows every answer as sent, the venue with the area, the phone for a call, and the own words quoted", () => {
+    const rows = enquiryPageRows(
+      {
+        ...EMPTY_ENQUIRY,
+        occasion: "Wedding",
+        date: "2027-06-20",
+        flexible: true,
+        area: "West Lothian",
+        venue: "Hopetoun House, EH30 9SL",
+        dietary: ["No nuts"],
+        anything: "Three tiers",
+        callMe: true,
+      },
+      { email: "m@example.co.uk", phone: "07700 900000" },
+      "2026-11-08",
+      3,
+    );
+    expect(Object.fromEntries(rows)).toMatchObject({
+      Occasion: "Wedding",
+      "Date of the event": "Sunday 20 June 2027 · flexible",
+      Servings: "Not answered",
+      Where: "West Lothian · Hopetoun House, EH30 9SL",
+      "Dietary needs": "No nuts",
+      "How to reach you": "A phone call · 07700 900000",
+      "In your words": "“Three tiers”",
+      Pictures: "3 attached",
+    });
+    const byEmail = enquiryPageRows(
+      EMPTY_ENQUIRY,
+      { email: "m@example.co.uk", phone: null },
+      "2026-11-08",
+      0,
+    );
+    expect(Object.fromEntries(byEmail)).toMatchObject({
+      "How to reach you": "By email · m@example.co.uk",
+      "In your words": "Not answered",
+      Pictures: "None",
+    });
+  });
+
+  it("e-mail 6 adds Inspired by with Linda's own caption", () => {
+    const rows = enquiryEmailRows(
+      EMPTY_ENQUIRY,
+      "2026-11-08",
+      0,
+      "Rosette wedding · 2025",
+    );
+    expect(rows.at(-1)).toEqual(["Inspired by", "Rosette wedding · 2025"]);
+    expect(rows.find(([k]) => k === "How to reach you")?.[1]).toBe("By email");
   });
 });

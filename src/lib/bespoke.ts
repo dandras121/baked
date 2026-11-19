@@ -311,3 +311,67 @@ export function dateAnswer(
   const d = longDate(v.date, today);
   return v.flexible ? `${d} · flexible` : d;
 }
+
+/** The answers kept with an enquiry (the contact has its own columns). */
+export type EnquiryAnswers = Omit<Enquiry, "name" | "email" | "phone">;
+
+const NOT_ANSWERED = "Not answered";
+const or = (v: string) => v.trim() || NOT_ANSWERED;
+const dietaryAnswer = (d: string[]) => (d.length ? d.join(", ") : NOT_ANSWERED);
+const picturesAnswer = (n: number) => (n ? `${n} attached` : "None");
+
+/**
+ * E-mail 6 rows (§8.2 row 6), in form order: only what was chosen from pills and the date — never free text, the
+ * number or the address typed (so the form cannot send other people's words from Linda's address).
+ */
+export function enquiryEmailRows(
+  a: EnquiryAnswers,
+  today: CalendarDate,
+  pictures: number,
+  inspired: string | null,
+): [string, string][] {
+  const rows: [string, string][] = [
+    ["Occasion", or(a.occasion)],
+    ["Servings", or(a.servings)],
+    ["Date", dateAnswer(a, today)],
+    ["Where", or(a.area)],
+    ["Budget", or(a.budget)],
+    ["Finish", or(a.finish)],
+    ["Flavour", or(a.flavour)],
+    ["Dietary", dietaryAnswer(a.dietary)],
+    ["Pictures", picturesAnswer(pictures)],
+    ["How to reach you", a.callMe ? "A phone call" : "By email"],
+  ];
+  if (inspired) rows.push(["Inspired by", inspired]);
+  return rows;
+}
+
+/** Your enquiry (§7.2; 1609:10885): every answer exactly as sent, “Not answered” for gaps. */
+export function enquiryPageRows(
+  a: EnquiryAnswers,
+  contact: { email: string | null; phone: string | null },
+  today: CalendarDate,
+  pictures: number,
+): [string, string][] {
+  const where = [a.area, a.venue.trim()].filter(Boolean).join(" · ");
+  const reach =
+    (a.callMe || !contact.email) && contact.phone
+      ? `A phone call · ${contact.phone}`
+      : `By email · ${contact.email ?? ""}`;
+  return [
+    ["Occasion", or(a.occasion)],
+    ["Date of the event", dateAnswer(a, today)],
+    ["Servings", or(a.servings)],
+    ["Where", or(where)],
+    ["Budget", or(a.budget)],
+    ["Finish", or(a.finish)],
+    ["Flavour", or(a.flavour)],
+    ["Dietary needs", dietaryAnswer(a.dietary)],
+    ["How to reach you", reach],
+    [
+      "In your words",
+      a.anything.trim() ? `“${a.anything.trim()}”` : NOT_ANSWERED,
+    ],
+    ["Pictures", picturesAnswer(pictures)],
+  ];
+}

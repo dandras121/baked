@@ -123,3 +123,4 @@ Anything built differently from the docs or Figma, and why. Bohoka’s decision 
 | 7.1b | CLAUDE.md §4.4 about 600 lines a slice | About 1,000 hand-written lines (storage, processing, tiles); committed as two commits; told Bohoka |
 | 7.1b | 660:4293 / §7.1 Intro facts “HOW FAR AHEAD TO ASK” | “Ideally, ask this far ahead” and a line under the rows: “Later is often fine too — send it anyway and I will tell you within 24 hours whether I can fit it in.” — a guide, not a deadline (Bohoka 2026-11-09) |
 | 7.1b | 847:8028 phone: How this works and How far ahead to ask under the form | On the phone they come right after the intro, before the questions (and in that order for screen readers on every size); tablet and desktop unchanged beside the form (Bohoka 2026-11-09) |
+| 7.2 | 1609:11066 phone title “Your enquiry, in writing.” | “Your enquiry.” on every size — SITE-FLOWS §7.2 says the phone text follows the desktop copy |

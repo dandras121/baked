@@ -138,7 +138,9 @@ test("missing answers: the summary, Take me to the first one, send it anyway wit
     .click();
   await expect(page).toHaveURL(/\/bespoke\/sent\?ref=BBL-\d{4}-E-\d{4}/);
   await expect(
-    page.getByText(/^Your reference is BBL-\d{4}-E-\d{4}\.$/),
+    page.getByText(
+      /^Enquiry BBL-\d{4}-E-\d{4} · nothing has been charged and nothing is committed$/,
+    ),
   ).toBeVisible();
 });
 

@@ -18,3 +18,12 @@ export function toE164(input: string): string | null {
   if (parsed.isValid() || OFCOM_DRAMA.test(parsed.number)) return parsed.number;
   return null;
 }
+
+/** A stored number as people read it: UK numbers the national way (“07700 900000”), others with their country code. */
+export function phoneForPeople(e164: string): string {
+  const parsed = parsePhoneNumberFromString(e164);
+  if (!parsed) return e164;
+  return parsed.country === "GB"
+    ? parsed.formatNational()
+    : parsed.formatInternational();
+}

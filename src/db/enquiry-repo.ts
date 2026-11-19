@@ -3,12 +3,17 @@
 // a filled honeypot is kept as possible spam, with no e-mail at all.
 import { randomBytes } from "node:crypto";
 import { eq, sql } from "drizzle-orm";
-import { dateAnswer, missing, type Enquiry } from "@/lib/bespoke";
+import {
+  dateAnswer,
+  enquiryEmailRows,
+  missing,
+  type Enquiry,
+} from "@/lib/bespoke";
 import type { CalendarDate } from "@/lib/london-time";
 import { toE164 } from "@/lib/phone";
 import type { connect } from "./client";
 import { queueMail } from "./mail-repo";
-import { enquiries, galleryPhotos, referenceCounters } from "./schema";
+import { enquiries, galleryPhotos, referenceCounters, uploads } from "./schema";
 import { attachPictures } from "./upload-repo";
 import { readSettings } from "./settings-repo";
 
@@ -137,9 +142,61 @@ export async function saveEnquiry(
       },
       now,
     );
+  // E-mail 6 (§8.2): only with an e-mail address, never for possible spam; once per reference.
+  if (!input.spam && e.email.trim())
+    await queueMail(
+      db,
+      {
+        key: `enquiry:${saved.reference}:6`,
+        template: "enquiry-received",
+        data: {
+          view: {
+            reference: saved.reference,
+            token: saved.token,
+            rows: enquiryEmailRows(
+              e,
+              today,
+              saved.pictures,
+              inspired?.caption ?? null,
+            ),
+            callMe: e.callMe,
+            withGaps: missing(e).length > 0,
+          },
+        },
+        to: e.email.trim(),
+      },
+      now,
+    );
   return {
     reference: saved.reference,
     token: saved.token,
     email: e.email.trim() || null,
   };
+}
+
+/** Your enquiry (§7.2): the link works for 12 months from sending; a possible-spam one never had a link. */
+export async function enquiryByToken(db: Db, token: string, now = new Date()) {
+  if (!/^[\w-]{20,64}$/.test(token)) return null;
+  const [row] = await db
+    .select()
+    .from(enquiries)
+    .where(eq(enquiries.token, token));
+  if (!row || row.status === "spam") return null;
+  const expires = new Date(row.createdAt);
+  expires.setUTCFullYear(expires.getUTCFullYear() + 1);
+  if (now >= expires) return null;
+  const pictures = await db
+    .select({ id: uploads.id })
+    .from(uploads)
+    .where(eq(uploads.enquiryId, row.id));
+  const [inspired] = row.inspiredPhotoId
+    ? await db
+        .select({
+          caption: galleryPhotos.caption,
+          src: galleryPhotos.imagePath,
+        })
+        .from(galleryPhotos)
+        .where(eq(galleryPhotos.id, row.inspiredPhotoId))
+    : [];
+  return { ...row, pictures: pictures.length, inspired: inspired ?? null };
 }

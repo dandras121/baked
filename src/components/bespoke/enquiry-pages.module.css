@@ -1,0 +1,144 @@
+/*
+ * Enquiry sent (654:3805, phone 839:6936) and Your enquiry (1609:10885, tablet 1609:11227, phone 1609:11066).
+ * Desktop sizes in design px × --u (tablet × 0.8 through --type-scale); the phone has its own sizes. The title is
+ * Contact's.
+ */
+.title {
+  white-space: normal;
+}
+
+.phoneBreak {
+  display: inline;
+}
+
+.body {
+  padding: 8px calc(24 * var(--u)) 48px;
+}
+
+.meta {
+  margin: 0 0 24px;
+  color: var(--colour-accent);
+  font: var(--type-contact-note-phone);
+}
+
+.rows {
+  margin: 0 0 24px;
+}
+
+/* Phone: the label above its answer, a rule under each row. */
+.row {
+  display: grid;
+  gap: 6px;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--colour-line-rule);
+}
+
+.row:first-child {
+  padding-top: 0;
+}
+
+.label {
+  color: var(--colour-display);
+  font: var(--type-contact-detail-phone);
+  font-variation-settings: var(--font-display-axes);
+}
+
+.value {
+  min-width: 0;
+  margin: 0;
+  color: var(--colour-body);
+  font: var(--type-contact-note-phone);
+  overflow-wrap: anywhere;
+}
+
+.inspired {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.thumb {
+  flex: none;
+  width: 48px;
+  height: 48px;
+  border-radius: 6px;
+  background: var(--colour-placeholder);
+  object-fit: cover;
+}
+
+.actions {
+  display: grid;
+  justify-items: start;
+  gap: 16px;
+  margin-bottom: 22px;
+}
+
+.actions > * {
+  justify-self: stretch;
+}
+
+.actions > a:last-child {
+  justify-self: start;
+}
+
+/* Higher than the button's own display, which may load later. */
+.actions .wideOnly {
+  display: none;
+}
+
+.note {
+  margin: 0;
+  color: var(--colour-body);
+  font: var(--type-contact-note-phone);
+}
+
+@media (min-width: 768px) {
+  .phoneBreak,
+  .actions .phoneOnly {
+    display: none;
+  }
+
+  .actions .wideOnly {
+    display: inline-flex;
+  }
+
+  .body {
+    padding: calc(56 * var(--u)) calc(80 * var(--u)) calc(84 * var(--u));
+  }
+
+  .meta {
+    margin-bottom: calc(36 * var(--u));
+    font: var(--type-body-sm);
+  }
+
+  /* The label in a 190 column, the answer beside it; 18 above and below each rule. */
+  .row {
+    grid-template-columns: calc(190 * var(--u)) 1fr;
+    gap: calc(24 * var(--u));
+    padding: calc(18 * var(--u)) 0;
+  }
+
+  .label {
+    font: var(--type-contact-detail);
+  }
+
+  .value {
+    font: var(--type-body-sm);
+    line-height: 1.64;
+  }
+
+  .rows {
+    margin-bottom: calc(32 * var(--u));
+  }
+
+  .actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: calc(14 * var(--u));
+  }
+
+  .note {
+    max-width: calc(700 * var(--u));
+    font: var(--type-contact-note);
+  }
+}
