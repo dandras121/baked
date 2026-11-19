@@ -73,7 +73,8 @@ async function sendToStore(
       handleUploadUrl: "/api/pictures/blob",
       clientPayload: JSON.stringify(fields),
       contentType: type,
-      multipart: file.size > 5 * 1024 * 1024,
+      // One request: 8 MB at most (a multipart upload stalled with a presigned URL).
+      multipart: false,
       onUploadProgress: (p) => onProgress(p.percentage / 100),
     });
     const r = await fetch("/api/pictures/blob", {
