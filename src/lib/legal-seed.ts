@@ -1,5 +1,5 @@
-// The starting text of the seven legal pages (§4.5 Seed content): the Figma texts (664:4192, 664:4364, 664:4501,
-// 664:4624, 666:4476, 666:4599, 666:4845), corrected by Appendix A.1 and §14.1 item 5, with every business value
+// The starting text of the eight legal pages (§4.5 Seed content): the Figma texts (664:4192, 664:4364, 664:4501,
+// 664:4624, 666:4476, 666:4599, 666:4845; the Complaints procedure 666:4722, slice 7.3), corrected by Appendix A.1 and §14.1 item 5, with every business value
 // as a placeholder (§11.8). Linda revises them in the admin editor before launch (§14.1); each save is a new
 // revision. Format: see src/lib/legal.ts.
 
@@ -18,6 +18,7 @@ export const LEGAL_SLUGS = [
   "cancellations",
   "accessibility",
   "allergens",
+  "complaints",
 ] as const;
 export type LegalSlug = (typeof LEGAL_SLUGS)[number];
 
@@ -198,5 +199,25 @@ Put it in the allergy box when you order, or email before ordering if you would 
 
 ## Your cake’s allergens
 The allergens of the cake you order are shown before you pay, in your confirmation email, and on your order page, which every email links to.`,
+  },
+  {
+    slug: "complaints",
+    title: "Complaints procedure",
+    intro: "Tell me first — most things I can put right the same day.",
+    // Section 6, “Send it here”, is the form (§7.5): the page adds it after the saved text.
+    body: `## How to raise it
+Email or phone me with your order number and, if it is about the cake itself, a photograph. As soon as you can — a photograph taken on the day helps most — but a later complaint is still a complaint.
+
+## What happens next
+I acknowledge within one working day, look into it, and give you my answer within five working days.
+
+## What I can offer
+Depending on what went wrong: a repair, a replacement cake, a partial refund or a full refund.
+
+## If you are still unhappy
+If we cannot settle it between us you can take the matter to an approved alternative dispute resolution provider — [provider name and web address to be confirmed before launch] — and I will take part in that process. You can also report it to Trading Standards through the Citizens Advice consumer helpline on 0808 223 1133.
+
+## Keeping records
+I keep a note of every complaint and what I did about it, so I can see patterns and fix the cause.`,
   },
 ];

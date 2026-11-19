@@ -124,3 +124,8 @@ Anything built differently from the docs or Figma, and why. Bohoka’s decision 
 | 7.1b | 660:4293 / §7.1 Intro facts “HOW FAR AHEAD TO ASK” | “Ideally, ask this far ahead” and a line under the rows: “Later is often fine too — send it anyway and I will tell you within 24 hours whether I can fit it in.” — a guide, not a deadline (Bohoka 2026-11-09) |
 | 7.1b | 847:8028 phone: How this works and How far ahead to ask under the form | On the phone they come right after the intro, before the questions (and in that order for screen readers on every size); tablet and desktop unchanged beside the form (Bohoka 2026-11-09) |
 | 7.2 | 1609:11066 phone title “Your enquiry, in writing.” | “Your enquiry.” on every size — SITE-FLOWS §7.2 says the phone text follows the desktop copy |
+| 7.3 | 1253:9529 “I've got it — reference BBL-2026-0284” (an order number) | The complaint's own BBL-YYYY-C-NNNN (§7.5, §10.7); the matched order shows in the line above |
+| 7.3 | 1253:9540 “Meanwhile …” in accent violet | Display violet: accent on the notice's lilac wash is 4.37:1 (§10.13 needs 4.5) |
+| 7.3 | 1253:9535 check icon in the notice | The notice's usual round icon, as on the other calm notices |
+| 7.3 | 666:4722 caps labels “ORDER NUMBER”, “WHAT WOULD HELP” | Sentence case (Bohoka 2026-11-01) |
+| 5.4 → 7.3 | Complaint alert subject “Complaint {ref} — {name} — {order}” (accepted in 5.4) | “Complaint {ref} — {order number or ‘no order number’} — {name}” as SITE-FLOWS §7.5 |

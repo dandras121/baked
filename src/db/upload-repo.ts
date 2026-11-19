@@ -74,14 +74,14 @@ export async function removePicture(db: Db, id: string, formKey: string) {
 }
 
 /**
- * Attaches the chosen pictures to the saved enquiry: only this form's own, not yet attached, in the order given, at
+ * Attaches the chosen pictures to the saved enquiry or complaint: only this form's own, not yet attached, in the order given, at
  * most three. Anything else named is ignored.
  */
 export async function attachPictures(
   tx: Tx,
   ids: string[],
   formKey: string,
-  to: { enquiryId: number },
+  to: { enquiryId: number } | { complaintId: number },
   now: Date,
 ) {
   const wanted = ids.filter((id) => /^[0-9a-f-]{36}$/i.test(id));
@@ -101,9 +101,18 @@ export async function attachPictures(
   if (take.length)
     await tx
       .update(uploads)
-      .set({ enquiryId: to.enquiryId, attachedAt: now })
+      .set({ ...to, attachedAt: now })
       .where(inArray(uploads.id, take));
   return take.length;
+}
+
+/** The pictures of a complaint, in upload order (admin, 9.x). */
+export async function complaintPictures(db: Db, complaintId: number) {
+  return db
+    .select()
+    .from(uploads)
+    .where(eq(uploads.complaintId, complaintId))
+    .orderBy(asc(uploads.createdAt));
 }
 
 /** The pictures of an enquiry, in upload order (admin and Your enquiry, later slices). */

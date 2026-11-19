@@ -167,7 +167,8 @@ export const ALERTS: {
     ),
   complaint: (v, origin) =>
     plain(
-      `Complaint ${v.reference} — ${v.name}${v.orderNumber ? ` — ${v.orderNumber}` : ""}`,
+      // §7.5: “Complaint {reference} — {order number or ‘no order number’} — {name}”.
+      `Complaint ${v.reference} — ${v.orderNumber ?? "no order number"} — ${v.name}`,
       [
         "A complaint came in through the website. Reply within one working day — Reply-To is the customer.",
       ],

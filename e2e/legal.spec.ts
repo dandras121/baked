@@ -3,7 +3,7 @@ import { expect, test } from "@playwright/test";
 import { LEGAL_SEED } from "../src/lib/legal-seed";
 import { INITIAL_SETTINGS as S } from "../src/lib/settings";
 
-// Slice 2.6: the seven legal pages (§4.5).
+// Slice 2.6: the legal pages (§4.5); the Complaints procedure since 7.3.
 const route = (slug: string) => `/${slug}`;
 
 for (const page of LEGAL_SEED) {
@@ -17,7 +17,10 @@ for (const page of LEGAL_SEED) {
       p.getByText(/^Last updated \d{1,2} [A-Z][a-z]+ \d{4}$/),
     ).toBeVisible();
     const sections = p.locator("article section h2");
-    const n = (page.body.match(/^## /gm) ?? []).length;
+    // The Complaints procedure adds its form as the last section, “Send it here” (§7.5).
+    const n =
+      (page.body.match(/^## /gm) ?? []).length +
+      (page.slug === "complaints" ? 1 : 0);
     await expect(sections).toHaveCount(n);
     await expect(sections.first()).toHaveText(/^1 · /);
     await expect(

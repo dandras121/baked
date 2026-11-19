@@ -52,6 +52,7 @@ export function LegalPage({
   sections,
   email,
   phone,
+  extra,
 }: {
   title: string;
   intro: string;
@@ -59,7 +60,10 @@ export function LegalPage({
   sections: LegalSection[];
   email: string | null;
   phone: string | null;
+  /** A last section that is not saved text (the Complaints procedure form, §7.5), numbered after the others. */
+  extra?: { id: string; heading: string; content: React.ReactNode };
 }) {
+  const extraNumber = sections.length + 1;
   return (
     <article className={styles.page}>
       <header className={styles.top}>
@@ -69,10 +73,15 @@ export function LegalPage({
       </header>
       <div className={styles.columns}>
         <OnThisPage
-          items={sections.map((s) => ({
-            id: s.id,
-            label: `${s.number} · ${s.heading}`,
-          }))}
+          items={[
+            ...sections.map((s) => ({
+              id: s.id,
+              label: `${s.number} · ${s.heading}`,
+            })),
+            ...(extra
+              ? [{ id: extra.id, label: `${extraNumber} · ${extra.heading}` }]
+              : []),
+          ]}
         />
         <div className={styles.sections}>
           {sections.map((s) => (
@@ -87,6 +96,14 @@ export function LegalPage({
               {s.blocks.map(renderBlock)}
             </section>
           ))}
+          {extra && (
+            <section className={styles.section} aria-labelledby={extra.id}>
+              <h2 id={extra.id} className={styles.heading} tabIndex={-1}>
+                {extraNumber} · {extra.heading}
+              </h2>
+              {extra.content}
+            </section>
+          )}
           {email && phone && (
             <p className={styles.questions}>
               Questions? Email{" "}

@@ -1033,6 +1033,37 @@ export const enquiries = pgTable(
   ],
 );
 
+/** Complaints (§7.5): each with its own BBL-YYYY-C-NNNN (§10.7), one per form key; matched to an order when the order
+ *  number and the e-mail agree (that order shows “Complaint received {date}” in admin, 9.x). Kept 6 years (§10.10);
+ *  a filled honeypot is kept 30 days as possible spam with no e-mail at all. */
+export const complaints = pgTable(
+  "complaints",
+  {
+    id: serial("id").primaryKey(),
+    reference: text("reference").notNull().unique(),
+    formKey: text("form_key").notNull().unique(),
+    /** new · spam */
+    status: text("status").notNull().default("new"),
+    /** The order number as typed (tidied); kept even when it matches nothing. */
+    orderNumber: text("order_number"),
+    orderId: integer("order_id").references(() => orders.id, {
+      onDelete: "set null",
+    }),
+    name: text("name").notNull(),
+    email: text("email").notNull(),
+    body: text("body").notNull(),
+    /** Repair · Replacement cake · Partial refund · Full refund, or null. */
+    wanted: text("wanted"),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [
+    check("complaint_status", sql`${t.status} in ('new', 'spam')`),
+    index("complaints_order").on(t.orderId),
+  ],
+);
+
 /** Postgres bytea for the database file store (a Buffer in and out). */
 const bytea = customType<{ data: Buffer; driverData: Buffer }>({
   dataType: () => "bytea",
@@ -1057,6 +1088,9 @@ export const uploads = pgTable(
     enquiryId: integer("enquiry_id").references(() => enquiries.id, {
       onDelete: "cascade",
     }),
+    complaintId: integer("complaint_id").references(() => complaints.id, {
+      onDelete: "cascade",
+    }),
     attachedAt: timestamp("attached_at", { withTimezone: true }),
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
@@ -1066,6 +1100,7 @@ export const uploads = pgTable(
     check("upload_purpose", sql`${t.purpose} in ('enquiry', 'complaint')`),
     index("uploads_form").on(t.formKey),
     index("uploads_enquiry").on(t.enquiryId),
+    index("uploads_complaint").on(t.complaintId),
   ],
 );
 

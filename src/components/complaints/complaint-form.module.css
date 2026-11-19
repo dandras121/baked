@@ -1,0 +1,53 @@
+/*
+ * Send it here (666:4722 section 6; phone 844:8217): the fields 20 apart, 28 before each labelled block, the drawn
+ * small labels, the §7.1 picture tiles, the What would help pills, Send my complaint and the privacy line.
+ */
+.form {
+  display: grid;
+  gap: 20px;
+  margin-top: 26px;
+}
+
+.block {
+  margin-top: 8px;
+}
+
+.label {
+  margin: 0 0 12px;
+  color: var(--colour-meta);
+  font: var(--type-label);
+  letter-spacing: 0.02em;
+}
+
+.pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.note {
+  margin: 10px 0 0;
+  color: var(--colour-body);
+  font: var(--type-contact-note);
+}
+
+.send {
+  display: grid;
+  justify-items: stretch;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.honeypot {
+  position: absolute;
+  left: -10000px;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}
+
+@media (min-width: 768px) {
+  .send {
+    justify-items: start;
+  }
+}

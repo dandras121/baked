@@ -23,7 +23,13 @@ export async function legalMetadata(slug: LegalSlug): Promise<Metadata> {
 }
 
 /** A legal page from its newest revision, its placeholders filled from the current Settings (§11.8). */
-export async function LegalRoute({ slug }: { slug: LegalSlug }) {
+export async function LegalRoute({
+  slug,
+  extra,
+}: {
+  slug: LegalSlug;
+  extra?: { id: string; heading: string; content: React.ReactNode };
+}) {
   const [page, settings] = await Promise.all([
     getLegalPage(slug),
     getSiteSettings(),
@@ -38,6 +44,7 @@ export async function LegalRoute({ slug }: { slug: LegalSlug }) {
       sections={parseLegal(fillLegal(page.body, values))}
       email={settings.email}
       phone={settings.phone}
+      extra={extra}
     />
   );
 }
