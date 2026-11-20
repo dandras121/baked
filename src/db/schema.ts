@@ -1165,3 +1165,63 @@ export const refunds = pgTable(
     index("refunds_order").on(t.orderId),
   ],
 );
+
+/** The team (§9.15): Owners and Helpers. The first Owner is created once from ADMIN_OWNER_EMAIL / _NAME when the team
+ *  is empty (§9.15). E-mail is kept lower-case (one person per address). `version` guards two people at once (§9.1). */
+export const teamMembers = pgTable(
+  "team_members",
+  {
+    id: serial("id").primaryKey(),
+    name: text("name").notNull(),
+    email: text("email").notNull().unique(),
+    /** owner · helper */
+    role: text("role").notNull(),
+    /** active · invited (an invite not yet used, slice 9.x) */
+    status: text("status").notNull().default("active"),
+    version: integer("version").notNull().default(1),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [
+    check("member_role", sql`${t.role} in ('owner', 'helper')`),
+    check("member_status", sql`${t.status} in ('active', 'invited')`),
+  ],
+);
+
+/** Admin sessions (§9.2): the cookie holds a random id, the server keeps only its hash. 30 days from sign-in, never
+ *  extended; signing out or removing someone deletes the row, so it ends at once. */
+export const adminSessions = pgTable(
+  "admin_sessions",
+  {
+    idHash: text("id_hash").primaryKey(),
+    memberId: integer("member_id")
+      .notNull()
+      .references(() => teamMembers.id, { onDelete: "cascade" }),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull(),
+    expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+    lastUsedAt: timestamp("last_used_at", { withTimezone: true }).notNull(),
+    /** “{browser} on {OS}” and the city from the host's IP-location header, for Signed-in devices (§9.15). */
+    device: text("device").notNull().default(""),
+    place: text("place"),
+  },
+  (t) => [index("admin_sessions_member").on(t.memberId)],
+);
+
+/** Sign-in codes (§9.2): six digits, kept only as a hash; 10 minutes, 5 tries; a new code ends the earlier ones. */
+export const signInCodes = pgTable(
+  "sign_in_codes",
+  {
+    id: serial("id").primaryKey(),
+    memberId: integer("member_id")
+      .notNull()
+      .references(() => teamMembers.id, { onDelete: "cascade" }),
+    codeHash: text("code_hash").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull(),
+    expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+    triesLeft: integer("tries_left").notNull().default(5),
+    /** used (signed in) · replaced (a newer code was sent) · null while it can still be used */
+    endedAt: timestamp("ended_at", { withTimezone: true }),
+  },
+  (t) => [index("sign_in_codes_member").on(t.memberId)],
+);

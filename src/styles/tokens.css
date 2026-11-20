@@ -136,6 +136,8 @@
   --type-small: 400 max(calc(12px * var(--type-scale)), min(12px, 14px))/1.58 var(--font-ui); /* footer small print · style guide Quicksand Regular 12 */
   --type-social: 500 max(calc(12px * var(--type-scale)), min(12px, 14px))/normal var(--font-ui); /* social link label, “menu” · style guide Quicksand Medium 12 */
   --type-tile-plus: 500 max(calc(22px * var(--type-scale)), min(22px, 14px))/normal var(--font-ui); /* “+” on an empty picture tile · 660:4234 */
+  --type-admin-title: 300 40px/46px var(--font-display); /* admin screen title (Sign in, Check your email) · 932:8159 */
+  --type-admin-tag: 700 9px/12px var(--font-ui); /* “ADMIN” under the wordmark · 932:8158 */
   --type-label: 500 max(calc(11px * var(--type-scale)), min(11px, 14px))/normal var(--font-ui); /* field label (caps) · input 630:3005 */
   --type-question: 400 max(calc(18px * var(--type-scale)), min(18px, 14px))/1.45 var(--font-display); /* FAQ question · 1745:12853 */
   --type-answer: 400 max(calc(15px * var(--type-scale)), min(15px, 14px))/1.67 var(--font-ui); /* FAQ answer · 1745:12865 */

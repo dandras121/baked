@@ -1,0 +1,48 @@
+/* The admin (§9.1): paper background, no tablet scaling (the 0.8 rule does not apply, Decided D10). */
+.admin {
+  --type-scale: 1;
+  min-height: 100dvh;
+  background: var(--colour-paper);
+  color: var(--colour-ink);
+}
+
+/* Placeholder screens until 8.2 / 8.3. */
+.stub {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 48px 24px;
+}
+
+.title {
+  margin: 0 0 8px;
+  color: var(--colour-display);
+  font: var(--type-admin-title);
+  font-variation-settings: var(--font-display-axes);
+}
+
+.who {
+  margin: 0 0 24px;
+  color: var(--colour-body);
+  font: var(--type-body-sm);
+}
+
+.ending,
+.notice {
+  margin: 0 0 24px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  background: var(--colour-selected-wash);
+  color: var(--colour-ink);
+  font: var(--type-body-sm);
+}
+
+.signOut {
+  min-height: 44px;
+  padding: 0 4px;
+  border: 0;
+  background: none;
+  color: var(--colour-display);
+  font: var(--type-body-sm);
+  text-decoration: underline;
+  cursor: pointer;
+}

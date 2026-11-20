@@ -129,3 +129,5 @@ Anything built differently from the docs or Figma, and why. Bohoka’s decision 
 | 7.3 | 1253:9535 check icon in the notice | The notice's usual round icon, as on the other calm notices |
 | 7.3 | 666:4722 caps labels “ORDER NUMBER”, “WHAT WOULD HELP” | Sentence case (Bohoka 2026-11-01) |
 | 5.4 → 7.3 | Complaint alert subject “Complaint {ref} — {name} — {order}” (accepted in 5.4) | “Complaint {ref} — {order number or ‘no order number’} — {name}” as SITE-FLOWS §7.5 |
+| 8.1 | 1801:13621 desktop code step: one field “419···” | Six boxes on every size, as SITE-FLOWS §9.2 (and the phone frame 950:9002) |
+| 8.1 | 932:8158 “ADMIN”, 950:9002 “WHY THERE IS NO PASSWORD” caps | Sentence case in the source, shown in small capitals by style as drawn (letter-spaced) |

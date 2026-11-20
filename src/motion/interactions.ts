@@ -124,7 +124,10 @@ const isHoverInput = (e: PointerEvent) =>
   e.pointerType === "mouse" || e.pointerType === "pen";
 const closest = (node: EventTarget | null) =>
   node instanceof Element
-    ? (node.closest(SELECTOR) as HTMLElement | null)
+    ? // The admin has no motion beyond focus and hover states (§9.1, Decided D10).
+      node.closest("[data-no-motion]")
+      ? null
+      : (node.closest(SELECTOR) as HTMLElement | null)
     : null;
 
 export function installInteractions(doc: Document = document): () => void {

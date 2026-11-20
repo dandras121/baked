@@ -168,6 +168,14 @@
   font: var(--type-tile-plus);
 }
 
+.type-admin-title {
+  font: var(--type-admin-title);
+}
+
+.type-admin-tag {
+  font: var(--type-admin-tag);
+}
+
 .type-label {
   font: var(--type-label);
   letter-spacing: var(--type-label-ls);

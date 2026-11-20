@@ -1,0 +1,214 @@
+/*
+ * Sign in (§9.2). Desktop (≥ 1024, 932:8144 / 1801:13621): a 480-wide white card on paper, 39 inside, logo mark,
+ * wordmark and “Admin”, the title, the line, the field and the button. Phone (1801:13646 / 950:9002): the dark top
+ * bar with the mark and “Admin”, the same steps in one column, and “Why there is no password” under the code step.
+ */
+.page {
+  min-height: 100dvh;
+}
+
+.topBar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: 72px;
+  padding: 0 20px;
+  background: var(--colour-ink);
+}
+
+.topMark {
+  width: 22px;
+  height: auto;
+}
+
+.topName {
+  color: var(--colour-display-soft, var(--colour-lilac));
+  font: var(--type-contact-detail-phone);
+  font-variation-settings: var(--font-display-axes);
+}
+
+.topAdmin {
+  margin-left: auto;
+  color: var(--colour-lilac);
+  font: var(--type-admin-tag);
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.main {
+  display: grid;
+  gap: 24px;
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 32px 20px 48px;
+}
+
+.card {
+  display: grid;
+}
+
+.brand {
+  display: none;
+}
+
+.form {
+  display: grid;
+  gap: 16px;
+}
+
+.title {
+  margin: 0;
+  color: var(--colour-display);
+  font: var(--type-admin-title);
+  font-variation-settings: var(--font-display-axes);
+}
+
+.intro,
+.again {
+  margin: -6px 0 0;
+  color: var(--colour-body);
+  font: var(--type-contact-note);
+}
+
+.again {
+  color: var(--colour-display);
+  font-weight: 600;
+}
+
+.boxes {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.box {
+  width: 100%;
+  min-width: 0;
+  height: 60px;
+  border: 1px solid var(--colour-ink);
+  border-radius: 10px;
+  background: var(--colour-white);
+  color: var(--colour-ink);
+  font: var(--type-heading-sm);
+  font-variation-settings: var(--font-display-axes);
+  text-align: center;
+}
+
+.box:focus-visible {
+  outline: 2px solid var(--colour-lilac);
+  outline-offset: 1px;
+}
+
+.box[aria-invalid] {
+  border-color: var(--colour-error);
+}
+
+.links {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0 8px;
+  margin: 0;
+}
+
+.link {
+  min-height: 44px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--colour-accent-text, var(--colour-display));
+  font: var(--type-contact-note);
+  cursor: pointer;
+}
+
+.link:hover {
+  text-decoration: underline;
+}
+
+.dot {
+  color: var(--colour-meta);
+}
+
+.why {
+  padding: 18px 16px;
+  border: 1px solid var(--colour-line-rule);
+  border-radius: 10px;
+  background: var(--colour-white);
+}
+
+.whyTitle {
+  margin: 0 0 8px;
+  color: var(--colour-accent-text, var(--colour-display));
+  font: var(--type-admin-tag);
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.whyText {
+  margin: 0;
+  color: var(--colour-body);
+  font: var(--type-contact-note);
+}
+
+.hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+@media (min-width: 1024px) {
+  .topBar,
+  .why {
+    display: none;
+  }
+
+  .main {
+    display: grid;
+    place-items: center;
+    min-height: 100dvh;
+    max-width: none;
+    padding: 40px;
+  }
+
+  .card {
+    width: 480px;
+    padding: 35px 39px 24px;
+    border: 1px solid var(--colour-line-rule);
+    border-radius: 10px;
+    background: var(--colour-white);
+  }
+
+  .brand {
+    display: grid;
+    justify-items: start;
+    margin-bottom: 20px;
+  }
+
+  .mark {
+    width: 44px;
+    height: auto;
+    margin-bottom: 16px;
+  }
+
+  .wordmark {
+    width: 142px;
+    height: auto;
+  }
+
+  .admin {
+    color: var(--colour-accent);
+    font: var(--type-admin-tag);
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+  }
+
+  .box {
+    height: 54px;
+  }
+}

@@ -7,6 +7,7 @@ import { connect, databaseUrl } from "./client";
 import { googleReviews } from "./schema";
 import { ensureFaq } from "./faq-repo";
 import { ensureSampleGallery } from "./gallery-repo";
+import { ensureFirstOwner } from "./admin-auth-repo";
 import { ensureLegalPages } from "./legal-repo";
 import {
   ensureSampleCardVideos,
@@ -33,6 +34,9 @@ async function main() {
     // The starting FAQ (§4.4) on every site, once; afterwards Linda's edits are kept.
     if (await ensureFaq(db)) console.log("deploy-setup: starting FAQ added");
     // The starting legal pages (§4.5) on every site, once per page; saved revisions are kept.
+    // The first Owner (§9.15), once, while the team is empty.
+    if (await ensureFirstOwner(db))
+      console.log("deploy-setup: first Owner added");
     const legal = await ensureLegalPages(db);
     if (legal) console.log(`deploy-setup: ${legal} starting legal pages added`);
     // Previews only: the sample catalogue (missing cakes added), so the Home row can be checked.
