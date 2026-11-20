@@ -4,7 +4,7 @@ import { and, count, desc, eq, gte, inArray, lte, or } from "drizzle-orm";
 import { startMinutes, type TodayFlag } from "@/lib/admin/today";
 import { addDays, weekStart, type CalendarDate } from "@/lib/london-time";
 import type { connect } from "./client";
-import { moneyTaken, stillToPay, stillToPayAll } from "./money-repo";
+import { moneyTaken, stillToPayAll, stillToPayByOrder } from "./money-repo";
 import {
   deliveryAttempts,
   enquiries,
@@ -118,12 +118,12 @@ export async function todayBoard(db: Db, day: CalendarDate) {
           ),
         )
     : [];
+  const owed = await stillToPayByOrder(db, ids);
   for (const r of rows) {
     r.cakes = lines.filter((l) => l.orderId === r.orderId).map((l) => l.name);
     if (waiting.some((w) => w.orderId === r.orderId))
       r.flags.push("change-waiting");
-    const o = candidates.find((c) => c.id === r.orderId)!;
-    r.stillToPayPence = await stillToPay(db, o);
+    r.stillToPayPence = owed.get(r.orderId) ?? 0;
   }
 
   // “Not collected yet” at the top; the rest by start time; collections without a time last, in booking order.

@@ -57,6 +57,79 @@ export async function moneyTaken(db: Db, from: CalendarDate, to: CalendarDate) {
   );
 }
 
+/**
+ * Still to pay of many orders at once (§10.6): the same sums as netPaid — paid changes, paid links, refunds that have
+ * not failed (fees aside) — in four grouped queries, so a list never asks the database once per order.
+ */
+export async function stillToPayByOrder(
+  db: Db,
+  only: number[] | null = null,
+): Promise<Map<number, number>> {
+  if (only && only.length === 0) return new Map();
+  const live = await db
+    .select({
+      id: orders.id,
+      total: orders.totalPence,
+      received: orders.amountReceivedPence,
+    })
+    .from(orders)
+    .where(
+      only
+        ? inArray(orders.id, only)
+        : inArray(orders.status, ["confirmed", "completed"]),
+    );
+  const ids = live.map((o) => o.id);
+  if (!ids.length) return new Map();
+  const [changes, links, back] = await Promise.all([
+    db
+      .select({ id: orderChanges.orderId, n: sum(orderChanges.paidPence) })
+      .from(orderChanges)
+      .where(
+        and(
+          inArray(orderChanges.orderId, ids),
+          sql`${orderChanges.status} = 'saved'`,
+        ),
+      )
+      .groupBy(orderChanges.orderId),
+    db
+      .select({ id: paymentLinks.orderId, n: sum(paymentLinks.paidPence) })
+      .from(paymentLinks)
+      .where(
+        and(inArray(paymentLinks.orderId, ids), gt(paymentLinks.paidPence, 0)),
+      )
+      .groupBy(paymentLinks.orderId),
+    db
+      .select({ id: refunds.orderId, n: sum(refunds.amountPence) })
+      .from(refunds)
+      .where(
+        and(
+          inArray(refunds.orderId, ids),
+          inArray(refunds.status, ["pending", "succeeded"]),
+          ne(refunds.kind, "fee"),
+        ),
+      )
+      .groupBy(refunds.orderId),
+  ]);
+  const by = (rows: { id: number | null; n: string | null }[]) =>
+    new Map(rows.map((r) => [r.id ?? 0, Number(r.n ?? 0)]));
+  const c = by(changes);
+  const l = by(links);
+  const r = by(back);
+  return new Map(
+    live.map((o) => [
+      o.id,
+      Math.max(
+        0,
+        o.total -
+          (o.received +
+            (c.get(o.id) ?? 0) +
+            (l.get(o.id) ?? 0) -
+            (r.get(o.id) ?? 0)),
+      ),
+    ]),
+  );
+}
+
 /** Still to pay of one order (§10.6): never below 0. */
 export async function stillToPay(db: Db, o: typeof orders.$inferSelect) {
   return Math.max(0, o.totalPence - (await netPaid(db, o)));
@@ -64,11 +137,7 @@ export async function stillToPay(db: Db, o: typeof orders.$inferSelect) {
 
 /** Σ still to pay over confirmed and completed orders (§13). */
 export async function stillToPayAll(db: Db) {
-  const live = await db
-    .select()
-    .from(orders)
-    .where(inArray(orders.status, ["confirmed", "completed"]));
   let n = 0;
-  for (const o of live) n += await stillToPay(db, o);
+  for (const v of (await stillToPayByOrder(db)).values()) n += v;
   return n;
 }

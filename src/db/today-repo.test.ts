@@ -3,6 +3,7 @@ import { migrate } from "drizzle-orm/postgres-js/migrator";
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 import { connect } from "./client";
 import { deliveryAttempts, orderLines, orders } from "./schema";
+import { stillToPay, stillToPayByOrder } from "./money-repo";
 import { todayBoard, todayNumbers } from "./today-repo";
 
 const url = process.env.TEST_DATABASE_URL;
@@ -169,5 +170,17 @@ describe.skipIf(!url)("database: Today (§9.3)", () => {
     const n = await todayNumbers(db(), day, rows);
     expect(n.outToday).toBe(2);
     expect(n.subtitle).toMatchObject({ out: 1, collections: 0, payments: 0 });
+  });
+
+  it("still to pay in one go matches the order-by-order sum (§10.6)", async () => {
+    const a = await order({ customerName: "Paid Pat" });
+    const b = await order({
+      customerName: "Owes Olly",
+      amountReceivedPence: 5000,
+    });
+    const many = await stillToPayByOrder(db(), [a.id, b.id]);
+    expect(many.get(a.id)).toBe(await stillToPay(db(), a));
+    expect(many.get(b.id)).toBe(await stillToPay(db(), b));
+    expect(many.get(b.id)).toBe(13500);
   });
 });
