@@ -188,6 +188,10 @@
   font: var(--type-admin-tab);
 }
 
+.type-admin-stat {
+  font: var(--type-admin-stat);
+}
+
 .type-label {
   font: var(--type-label);
   letter-spacing: var(--type-label-ls);

@@ -21,7 +21,11 @@ export function AdminShell({
   return (
     <div className={styles.shell}>
       <aside className={styles.sidebar} aria-label="Admin">
-        <Link href="/admin/today" className={styles.logo} aria-label="Baked by Linda admin — Today">
+        <Link
+          href="/admin/today"
+          className={styles.logo}
+          aria-label="Baked by Linda admin — Today"
+        >
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src="/brand/logo-mark.svg" alt="" className={styles.mark} />
           {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -42,7 +46,11 @@ export function AdminShell({
         </form>
       </aside>
       <header className={styles.topBar}>
-        <Link href="/admin/today" className={styles.topLogo} aria-label="Baked by Linda admin — Today">
+        <Link
+          href="/admin/today"
+          className={styles.topLogo}
+          aria-label="Baked by Linda admin — Today"
+        >
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src="/brand/logo-mark.svg" alt="" className={styles.topMark} />
           {/* eslint-disable-next-line @next/next/no-img-element */}

@@ -262,3 +262,7 @@ Bohoka’s decision is added when he gives it (“jó” = keep, “ne legyen”
 | 8.2 | §9.17 Show me how | On Android the browser's own install offer when it gives one; otherwise the steps for this phone, with the 30-day and Safari lines | `home-screen-prompt.tsx` | Built 2026-11-20 |
 | 8.2 | §9.1 logo link | Named “Baked by Linda admin — Today” for screen readers (the visible logo, as drawn) | `admin-shell.tsx` | Built 2026-11-20 |
 | 8.2 | §9.1 Two people at once | Orders record the last change as “member:{name}” / “customer” / “payment” / “site” with its time | `src/db/versioned.ts` | Built 2026-11-20 |
+| 8.3a | §9.3 Send a text | Only for a mobile: a UK +447… number or any number from abroad; not on the rows to ring (they show the number to call) | `src/lib/admin/today.ts` | Built 2026-11-20 |
+| 8.3a | §9.3 collection time order | “12 noon”, “14:30”, “2pm”, “2.30 pm” read as times; anything else sorts last in booking order; shown as typed, “Time not set” when empty | `src/lib/admin/today.ts` | Built 2026-11-20 |
+| 8.3a | §9.3 row tags | Delivery / Collection / Redelivery; a missed delivery collected today shows as a Collection | `today-screen.tsx` | Built 2026-11-20 |
+| 8.3a | §8.2 row 4 | E-mail 4 takes the same rows and the same ready-written text as Today | `src/db/order-mail-repo.ts` | Built 2026-11-20 |

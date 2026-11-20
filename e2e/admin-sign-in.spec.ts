@@ -98,7 +98,8 @@ test("an Owner signs in with the code from the e-mail; pasting signs in; Sign ou
     `${code.slice(0, 3)} ${code.slice(3)}`,
   );
   await expect(page).toHaveURL(/\/admin\/today$/);
-  await expect(page.getByText("Linda · Owner")).toBeVisible();
+  // The sidebar footer names the person and the role (hidden on the phone, so only counted).
+  await expect(page.getByText("Owner ·")).toHaveCount(1);
 
   const cookie = (await context.cookies()).find(
     (c) => c.name === "__Host-bbl_admin",
@@ -143,7 +144,7 @@ test("a Helper sees Today; an owner-only page sends them back with “That page 
   await askCode(page, fiona);
   await typeCode(page, await codeFor(fiona));
   await expect(page).toHaveURL(/\/admin\/today$/);
-  await expect(page.getByText("Fiona · Helper")).toBeVisible();
+  await expect(page.getByText("Helper ·")).toHaveCount(1);
   await page.goto("/admin/money");
   await expect(page).toHaveURL(/\/admin\/today\?for=owner$/);
   await expect(page.getByText("That page is for the owner.")).toBeVisible();

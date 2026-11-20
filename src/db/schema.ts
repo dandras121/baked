@@ -658,6 +658,11 @@ export const orders = pgTable(
      *  “member:{name}” · “customer” · “payment” · “site”. */
     changedBy: text("changed_by"),
     changedAt: timestamp("changed_at", { withTimezone: true }),
+    /** The agreed collection time as Linda types it (“12 noon”, “14:30”; Order detail **Collection time**, §9.5). */
+    collectionTime: text("collection_time"),
+    /** “Booked after its hold ran out — check the day” (§9.3): set when a paid booking or move lands on a day that
+     *  is now full, closed or too soon; **Checked** clears it, and it no longer shows after the order's date. */
+    checkDay: boolean("check_day").notNull().default(false),
     /** A size-up payment is going through (§6.4): nothing else can change until it finishes or the lock lapses. */
     lockedAt: timestamp("locked_at", { withTimezone: true }),
     /** A move paid for with a size-up (§6.4): the new day held for 20 minutes, owned by the order (§11.6). */

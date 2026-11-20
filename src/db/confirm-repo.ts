@@ -209,7 +209,7 @@ export async function applyIntent(
       !found.holdExpiresAt || found.holdExpiresAt.getTime() <= now.getTime();
     if (found.holdDate && holdRanOut) {
       const cap = await capacityFor(db, { ...found, holdExpiresAt: null }, now);
-      if (!canHold(found.holdDate, { ...cap, ownHold: null }))
+      if (!canHold(found.holdDate, { ...cap, ownHold: null })) {
         await alert(
           db,
           "booked-after-hold",
@@ -217,6 +217,12 @@ export async function applyIntent(
           found.id,
           `Booked after its hold ran out — check ${found.holdDate}`,
         );
+        // Today shows “Booked after its hold ran out — check the day” on the order (§9.3).
+        await db
+          .update(orders)
+          .set({ checkDay: true })
+          .where(eq(orders.draftId, found.id));
+      }
     }
     return "confirmed";
   }

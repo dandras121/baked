@@ -23,7 +23,8 @@ export function toE164(input: string): string | null {
 export function phoneForPeople(e164: string): string {
   const parsed = parsePhoneNumberFromString(e164);
   if (!parsed) return e164;
-  return parsed.country === "GB"
+  // A UK number (also one in Ofcom's drama range, which the library does not place in a country) reads nationally.
+  return parsed.country === "GB" || parsed.countryCallingCode === "44"
     ? parsed.formatNational()
     : parsed.formatInternational();
 }

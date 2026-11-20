@@ -699,6 +699,7 @@ export async function applyChangePayment(
         version: o.version + 1,
         changedBy: "customer",
         changedAt: now,
+        checkDay: overbooked || o.checkDay,
         totalPence: newTotal,
         lockedAt: null,
         holdDate: null,

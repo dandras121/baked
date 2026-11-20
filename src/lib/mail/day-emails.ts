@@ -220,6 +220,9 @@ export type ListRow = {
   cakes: string[];
   address: string | null;
   allergyNote: string | null;
+  /** The ready-written text of Send a text, as on admin Today (§9.3). */
+  smsBody?: string;
+  collectionTime?: string | null;
 };
 
 /** E-mail 4 · Your daily list (to the team, 06:00): today's handovers and yesterday's collections not marked. */
@@ -256,7 +259,9 @@ export function dailyListEmail(
           ? ([
               [
                 notCollected ? "Ring →" : "Send a text →",
-                notCollected ? tel(h.phoneE164) : `sms:${h.phoneE164}`,
+                notCollected
+                  ? tel(h.phoneE164)
+                  : `sms:${h.phoneE164}?&body=${encodeURIComponent(h.smsBody ?? "")}`,
               ],
             ] as [string, string][])
           : []),

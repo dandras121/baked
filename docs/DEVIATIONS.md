@@ -132,3 +132,5 @@ Anything built differently from the docs or Figma, and why. Bohoka’s decision 
 | 8.1 | 1801:13621 desktop code step: one field “419···” | Six boxes on every size, as SITE-FLOWS §9.2 (and the phone frame 950:9002) |
 | 8.1 | 932:8158 “ADMIN”, 950:9002 “WHY THERE IS NO PASSWORD” caps | Sentence case in the source, shown in small capitals by style as drawn (letter-spaced) |
 | 8.2 | ELLENŐRZŐ-LISTA 8.2 “two people at once, try it in two tabs” | The check is built (orders) and tested, but no admin screen saves anything yet: the two-tab try comes with the first editable screen (8.4) |
+| 8.3a | 932:8222 “HANDOVERS TODAY” caps; 932:8205 a Saturday sample | Sentence case shown in small capitals by style as drawn; the real date |
+| 8.3a | CLAUDE.md §4.4 one slice | 8.3 split into 8.3a (the board) and 8.3b (the actions) to stay checkable |

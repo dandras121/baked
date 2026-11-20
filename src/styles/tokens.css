@@ -70,6 +70,9 @@
   --colour-admin-nav-hover: rgb(255 255 255 / 0.06); /* admin sidebar hover and the footer card · 930:8059 */
   --colour-admin-nav-active: rgb(255 255 255 / 0.1); /* admin sidebar active item · 930:8037 */
   --colour-admin-tab-dot: rgb(36 27 51 / 0.25); /* admin tab bar dot, not active · 946:8781 */
+  --colour-admin-tag: rgb(36 27 51 / 0.08); /* admin Delivery / Collection tag · 932:8225 */
+  --colour-admin-text-wash: rgb(122 87 194 / 0.08); /* Send a text background · 1598:10477 */
+  --colour-admin-text-border: rgb(122 87 194 / 0.45); /* Send a text border · 1598:10477 */
   --colour-scrim-hint: rgb(36 27 51 / 0.42); /* visual-only dimming behind the phone cookie sheet · 1004:9104 */
   --colour-grabber: rgb(36 27 51 / 0.18); /* sheet grabber on the cookie sheet · 1004:9106 */
   --colour-slide-placeholder: #756c82; /* development-only hero placeholder slides 2–3 · Placeholder-hero slide 2|3 1817:13581 */
@@ -145,6 +148,7 @@
   --type-admin-title-sm: 300 30px/36px var(--font-display); /* admin sheet title (Put it on your home screen) · 950:9038 */
   --type-admin-nav: 400 13px/17px var(--font-ui); /* admin sidebar item · 930:8038 */
   --type-admin-tab: 400 11px/14px var(--font-ui); /* admin tab bar label, sidebar role line · 946:8779 */
+  --type-admin-stat: 500 30px/34px var(--font-ui); /* admin stat tile number · 930:8465 */
   --type-label: 500 max(calc(11px * var(--type-scale)), min(11px, 14px))/normal var(--font-ui); /* field label (caps) · input 630:3005 */
   --type-question: 400 max(calc(18px * var(--type-scale)), min(18px, 14px))/1.45 var(--font-display); /* FAQ question · 1745:12853 */
   --type-answer: 400 max(calc(15px * var(--type-scale)), min(15px, 14px))/1.67 var(--font-ui); /* FAQ answer · 1745:12865 */

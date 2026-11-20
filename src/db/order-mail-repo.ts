@@ -1,11 +1,13 @@
 // The data e-mails about an order are made from (§8.1): the order, its lines, the kept facts, the accepted revisions.
-import { and, eq, gte, inArray, lt } from "drizzle-orm";
-import { addDays, londonDate, type CalendarDate } from "@/lib/london-time";
+import { eq, inArray } from "drizzle-orm";
+import { londonDate, type CalendarDate } from "@/lib/london-time";
+import { readyText } from "@/lib/admin/today";
 import type { OrderMailView } from "@/lib/mail/order-confirmed";
 import { placeholderValues, type Placeholder } from "@/lib/placeholders";
 import type { connect } from "./client";
 import { legalRevisions, orderLines, orders } from "./schema";
 import { readSettings } from "./settings-repo";
+import { todayBoard, type TodayRow } from "./today-repo";
 
 type Db = ReturnType<typeof connect>["db"];
 
@@ -79,54 +81,32 @@ export async function orderMailView(
   };
 }
 
-/** Today's rows for e-mail 4: the handovers of the day and yesterday's collections not marked (§9.3). */
+/**
+ * Today's rows for e-mail 4 (§8.2 row 4): the same rows and order as admin Today at 06:00 (§9.3) — the handovers
+ * (incl. redeliveries and missed deliveries collected today), then the rows to ring (“Not collected yet”, “No choice
+ * yet”). Send a text carries the same ready-written text as Today.
+ */
 export async function todayRows(db: Db, day: CalendarDate) {
-  const list = await db
-    .select()
-    .from(orders)
-    .where(
-      and(
-        gte(orders.date, addDays(day, -1)),
-        lt(orders.date, addDays(day, 1)),
-        inArray(orders.status, ["confirmed"]),
-      ),
-    );
-  const lines = list.length
-    ? await db
-        .select({ orderId: orderLines.orderId, name: orderLines.name })
-        .from(orderLines)
-        .where(
-          inArray(
-            orderLines.orderId,
-            list.map((o) => o.id),
-          ),
-        )
-    : [];
-  const row = (o: (typeof list)[number]) => ({
-    number: o.number,
-    name: o.customerName,
-    phone: o.phone,
-    phoneE164: o.phoneE164,
-    handover: (o.handover === "delivery" ? "delivery" : "collection") as
-      "delivery" | "collection",
-    window: o.deliveryWindow,
-    cakes: lines.filter((l) => l.orderId === o.id).map((l) => l.name),
-    address: [o.address, o.town].filter(Boolean).join(", ") || null,
-    allergyNote: o.allergyNote,
+  const board = await todayBoard(db, day);
+  const kitchen = (await readSettings(db)).addressLine;
+  const row = (r: TodayRow) => ({
+    number: r.number,
+    name: r.name,
+    phone: r.phone,
+    phoneE164: r.phoneE164,
+    handover: r.handover,
+    window: r.window,
+    collectionTime: r.collectionTime,
+    cakes: r.cakes,
+    address: [r.address, r.town].filter(Boolean).join(", ") || null,
+    allergyNote: r.allergyNote,
+    smsBody: readyText({ ...r, kitchen }),
   });
-  const order = (w: string | null) =>
-    ["morning", "afternoon", "evening"].indexOf(w ?? "") + 1 || 9;
+  const ring = (r: TodayRow) =>
+    r.kind === "not-collected" || r.kind === "no-choice";
   return {
     date: day,
-    handovers: list
-      .filter((o) => String(o.date) === day)
-      .sort((a, b) => order(a.deliveryWindow) - order(b.deliveryWindow))
-      .map(row),
-    notCollected: list
-      .filter(
-        (o) =>
-          String(o.date) === addDays(day, -1) && o.handover === "collection",
-      )
-      .map(row),
+    handovers: board.filter((r) => !ring(r)).map(row),
+    notCollected: board.filter(ring).map(row),
   };
 }

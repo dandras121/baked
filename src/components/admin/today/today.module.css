@@ -1,0 +1,262 @@
+/*
+ * Today (§9.3). Desktop 932:8165: the date (Fraunces Light 40), the subtitle, five tiles 184 × 86, “Handovers today”,
+ * rows 78 high (when · who · phone · Send a text · Mark handed over), two notes. Phone 948:8761: no tiles, rows as
+ * cards with Send a text top right and the button under the name.
+ */
+.title {
+  margin: 0;
+  color: var(--colour-display);
+  font: var(--type-admin-title-sm);
+  font-variation-settings: var(--font-display-axes);
+}
+
+.subtitle {
+  margin: 6px 0 20px;
+  color: var(--colour-body);
+  font: var(--type-contact-note);
+}
+
+.wide {
+  display: none;
+}
+
+.notice {
+  margin: 0 0 16px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  background: var(--colour-selected-wash);
+  font: var(--type-body-sm);
+}
+
+.tiles {
+  display: none;
+}
+
+.section {
+  margin: 0 0 12px;
+  color: var(--colour-accent);
+  font: var(--type-admin-tag);
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.rows {
+  display: grid;
+  gap: 12px;
+  margin: 0 0 20px;
+  padding: 0;
+  list-style: none;
+}
+
+.row {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 8px 12px;
+  padding: 16px;
+  border: 1px solid var(--colour-line-rule);
+  border-radius: 10px;
+  background: var(--colour-white);
+}
+
+/* The whole row opens Order detail; its own buttons sit above that link. */
+.rowLink {
+  position: absolute;
+  inset: 0;
+  border-radius: 10px;
+}
+
+.rowLink:focus-visible {
+  outline: 2px solid var(--colour-lilac);
+}
+
+.when {
+  display: grid;
+  justify-items: start;
+  gap: 6px;
+}
+
+.time,
+.name {
+  color: var(--colour-ink);
+  font: var(--type-body-sm);
+  font-weight: 600;
+}
+
+.tag {
+  padding: 2px 12px;
+  border-radius: 100px;
+  background: var(--colour-admin-tag);
+  color: var(--colour-body);
+  font: var(--type-admin-tab);
+  font-weight: 500;
+}
+
+.who {
+  display: grid;
+  grid-column: 1 / -1;
+  gap: 2px;
+}
+
+.what {
+  color: var(--colour-body);
+  font: var(--type-contact-note);
+}
+
+.flag {
+  color: var(--colour-error);
+  font: var(--type-contact-note);
+  font-weight: 600;
+}
+
+.actions {
+  position: relative;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px 14px;
+  grid-column: 2;
+  grid-row: 1;
+}
+
+.phone {
+  display: none;
+  color: var(--colour-body);
+  font: var(--type-contact-note);
+  text-decoration: none;
+}
+
+.textWrap {
+  display: grid;
+  justify-items: center;
+}
+
+.sendText {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 36px;
+  padding: 0 20px 0 18px;
+  border: 1px solid var(--colour-admin-text-border);
+  border-radius: 100px;
+  background: var(--colour-admin-text-wash);
+  color: var(--colour-display);
+  font: var(--type-body-sm);
+  font-weight: 500;
+  text-decoration: none;
+}
+
+.sendText:hover,
+.sendText:focus-visible {
+  border-color: var(--colour-accent);
+}
+
+.textIcon {
+  width: 16px;
+  height: 16px;
+}
+
+.copied {
+  color: var(--colour-meta);
+  font: var(--type-admin-tab);
+}
+
+.done {
+  color: var(--colour-body);
+  font: var(--type-contact-note);
+}
+
+.note {
+  margin: 0 0 6px;
+  color: var(--colour-meta);
+  font: var(--type-small);
+}
+
+.empty {
+  display: grid;
+  justify-items: start;
+  gap: 10px;
+  padding: 24px 0;
+  color: var(--colour-body);
+  font: var(--type-body-sm);
+}
+
+.empty p {
+  margin: 0;
+}
+
+.emptyLink {
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  color: var(--colour-display);
+  font-weight: 600;
+}
+
+@media (min-width: 1024px) {
+  .title {
+    font: var(--type-admin-title);
+  }
+
+  .wide {
+    display: inline;
+  }
+
+  .narrow {
+    display: none;
+  }
+
+  .tiles {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 184px));
+    gap: 15px;
+    margin: 0 0 36px;
+    padding: 0;
+    list-style: none;
+  }
+
+  .tile {
+    display: grid;
+    gap: 4px;
+    padding: 13px 19px 16px;
+    border: 1px solid var(--colour-line-rule);
+    border-radius: 10px;
+    background: var(--colour-white);
+  }
+
+  .tileNumber {
+    color: var(--colour-ink);
+    font: var(--type-admin-stat);
+  }
+
+  .tileLabel {
+    color: var(--colour-body);
+    font: var(--type-small);
+  }
+
+  .row {
+    grid-template-columns: 110px minmax(0, 1fr) auto;
+    align-items: center;
+    padding: 15px 19px;
+    min-height: 78px;
+  }
+
+  .who {
+    grid-column: 2;
+    grid-row: 1;
+  }
+
+  .actions {
+    grid-column: 3;
+  }
+
+  .phone {
+    display: inline;
+  }
+
+  .sendText {
+    min-height: 42px;
+  }
+}
