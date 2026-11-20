@@ -135,3 +135,6 @@ Anything built differently from the docs or Figma, and why. Bohoka’s decision 
 | 8.3a | 932:8222 “HANDOVERS TODAY” caps; 932:8205 a Saturday sample | Sentence case shown in small capitals by style as drawn; the real date |
 | 8.3a | CLAUDE.md §4.4 one slice | 8.3 split into 8.3a (the board) and 8.3b (the actions) to stay checkable |
 | 8.3b | 1604:10546 “Her order page shows the same two choices.” | “The order page shows the same two choices.” — the customer's pronoun is not known and is not guessed |
+| 8.4a | 934:8201 Export CSV button | Not shown yet: CSV export is slice 9.9 (a hidden control is not rendered, §9.1 Roles) |
+| 8.4a | 934:8253 “Refunded” pill | “Cancelled” (cancelled or refunded), as SITE-FLOWS §9.4 decides |
+| 8.4a | CLAUDE.md §4.4 one slice | 8.4 split into 8.4a (list), 8.4b (Order detail), 8.4c (cancel and missed-delivery actions) |

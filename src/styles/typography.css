@@ -192,6 +192,18 @@
   font: var(--type-admin-stat);
 }
 
+.type-admin-pill {
+  font: var(--type-admin-pill);
+}
+
+.type-admin-head {
+  font: var(--type-admin-head);
+}
+
+.type-admin-cell {
+  font: var(--type-admin-cell);
+}
+
 .type-label {
   font: var(--type-label);
   letter-spacing: var(--type-label-ls);

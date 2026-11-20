@@ -1,0 +1,395 @@
+/*
+ * Orders (§9.4). Desktop 934:8201: title (Fraunces Light 40) with Add an order 180 × 42, the subtitle, filter pills
+ * (12 px, 7 × 16 padding), search 600 × 44, column heads (10 px caps, 1.8 px tracking), rows 52 high, Show 20 more
+ * 180 × 42 + “Showing 8 of 42”. Phone 948:8869: Add, search, pills All · This week · To pay, rows as cards.
+ */
+.head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin: 0 0 16px;
+}
+
+.title {
+  margin: 0;
+  color: var(--colour-display);
+  font: var(--type-admin-title-sm);
+  font-variation-settings: var(--font-display-axes);
+}
+
+.subtitle {
+  margin: 6px 0 0;
+  color: var(--colour-body);
+  font: var(--type-contact-note);
+}
+
+.add {
+  min-width: 92px;
+  height: 44px;
+  min-height: 44px;
+}
+
+.wide {
+  display: none;
+}
+
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0 0 18px;
+}
+
+.pill {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  min-height: 30px;
+  padding: 0 16px;
+  border: 1px solid var(--colour-admin-line);
+  border-radius: 100px;
+  color: var(--colour-ink);
+  font: var(--type-admin-pill);
+  text-decoration: none;
+}
+
+/* Hit area 44 high without moving the pills. */
+.pill::after {
+  content: "";
+  position: absolute;
+  inset: -7px 0;
+}
+
+.pill[aria-current="page"] {
+  border-color: var(--colour-ink);
+  background: var(--colour-ink);
+  color: var(--colour-paper);
+}
+
+.pill:hover:not([aria-current="page"]) {
+  border-color: var(--colour-ink);
+}
+
+.deskOnly {
+  display: none;
+}
+
+.controls {
+  display: flex;
+  flex-direction: column;
+}
+
+/* The phone puts the search above the pills (948:8869). */
+.searchRow {
+  order: -1;
+  margin: 0 0 14px;
+}
+
+.search {
+  width: 100%;
+  height: 44px;
+  padding: 0 15px;
+  border: 1px solid var(--colour-admin-line);
+  border-radius: 10px;
+  background: var(--colour-white);
+  color: var(--colour-ink);
+  font: var(--type-contact-note);
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.search::placeholder {
+  color: var(--colour-meta);
+  opacity: 1;
+}
+
+.search:focus-visible {
+  outline: 2px solid var(--colour-focus-ring);
+  outline-offset: 2px;
+}
+
+.columns {
+  display: none;
+}
+
+.rows {
+  display: grid;
+  gap: 12px;
+  margin: 0 0 24px;
+  padding: 0;
+  list-style: none;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas:
+    "date paid"
+    "name paid"
+    "what paid";
+  align-items: center;
+  column-gap: 12px;
+  padding: 10px 16px 11px;
+  border: 1px solid var(--colour-line-rule);
+  border-radius: 10px;
+  background: var(--colour-white);
+  color: var(--colour-body);
+  font: var(--type-admin-cell);
+  text-decoration: none;
+}
+
+.row:hover {
+  border-color: var(--colour-admin-line);
+}
+
+.row:focus-visible {
+  outline: 2px solid var(--colour-focus-ring);
+  outline-offset: 2px;
+}
+
+.date {
+  grid-area: date;
+  color: var(--colour-body);
+  font: var(--type-admin-tab);
+}
+
+.name {
+  grid-area: name;
+  overflow: hidden;
+  color: var(--colour-ink);
+  font: var(--type-body-sm);
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.what {
+  grid-area: what;
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  color: var(--colour-body);
+  font: var(--type-small);
+}
+
+.cell,
+.statusCell,
+.arrow {
+  display: none;
+}
+
+.paid {
+  grid-area: paid;
+  color: var(--colour-ink);
+  font-weight: 600;
+}
+
+.tag {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 100px;
+  background: var(--colour-admin-tag);
+  color: var(--colour-body);
+  font: var(--type-admin-tab);
+  font-weight: 500;
+  line-height: 15px;
+}
+
+.cancelled {
+  background: var(--colour-admin-tag-cancelled);
+  color: var(--colour-display);
+}
+
+.more {
+  display: grid;
+  justify-items: stretch;
+  gap: 10px;
+}
+
+.moreButton {
+  width: 100%;
+}
+
+.showing {
+  margin: 0;
+  color: var(--colour-meta);
+  font: var(--type-small);
+  text-align: center;
+}
+
+.empty {
+  display: grid;
+  justify-items: start;
+  gap: 6px;
+  padding: 24px 0;
+  color: var(--colour-body);
+  font: var(--type-body-sm);
+}
+
+.empty p {
+  margin: 0;
+}
+
+.emptyLink {
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  color: var(--colour-display);
+  font-weight: 600;
+}
+
+@media (min-width: 1024px) {
+  .title {
+    font: var(--type-admin-title);
+  }
+
+  .head {
+    margin: 0 0 24px;
+  }
+
+  .wide {
+    display: inline;
+  }
+
+  .narrow {
+    display: none;
+  }
+
+  .add {
+    min-width: 180px;
+    height: 42px;
+    min-height: 42px;
+  }
+
+  .deskOnly {
+    display: inline-flex;
+  }
+
+  .searchRow {
+    order: 0;
+    max-width: 600px;
+    margin: 0 0 26px;
+  }
+
+  .columns,
+  .row {
+    display: grid;
+    grid-template-columns:
+      90px minmax(0, 170px) minmax(0, 190px) minmax(0, 170px)
+      minmax(0, 140px) minmax(0, 1fr) 20px;
+    grid-template-areas: none;
+    column-gap: 0;
+  }
+
+  .row.helper,
+  .columns:has(+ .rows .helper) {
+    grid-template-columns:
+      90px minmax(0, 170px) minmax(0, 190px) minmax(0, 170px)
+      minmax(0, 1fr) 20px;
+  }
+
+  .columns {
+    padding: 0 20px;
+    margin: 0 0 12px;
+    color: var(--colour-accent);
+    font: var(--type-admin-head);
+    letter-spacing: 1.8px;
+    text-transform: uppercase;
+  }
+
+  .rows {
+    gap: 8px;
+  }
+
+  .row {
+    min-height: 52px;
+    padding: 0 20px 0 19px;
+  }
+
+  .date,
+  .name,
+  .cell,
+  .paid,
+  .statusCell,
+  .arrow {
+    grid-area: auto;
+    display: block;
+    overflow: hidden;
+    padding-right: 12px;
+    font: var(--type-admin-cell);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .name {
+    font-weight: 600;
+  }
+
+  .paid {
+    color: var(--colour-body);
+    font-weight: 400;
+  }
+
+  .what {
+    display: none;
+  }
+
+  .arrow {
+    padding: 0;
+    color: var(--colour-accent);
+    font: var(--type-body-sm);
+  }
+
+  .more {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+  }
+
+  .moreButton {
+    width: 180px;
+    height: 42px;
+    min-height: 42px;
+  }
+}
+
+/* Below 1200 the table drops WHERE, then CAKE below 1100 (§9.1 Layout at smaller widths). */
+@media (min-width: 1024px) and (max-width: 1199px) {
+  .whereCol {
+    display: none;
+  }
+
+  .columns,
+  .row {
+    grid-template-columns:
+      90px minmax(0, 170px) minmax(0, 190px) minmax(0, 140px)
+      minmax(0, 1fr) 20px;
+  }
+
+  .row.helper,
+  .columns:has(+ .rows .helper) {
+    grid-template-columns:
+      90px minmax(0, 170px) minmax(0, 190px) minmax(0, 1fr)
+      20px;
+  }
+}
+
+@media (min-width: 1024px) and (max-width: 1099px) {
+  .cakeCol {
+    display: none;
+  }
+
+  .columns,
+  .row {
+    grid-template-columns:
+      90px minmax(0, 200px) minmax(0, 160px) minmax(0, 1fr)
+      20px;
+  }
+
+  .row.helper,
+  .columns:has(+ .rows .helper) {
+    grid-template-columns: 90px minmax(0, 220px) minmax(0, 1fr) 20px;
+  }
+}

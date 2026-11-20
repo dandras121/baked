@@ -271,3 +271,8 @@ Bohoka’s decision is added when he gives it (“jó” = keep, “ne legyen”
 | 8.3b | §9.1 HISTORY | Lines “Marked handed over”, “Undid handed over”, “Checked the day”, “Nobody was in — the “I missed you” e-mail sent”, each with the person's name and time | `order_history` | Built 2026-11-20 |
 | 8.3b | §9.3 Checked | “Checked” is a text link at the end of the “check the day” line, for both roles | `row-actions.tsx` | Built 2026-11-20 |
 | 8.3b | §9.3 Mark handed over | Shown on every row that is not completed (also the rows to ring), as the order may be handed over late | `today-screen.tsx` | Built 2026-11-20 |
+| 8.4a | §9.4 PAID cell | “£185 · paid”, “£80 of £320”, “£320 · refunded”, “refund pending”; a cancelled order with money not yet given back “£140 · refund due” (as drawn 1201:9211); nothing ever paid “Nothing paid” | `src/lib/admin/orders.ts` | Built 2026-11-20 |
+| 8.4a | §9.4 DATE | “12 Sep”; the year added when it is not this year | `src/lib/admin/orders.ts` | Built 2026-11-20 |
+| 8.4a | §9.4 empty list | A filter with no orders and no search: “No orders here yet.” | `orders-screen.tsx` | Built 2026-11-20 |
+| 8.4a | §9.1 Layout at smaller widths | Below 1200 px WHERE is dropped, below 1100 px CAKE | `orders.module.css` | Built 2026-11-20 |
+| 8.4a | §9.4 phone | The Owner's subtitle also shows on the phone (§9.1 Phone parity); the phone money is bold ink | `orders.module.css` | Built 2026-11-20 |

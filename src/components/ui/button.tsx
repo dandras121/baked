@@ -111,12 +111,18 @@ export function Button({
   );
 }
 
-type ButtonLinkProps = CommonProps & { href: string; external?: boolean };
+type ButtonLinkProps = CommonProps & {
+  href: string;
+  external?: boolean;
+  /** false keeps the scroll position (e.g. Show 20 more). */
+  scroll?: boolean;
+};
 
 /** A link that looks like a button (e.g. “Start an enquiry”). */
 export function ButtonLink({
   href,
   external,
+  scroll,
   children,
   ...look
 }: ButtonLinkProps) {
@@ -135,7 +141,7 @@ export function ButtonLink({
     );
   }
   return (
-    <NextLink href={href} className={className} data-pressable>
+    <NextLink href={href} className={className} data-pressable scroll={scroll}>
       {children}
     </NextLink>
   );

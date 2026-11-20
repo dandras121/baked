@@ -7,7 +7,6 @@ import { requireMember } from "@/lib/admin/session";
 
 /** Which slice brings each screen (BUILD-PLAN). */
 const COMING: Record<string, string> = {
-  orders: "8.4",
   enquiries: "9.8",
   cakes: "9.1",
   availability: "9.x",
