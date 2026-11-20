@@ -172,7 +172,7 @@ function TodayRowView({
   return (
     <li className={styles.row}>
       <Link
-        href={`/admin/orders/${r.number}`}
+        href={`/admin/orders/${r.number}?from=today`}
         className={styles.rowLink}
         aria-label={`${r.name}, order ${r.number}`}
       />

@@ -276,3 +276,11 @@ Bohoka’s decision is added when he gives it (“jó” = keep, “ne legyen”
 | 8.4a | §9.4 empty list | A filter with no orders and no search: “No orders here yet.” | `orders-screen.tsx` | Built 2026-11-20 |
 | 8.4a | §9.1 Layout at smaller widths | Below 1200 px WHERE is dropped, below 1100 px CAKE | `orders.module.css` | Built 2026-11-20 |
 | 8.4a | §9.4 phone | The Owner's subtitle also shows on the phone (§9.1 Phone parity); the phone money is bold ink | `orders.module.css` | Built 2026-11-20 |
+| 8.4b | §9.5 subtitle | Payment state words: “paid in full”, “£80.00 paid”, “nothing paid yet”, “cancelled”, “refunded”; a Helper sees the name only | `src/lib/admin/order-detail.ts` | Built 2026-11-20 |
+| 8.4b | §9.5 MONEY | Line labels “Paid in full” (one payment covering the total), “Deposit”, “Payment”, “Change”, “Payment link”, “Refund”, “Fee refund”, “Link · The rest · £240.00 · sent 1 Sep”; a refund line adds “· pending” or “· failed — try again” | `src/lib/admin/order-detail.ts` | Built 2026-11-20 |
+| 8.4b | §9.5 Refund if cancelled today | The reason under it: “More than 7 days before {12 September} — the full-refund rule applies.” / “Within 7 days of {…} — half back.” / “On or after {…} — no refund under the terms.” | `src/lib/admin/order-detail.ts` | Built 2026-11-20 |
+| 8.4b | §9.5 MESSAGES · HISTORY | Each message “{20 Nov 11:37} · Message Linda” or “· Complaint {ref}” with the text; HISTORY starts with “Booked on the website” / “Added by hand”, then “{time} {name} · {what}”; Collection time writes “Collection time set to “12 noon”” / “cleared” | `order-detail-screen.tsx`, `order-detail-repo.ts` | Built 2026-11-20 |
+| 8.4b | §9.1 Phone back links | Today rows open the order with `?from=today` → “‹ Back to today”; otherwise “‹ Back to orders” | `orders/[number]/page.tsx` | Built 2026-11-20 |
+| 8.4b | §9.1 Phone parity | Phone order: where and when, allergy note, cakes, the actions, then money, messages and history | `order.module.css` | Built 2026-11-20 |
+| 8.4b | — (not covered) | An admin address with nothing behind it: “Not found” + See all orders | `(shell)/not-found.tsx` | Built 2026-11-20 |
+| 8.4b | §9.5 Copy the order link | The button reads “Link copied” for 2 s | `copy-link.tsx` | Built 2026-11-20 |

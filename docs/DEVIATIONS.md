@@ -138,3 +138,8 @@ Anything built differently from the docs or Figma, and why. Bohoka’s decision 
 | 8.4a | 934:8201 Export CSV button | Not shown yet: CSV export is slice 9.9 (a hidden control is not rendered, §9.1 Roles) |
 | 8.4a | 934:8253 “Refunded” pill | “Cancelled” (cancelled or refunded), as SITE-FLOWS §9.4 decides |
 | 8.4a | CLAUDE.md §4.4 one slice | 8.4 split into 8.4a (list), 8.4b (Order detail), 8.4c (cancel and missed-delivery actions) |
+| 8.4b | SITE-FLOWS §9.5 Note copy “{Mairi} can change … herself … After that she messages you.” | “{Mairi} can change the date, size or message online until 23:59 on {…} (two days before). After that, a message to you comes first. You can change anything at any time.” — the customer's pronoun is not known and is not guessed; the manual-order line likewise |
+| 8.4b | 936:8374–8375 notes (“free until 48 hours before”, “Refunds happen in Stripe — this link opens the charge.”) | The SITE-FLOWS §9.5 copy (the dated change note; “Refund in Stripe opens this order’s payments in Stripe. …”), as the docs win |
+| 8.4b | 1675:11946 status tag on the page background | Ink text instead of the drawn grey: grey on that background is 4.33 : 1, below the 4.5 : 1 rule (§10.13) |
+| 8.4b | 948:8816 phone title “Mairi Sinclair” | The order number, as SITE-FLOWS §9.1 Phone parity decides; the name is in the subtitle |
+| 8.4b | 936:8285 buttons Change the order, Send a payment link, Cancel the order, Print the order, THEIR DATA | Not shown until their slices (8.6, 8.7, 8.4c, 9.9); Copy the order link (D11, not drawn) is added |

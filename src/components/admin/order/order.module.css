@@ -1,0 +1,404 @@
+/*
+ * Order detail (§9.5). Desktop 936:8285: number (Fraunces Light 40) + status tag, subtitle; the order card 640 wide
+ * (THE CAKES · WHERE AND WHEN · allergy notice · MONEY, then MESSAGES and HISTORY) and the actions card 310 wide
+ * (buttons 262 × 42, the refund line, the notes). Below 1200 the actions card goes under (§9.1). Phone 948:8816:
+ * “‹ Back to …”, separate cards (where and when, allergy note, cakes, money, …), full-width buttons.
+ */
+.back {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  margin: -10px 0 0;
+  color: var(--colour-accent);
+  font: var(--type-small);
+  text-decoration: none;
+}
+
+.head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 16px;
+}
+
+.title {
+  margin: 0;
+  color: var(--colour-display);
+  font: var(--type-admin-title-sm);
+  font-variation-settings: var(--font-display-axes);
+  overflow-wrap: anywhere;
+}
+
+/* On the page background the drawn grey text reaches 4.33 : 1; ink keeps it at 4.5 : 1 or more (§10.13). */
+.tag {
+  padding: 4px 12px;
+  border-radius: 100px;
+  background: var(--colour-admin-tag);
+  color: var(--colour-ink);
+  font: var(--type-admin-tab);
+  font-weight: 500;
+  line-height: 15px;
+}
+
+.cancelled {
+  background: var(--colour-admin-tag-cancelled);
+  color: var(--colour-display);
+}
+
+.subtitle {
+  margin: 6px 0 20px;
+  color: var(--colour-body);
+  font: var(--type-contact-note);
+}
+
+/* Phone: one column; the sections and the actions share one order (948:8816): where and when, the allergy note, the
+   cakes, the actions, then money, messages and history (§9.1 Phone parity). */
+.columns {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.main {
+  display: contents;
+}
+
+.section {
+  padding: 16px;
+  border: 1px solid var(--colour-line-rule);
+  border-radius: 10px;
+  background: var(--colour-white);
+}
+
+/* The phone's order (948:8816): where and when, the allergy note, then the cakes. */
+.where {
+  order: 1;
+}
+
+.allergy {
+  order: 2;
+}
+
+.cakes {
+  order: 3;
+}
+
+.side {
+  order: 4;
+  margin: 4px 0;
+}
+
+.money {
+  order: 5;
+}
+
+.messages {
+  order: 6;
+}
+
+.history {
+  order: 7;
+}
+
+.label {
+  margin: 0 0 12px;
+  color: var(--colour-accent);
+  font: var(--type-admin-head);
+  letter-spacing: 1.8px;
+  text-transform: uppercase;
+}
+
+.cake + .cake {
+  margin-top: 14px;
+}
+
+.cakeName {
+  margin: 0 0 2px;
+  color: var(--colour-ink);
+  font: var(--type-admin-cake);
+  font-variation-settings: var(--font-display-axes);
+}
+
+.line {
+  margin: 0;
+  color: var(--colour-body);
+  font: var(--type-admin-cell);
+  line-height: 18px;
+}
+
+.pairs {
+  display: grid;
+  gap: 7px;
+  margin: 0;
+}
+
+.pair {
+  display: grid;
+  grid-template-columns: 110px minmax(0, 1fr);
+  gap: 12px;
+  align-items: baseline;
+}
+
+.pair dt {
+  color: var(--colour-meta);
+  font: var(--type-small);
+  line-height: 16px;
+}
+
+.pair dd {
+  margin: 0;
+  color: var(--colour-ink);
+  font: var(--type-admin-pair);
+  overflow-wrap: anywhere;
+}
+
+.pair dd a {
+  color: inherit;
+}
+
+.pair dd a.ref {
+  color: var(--colour-accent);
+}
+
+.allergy {
+  padding: 13px 15px 15px;
+  border: 1px solid var(--colour-line-rule);
+  border-radius: 10px;
+  background: var(--colour-paper);
+}
+
+.allergy p {
+  margin: 0;
+  color: var(--colour-ink);
+  font: var(--type-admin-cell);
+  line-height: 18px;
+}
+
+.allergyLabel {
+  margin: 0 0 8px;
+  color: var(--colour-display);
+  font: var(--type-admin-head);
+  letter-spacing: 1.8px;
+  text-transform: uppercase;
+}
+
+.total {
+  margin: 0 0 12px;
+  color: var(--colour-ink);
+  font: var(--type-admin-money);
+}
+
+.list {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  color: var(--colour-ink);
+  font: var(--type-admin-cell);
+  line-height: 18px;
+}
+
+.list p {
+  margin: 2px 0 0;
+  white-space: pre-wrap;
+}
+
+.when {
+  color: var(--colour-meta);
+  font: var(--type-small);
+}
+
+.timeField {
+  display: grid;
+  gap: 6px;
+}
+
+.input {
+  width: 100%;
+  max-width: 180px;
+  height: 42px;
+  padding: 0 15px;
+  border: 1px solid var(--colour-ink);
+  border-radius: 10px;
+  background: var(--colour-white);
+  color: var(--colour-ink);
+  font: var(--type-body-sm);
+}
+
+.input::placeholder {
+  color: var(--colour-meta);
+  opacity: 1;
+}
+
+.input:focus-visible {
+  outline: 2px solid var(--colour-focus-ring);
+  outline-offset: 2px;
+}
+
+.help {
+  margin: 0;
+  color: var(--colour-meta);
+  font: var(--type-small);
+  line-height: 17px;
+}
+
+.saveLine {
+  min-height: 17px;
+  margin: 0;
+  color: var(--colour-body);
+  font: var(--type-small);
+}
+
+.side {
+  display: grid;
+  align-content: start;
+  gap: 12px;
+}
+
+.deskLabel {
+  display: none;
+}
+
+.buttons {
+  display: grid;
+  gap: 12px;
+}
+
+.button {
+  width: 100%;
+  height: 44px;
+  min-height: 44px;
+}
+
+.refund {
+  display: grid;
+  gap: 2px;
+}
+
+.refundLine {
+  margin: 0;
+  color: var(--colour-accent);
+  font: var(--type-small);
+  font-weight: 600;
+}
+
+.note {
+  margin: 0;
+  color: var(--colour-meta);
+  font: var(--type-small);
+  line-height: 17px;
+}
+
+.rule {
+  width: 100%;
+  margin: 6px 0;
+  border: 0;
+  border-top: 1px solid var(--colour-line-rule);
+}
+
+@media (min-width: 1024px) {
+  .back {
+    display: none;
+  }
+
+  /* A Helper also gets the back link on the desktop (§9.1 Helper sidebar). */
+  .backAlways {
+    display: inline-flex;
+  }
+
+  .title {
+    font: var(--type-admin-title);
+  }
+
+  .subtitle {
+    margin: 4px 0 24px;
+  }
+
+  .columns {
+    display: grid;
+    gap: 16px;
+  }
+
+  .main {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    padding: 21px 23px 24px;
+    border: 1px solid var(--colour-line-rule);
+    border-radius: 10px;
+    background: var(--colour-white);
+    align-self: start;
+  }
+
+  .section {
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: none;
+    order: 0;
+  }
+
+  .allergy,
+  .cakes,
+  .where,
+  .money,
+  .messages,
+  .history {
+    order: 0;
+  }
+
+  .section + .section,
+  .allergy + .section {
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid var(--colour-line-rule);
+  }
+
+  /* The rule above the allergy notice, as drawn (936:8347). */
+  .allergy {
+    position: relative;
+    margin-top: 41px;
+  }
+
+  .allergy::before {
+    content: "";
+    position: absolute;
+    top: -21px;
+    left: 0;
+    right: 0;
+    border-top: 1px solid var(--colour-line-rule);
+  }
+
+  .allergy + .section {
+    border-top: 0;
+    padding-top: 4px;
+  }
+
+  .side {
+    order: 0;
+    margin: 0;
+    align-self: start;
+    padding: 21px 23px 24px;
+    border: 1px solid var(--colour-line-rule);
+    border-radius: 10px;
+    background: var(--colour-white);
+  }
+
+  .deskLabel {
+    display: block;
+    margin: 0;
+  }
+
+  .button {
+    height: 42px;
+    min-height: 42px;
+  }
+}
+
+@media (min-width: 1200px) {
+  .columns {
+    grid-template-columns: minmax(0, 640px) minmax(0, 310px);
+    gap: 30px;
+  }
+}

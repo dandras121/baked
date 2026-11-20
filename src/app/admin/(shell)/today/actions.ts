@@ -11,6 +11,7 @@ import {
   nobodyWasIn,
   undoHandedOver,
 } from "@/db/today-actions-repo";
+import { saveCollectionTime } from "@/db/order-detail-repo";
 import { requireMember } from "@/lib/admin/session";
 import { mailTransport } from "@/lib/mail/transport";
 
@@ -25,7 +26,8 @@ async function act(
   } finally {
     await close();
   }
-  revalidatePath("/admin/today");
+  // Today, Orders and Order detail all show the result.
+  revalidatePath("/admin", "layout");
 }
 
 export async function handOver(orderId: number) {
@@ -53,4 +55,17 @@ export async function sendMissedEmail(orderId: number) {
       await close();
     }
   });
+}
+
+/** Collection time (§9.5): saved on blur, no version check (last save wins, §9.1). */
+export async function setCollectionTime(orderId: number, value: string) {
+  const { member } = await requireMember();
+  const { db, close } = connect();
+  try {
+    const r = await saveCollectionTime(db, orderId, value, member.name);
+    if (r.kind === "saved") revalidatePath("/admin", "layout");
+    return r.kind === "not-collection" ? null : r.time;
+  } finally {
+    await close();
+  }
 }

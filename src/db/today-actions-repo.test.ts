@@ -154,3 +154,70 @@ describe.skipIf(!url)("database: Today's actions (§9.3)", () => {
     expect(await nobodyWasIn(db(), o.id, "Linda", at(11))).toBe(false);
   });
 });
+
+describe.skipIf(!url)("database: Collection time (§9.5)", () => {
+  const conn = url ? connect(url) : null;
+  const db = () => conn!.db;
+  afterAll(async () => {
+    await db().delete(orders);
+    await conn?.close();
+  });
+  it("saves on blur, trims to 40, clears, writes HISTORY; only on collection orders", async () => {
+    const { saveCollectionTime } = await import("./order-detail-repo");
+    const [o] = await db()
+      .insert(orders)
+      .values({
+        number: `BBL-2026-CT${Date.now() % 100000}`,
+        token: `ct-${Math.random().toString(36).slice(2)}-padding-padding`,
+        date: day,
+        earliestDate: day,
+        handover: "collection",
+        customerName: "Callum Reid",
+        email: "callum@example.co.uk",
+        phone: "07700 900 358",
+        consents: {},
+        totalPence: 21000,
+        amountReceivedPence: 21000,
+        snapshot: {},
+        confirmedAt: new Date("2026-09-01T10:00:00Z"),
+      })
+      .returning();
+    expect(
+      await saveCollectionTime(db(), o.id, "  12   noon ", "Linda"),
+    ).toEqual({ kind: "saved", time: "12 noon" });
+    expect(await saveCollectionTime(db(), o.id, "12 noon", "Linda")).toEqual({
+      kind: "same",
+      time: "12 noon",
+    });
+    expect(
+      (await saveCollectionTime(db(), o.id, "x".repeat(60), "Linda")).time,
+    ).toHaveLength(40);
+    expect(await saveCollectionTime(db(), o.id, "", "Ewan")).toEqual({
+      kind: "saved",
+      time: null,
+    });
+    const h = await db()
+      .select()
+      .from(orderHistory)
+      .where(eq(orderHistory.orderId, o.id))
+      .orderBy(orderHistory.id);
+    expect(h.map((x) => `${x.byName}: ${x.what}`)).toEqual([
+      "Linda: Collection time set to “12 noon”",
+      `Linda: Collection time set to “${"x".repeat(40)}”`,
+      "Ewan: Collection time cleared",
+    ]);
+    const [d] = await db()
+      .insert(orders)
+      .values({
+        ...o,
+        id: undefined,
+        number: `${o.number}D`,
+        token: `${o.token}D`,
+        handover: "delivery",
+      })
+      .returning();
+    expect((await saveCollectionTime(db(), d.id, "noon", "Linda")).kind).toBe(
+      "not-collection",
+    );
+  });
+});

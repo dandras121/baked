@@ -154,6 +154,9 @@
   --type-admin-pill: 500 12px/16px var(--font-ui); /* admin filter pill · 934:8246 */
   --type-admin-head: 600 10px/14px var(--font-ui); /* admin table column head (caps, 1.8 px tracking) · 934:8255 */
   --type-admin-cell: 400 13px/17px var(--font-ui); /* admin table cell · 934:8263 */
+  --type-admin-cake: 400 16px/21px var(--font-display); /* Order detail cake name · 936:8329 */
+  --type-admin-money: 500 32px/36px var(--font-ui); /* Order detail MONEY total · 936:8352 */
+  --type-admin-pair: 400 13px/19px var(--font-ui); /* Order detail value · 936:8336 */
   --type-label: 500 max(calc(11px * var(--type-scale)), min(11px, 14px))/normal var(--font-ui); /* field label (caps) · input 630:3005 */
   --type-question: 400 max(calc(18px * var(--type-scale)), min(18px, 14px))/1.45 var(--font-display); /* FAQ question · 1745:12853 */
   --type-answer: 400 max(calc(15px * var(--type-scale)), min(15px, 14px))/1.67 var(--font-ui); /* FAQ answer · 1745:12865 */

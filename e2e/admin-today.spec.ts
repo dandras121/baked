@@ -113,7 +113,7 @@ test("an Owner's Today: date, subtitle, tiles, rows with flags, Send a text with
     row("Morven").getByRole("link", {
       name: `Morven ${tag}, order BBL-E2E-${tag}-Morven`,
     }),
-  ).toHaveAttribute("href", `/admin/orders/BBL-E2E-${tag}-Morven`);
+  ).toHaveAttribute("href", `/admin/orders/BBL-E2E-${tag}-Morven?from=today`);
   expect(
     (await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa"]).analyze())
       .violations,

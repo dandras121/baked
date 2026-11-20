@@ -18,8 +18,10 @@ export function HandOver({
   orderId,
   done,
   undoable,
+  className,
 }: {
   orderId: number;
+  className?: string;
   /** “Handed over 11:52” when completed. */
   done: string | null;
   undoable: boolean;
@@ -27,7 +29,7 @@ export function HandOver({
   const [busy, start] = useTransition();
   if (done)
     return (
-      <span className={styles.done}>
+      <span className={`${styles.done} ${className ?? ""}`}>
         {done}
         {undoable && (
           <button
@@ -43,7 +45,7 @@ export function HandOver({
     );
   return (
     <Button
-      className={styles.handOver}
+      className={`${styles.handOver} ${className ?? ""}`}
       busy={busy}
       busyLabel="Saving"
       onClick={() => start(() => handOver(orderId))}
@@ -72,21 +74,34 @@ export function Checked({ orderId }: { orderId: number }) {
 export function NobodyWasIn({
   orderId,
   copy,
+  button,
 }: {
   orderId: number;
   copy: Copy;
+  /** Order detail draws it as an outline button (936:8285); Today as a link. */
+  button?: string;
 }) {
   const [open, setOpen] = useState(false);
   const [busy, start] = useTransition();
   return (
     <>
-      <button
-        type="button"
-        className={styles.linkButton}
-        onClick={() => setOpen(true)}
-      >
-        Nobody was in
-      </button>
+      {button ? (
+        <Button
+          variant="outline"
+          className={button}
+          onClick={() => setOpen(true)}
+        >
+          Nobody was in
+        </Button>
+      ) : (
+        <button
+          type="button"
+          className={styles.linkButton}
+          onClick={() => setOpen(true)}
+        >
+          Nobody was in
+        </button>
+      )}
       <Overlay
         open={open}
         onClose={() => setOpen(false)}

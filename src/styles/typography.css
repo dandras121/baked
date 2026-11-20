@@ -204,6 +204,18 @@
   font: var(--type-admin-cell);
 }
 
+.type-admin-cake {
+  font: var(--type-admin-cake);
+}
+
+.type-admin-money {
+  font: var(--type-admin-money);
+}
+
+.type-admin-pair {
+  font: var(--type-admin-pair);
+}
+
 .type-label {
   font: var(--type-label);
   letter-spacing: var(--type-label-ls);

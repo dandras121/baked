@@ -107,9 +107,11 @@ export async function listOrders(
       : [],
     moneyByOrder(db, ids),
   ]);
-  const rows: OrderListRow[] = page.map((p) => {
+  // An order removed between the two reads (e.g. Delete this customer at the same moment) is left out, not a crash.
+  const rows: OrderListRow[] = page.flatMap((p) => {
     const cakes = lines.filter((l) => l.orderId === p.id);
-    const m = money.get(p.id)!;
+    const m = money.get(p.id);
+    if (!m) return [];
     return {
       number: p.number,
       date: String(p.date),
