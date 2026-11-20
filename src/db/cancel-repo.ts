@@ -134,6 +134,8 @@ export async function cancelOrder(
         cancelledAt: now,
         cancellation: view,
         version: o.version + 1,
+        changedBy: "customer",
+        changedAt: now,
         lockedAt: null,
         holdDate: null,
         holdExpiresAt: null,

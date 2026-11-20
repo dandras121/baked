@@ -22,7 +22,7 @@
 }
 
 .topName {
-  color: var(--colour-display-soft, var(--colour-lilac));
+  color: var(--colour-lilac);
   font: var(--type-contact-detail-phone);
   font-variation-settings: var(--font-display-axes);
 }
@@ -119,7 +119,7 @@
   padding: 0;
   border: 0;
   background: none;
-  color: var(--colour-accent-text, var(--colour-display));
+  color: var(--colour-display);
   font: var(--type-contact-note);
   cursor: pointer;
 }
@@ -141,7 +141,7 @@
 
 .whyTitle {
   margin: 0 0 8px;
-  color: var(--colour-accent-text, var(--colour-display));
+  color: var(--colour-display);
   font: var(--type-admin-tag);
   letter-spacing: 0.18em;
   text-transform: uppercase;

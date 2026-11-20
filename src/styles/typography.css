@@ -176,6 +176,18 @@
   font: var(--type-admin-tag);
 }
 
+.type-admin-title-sm {
+  font: var(--type-admin-title-sm);
+}
+
+.type-admin-nav {
+  font: var(--type-admin-nav);
+}
+
+.type-admin-tab {
+  font: var(--type-admin-tab);
+}
+
 .type-label {
   font: var(--type-label);
   letter-spacing: var(--type-label-ls);

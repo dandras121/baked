@@ -258,3 +258,7 @@ Bohoka’s decision is added when he gives it (“jó” = keep, “ne legyen”
 | 8.1 | §8.4 sign-in codes not logged | The code e-mail goes through the queue; on the live site the code is wiped from the record once sent (the development outbox keeps it so it can be read on a preview) | `src/app/admin/sign-in/actions.ts` | Built 2026-11-20 |
 | 8.1 | §9.2 Sign in again | The link opens Sign in while the old session still works (`?renew=1`) | `/admin/sign-in` | Built 2026-11-20 |
 | 8.1 | §9.15 first Owner | Also created on the first code request (not only at deploy), so a fresh database works at once | `src/db/admin-auth-repo.ts` | Built 2026-11-20 |
+| 8.2 | §9.1 places not built yet | The sidebar and More list every place now; a place whose screen comes later shows its title and “This screen is built in slice {n}.” (owner-only places stay the Owner's) | `src/app/admin/(shell)/[section]` | Built 2026-11-20 |
+| 8.2 | §9.17 Show me how | On Android the browser's own install offer when it gives one; otherwise the steps for this phone, with the 30-day and Safari lines | `home-screen-prompt.tsx` | Built 2026-11-20 |
+| 8.2 | §9.1 logo link | Named “Baked by Linda admin — Today” for screen readers (the visible logo, as drawn) | `admin-shell.tsx` | Built 2026-11-20 |
+| 8.2 | §9.1 Two people at once | Orders record the last change as “member:{name}” / “customer” / “payment” / “site” with its time | `src/db/versioned.ts` | Built 2026-11-20 |

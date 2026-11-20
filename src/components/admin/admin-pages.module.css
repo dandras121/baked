@@ -1,0 +1,58 @@
+/* Shared bits of the admin screens (§9.1): the screen title, the More list (950:8939). */
+.title {
+  margin: 0 0 16px;
+  color: var(--colour-display);
+  font: var(--type-admin-title-sm);
+  font-variation-settings: var(--font-display-axes);
+}
+
+.soon {
+  margin: 0;
+  color: var(--colour-body);
+  font: var(--type-body-sm);
+}
+
+.moreList {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.moreRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 48px;
+  padding: 0 16px;
+  border: 1px solid var(--colour-line-rule);
+  border-radius: 10px;
+  background: var(--colour-white);
+  color: var(--colour-ink);
+  font: var(--type-body-sm);
+  font-weight: 500;
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.moreLabel {
+  flex: 1;
+}
+
+.moreCount {
+  color: var(--colour-meta);
+  font: var(--type-admin-nav);
+}
+
+.chevron {
+  color: var(--colour-meta);
+}
+
+@media (min-width: 1024px) {
+  .title {
+    font: var(--type-admin-title);
+  }
+}

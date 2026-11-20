@@ -118,7 +118,14 @@ test("an Owner signs in with the code from the e-mail; pasting signs in; Sign ou
   await page.goto("/admin/sign-in");
   await expect(page).toHaveURL(/\/admin\/today$/);
 
-  await page.getByRole("button", { name: "Sign out" }).click();
+  // Sign out: in the sidebar footer on desktop, in More on the phone (8.2).
+  await page.goto("/admin/more");
+  const notNow = page.getByRole("button", { name: "Not now" });
+  if (await notNow.isVisible()) await notNow.click();
+  await page
+    .locator("form[action='/admin/sign-out'] button:visible")
+    .first()
+    .click();
   await expect(page).toHaveURL(/\/admin\/sign-in$/);
   // The old id no longer works anywhere.
   await context.addCookies([{ ...cookie }]);

@@ -654,6 +654,10 @@ export const orders = pgTable(
     handedOverAt: timestamp("handed_over_at", { withTimezone: true }),
     /** Raised by every saved change: a save from an out-of-date page changes nothing (§6.4, §9.7). */
     version: integer("version").notNull().default(1),
+    /** Who made the last saved change and when, for “{Name} changed this at {10:42}” (§9.1 Two people at once):
+     *  “member:{name}” · “customer” · “payment” · “site”. */
+    changedBy: text("changed_by"),
+    changedAt: timestamp("changed_at", { withTimezone: true }),
     /** A size-up payment is going through (§6.4): nothing else can change until it finishes or the lock lapses. */
     lockedAt: timestamp("locked_at", { withTimezone: true }),
     /** A move paid for with a size-up (§6.4): the new day held for 20 minutes, owned by the order (§11.6). */

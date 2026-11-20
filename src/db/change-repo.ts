@@ -436,7 +436,13 @@ export async function saveChanges(
     const newTotal = waived ? o.totalPence : o.totalPence + p.net;
     await tx
       .update(orders)
-      .set({ version: o.version + 1, totalPence: newTotal, ...orderMove(p, o) })
+      .set({
+        version: o.version + 1,
+        changedBy: "customer",
+        changedAt: now,
+        totalPence: newTotal,
+        ...orderMove(p, o),
+      })
       .where(eq(orders.id, o.id));
     const [c] = await tx
       .insert(orderChanges)
@@ -691,6 +697,8 @@ export async function applyChangePayment(
       .update(orders)
       .set({
         version: o.version + 1,
+        changedBy: "customer",
+        changedAt: now,
         totalPence: newTotal,
         lockedAt: null,
         holdDate: null,

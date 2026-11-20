@@ -1,0 +1,285 @@
+/*
+ * The admin frame (§9.1, Decided D10). Phone (< 1024): the dark top bar (946:8775, 72 high) that scrolls away, the
+ * content centred at most 640 wide, the white tab bar (946:8789, 74 high + the safe area) fixed to the bottom.
+ * Desktop (≥ 1024): the dark sidebar (930:8062, 220 wide, the height of the window, its list scrolling inside it,
+ * the footer at the bottom); content 40 inside, at most 1180 wide, left-aligned; only the content scrolls.
+ */
+.shell {
+  min-height: 100dvh;
+}
+
+.sidebar {
+  display: none;
+}
+
+.topBar {
+  display: flex;
+  align-items: center;
+  height: 72px;
+  padding: 0 20px;
+  background: var(--colour-ink);
+}
+
+.topLogo {
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+}
+
+.topMark {
+  width: 20px;
+  height: auto;
+}
+
+.topWordmark {
+  width: 114px;
+  height: auto;
+}
+
+.topTag,
+.tag {
+  color: var(--colour-lilac);
+  font: var(--type-admin-tag);
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.topTag {
+  margin-left: auto;
+}
+
+.content {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 24px 20px calc(74px + 32px + env(safe-area-inset-bottom));
+}
+
+.tabBar {
+  position: fixed;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 20;
+  display: flex;
+  height: calc(74px + env(safe-area-inset-bottom));
+  padding-bottom: env(safe-area-inset-bottom);
+  border-top: 1px solid var(--colour-line-rule);
+  background: var(--colour-white);
+}
+
+.tab {
+  display: flex;
+  flex: 1 1 0;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  color: var(--colour-meta);
+  font: var(--type-admin-tab);
+  text-decoration: none;
+}
+
+.tabDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--colour-admin-tab-dot);
+}
+
+.tab[aria-current="page"] {
+  color: var(--colour-ink);
+  font-weight: 600;
+}
+
+.tab[aria-current="page"] .tabDot {
+  background: var(--colour-accent);
+}
+
+.offline {
+  margin: 0 0 16px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  background: var(--colour-ink);
+  color: var(--colour-ink-inverse);
+  font: var(--type-body-sm);
+}
+
+/* Put it on your home screen (950:9038): a sheet from the bottom over a dimmed page. */
+.promptScrim {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  display: flex;
+  align-items: flex-end;
+  background: var(--colour-scrim-hint);
+}
+
+.prompt {
+  display: grid;
+  gap: 14px;
+  width: 100%;
+  padding: 22px 20px calc(24px + env(safe-area-inset-bottom));
+  border-radius: 18px 18px 0 0;
+  background: var(--colour-white);
+}
+
+.promptMark {
+  width: 48px;
+  height: auto;
+}
+
+.promptTitle {
+  margin: 0;
+  color: var(--colour-display);
+  font: var(--type-admin-title-sm);
+  font-variation-settings: var(--font-display-axes);
+}
+
+.promptText {
+  margin: 0;
+  color: var(--colour-body);
+  font: var(--type-contact-note);
+}
+
+.notNow {
+  justify-self: center;
+  min-height: 44px;
+  border: 0;
+  background: none;
+  color: var(--colour-accent);
+  font: var(--type-contact-note);
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.promptSmall {
+  margin: 0;
+  color: var(--colour-meta);
+  font: var(--type-small);
+}
+
+@media (min-width: 1024px) {
+  .topBar,
+  .tabBar,
+  .promptScrim {
+    display: none;
+  }
+
+  .sidebar {
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    display: flex;
+    flex-direction: column;
+    width: 220px;
+    padding: 26px 16px 20px;
+    background: var(--colour-ink);
+  }
+
+  .logo {
+    text-decoration: none;
+    display: grid;
+    grid-template-columns: 22px auto;
+    column-gap: 9px;
+    align-items: center;
+    margin: 0 8px 32px;
+  }
+
+  .mark {
+    grid-row: span 2;
+    width: 22px;
+    height: auto;
+  }
+
+  .wordmark {
+    width: 121px;
+    height: auto;
+  }
+
+  .navScroll {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+  }
+
+  .navList {
+    display: grid;
+    gap: 4px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .navItem {
+    display: flex;
+    align-items: center;
+    height: 36px;
+    padding: 0 14px;
+    border-radius: 10px;
+    color: var(--colour-admin-nav);
+    font: var(--type-admin-nav);
+    text-decoration: none;
+  }
+
+  .navItem:hover,
+  .navItem:focus-visible {
+    background: var(--colour-admin-nav-hover);
+    color: var(--colour-white);
+  }
+
+  .navItem[aria-current="page"] {
+    background: var(--colour-admin-nav-active);
+    color: var(--colour-white);
+    font-weight: 600;
+  }
+
+  .footer {
+    display: grid;
+    gap: 2px;
+    margin-top: 16px;
+    padding: 10px 14px;
+    border-radius: 10px;
+    background: var(--colour-admin-nav-hover);
+  }
+
+  .footerName {
+    overflow: hidden;
+    color: var(--colour-white);
+    font: var(--type-admin-nav);
+    font-weight: 600;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .footerRole {
+    color: var(--colour-lilac);
+    font: var(--type-admin-tab);
+  }
+
+  .footerSignOut {
+    padding: 0;
+    border: 0;
+    background: none;
+    color: inherit;
+    font: inherit;
+    cursor: pointer;
+  }
+
+  .footerSignOut:hover,
+  .footerSignOut:focus-visible {
+    text-decoration: underline;
+  }
+
+  .content {
+    max-width: none;
+    margin: 0 0 0 220px;
+    padding: 40px;
+  }
+
+  .content > * {
+    max-width: 1180px;
+  }
+}

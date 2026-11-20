@@ -4,8 +4,8 @@ import { formatAdminTime, formatLongDate, londonDate } from "@/lib/london-time";
 import styles from "./admin.module.css";
 
 /**
- * A placeholder screen until the admin shell (8.2) and its screens arrive: the signed-in person, the session line
- * of its last 24 hours (§9.2), the owner-only notice, and Sign out.
+ * A placeholder screen until Today (8.3) and Money (8.8) arrive: the signed-in person, the session line of its last
+ * 24 hours (§9.2) and the owner-only notice.
  */
 export function AdminStub({
   title,
@@ -24,7 +24,7 @@ export function AdminStub({
   const today = londonDate(now);
   const day = londonDate(expiresAt);
   return (
-    <main className={styles.stub}>
+    <>
       {ending && (
         <p className={styles.ending}>
           Your sign-in ends{" "}
@@ -42,11 +42,6 @@ export function AdminStub({
       <p className={styles.who}>
         {member.name} · {member.role === "owner" ? "Owner" : "Helper"}
       </p>
-      <form action="/admin/sign-out" method="post">
-        <button type="submit" className={styles.signOut}>
-          Sign out
-        </button>
-      </form>
-    </main>
+    </>
   );
 }
