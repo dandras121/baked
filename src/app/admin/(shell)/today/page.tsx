@@ -2,11 +2,12 @@ import type { Metadata } from "next";
 import { connection } from "next/server";
 import { TodayScreen } from "@/components/admin/today/today-screen";
 import { connect, databaseUrl } from "@/db/client";
+import { isClosed } from "@/db/delivery-repo";
 import { readSettings } from "@/db/settings-repo";
 import { nextHandoverDay, todayBoard, todayNumbers } from "@/db/today-repo";
 import { requireMember } from "@/lib/admin/session";
 import { SIGN_IN_COPY } from "@/lib/admin/sign-in";
-import { londonDate } from "@/lib/london-time";
+import { addDays, londonDate } from "@/lib/london-time";
 
 export const metadata: Metadata = { title: "Today" };
 export const instant = false;
@@ -25,10 +26,11 @@ export default async function Page({
   const { db, close } = connect();
   try {
     const rows = await todayBoard(db, day);
-    const [numbers, settings, next] = await Promise.all([
+    const [numbers, settings, next, closedTomorrow] = await Promise.all([
       todayNumbers(db, day, rows),
       readSettings(db),
       rows.length ? Promise.resolve(null) : nextHandoverDay(db, day),
+      isClosed(db, addDays(day, 1)),
     ]);
     return (
       <TodayScreen
@@ -39,6 +41,8 @@ export default async function Page({
         kitchen={settings.addressLine}
         next={next}
         notice={forWho === "owner" ? SIGN_IN_COPY.owner : null}
+        feePence={settings.secondAttemptFeePence}
+        closedTomorrow={closedTomorrow}
       />
     );
   } finally {

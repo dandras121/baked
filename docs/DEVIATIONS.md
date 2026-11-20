@@ -134,3 +134,4 @@ Anything built differently from the docs or Figma, and why. Bohoka’s decision 
 | 8.2 | ELLENŐRZŐ-LISTA 8.2 “two people at once, try it in two tabs” | The check is built (orders) and tested, but no admin screen saves anything yet: the two-tab try comes with the first editable screen (8.4) |
 | 8.3a | 932:8222 “HANDOVERS TODAY” caps; 932:8205 a Saturday sample | Sentence case shown in small capitals by style as drawn; the real date |
 | 8.3a | CLAUDE.md §4.4 one slice | 8.3 split into 8.3a (the board) and 8.3b (the actions) to stay checkable |
+| 8.3b | 1604:10546 “Her order page shows the same two choices.” | “The order page shows the same two choices.” — the customer's pronoun is not known and is not guessed |

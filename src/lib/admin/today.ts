@@ -108,3 +108,45 @@ export const canText = (e164: string | null) =>
 /** The `sms:` link that works on both iOS and Android (§9.3). */
 export const smsHref = (e164: string, text: string) =>
   `sms:${e164}?&body=${encodeURIComponent(text)}`;
+
+/** Nobody was in — confirm (Admin / 21 1604:10546; phone 1604:10556): the words of the dialog. */
+export function nobodyCopy(r: {
+  name: string;
+  address: string | null;
+  town: string | null;
+  window: string | null;
+  feePence: number;
+  redeliver: boolean;
+  owner: boolean;
+}) {
+  const first = r.name.trim().split(/\s+/)[0] ?? "";
+  const times = WINDOWS.find((w) => w.key === r.window)?.times;
+  const fee = `£${(r.feePence / 100).toFixed(r.feePence % 100 ? 2 : 0)}`;
+  return {
+    label: [r.name, times].filter(Boolean).join(" · "),
+    title: `Nobody in at ${r.address || r.town || "the address"}?`,
+    text: r.redeliver
+      ? `This sends ${first} the “I missed you” email: collect it today for free, or have it brought back tomorrow ${
+          r.owner ? `for ${fee}` : "(paid)"
+        }. The order page shows the same two choices.`
+      : `This sends ${first} the “I missed you” email: collect it today for free. The order page shows the same.`,
+    note: "Deliveries only. After sending, the row shows “Nobody was in · email sent” and the customer’s choice when it arrives.",
+  };
+}
+
+/** The row's line after Nobody was in (§9.3): sent, then the customer's choice. */
+export function missedLine(
+  m: { choice: string; redeliveryDay: string | null; feePaidPence: number },
+  day: string,
+  owner: boolean,
+  shortDate: (d: string) => string,
+) {
+  if (m.choice === "collect") return "Nobody was in · collecting";
+  if (m.choice === "redeliver" && m.redeliveryDay)
+    return `Redelivery ${m.redeliveryDay === day ? "today" : shortDate(m.redeliveryDay)} · ${
+      owner && m.feePaidPence
+        ? `£${(m.feePaidPence / 100).toFixed(m.feePaidPence % 100 ? 2 : 0)} paid`
+        : "paid"
+    }`;
+  return "Nobody was in · email sent";
+}

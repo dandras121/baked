@@ -1,5 +1,6 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
+import { like } from "drizzle-orm";
 import { connect } from "../src/db/client";
 import { orderLines, orders } from "../src/db/schema";
 import { londonDate } from "../src/lib/london-time";
@@ -53,6 +54,16 @@ async function addOrder(
     await close();
   }
 }
+
+// Leave no rows behind: the next run (and the screenshots) start from the seed.
+test.afterAll(async () => {
+  const { db, close } = connect();
+  try {
+    await db.delete(orders).where(like(orders.number, `BBL-E2E-${tag}-%`));
+  } finally {
+    await close();
+  }
+});
 
 test.beforeAll(async () => {
   await addOrder(`Morven ${tag}`, { deliveryWindow: "morning" });

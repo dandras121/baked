@@ -266,3 +266,8 @@ Bohoka’s decision is added when he gives it (“jó” = keep, “ne legyen”
 | 8.3a | §9.3 collection time order | “12 noon”, “14:30”, “2pm”, “2.30 pm” read as times; anything else sorts last in booking order; shown as typed, “Time not set” when empty | `src/lib/admin/today.ts` | Built 2026-11-20 |
 | 8.3a | §9.3 row tags | Delivery / Collection / Redelivery; a missed delivery collected today shows as a Collection | `today-screen.tsx` | Built 2026-11-20 |
 | 8.3a | §8.2 row 4 | E-mail 4 takes the same rows and the same ready-written text as Today | `src/db/order-mail-repo.ts` | Built 2026-11-20 |
+| 8.3b | §9.3 Undo | Undo shows and works until 23:59 of the London day it was handed over; it puts the order back to confirmed | `src/db/today-actions-repo.ts` | Built 2026-11-20 |
+| 8.3b | §9.3 Nobody was in confirm | A Helper sees “brought back tomorrow (paid)” instead of the fee; with no redelivery to offer (second attempt, or tomorrow closed) the text offers free collection only | `src/lib/admin/today.ts` | Built 2026-11-20 |
+| 8.3b | §9.1 HISTORY | Lines “Marked handed over”, “Undid handed over”, “Checked the day”, “Nobody was in — the “I missed you” e-mail sent”, each with the person's name and time | `order_history` | Built 2026-11-20 |
+| 8.3b | §9.3 Checked | “Checked” is a text link at the end of the “check the day” line, for both roles | `row-actions.tsx` | Built 2026-11-20 |
+| 8.3b | §9.3 Mark handed over | Shown on every row that is not completed (also the rows to ring), as the order may be handed over late | `today-screen.tsx` | Built 2026-11-20 |

@@ -26,7 +26,7 @@ export async function latestAttempt(db: Db, orderId: number) {
   return a ?? null;
 }
 
-const isClosed = async (db: Db, day: CalendarDate) =>
+export const isClosed = async (db: Db, day: CalendarDate) =>
   (
     await db
       .select({ day: closedDays.day })

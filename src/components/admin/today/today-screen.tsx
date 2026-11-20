@@ -2,15 +2,23 @@ import Link from "next/link";
 import {
   canText,
   FLAG_LINES,
+  missedLine,
+  nobodyCopy,
   readyText,
   smsHref,
   todaySubtitle,
   whenLabel,
 } from "@/lib/admin/today";
-import { formatAdminTime, formatLongDate } from "@/lib/london-time";
+import {
+  formatAdminTime,
+  formatLongDate,
+  formatShortDate,
+  londonDate,
+} from "@/lib/london-time";
 import { formatPrice } from "@/lib/money";
 import { phoneForPeople } from "@/lib/phone";
 import type { TodayRow } from "@/db/today-repo";
+import { Checked, HandOver, NobodyWasIn } from "./row-actions";
 import { SendAText } from "./send-a-text";
 import styles from "./today.module.css";
 
@@ -47,6 +55,8 @@ export function TodayScreen({
   kitchen,
   next,
   notice,
+  feePence,
+  closedTomorrow,
 }: {
   day: string;
   rows: TodayRow[];
@@ -55,6 +65,8 @@ export function TodayScreen({
   kitchen: string;
   next: { date: string; cakes: number } | null;
   notice: string | null;
+  feePence: number;
+  closedTomorrow: boolean;
 }) {
   const sub = {
     ...numbers.subtitle,
@@ -113,6 +125,10 @@ export function TodayScreen({
                 key={`${r.orderId}-${r.kind}`}
                 r={r}
                 kitchen={kitchen}
+                day={day}
+                owner={owner}
+                feePence={feePence}
+                closedTomorrow={closedTomorrow}
               />
             ))}
           </ul>
@@ -131,7 +147,21 @@ export function TodayScreen({
   );
 }
 
-function TodayRowView({ r, kitchen }: { r: TodayRow; kitchen: string }) {
+function TodayRowView({
+  r,
+  kitchen,
+  day,
+  owner,
+  feePence,
+  closedTomorrow,
+}: {
+  r: TodayRow;
+  kitchen: string;
+  day: string;
+  owner: boolean;
+  feePence: number;
+  closedTomorrow: boolean;
+}) {
   const cake = r.cakes[0]
     ? `${r.cakes[0]}${r.cakes.length > 1 ? ` +${r.cakes.length - 1}` : ""}`
     : "";
@@ -161,24 +191,53 @@ function TodayRowView({ r, kitchen }: { r: TodayRow; kitchen: string }) {
         {r.flags.map((f) => (
           <span key={f} className={styles.flag}>
             {FLAG_LINES[f]}
+            {f === "check-day" && <Checked orderId={r.orderId} />}
           </span>
         ))}
+        {r.missed && (
+          <span className={styles.what}>
+            {missedLine(r.missed, day, owner, formatShortDate)}
+          </span>
+        )}
       </div>
       <div className={styles.actions}>
-        <a href={`tel:${r.phoneE164 ?? r.phone}`} className={styles.phone}>
-          {phone}
-        </a>
+        <span className={styles.contact}>
+          <a href={`tel:${r.phoneE164 ?? r.phone}`} className={styles.phone}>
+            {phone}
+          </a>
+          {r.canNobodyIn && (
+            <NobodyWasIn
+              orderId={r.orderId}
+              copy={nobodyCopy({
+                ...r,
+                feePence,
+                owner,
+                redeliver: r.attempt === 1 && !closedTomorrow,
+              })}
+            />
+          )}
+        </span>
+
         {!ring && r.phoneE164 && canText(r.phoneE164) && (
           <SendAText
             href={smsHref(r.phoneE164, readyText({ ...r, kitchen }))}
             text={readyText({ ...r, kitchen })}
           />
         )}
-        {r.status === "completed" && r.handedOverAt && (
-          <span className={styles.done}>
-            Handed over {formatAdminTime(r.handedOverAt)}
-          </span>
-        )}
+
+        <HandOver
+          orderId={r.orderId}
+          done={
+            r.status === "completed" && r.handedOverAt
+              ? `Handed over ${formatAdminTime(r.handedOverAt)}`
+              : null
+          }
+          undoable={
+            r.status === "completed" &&
+            !!r.handedOverAt &&
+            londonDate(r.handedOverAt) === day
+          }
+        />
       </div>
     </li>
   );

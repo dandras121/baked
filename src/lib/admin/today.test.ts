@@ -2,6 +2,8 @@ import { describe, expect, it } from "vitest";
 import {
   canText,
   collectionMinutes,
+  missedLine,
+  nobodyCopy,
   readyText,
   smsHref,
   startMinutes,
@@ -111,6 +113,50 @@ describe("Today (§9.3)", () => {
     expect(canText(null)).toBe(false);
     expect(smsHref("+447700900000", "Hi Mairi")).toBe(
       "sms:+447700900000?&body=Hi%20Mairi",
+    );
+  });
+});
+
+describe("Nobody was in (8.3b)", () => {
+  const day = "2026-09-12";
+  const base = {
+    name: "Mairi Sinclair",
+    address: "48 Preston Road",
+    town: "Linlithgow",
+    window: "morning",
+    feePence: 1500,
+  };
+  it("words the confirm as Admin / 21, the fee for an Owner only", () => {
+    const c = nobodyCopy({ ...base, redeliver: true, owner: true });
+    expect(c.label).toBe("Mairi Sinclair · 9am – 12pm");
+    expect(c.title).toBe("Nobody in at 48 Preston Road?");
+    expect(c.text).toContain("brought back tomorrow for £15.");
+    expect(
+      nobodyCopy({ ...base, redeliver: true, owner: false }).text,
+    ).toContain("tomorrow (paid)");
+  });
+  it("offers free collection only when no redelivery can be offered", () => {
+    const c = nobodyCopy({ ...base, redeliver: false, owner: true });
+    expect(c.text).not.toContain("brought back");
+    expect(c.text).toContain("collect it today for free");
+  });
+  it("the row line follows the customer's choice", () => {
+    const d = (s: string) => `short ${s}`;
+    const m = { choice: "none", redeliveryDay: null, feePaidPence: 0 };
+    expect(missedLine(m, day, true, d)).toBe("Nobody was in · email sent");
+    expect(missedLine({ ...m, choice: "collect" }, day, true, d)).toBe(
+      "Nobody was in · collecting",
+    );
+    const r = {
+      choice: "redeliver",
+      redeliveryDay: "2026-09-13",
+      feePaidPence: 1500,
+    };
+    expect(missedLine(r, day, true, d)).toBe(
+      "Redelivery short 2026-09-13 · £15 paid",
+    );
+    expect(missedLine(r, day, false, d)).toBe(
+      "Redelivery short 2026-09-13 · paid",
     );
   });
 });

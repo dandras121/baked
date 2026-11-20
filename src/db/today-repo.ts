@@ -37,6 +37,14 @@ export type TodayRow = {
   stillToPayPence: number;
   /** Nobody was in can be recorded (8.3b): a delivery, confirmed, today's attempt has no outcome yet. */
   canNobodyIn: boolean;
+  /** The attempt Nobody was in would record (1 first, 2 a redelivery): a second one offers free collection only. */
+  attempt: number;
+  /** Nobody was in recorded today: then the customer's choice (§9.3 row lines). */
+  missed: {
+    choice: string;
+    redeliveryDay: string | null;
+    feePaidPence: number;
+  } | null;
 };
 
 const LIVE = ["confirmed", "completed"];
@@ -120,6 +128,23 @@ export async function todayBoard(db: Db, day: CalendarDate) {
     : [];
   const owed = await stillToPayByOrder(db, ids);
   for (const r of rows) {
+    const today = attempts.find(
+      (a) =>
+        a.orderId === r.orderId &&
+        a.outcome === "nobody-in" &&
+        String(a.recordedOn) === day,
+    );
+    if (!today) continue;
+    const next = attempts.find(
+      (a) => a.orderId === r.orderId && a.attempt === today.attempt + 1,
+    );
+    r.missed = {
+      choice: today.choice,
+      redeliveryDay: next ? String(next.day) : null,
+      feePaidPence: today.feePaidPence,
+    };
+  }
+  for (const r of rows) {
     r.cakes = lines.filter((l) => l.orderId === r.orderId).map((l) => l.name);
     if (waiting.some((w) => w.orderId === r.orderId))
       r.flags.push("change-waiting");
@@ -187,6 +212,8 @@ function base(
       (kind === "today" || kind === "redelivery") &&
       attemptToday &&
       (a?.outcome ?? "none") === "none",
+    attempt: a?.attempt ?? 1,
+    missed: null,
   };
 }
 

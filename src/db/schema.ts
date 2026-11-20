@@ -1234,3 +1234,19 @@ export const signInCodes = pgTable(
   },
   (t) => [index("sign_in_codes_member").on(t.memberId)],
 );
+
+/** HISTORY (§9.1): every admin action on an order — when, who (the name as it was then) and what. Listed at the bottom
+ *  of Order detail (8.4). */
+export const orderHistory = pgTable(
+  "order_history",
+  {
+    id: serial("id").primaryKey(),
+    orderId: integer("order_id")
+      .notNull()
+      .references(() => orders.id, { onDelete: "cascade" }),
+    at: timestamp("at", { withTimezone: true }).notNull(),
+    byName: text("by_name").notNull(),
+    what: text("what").notNull(),
+  },
+  (t) => [index("order_history_order").on(t.orderId, t.at)],
+);

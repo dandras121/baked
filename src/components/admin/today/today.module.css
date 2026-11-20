@@ -260,3 +260,134 @@
     min-height: 42px;
   }
 }
+
+/* 8.3b: the row's actions (932:8165) and the Nobody was in confirm (Admin / 21 1604:10546). */
+.contact {
+  display: grid;
+  justify-items: end;
+  gap: 2px;
+}
+
+.linkButton {
+  position: relative;
+  min-height: 44px;
+  padding: 0 4px;
+  border: 0;
+  background: none;
+  color: var(--colour-accent);
+  font: var(--type-contact-note);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  cursor: pointer;
+}
+
+.contact .linkButton {
+  min-height: 0;
+  padding: 0;
+}
+
+/* Grow the small link's hit area to 44 high without moving the layout. */
+.contact .linkButton::after {
+  content: "";
+  position: absolute;
+  inset: -12px -4px;
+}
+
+.linkButton:disabled {
+  color: var(--colour-meta);
+  cursor: default;
+}
+
+.flag .linkButton {
+  margin-left: 8px;
+  min-height: 0;
+  font-weight: 500;
+}
+
+.flag .linkButton::after {
+  content: "";
+  position: absolute;
+  inset: -12px -6px;
+}
+
+.done {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.handOver {
+  position: relative;
+  min-height: 44px;
+}
+
+.done {
+  position: relative;
+}
+
+/* Phone (948:8761): Send a text top right, Nobody was in beside the name, the button full width under it. */
+@media (max-width: 1023px) {
+  .actions {
+    display: contents;
+  }
+
+  .textWrap {
+    position: relative;
+    grid-column: 2;
+    grid-row: 1;
+    align-self: start;
+  }
+
+  .who {
+    grid-column: 1;
+    grid-row: 2;
+  }
+
+  .contact {
+    position: relative;
+    grid-column: 2;
+    grid-row: 2;
+    align-self: start;
+  }
+
+  .handOver,
+  .done {
+    grid-column: 1 / -1;
+    grid-row: 3;
+  }
+
+  .handOver {
+    width: 100%;
+  }
+}
+
+.dialogWords {
+  display: contents;
+}
+
+.dialogLabel {
+  order: -1;
+  color: var(--colour-accent);
+  font: var(--type-admin-tab);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.dialogText {
+  margin: 0;
+  color: var(--colour-body);
+  font: var(--type-body-sm);
+}
+
+.dialogBody {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.dialogNote {
+  flex-basis: 100%;
+  margin: 4px 0 0;
+  color: var(--colour-meta);
+  font: var(--type-small);
+}
