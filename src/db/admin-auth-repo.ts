@@ -9,10 +9,12 @@ import {
   SIGN_IN,
   spacedCode,
 } from "@/lib/admin/sign-in";
-import { isEmail } from "@/lib/contact";
 import { connectionKey } from "./contact-repo";
 import type { connect } from "./client";
 import { queueMail } from "./mail-repo";
+import { ensureFirstOwner } from "./team-repo";
+
+export { ensureFirstOwner };
 import { adminSessions, formSends, signInCodes, teamMembers } from "./schema";
 
 type Db = ReturnType<typeof connect>["db"];
@@ -20,25 +22,6 @@ export type Member = typeof teamMembers.$inferSelect;
 
 const HOUR = 60 * 60 * 1000;
 const lower = (email: string) => email.trim().toLowerCase();
-
-/** The first Owner (§9.15): once, while the team is empty, from ADMIN_OWNER_EMAIL and ADMIN_OWNER_NAME. */
-export async function ensureFirstOwner(
-  db: Db,
-  env: { email?: string; name?: string } = {
-    email: process.env.ADMIN_OWNER_EMAIL,
-    name: process.env.ADMIN_OWNER_NAME,
-  },
-) {
-  const email = lower(env.email ?? "");
-  if (!isEmail(email)) return false;
-  const [{ n }] = await db.select({ n: count() }).from(teamMembers);
-  if (n > 0) return false;
-  await db
-    .insert(teamMembers)
-    .values({ name: env.name?.trim() || "Owner", email, role: "owner" })
-    .onConflictDoNothing();
-  return true;
-}
 
 async function sentWithin(db: Db, form: string, connection: string, now: Date) {
   const [{ n }] = await db

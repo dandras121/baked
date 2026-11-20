@@ -7,7 +7,7 @@ import { connect, databaseUrl } from "./client";
 import { googleReviews } from "./schema";
 import { ensureFaq } from "./faq-repo";
 import { ensureSampleGallery } from "./gallery-repo";
-import { ensureFirstOwner } from "./admin-auth-repo";
+import { ensureFirstOwner } from "./team-repo";
 import { ensureLegalPages } from "./legal-repo";
 import {
   ensureSampleCardVideos,
