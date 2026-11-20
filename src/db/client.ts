@@ -16,8 +16,30 @@ export function databaseUrl(): string | undefined {
   );
 }
 
-export function connect(url = databaseUrl()) {
+type Connection = {
+  db: ReturnType<typeof drizzle<typeof schema>>;
+  close: () => Promise<void>;
+};
+
+/** Inside the running site one pool is kept and shared by every request, so a page does not pay for a new
+ *  connection (TCP and TLS to the database) each time; idle connections close after 20 s. */
+let shared: Connection | null = null;
+
+export function connect(url = databaseUrl()): Connection {
   if (!url) throw new Error("DATABASE_URL is not set (see .env.example)");
+  // In the Next.js server (not in scripts or tests, which open and close their own) reuse one pool.
+  if (process.env.NEXT_RUNTIME === "nodejs" && url === databaseUrl()) {
+    if (!shared) {
+      const client = postgres(url, {
+        max: 5,
+        prepare: false,
+        idle_timeout: 20,
+        onnotice: () => {},
+      });
+      shared = { db: drizzle(client, { schema }), close: async () => {} };
+    }
+    return shared;
+  }
   // prepare: false — hosted poolers (Neon's pgbouncer) do not keep prepared statements between calls.
   const client = postgres(url, { max: 5, prepare: false, onnotice: () => {} });
   return { db: drizzle(client, { schema }), close: () => client.end() };

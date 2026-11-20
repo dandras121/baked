@@ -56,3 +56,10 @@
     font: var(--type-admin-title);
   }
 }
+
+.loading {
+  margin: 0;
+  padding-top: 12px;
+  color: var(--colour-meta);
+  font: var(--type-body-sm);
+}

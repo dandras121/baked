@@ -1,6 +1,7 @@
 "use server";
 
 import { cookies, headers } from "next/headers";
+import { after } from "next/server";
 import { redirect } from "next/navigation";
 import { SITE_URL } from "@/app/layout";
 import { checkCode, requestCode } from "@/db/admin-auth-repo";
@@ -66,17 +67,25 @@ export async function askCode(
         error: SIGN_IN_COPY.tooMany,
         dead: null,
       };
-    const transport = mailTransport();
-    await processMail(db, transport, SITE_URL).catch((e) =>
-      console.error("sign-in mail", e),
-    );
-    // Sign-in codes are not kept (§8.4 Logging): once the real e-mail has gone, the code is wiped from the record.
-    // The development outbox (/dev/mail) keeps it, so the code can be read on a preview.
-    if (transport.name === "postmark")
-      await db
-        .update(mailSends)
-        .set({ data: { kind: "sign-in-code", view: { code: "••• •••" } } })
-        .where(like(mailSends.key, "sign-in:%"));
+    // The code e-mail goes out right after the answer, so the code step shows at once.
+    after(async () => {
+      const transport = mailTransport();
+      const { db: later, close: done } = connect();
+      try {
+        await processMail(later, transport, SITE_URL);
+        // Sign-in codes are not kept (§8.4 Logging): once the real e-mail has gone, the code is wiped from the
+        // record. The development outbox (/dev/mail) keeps it, so the code can be read on a preview.
+        if (transport.name === "postmark")
+          await later
+            .update(mailSends)
+            .set({ data: { kind: "sign-in-code", view: { code: "••• •••" } } })
+            .where(like(mailSends.key, "sign-in:%"));
+      } catch (e) {
+        console.error("sign-in mail", e);
+      } finally {
+        await done();
+      }
+    });
   } catch (error) {
     console.error("sign-in", error);
     return { step: "email", email, error: SIGN_IN_COPY.failed, dead: null };
