@@ -35,7 +35,7 @@ export function DeliveryPage({
 }: {
   token: string;
   number: string;
-  phase: "choose" | "closed" | "collect" | "redeliver";
+  phase: "choose" | "closed" | "collect" | "redeliver" | "sorted";
   choice: "collect" | "redeliver" | null;
   phone: string;
   nobody: ReturnType<typeof nobodyCopy>;
@@ -100,6 +100,19 @@ export function DeliveryPage({
           )}
         </section>
         {ringToChange}
+      </div>
+    );
+
+  // Linda sorted it with the customer (§9.5 Delivered after all): nothing to choose any more.
+  if (phase === "sorted")
+    return (
+      <div className={change.page}>
+        {head("This was sorted — thank you")}
+        <WhatNow
+          lines={[
+            `Nothing more to do here. Any question, ring me on ${phone}.`,
+          ]}
+        />
       </div>
     );
 

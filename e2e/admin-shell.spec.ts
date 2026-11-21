@@ -75,7 +75,7 @@ test("phone: top bar, tab bar, More with its numbers; the home-screen prompt onc
   context,
 }) => {
   await page.setViewportSize(PHONE);
-  await signIn(page, "Linda");
+  await signIn(page, "Linda", "owner", true);
   // The prompt shows once on a phone that has not installed the admin.
   const prompt = page.getByRole("dialog", {
     name: "Put it on your home screen",

@@ -6,13 +6,23 @@ import { SITE_URL } from "@/app/layout";
 import { adminCancelOrder } from "@/db/admin-cancel-repo";
 import { connect } from "@/db/client";
 import { processMail } from "@/db/mail-repo";
+import {
+  deliveredAfterAll,
+  recordTheirChoice,
+  type MissedResult,
+  type TheirChoice,
+} from "@/db/missed-admin-repo";
 import { memberForSave } from "@/lib/admin/session";
 import { mailTransport } from "@/lib/mail/transport";
 import { gateway } from "@/lib/payments";
 
-/** Without Stripe keys the refund is recorded as failed and Money flags it (§9.5). */
+/** Without Stripe keys the refund (and a stop of a fee payment) is recorded as failed and Money flags it (§9.5). */
 const PAYMENTS_OFF = {
-  refund: async () => ({ ok: false as const, error: "Payments are not switched on" }),
+  refund: async () => ({
+    ok: false as const,
+    error: "Payments are not switched on",
+  }),
+  cancel: async () => {},
 };
 
 export type CancelOutcome =
@@ -60,4 +70,61 @@ export async function cancelOrderAction(
   } finally {
     await close();
   }
+}
+
+export type MissedOutcome =
+  MissedResult | { kind: "signed-out" } | { kind: "failed" };
+
+async function missedSave(
+  role: "any" | "owner",
+  run: (
+    db: ReturnType<typeof connect>["db"],
+    by: string,
+    owner: boolean,
+  ) => Promise<MissedResult>,
+): Promise<MissedOutcome> {
+  const member = await memberForSave(role);
+  if (!member) return { kind: "signed-out" };
+  const { db, close } = connect();
+  try {
+    const r = await run(db, member.name, member.role === "owner");
+    revalidatePath("/admin", "layout");
+    return r;
+  } catch (e) {
+    console.error("missed delivery", e);
+    return { kind: "failed" };
+  } finally {
+    await close();
+  }
+}
+
+/** Delivered after all (§9.5): both roles. */
+export async function deliveredAfterAllAction(
+  orderId: number,
+  seenVersion: number,
+) {
+  return missedSave("any", (db, by, owner) =>
+    deliveredAfterAll(db, gateway() ?? PAYMENTS_OFF, {
+      orderId,
+      seenVersion,
+      by,
+      owner,
+    }),
+  );
+}
+
+/** Record their choice (§9.5): Owner. */
+export async function recordChoiceAction(
+  orderId: number,
+  seenVersion: number,
+  choice: TheirChoice,
+) {
+  return missedSave("owner", (db, by) =>
+    recordTheirChoice(db, gateway() ?? PAYMENTS_OFF, {
+      orderId,
+      seenVersion,
+      by,
+      choice,
+    }),
+  );
 }

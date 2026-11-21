@@ -38,8 +38,16 @@ export async function signIn(
   page: Page,
   name: string,
   role: "owner" | "helper" = "owner",
+  /** true for the test of the home-screen prompt itself; otherwise it never appears to cover a button. */
+  showPrompt = false,
 ) {
   const email = await newMember(name, role);
+  if (!showPrompt)
+    await page.addInitScript(() => {
+      try {
+        localStorage.setItem("bbl-admin-home-screen", "1");
+      } catch {}
+    });
   await page.setExtraHTTPHeaders({
     "x-forwarded-for": `10.${octet()}.${octet()}.${octet()}`,
   });

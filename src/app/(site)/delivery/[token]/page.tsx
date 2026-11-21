@@ -69,14 +69,18 @@ export default async function Page({
       .filter(Boolean)
       .filter((x, i, arr) => i === 0 || !arr[0]!.includes(x!))
       .join(", ");
-    const phase = deliveryPhase(
-      {
-        ...a,
-        recordedOn,
-        collectDay: a.collectDay && String(a.collectDay),
-      },
-      now,
-    );
+    // Linda sorted it from the admin (§9.5): “This was sorted — thank you”, unless the choice she recorded tells more.
+    const phase =
+      a.sortedBy && (a.choice === "none" || o.status === "completed")
+        ? ("sorted" as const)
+        : deliveryPhase(
+            {
+              ...a,
+              recordedOn,
+              collectDay: a.collectDay && String(a.collectDay),
+            },
+            now,
+          );
     const lines = await db
       .select({ name: orderLines.name, sizeLine: orderLines.sizeLine })
       .from(orderLines)

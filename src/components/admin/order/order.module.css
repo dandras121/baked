@@ -458,3 +458,36 @@
   display: grid;
   gap: 12px;
 }
+
+.choices {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 20px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.choices legend {
+  margin-bottom: 4px;
+}
+
+.choice {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  color: var(--colour-ink);
+  font: var(--type-body-sm);
+  cursor: pointer;
+}
+
+.choice input {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--colour-ink);
+}
+
+select.input {
+  max-width: 240px;
+}

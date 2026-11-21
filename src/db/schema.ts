@@ -942,6 +942,11 @@ export const deliveryAttempts = pgTable(
     feePence: integer("fee_pence"),
     paymentIntentId: text("payment_intent_id").unique(),
     feePaidPence: integer("fee_paid_pence").notNull().default(0),
+    /** Linda closed the customer's choices (§9.5 Delivered after all, Record their choice): “member:{name}”. The
+     *  delivery link then reads “This was sorted — thank you”. */
+    sortedBy: text("sorted_by"),
+    /** A paid fee to give back that a Helper's Delivered after all could not refund: Money flags it (§9.5, §9.9). */
+    feeRefundDue: boolean("fee_refund_due").notNull().default(false),
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
       .defaultNow(),

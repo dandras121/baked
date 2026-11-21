@@ -145,3 +145,4 @@ Anything built differently from the docs or Figma, and why. Bohoka’s decision 
 | 8.4b | 936:8285 buttons Change the order, Send a payment link, Cancel the order, Print the order, THEIR DATA | Not shown until their slices (8.6, 8.7, 8.4c, 9.9); Copy the order link (D11, not drawn) is added |
 | speed | BUILD-PLAN 10.5 server region | The functions moved to London (lhr1) now, next to the database, because the admin was too slow from Washington (Bohoka 2026-11-21) |
 | 8.4c | CLAUDE.md §4.4 one slice | 8.4c split into 8.4c (Cancel the order, version check, sign in again) and 8.4d (Delivered after all, Record their choice) |
+| 8.4d | §9.5 Record their choice “send a £15 payment link or waive it” | Only “waive” for now: payment links are built in 8.7, where the link option is added |

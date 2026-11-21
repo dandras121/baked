@@ -157,6 +157,8 @@ export async function chooseCollect(
       .where(eq(deliveryAttempts.token, token))
       .for("update");
     if (!a || a.outcome !== "nobody-in") return { kind: "missing" } as const;
+    // Linda sorted it (Delivered after all / Record their choice): the choices are closed.
+    if (a.sortedBy) return { kind: "already" } as const;
     const phase = deliveryPhase(
       {
         ...a,
@@ -238,6 +240,7 @@ export async function prepareRedelivery(
   if (!found || found.attempt.outcome !== "nobody-in")
     return { kind: "missing" };
   const { attempt: a, order: o, offerRedelivery } = found;
+  if (a.sortedBy) return { kind: "already" };
   const phase = deliveryPhase(
     { ...a, recordedOn: String(a.recordedOn), collectDay: null },
     now,
@@ -345,39 +348,63 @@ export async function applyRedelivery(
   if (!a) return "nothing";
   if (a.choice === "redeliver") return "already";
   if (a.choice === "collect") {
-    const [done] = await db
-      .select({ id: refunds.id })
-      .from(refunds)
-      .where(eq(refunds.paymentIntentId, intent.id));
-    if (done) return "already";
-    const [row] = await db
-      .insert(refunds)
-      .values({
-        orderId: a.orderId,
-        kind: "fee",
-        amountPence: intent.amountReceivedPence,
-        paymentIntentId: intent.id,
-        createdAt: now,
-      })
-      .returning({ id: refunds.id });
-    const r = await gw.refund(
+    const r = await refundFee(
+      db,
+      gw,
+      a.orderId,
       intent.id,
       intent.amountReceivedPence,
-      `fee-${row.id}`,
+      now,
     );
-    await db
-      .update(refunds)
-      .set(
-        r.ok
-          ? { stripeRefundId: r.id, status: r.status }
-          : { status: "failed", error: r.error },
-      )
-      .where(eq(refunds.id, row.id));
-    return "refunded";
+    return r === "none" ? "already" : "refunded";
   }
   return (await bookRedelivery(db, a.id, intent.amountReceivedPence, now))
     ? "booked"
     : "already";
+}
+
+/**
+ * A redelivery fee back in full, as a `fee` refund (§10.6): once per payment. Used when Collect follows a paid
+ * redelivery (the customer's late payment, or Linda's Record their choice) and for Delivered after all.
+ */
+export async function refundFee(
+  db: Db,
+  gw: Pick<Gateway, "refund">,
+  orderId: number,
+  paymentIntentId: string,
+  amountPence: number,
+  now = new Date(),
+): Promise<"none" | "refunded" | "failed"> {
+  const [done] = await db
+    .select({ id: refunds.id })
+    .from(refunds)
+    .where(
+      and(
+        eq(refunds.paymentIntentId, paymentIntentId),
+        eq(refunds.kind, "fee"),
+      ),
+    );
+  if (done || amountPence <= 0) return "none";
+  const [row] = await db
+    .insert(refunds)
+    .values({
+      orderId,
+      kind: "fee",
+      amountPence,
+      paymentIntentId,
+      createdAt: now,
+    })
+    .returning({ id: refunds.id });
+  const r = await gw.refund(paymentIntentId, amountPence, `fee-${row.id}`);
+  await db
+    .update(refunds)
+    .set(
+      r.ok
+        ? { stripeRefundId: r.id, status: r.status }
+        : { status: "failed", error: r.error },
+    )
+    .where(eq(refunds.id, row.id));
+  return r.ok ? "refunded" : "failed";
 }
 
 /** After Stripe answered on the page: booked, still processing, or not taken (nothing changed). */

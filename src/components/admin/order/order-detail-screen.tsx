@@ -25,6 +25,7 @@ import { splitLine } from "@/lib/admin/cancel";
 import type { AdminCancelQuote } from "@/db/admin-cancel-repo";
 import { CancelOrder } from "./cancel-order";
 import { CollectionTime } from "./collection-time";
+import { DeliveredAfterAll, RecordTheirChoice } from "./missed-actions";
 import { CopyOrderLink } from "./copy-link";
 import styles from "./order.module.css";
 
@@ -67,6 +68,19 @@ export function OrderDetailScreen({
     (latest?.outcome ?? "none") === "none" &&
     attemptDay <= today;
   const canHandOver = o.status === "confirmed" && date <= today;
+  // After Nobody was in (§9.5): the attempt it was recorded on, while no later attempt has an outcome of its own.
+  const missedT = [...d.attempts]
+    .reverse()
+    .find((a) => a.outcome === "nobody-in");
+  const missedNext =
+    missedT && d.attempts.find((a) => a.attempt === missedT.attempt + 1);
+  const missed =
+    o.status === "confirmed" &&
+    missedT &&
+    (!missedNext || missedNext.outcome === "none")
+      ? { t: missedT, next: missedNext ?? null }
+      : null;
+  const fee = (p: number) => formatAdminMoney(p, "label");
 
   // Payments by kind and day, for MONEY and the subtitle.
   const payments = [
@@ -420,6 +434,42 @@ export function OrderDetailScreen({
                   owner,
                   redeliver: (latest?.attempt ?? 1) === 1 && !closedTomorrow,
                 })}
+              />
+            )}
+            {missed && (
+              <DeliveredAfterAll
+                orderId={o.id}
+                version={o.version}
+                first={first}
+                className={styles.button}
+                feeLine={
+                  missed.t.feePaidPence > 0
+                    ? owner
+                      ? `Their ${fee(missed.t.feePaidPence)} redelivery fee goes back to the card.`
+                      : `Their ${fee(missed.t.feePaidPence)} redelivery fee is flagged for the owner to refund.`
+                    : null
+                }
+              />
+            )}
+            {missed && owner && (
+              <RecordTheirChoice
+                orderId={o.id}
+                version={o.version}
+                first={first}
+                today={today}
+                className={styles.button}
+                current={
+                  missed.t.choice === "collect" && missed.t.collectDay
+                    ? `collect ${dayMonth(String(missed.t.collectDay))}`
+                    : missed.t.choice === "redeliver" && missed.next
+                      ? `redeliver ${dayMonth(String(missed.next.day))}`
+                      : null
+                }
+                feeLine={
+                  missed.t.choice === "redeliver" && missed.t.feePaidPence > 0
+                    ? `Their ${fee(missed.t.feePaidPence)} redelivery fee goes back to the card.`
+                    : null
+                }
               />
             )}
             <ButtonLink
