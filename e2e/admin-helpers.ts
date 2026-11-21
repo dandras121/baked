@@ -18,7 +18,7 @@ export async function newMember(name: string, role: "owner" | "helper") {
   return email;
 }
 
-async function codeFor(email: string) {
+export async function codeFor(email: string) {
   const { db, close } = connect();
   try {
     const [m] = await db

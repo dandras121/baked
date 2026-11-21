@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { connection } from "next/server";
 import { OrderDetailScreen } from "@/components/admin/order/order-detail-screen";
 import { connect, databaseUrl } from "@/db/client";
+import { adminCancelQuote } from "@/db/admin-cancel-repo";
 import { isClosed } from "@/db/delivery-repo";
 import { orderDetail } from "@/db/order-detail-repo";
 import { readSettings } from "@/db/settings-repo";
@@ -41,10 +42,16 @@ export default async function Page({
       isClosed(db, addDays(today, 1)),
     ]);
     if (!d) notFound();
+    const owner = member.role === "owner";
+    const cancelQuote =
+      owner && d.order.status === "confirmed"
+        ? await adminCancelQuote(db, d.order, today)
+        : null;
     return (
       <OrderDetailScreen
         d={d}
-        owner={member.role === "owner"}
+        owner={owner}
+        cancelQuote={cancelQuote}
         today={today}
         back={
           from === "today"

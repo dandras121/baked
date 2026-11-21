@@ -402,3 +402,59 @@
     gap: 30px;
   }
 }
+
+/* Cancel the order (§9.5; not drawn: the Admin / 21 confirm's look) and the sign-in-again step (§9.2). */
+.dialogText {
+  color: var(--colour-body);
+  font: var(--type-body-sm);
+}
+
+.dialogBody {
+  display: grid;
+  gap: 8px;
+}
+
+.amountLabel {
+  color: var(--colour-ink);
+  font: var(--type-label);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.amountRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--colour-ink);
+  font: var(--type-body-sm);
+}
+
+.split {
+  min-height: 17px;
+  margin: 0;
+  color: var(--colour-accent);
+  font: var(--type-small);
+  font-weight: 600;
+}
+
+.conflict {
+  margin: 0;
+  padding: 10px 12px;
+  border: 1px solid var(--colour-error-border);
+  border-radius: 10px;
+  background: var(--colour-error-wash);
+  color: var(--colour-error);
+  font: var(--type-small);
+}
+
+.dialogButtons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 6px;
+}
+
+.signInAgain {
+  display: grid;
+  gap: 12px;
+}

@@ -144,3 +144,4 @@ Anything built differently from the docs or Figma, and why. Bohoka’s decision 
 | 8.4b | 948:8816 phone title “Mairi Sinclair” | The order number, as SITE-FLOWS §9.1 Phone parity decides; the name is in the subtitle |
 | 8.4b | 936:8285 buttons Change the order, Send a payment link, Cancel the order, Print the order, THEIR DATA | Not shown until their slices (8.6, 8.7, 8.4c, 9.9); Copy the order link (D11, not drawn) is added |
 | speed | BUILD-PLAN 10.5 server region | The functions moved to London (lhr1) now, next to the database, because the admin was too slow from Washington (Bohoka 2026-11-21) |
+| 8.4c | CLAUDE.md §4.4 one slice | 8.4c split into 8.4c (Cancel the order, version check, sign in again) and 8.4d (Delivered after all, Record their choice) |

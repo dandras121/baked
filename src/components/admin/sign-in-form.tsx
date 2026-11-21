@@ -18,10 +18,15 @@ export function SignInForm({
   askCode,
   signIn,
   again,
+  inline,
+  onDone,
 }: {
   askCode: Action;
   signIn: Action;
   again: boolean;
+  /** Inside the sign-in dialog of a save after the session ended (§9.2): no brand, smaller headings, stays. */
+  inline?: boolean;
+  onDone?: () => void;
 }) {
   const start: SignInState = {
     step: "email",
@@ -62,6 +67,7 @@ export function SignInForm({
     const f = new FormData();
     f.set("email", view.email || email);
     f.set("code", code);
+    if (inline) f.set("stay", "1");
     startTransition(() => trySignIn(f));
   };
 
@@ -80,18 +86,29 @@ export function SignInForm({
     if (next.every(Boolean)) submitCode(next.join(""));
   }
 
-  const card = (children: React.ReactNode) => (
-    <div className={styles.card}>
-      <div className={styles.brand} aria-hidden>
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="/brand/logo-mark.svg" alt="" className={styles.mark} />
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="/brand/wordmark.svg" alt="" className={styles.wordmark} />
-        <span className={styles.admin}>Admin</span>
+  // Signed in inside the dialog: hand back to the page once.
+  const [doneSeen, setDoneSeen] = useState(false);
+  if (view.step === "done" && !doneSeen) {
+    setDoneSeen(true);
+    queueMicrotask(() => onDone?.());
+  }
+  const Title = inline ? "h3" : "h1";
+
+  const card = (children: React.ReactNode) =>
+    inline ? (
+      <div>{children}</div>
+    ) : (
+      <div className={styles.card}>
+        <div className={styles.brand} aria-hidden>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/brand/logo-mark.svg" alt="" className={styles.mark} />
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/brand/wordmark.svg" alt="" className={styles.wordmark} />
+          <span className={styles.admin}>Admin</span>
+        </div>
+        {children}
       </div>
-      {children}
-    </div>
-  );
+    );
 
   if (view.step === "email")
     return card(
@@ -103,7 +120,7 @@ export function SignInForm({
           sendCode(false);
         }}
       >
-        <h1 className={styles.title}>{C.title}</h1>
+        <Title className={styles.title}>{C.title}</Title>
         {again && <p className={styles.again}>{C.again}</p>}
         <p className={styles.intro}>{C.intro}</p>
         <TextField
@@ -140,7 +157,7 @@ export function SignInForm({
             submitCode(digits.join(""));
           }}
         >
-          <h1 className={styles.title}>{C.checkTitle}</h1>
+          <Title className={styles.title}>{C.checkTitle}</Title>
           <p className={styles.intro}>{C.checkIntro(view.email)}</p>
           <fieldset
             className={styles.boxes}

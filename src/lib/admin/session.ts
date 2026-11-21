@@ -27,3 +27,14 @@ export async function requireMember(role: "any" | "owner" = "any") {
     redirect("/admin/today?for=owner");
   return signedIn;
 }
+
+/**
+ * For a save (a server action): the signed-in person, or null when the session has ended — the page then keeps every
+ * input and offers sign-in in a dialog, then Save again (§9.2), instead of leaving for the sign-in page.
+ */
+export async function memberForSave(role: "any" | "owner" = "any") {
+  const { signedIn } = await currentMember();
+  if (!signedIn) return null;
+  if (role === "owner" && signedIn.member.role !== "owner") return null;
+  return signedIn.member;
+}

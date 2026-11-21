@@ -19,7 +19,8 @@ import { mailTransport } from "@/lib/mail/transport";
 import { like } from "drizzle-orm";
 
 export type SignInState = {
-  step: "email" | "code";
+  /** done: signed in inside a dialog (a save after the session ended, §9.2), so the page stays. */
+  step: "email" | "code" | "done";
   email: string;
   error: string | null;
   /** The code cannot be tried again: offer a new one. */
@@ -147,5 +148,6 @@ export async function signIn(
     path: "/",
     maxAge: SIGN_IN.sessionDays * 24 * 60 * 60,
   });
+  if (form.get("stay")) return { step: "done", email, error: null, dead: null };
   redirect("/admin/today");
 }

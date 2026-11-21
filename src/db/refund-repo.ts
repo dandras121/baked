@@ -72,6 +72,11 @@ async function refundable(db: Db, o: typeof orders.$inferSelect) {
   return out;
 }
 
+/** What can still go back to the card in all (§9.5 Cancel: the card part comes first, newest payment first). */
+export async function cardRefundable(db: Db, o: typeof orders.$inferSelect) {
+  return (await refundable(db, o)).reduce((n, p) => n + Math.max(0, p.left), 0);
+}
+
 /**
  * Net paid (§10.6): what the order received, its paid changes and paid payment links, less every refund that has not
  * failed (fees aside).

@@ -21,6 +21,9 @@ import { nobodyCopy } from "@/lib/admin/today";
 import { formatAdminTime, formatLongDate, londonDate } from "@/lib/london-time";
 import { formatAdminMoney } from "@/lib/money";
 import { phoneForPeople } from "@/lib/phone";
+import { splitLine } from "@/lib/admin/cancel";
+import type { AdminCancelQuote } from "@/db/admin-cancel-repo";
+import { CancelOrder } from "./cancel-order";
 import { CollectionTime } from "./collection-time";
 import { CopyOrderLink } from "./copy-link";
 import styles from "./order.module.css";
@@ -39,9 +42,12 @@ export function OrderDetailScreen({
   closedTomorrow,
   stripeLive,
   kitchen,
+  cancelQuote,
 }: {
   d: OrderDetail;
   kitchen: string;
+  /** Owner, confirmed orders: what Cancel the order proposes (§9.5). */
+  cancelQuote: AdminCancelQuote | null;
   owner: boolean;
   today: string;
   back: { href: string; label: string };
@@ -120,6 +126,11 @@ export function OrderDetailScreen({
     today,
     basisPence: d.money.netPaidPence,
   });
+  const cancelled = o.cancellation as {
+    cancelledOn: string;
+    cardPence: number;
+    handPence: number;
+  } | null;
   const phone = o.phoneE164 ? phoneForPeople(o.phoneE164) : o.phone;
   const tag = STATUS_TAG[o.status] ?? o.status;
   const where = [o.address, [o.town, o.postcode].filter(Boolean).join(" ")]
@@ -275,6 +286,12 @@ export function OrderDetailScreen({
                     l.id,
                   ),
                 )}
+                {cancelled &&
+                  row(
+                    "Cancelled",
+                    `${dayMonth(cancelled.cancelledOn)} · ${splitLine({ card: cancelled.cardPence, hand: cancelled.handPence })}`,
+                    "cancelled",
+                  )}
                 {o.deliveryChargePence > 0 &&
                   row(
                     "Delivery",
@@ -429,6 +446,16 @@ export function OrderDetailScreen({
               >
                 Refund in Stripe
               </ButtonLink>
+            )}
+            {owner && cancelQuote && o.status === "confirmed" && (
+              <CancelOrder
+                orderId={o.id}
+                version={o.version}
+                number={o.number}
+                first={first}
+                quote={cancelQuote}
+                className={styles.button}
+              />
             )}
           </div>
           {owner && live && (
