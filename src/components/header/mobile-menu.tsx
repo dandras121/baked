@@ -300,6 +300,8 @@ export function MobileMenu({
       ),
     ];
     html.style.overflow = "hidden";
+    // Fixed bars of the page (the checkout summary, My order) step aside while the menu shows (CSS: [data-menu-open]).
+    html.dataset.menuOpen = "";
     behind.forEach((el) => (el.inert = true));
     const onLogo = (e: Event) => {
       const link = (e.target as Element).closest?.("[data-home-link]");
@@ -311,6 +313,7 @@ export function MobileMenu({
     document.addEventListener("click", onLogo, true);
     return () => {
       html.style.overflow = "";
+      delete html.dataset.menuOpen;
       behind.forEach((el) => (el.inert = false));
       document.removeEventListener("click", onLogo, true);
     };

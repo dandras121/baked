@@ -224,3 +224,8 @@
   visibility: hidden;
   opacity: 0;
 }
+
+/* Hidden while the phone menu is open, so it never sits on top of the menu (Bohoka 2026-11-21). */
+:global(html[data-menu-open]) .button {
+  visibility: hidden;
+}

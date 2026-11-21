@@ -151,3 +151,28 @@ test("axe: step 2 and the empty order; screenshots", async ({
     fullPage: true,
   });
 });
+
+test("phone: the price bar and My order step aside while the menu is open (Bohoka 2026-11-21)", async ({
+  page,
+}, testInfo) => {
+  test.skip(!isPhone(testInfo.project.name), "phone only");
+  await addCake(page, "the-lothian", "Mairi");
+  await page.goto("/order/when");
+  const bar = page.getByRole("button", { name: /^Continue/ });
+  await expect(bar).toBeVisible();
+  const overlay = page.locator("#site-menu");
+  // The menu button answers once the page is ready: press until the menu is open.
+  await expect(async () => {
+    if ((await overlay.getAttribute("data-state")) !== "open")
+      await page.locator("[data-menu-button]").click();
+    await expect(overlay).toHaveAttribute("data-state", "open", {
+      timeout: 1500,
+    });
+  }).toPass();
+  await expect(bar).toBeHidden();
+  await expect(page.getByRole("button", { name: /^My order/ })).toBeHidden();
+  await page.screenshot({ path: ".shots/fix-menu-bar/menu-open-402.png" });
+  await page.locator("[data-menu-button]").click();
+  await expect(overlay).not.toHaveAttribute("data-state", "open");
+  await expect(bar).toBeVisible();
+});
