@@ -14,41 +14,43 @@ type Db = ReturnType<typeof connect>["db"];
 export async function moneyTaken(db: Db, from: CalendarDate, to: CalendarDate) {
   const a = londonInstant(from, 0);
   const b = londonInstant(to, 0);
-  const [o] = await db
-    .select({ n: sum(orders.amountReceivedPence) })
-    .from(orders)
-    .where(and(gte(orders.confirmedAt, a), lt(orders.confirmedAt, b)));
-  const [c] = await db
-    .select({ n: sum(orderChanges.paidPence) })
-    .from(orderChanges)
-    .where(
-      and(
-        sql`${orderChanges.status} = 'saved'`,
-        gte(orderChanges.createdAt, a),
-        lt(orderChanges.createdAt, b),
+  const [[o], [c], [l], [r]] = await Promise.all([
+    db
+      .select({ n: sum(orders.amountReceivedPence) })
+      .from(orders)
+      .where(and(gte(orders.confirmedAt, a), lt(orders.confirmedAt, b))),
+    db
+      .select({ n: sum(orderChanges.paidPence) })
+      .from(orderChanges)
+      .where(
+        and(
+          sql`${orderChanges.status} = 'saved'`,
+          gte(orderChanges.createdAt, a),
+          lt(orderChanges.createdAt, b),
+        ),
       ),
-    );
-  const [l] = await db
-    .select({ n: sum(paymentLinks.paidPence) })
-    .from(paymentLinks)
-    .where(
-      and(
-        gt(paymentLinks.paidPence, 0),
-        gte(paymentLinks.paidAt, a),
-        lt(paymentLinks.paidAt, b),
+    db
+      .select({ n: sum(paymentLinks.paidPence) })
+      .from(paymentLinks)
+      .where(
+        and(
+          gt(paymentLinks.paidPence, 0),
+          gte(paymentLinks.paidAt, a),
+          lt(paymentLinks.paidAt, b),
+        ),
       ),
-    );
-  const [r] = await db
-    .select({ n: sum(refunds.amountPence) })
-    .from(refunds)
-    .where(
-      and(
-        inArray(refunds.status, ["pending", "succeeded"]),
-        ne(refunds.kind, "fee"),
-        gte(refunds.createdAt, a),
-        lt(refunds.createdAt, b),
+    db
+      .select({ n: sum(refunds.amountPence) })
+      .from(refunds)
+      .where(
+        and(
+          inArray(refunds.status, ["pending", "succeeded"]),
+          ne(refunds.kind, "fee"),
+          gte(refunds.createdAt, a),
+          lt(refunds.createdAt, b),
+        ),
       ),
-    );
+  ]);
   return (
     Number(o?.n ?? 0) +
     Number(c?.n ?? 0) +

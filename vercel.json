@@ -3,5 +3,8 @@
   "framework": "nextjs",
   "installCommand": "pnpm install --frozen-lockfile",
   "buildCommand": "pnpm vercel-build",
-  "outputDirectory": ".next"
+  "outputDirectory": ".next",
+  "regions": [
+    "lhr1"
+  ]
 }

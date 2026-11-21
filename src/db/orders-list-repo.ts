@@ -81,21 +81,20 @@ export async function listOrders(
     conds.push(or(...any)!);
   }
   const where = conds.length ? and(...conds) : undefined;
-  const [{ total }] = await db
-    .select({ total: count() })
-    .from(orders)
-    .where(where);
-  // Upcoming by date ascending, then the past by date descending (§9.4).
-  const page = await db
-    .select()
-    .from(orders)
-    .where(where)
-    .orderBy(
-      sql`case when ${orders.date} >= ${o.today} then ${orders.date} end asc nulls last`,
-      sql`${orders.date} desc`,
-      sql`${orders.id} desc`,
-    )
-    .limit(o.shown);
+  // The total and the page at once; upcoming by date ascending, then the past by date descending (§9.4).
+  const [[{ total }], page] = await Promise.all([
+    db.select({ total: count() }).from(orders).where(where),
+    db
+      .select()
+      .from(orders)
+      .where(where)
+      .orderBy(
+        sql`case when ${orders.date} >= ${o.today} then ${orders.date} end asc nulls last`,
+        sql`${orders.date} desc`,
+        sql`${orders.id} desc`,
+      )
+      .limit(o.shown),
+  ]);
   const ids = page.map((p) => p.id);
   const [lines, money] = await Promise.all([
     ids.length
@@ -138,19 +137,19 @@ export async function ordersYear(db: Db, today: CalendarDate) {
   const year = today.slice(0, 4);
   const from = `${year}-01-01`;
   const to = `${Number(year) + 1}-01-01`;
-  const [{ n }] = await db
-    .select({ n: count() })
-    .from(orders)
-    .where(
-      and(
-        gte(orders.confirmedAt, londonInstant(from, 0)),
-        lt(orders.confirmedAt, londonInstant(to, 0)),
-        inArray(orders.status, ["confirmed", "completed"]),
+  const [[{ n }], taken, still] = await Promise.all([
+    db
+      .select({ n: count() })
+      .from(orders)
+      .where(
+        and(
+          gte(orders.confirmedAt, londonInstant(from, 0)),
+          lt(orders.confirmedAt, londonInstant(to, 0)),
+          inArray(orders.status, ["confirmed", "completed"]),
+        ),
       ),
-    );
-  return {
-    count: n,
-    taken: await moneyTaken(db, from, to),
-    still: await stillToPayAll(db),
-  };
+    moneyTaken(db, from, to),
+    stillToPayAll(db),
+  ]);
+  return { count: n, taken, still };
 }

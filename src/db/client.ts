@@ -31,7 +31,8 @@ export function connect(url = databaseUrl()): Connection {
   if (process.env.NEXT_RUNTIME === "nodejs" && url === databaseUrl()) {
     if (!shared) {
       const client = postgres(url, {
-        max: 5,
+        // A page reads several things side by side; 10 lets them run at once.
+        max: 10,
         prepare: false,
         idle_timeout: 20,
         onnotice: () => {},

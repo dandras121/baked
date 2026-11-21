@@ -108,25 +108,27 @@ export async function todayBoard(db: Db, day: CalendarDate) {
   }
 
   const ids = rows.map((r) => r.orderId);
-  const lines = ids.length
-    ? await db
-        .select({ orderId: orderLines.orderId, name: orderLines.name })
-        .from(orderLines)
-        .where(inArray(orderLines.orderId, ids))
-        .orderBy(orderLines.orderId, orderLines.position)
-    : [];
-  const waiting = ids.length
-    ? await db
-        .select({ orderId: orderChanges.orderId })
-        .from(orderChanges)
-        .where(
-          and(
-            inArray(orderChanges.orderId, ids),
-            eq(orderChanges.status, "pending"),
-          ),
-        )
-    : [];
-  const owed = await stillToPayByOrder(db, ids);
+  const [lines, waiting, owed] = await Promise.all([
+    ids.length
+      ? db
+          .select({ orderId: orderLines.orderId, name: orderLines.name })
+          .from(orderLines)
+          .where(inArray(orderLines.orderId, ids))
+          .orderBy(orderLines.orderId, orderLines.position)
+      : [],
+    ids.length
+      ? db
+          .select({ orderId: orderChanges.orderId })
+          .from(orderChanges)
+          .where(
+            and(
+              inArray(orderChanges.orderId, ids),
+              eq(orderChanges.status, "pending"),
+            ),
+          )
+      : [],
+    stillToPayByOrder(db, ids),
+  ]);
   for (const r of rows) {
     const today = attempts.find(
       (a) =>
@@ -242,19 +244,27 @@ export async function todayNumbers(
   const redeliveryCakes = rows
     .filter((r) => r.kind === "redelivery")
     .reduce((n, r) => n + r.cakes.length, 0);
-  const [{ n: newEnquiries }] = await db
-    .select({ n: count() })
-    .from(enquiries)
-    .where(eq(enquiries.status, "new"));
+  // Every number at once: the page waits for the slowest read, not for their sum.
+  const [outToday, thisWeek, [{ n: newEnquiries }], takenThisWeek, stillToPay] =
+    await Promise.all([
+      cakesOn(day, day),
+      cakesOn(monday, sunday),
+      db
+        .select({ n: count() })
+        .from(enquiries)
+        .where(eq(enquiries.status, "new")),
+      moneyTaken(db, monday, addDays(sunday, 1)),
+      stillToPayAll(db),
+    ]);
   const going = rows.filter(
     (r) => r.kind !== "not-collected" && r.kind !== "no-choice",
   );
   return {
-    outToday: (await cakesOn(day, day)) + redeliveryCakes,
-    thisWeek: await cakesOn(monday, sunday),
+    outToday: outToday + redeliveryCakes,
+    thisWeek,
     newEnquiries,
-    takenThisWeek: await moneyTaken(db, monday, addDays(sunday, 1)),
-    stillToPay: await stillToPayAll(db),
+    takenThisWeek,
+    stillToPay,
     subtitle: {
       out: going.length,
       collections: going.filter((r) => r.handover === "collection").length,
