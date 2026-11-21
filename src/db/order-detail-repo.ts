@@ -1,12 +1,13 @@
 // Order detail (§9.5): everything the screen shows, in one read — the order, its cakes, delivery attempts, payments,
 // refunds, open links, messages, complaints and HISTORY.
-import { and, asc, eq } from "drizzle-orm";
+import { and, asc, eq, isNull } from "drizzle-orm";
 import { memberChange } from "@/lib/admin/versions";
 import type { connect } from "./client";
 import { moneyByOrder } from "./money-repo";
 import {
   complaints,
   deliveryAttempts,
+  handPayments,
   orderChanges,
   orderHistory,
   orderLines,
@@ -31,6 +32,7 @@ export async function orderDetail(db: Db, number: string) {
     notes,
     history,
     money,
+    hand,
   ] = await Promise.all([
     db
       .select()
@@ -75,6 +77,13 @@ export async function orderDetail(db: Db, number: string) {
       .where(eq(orderHistory.orderId, o.id))
       .orderBy(asc(orderHistory.at), asc(orderHistory.id)),
     moneyByOrder(db, [o.id]),
+    db
+      .select()
+      .from(handPayments)
+      .where(
+        and(eq(handPayments.orderId, o.id), isNull(handPayments.removedAt)),
+      )
+      .orderBy(asc(handPayments.paidOn), asc(handPayments.id)),
   ]);
   const m = money.get(o.id);
   // Removed between the reads (e.g. deleted at the same moment): as if it never existed.
@@ -90,6 +99,7 @@ export async function orderDetail(db: Db, number: string) {
     complaints: notes,
     history,
     money: m,
+    hand,
   };
 }
 

@@ -146,3 +146,4 @@ Anything built differently from the docs or Figma, and why. Bohoka’s decision 
 | speed | BUILD-PLAN 10.5 server region | The functions moved to London (lhr1) now, next to the database, because the admin was too slow from Washington (Bohoka 2026-11-21) |
 | 8.4c | CLAUDE.md §4.4 one slice | 8.4c split into 8.4c (Cancel the order, version check, sign in again) and 8.4d (Delivered after all, Record their choice) |
 | 8.4d | §9.5 Record their choice “send a £15 payment link or waive it” | Only “waive” for now: payment links are built in 8.7, where the link option is added |
+| 8.5 | CLAUDE.md §4.4 one slice | 8.5 split into 8.5a (groundwork), 8.5b (the form and Save), 8.5c (sketches); the enquiry prefill comes with 9.8 Turn into an order |

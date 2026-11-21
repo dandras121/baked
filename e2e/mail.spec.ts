@@ -9,7 +9,7 @@ test("/dev/emails: e-mail 1 at 600 px and phone width with its plain text; Send 
 }, testInfo) => {
   test.skip(testInfo.project.name !== "desktop", "a developer page");
   await page.goto("/dev/emails");
-  await expect(page.locator("iframe")).toHaveCount(62);
+  await expect(page.locator("iframe")).toHaveCount(64);
   const mail = page.frameLocator("iframe").first();
   await expect(
     mail
@@ -23,6 +23,18 @@ test("/dev/emails: e-mail 1 at 600 px and phone width with its plain text; Send 
   await expect(mail.getByText("Key terms")).toBeVisible();
   await page.getByText("Plain text").first().click();
   await expect(page.getByText("Size: Serves 24 · two tiers")).toBeVisible();
+  // The bespoke version of e-mail 1 (a manual order, §8.2) sits next to it.
+  await expect(
+    page.getByText(
+      "1 · Order confirmed — bespoke (a manual order, §8.2; not drawn)",
+    ),
+  ).toBeVisible();
+  await page
+    .getByText(
+      "1 · Order confirmed — bespoke (a manual order, §8.2; not drawn)",
+    )
+    .scrollIntoViewIfNeeded();
+  await page.screenshot({ path: ".shots/8.5a/email-1-bespoke.png" });
   await page
     .getByRole("button", { name: "Send to the outbox" })
     .first()

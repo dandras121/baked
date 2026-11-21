@@ -1,9 +1,25 @@
 // Money taken and still to pay (§10.6, §13): shared by Today's tiles (8.3) and the Money screen (8.8).
-import { and, gt, gte, inArray, lt, ne, sql, sum } from "drizzle-orm";
+import {
+  and,
+  gt,
+  gte,
+  inArray,
+  isNull,
+  lt,
+  ne,
+  sql,
+  sum,
+} from "drizzle-orm";
 import { londonInstant, type CalendarDate } from "@/lib/london-time";
 import type { connect } from "./client";
 import { netPaid } from "./refund-repo";
-import { orderChanges, orders, paymentLinks, refunds } from "./schema";
+import {
+  handPayments,
+  orderChanges,
+  orders,
+  paymentLinks,
+  refunds,
+} from "./schema";
 
 type Db = ReturnType<typeof connect>["db"];
 
@@ -14,7 +30,7 @@ type Db = ReturnType<typeof connect>["db"];
 export async function moneyTaken(db: Db, from: CalendarDate, to: CalendarDate) {
   const a = londonInstant(from, 0);
   const b = londonInstant(to, 0);
-  const [[o], [c], [l], [r]] = await Promise.all([
+  const [[o], [c], [l], [r], hand] = await Promise.all([
     db
       .select({ n: sum(orders.amountReceivedPence) })
       .from(orders)
@@ -50,12 +66,29 @@ export async function moneyTaken(db: Db, from: CalendarDate, to: CalendarDate) {
           lt(refunds.createdAt, b),
         ),
       ),
+    // Money by hand counts on the day it was paid or given back (§10.6).
+    db
+      .select({ kind: handPayments.kind, n: sum(handPayments.amountPence) })
+      .from(handPayments)
+      .where(
+        and(
+          isNull(handPayments.removedAt),
+          gte(handPayments.paidOn, from),
+          lt(handPayments.paidOn, to),
+        ),
+      )
+      .groupBy(handPayments.kind),
   ]);
+  const byHand = hand.reduce(
+    (t, h) => t + (h.kind === "refund" ? -1 : 1) * Number(h.n ?? 0),
+    0,
+  );
   return (
     Number(o?.n ?? 0) +
     Number(c?.n ?? 0) +
     Number(l?.n ?? 0) -
-    Number(r?.n ?? 0)
+    Number(r?.n ?? 0) +
+    byHand
   );
 }
 
@@ -93,7 +126,7 @@ export async function moneyByOrder(
     );
   const ids = live.map((o) => o.id);
   if (!ids.length) return new Map();
-  const [changes, links, back] = await Promise.all([
+  const [changes, links, back, hand] = await Promise.all([
     db
       .select({ id: orderChanges.orderId, n: sum(orderChanges.paidPence) })
       .from(orderChanges)
@@ -126,7 +159,25 @@ export async function moneyByOrder(
         ),
       )
       .groupBy(refunds.orderId, refunds.status),
+    db
+      .select({
+        id: handPayments.orderId,
+        kind: handPayments.kind,
+        n: sum(handPayments.amountPence),
+      })
+      .from(handPayments)
+      .where(
+        and(inArray(handPayments.orderId, ids), isNull(handPayments.removedAt)),
+      )
+      .groupBy(handPayments.orderId, handPayments.kind),
   ]);
+  const byHand = new Map<number, number>();
+  for (const h of hand)
+    byHand.set(
+      h.id,
+      (byHand.get(h.id) ?? 0) +
+        (h.kind === "refund" ? -1 : 1) * Number(h.n ?? 0),
+    );
   const by = (rows: { id: number | null; n: string | null }[]) => {
     const m = new Map<number, number>();
     for (const r of rows)
@@ -146,7 +197,8 @@ export async function moneyByOrder(
         o.received +
         (c.get(o.id) ?? 0) +
         (l.get(o.id) ?? 0) -
-        (r.get(o.id) ?? 0);
+        (r.get(o.id) ?? 0) +
+        (byHand.get(o.id) ?? 0);
       return [
         o.id,
         {

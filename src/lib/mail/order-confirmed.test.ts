@@ -85,3 +85,18 @@ describe("e-mail 1 · Order confirmed (§8.1, 1800:13257)", () => {
     expect(m.text.split("Options:").length).toBe(1);
   });
 });
+
+describe("e-mail 1 · the bespoke version for a manual order (§8.2)", () => {
+  it("what it is, serves, what it contains, the date, delivery, total, paid so far and still to pay; reply to change", async () => {
+    const { SAMPLE_ORDER_MANUAL } = await import("./order-confirmed");
+    const e = orderConfirmedEmail(SAMPLE_ORDER_MANUAL(), origin);
+    const m = renderEmail(e, ctx);
+    expect(m.text).toContain(
+      "Your cake\nWhat it is: Three tiers, ivory buttercream, sugar peonies in dusty pink\nServes: 100\nContains: Gluten (wheat), eggs and milk\nDate: Sunday 20 June 2027\nDelivery: 12 – 4pm · Hopetoun House, South Queensferry EH30 9SL\nTotal: £380\nPaid so far: £100\nStill to pay: £280",
+    );
+    expect(m.text).toContain("here is what we agreed");
+    expect(m.text).not.toContain("the money has gone through");
+    expect(m.text).toContain("To change anything, just reply to this e-mail.");
+    expect(m.text).not.toContain("Handover");
+  });
+});

@@ -5,6 +5,7 @@ import { readyText } from "@/lib/admin/today";
 import type { OrderMailView } from "@/lib/mail/order-confirmed";
 import { placeholderValues, type Placeholder } from "@/lib/placeholders";
 import type { connect } from "./client";
+import { netPaid } from "./refund-repo";
 import { legalRevisions, orderLines, orders } from "./schema";
 import { readSettings } from "./settings-repo";
 import { todayBoard, type TodayRow } from "./today-repo";
@@ -64,6 +65,7 @@ export async function orderMailView(
     postcode: o.postcode,
     totalPence: o.totalPence,
     manual: o.kind === "manual",
+    paidPence: o.kind === "manual" ? await netPaid(db, o) : undefined,
     allergyNote: o.allergyNote,
     phone: o.phone,
     phoneE164: o.phoneE164,

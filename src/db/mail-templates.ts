@@ -47,6 +47,7 @@ import {
 import {
   orderConfirmedEmail,
   SAMPLE_ORDER,
+  SAMPLE_ORDER_MANUAL,
   type OrderMailView,
 } from "@/lib/mail/order-confirmed";
 import { TEMPLATES as PLAIN } from "@/lib/mail/templates";
@@ -134,7 +135,7 @@ export const TEMPLATES: Record<string, Template> = {
       ]);
       return orderConfirmedEmail(
         {
-          ...SAMPLE_ORDER,
+          ...(d.manual ? SAMPLE_ORDER_MANUAL() : SAMPLE_ORDER),
           terms: t && { id: t.id, updatedOn: t.updatedOn },
           cancellations: c && { id: c.id, updatedOn: c.updatedOn },
         },
@@ -201,6 +202,11 @@ export const SAMPLES: { template: string; title: string; data: Data }[] = [
     template: "order-confirmed",
     title: "1 · Order confirmed (1800:13257)",
     data: { sample: true },
+  },
+  {
+    template: "order-confirmed",
+    title: "1 · Order confirmed — bespoke (a manual order, §8.2; not drawn)",
+    data: { sample: true, manual: true },
   },
   {
     template: "two-days-before",

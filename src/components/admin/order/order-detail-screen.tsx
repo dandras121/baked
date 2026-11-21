@@ -113,6 +113,16 @@ export function OrderDetailScreen({
         how: "Stripe" as const,
         pi: l.paymentIntentId,
       })),
+    ...d.hand
+      .filter((h) => h.kind === "payment")
+      .map((h) => ({
+        kind: "hand" as const,
+        pence: h.amountPence,
+        on: String(h.paidOn),
+        how:
+          h.method === "cash" ? ("Cash" as const) : ("Bank transfer" as const),
+        pi: null,
+      })),
   ].sort((a, b) => a.on.localeCompare(b.on));
   const last = payments.at(-1) ?? null;
   const lines = moneyLines({
@@ -124,6 +134,13 @@ export function OrderDetailScreen({
       status: r.status,
       kind: r.kind,
     })),
+    handRefunds: d.hand
+      .filter((h) => h.kind === "refund")
+      .map((h) => ({
+        pence: h.amountPence,
+        on: String(h.paidOn),
+        how: h.method === "cash" ? "Cash" : "Bank transfer",
+      })),
     openLinks: d.links
       .filter((l) => l.status === "open")
       .map((l) => ({

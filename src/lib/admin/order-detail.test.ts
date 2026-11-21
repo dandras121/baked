@@ -170,3 +170,26 @@ describe("Order detail (§9.5)", () => {
     );
   });
 });
+
+describe("MONEY with money by hand (§9.5)", () => {
+  it("cash and bank lines, and money given back by hand", () => {
+    expect(
+      moneyLines({
+        totalPence: 38000,
+        payments: [
+          { kind: "hand", pence: 10000, on: "2026-09-09", how: "Cash" },
+          { kind: "hand", pence: 5000, on: "2026-09-10", how: "Bank transfer" },
+        ],
+        handRefunds: [{ pence: 2000, on: "2026-09-11", how: "Cash" }],
+        refunds: [],
+        openLinks: [],
+        stillToPayPence: 25000,
+      }).map((l) => `${l.label}: ${l.value}`),
+    ).toEqual([
+      "Cash: £100.00 · 9 Sep",
+      "Bank transfer: £50.00 · 10 Sep",
+      "Given back: −£20.00 · Cash · 11 Sep",
+      "Still to pay: £250.00",
+    ]);
+  });
+});

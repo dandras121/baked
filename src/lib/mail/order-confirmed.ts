@@ -22,6 +22,8 @@ export type OrderMailView = {
   postcode: string | null;
   totalPence: number;
   manual: boolean;
+  /** Manual orders (§8.2): what was paid so far (cash, bank, links); the bespoke version shows it and the rest. */
+  paidPence?: number;
   allergyNote: string | null;
   phone: string;
   phoneE164: string | null;
@@ -100,6 +102,36 @@ export function orderConfirmedEmail(
     `${formatPrice(v.totalPence)} · card · ${dayMonth(v.confirmedOn, today)}`,
   ]);
 
+  // The bespoke version (§8.2 row 1): one cake, agreed with Linda; what was paid so far and what is still to pay.
+  const paid = v.paidPence ?? 0;
+  const serves = /serves\s+(\d+)/i.exec(v.lines[0]?.sizeLine ?? "")?.[1];
+  const bespoke: Block[] = v.manual
+    ? [
+        {
+          kind: "rows",
+          title: "Your cake",
+          rows: [
+            ["What it is", v.lines[0]?.name ?? ""],
+            ...(serves ? [["Serves", serves] as [string, string]] : []),
+            ...(v.lines[0]?.message
+              ? [["Message", `“${v.lines[0].message}”`] as [string, string]]
+              : []),
+            ["Contains", containsWords(v.lines[0]?.allergenText ?? "")],
+            ["Date", long(v.date)],
+            handoverRows[0][0] === "Delivery"
+              ? [
+                  "Delivery",
+                  `${times ?? "Time to agree"} · ${handoverRows[1][1]}`,
+                ]
+              : ["Collection", `At a time we agree · ${f.address}`],
+            ["Total", formatPrice(v.totalPence)],
+            ["Paid so far", formatPrice(paid)],
+            ["Still to pay", formatPrice(Math.max(0, v.totalPence - paid))],
+          ],
+        },
+      ]
+    : [];
+
   const cakes: Block[] = v.lines.map((l) => ({
     kind: "rows",
     title: l.name,
@@ -155,10 +187,16 @@ export function orderConfirmedEmail(
       },
       {
         kind: "para",
-        text: `Thank you${first ? `, ${first}` : ""}. I have put ${long(v.date)} in the diary and the money has gone through.`,
+        text: v.manual
+          ? `Thank you${first ? `, ${first}` : ""}. I have put ${long(v.date)} in the diary — here is what we agreed.`
+          : `Thank you${first ? `, ${first}` : ""}. I have put ${long(v.date)} in the diary and the money has gone through.`,
       },
-      ...cakes,
-      { kind: "rows", title: "Handover", rows: handoverRows },
+      ...(v.manual
+        ? bespoke
+        : [
+            ...cakes,
+            { kind: "rows", title: "Handover", rows: handoverRows } as Block,
+          ]),
       {
         kind: "steps",
         steps: [
@@ -234,6 +272,31 @@ export function orderConfirmedEmail(
     ],
   };
 }
+
+/** /dev/emails: the bespoke version of e-mail 1 (a manual order, §8.2; not drawn). */
+export const SAMPLE_ORDER_MANUAL = (): OrderMailView => ({
+  ...SAMPLE_ORDER,
+  number: "BBL-2026-0161",
+  date: "2027-06-20",
+  earliestDate: "2027-06-20",
+  window: "afternoon",
+  address: "Hopetoun House",
+  town: "South Queensferry",
+  postcode: "EH30 9SL",
+  totalPence: 38000,
+  manual: true,
+  paidPence: 10000,
+  lines: [
+    {
+      name: "Three tiers, ivory buttercream, sugar peonies in dusty pink",
+      flavour: "",
+      sizeLine: "Three tiers · serves 100",
+      options: "",
+      message: null,
+      allergenText: "Contains gluten (wheat), eggs and milk.",
+    },
+  ],
+});
 
 /** /dev/emails: the drawn sample (1800:13257). */
 export const SAMPLE_ORDER: OrderMailView = {

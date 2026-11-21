@@ -64,7 +64,11 @@ type Pay = {
  */
 export function moneyLines(v: {
   totalPence: number;
-  payments: (Pay & { kind: "checkout" | "change" | "link" | "deposit" })[];
+  payments: (Pay & {
+    kind: "checkout" | "change" | "link" | "deposit" | "hand";
+  })[];
+  /** Money given back by hand (cash or bank, §10.6). */
+  handRefunds?: { pence: number; on: CalendarDate; how: string }[];
   refunds: { pence: number; on: CalendarDate; status: string; kind: string }[];
   openLinks: { purpose: string; pence: number; sentOn: CalendarDate }[];
   stillToPayPence: number;
@@ -72,6 +76,13 @@ export function moneyLines(v: {
   const out: PaymentLine[] = [];
   const only = v.payments.length === 1 && v.payments[0].pence >= v.totalPence;
   for (const p of v.payments) {
+    if (p.kind === "hand") {
+      out.push({
+        label: only ? "Paid in full" : p.how,
+        value: `${money(p.pence)} · ${only ? `${p.how} · ` : ""}${dayMonth(p.on)}`,
+      });
+      continue;
+    }
     const label = only
       ? "Paid in full"
       : p.kind === "change"
@@ -99,6 +110,11 @@ export function moneyLines(v: {
       value: `${money(-r.pence)} · Stripe · ${dayMonth(r.on)}${state}`,
     });
   }
+  for (const r of v.handRefunds ?? [])
+    out.push({
+      label: "Given back",
+      value: `${money(-r.pence)} · ${r.how} · ${dayMonth(r.on)}`,
+    });
   for (const l of v.openLinks)
     out.push({
       label: "Link",
@@ -272,4 +288,3 @@ export function stripeHref(v: {
     ? `${base}/payments/${v.cardPayments[0]}`
     : `${base}/search?query=${encodeURIComponent(v.number)}`;
 }
-

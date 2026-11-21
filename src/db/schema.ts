@@ -658,6 +658,8 @@ export const orders = pgTable(
      *  “member:{name}” · “customer” · “payment” · “site”. */
     changedBy: text("changed_by"),
     changedAt: timestamp("changed_at", { withTimezone: true }),
+    /** Customer e-mails (§8.2, Decided D11): manual orders can switch them Off; e-mails 1, 8 and 15 always go. */
+    customerEmails: boolean("customer_emails").notNull().default(true),
     /** The agreed collection time as Linda types it (“12 noon”, “14:30”; Order detail **Collection time**, §9.5). */
     collectionTime: text("collection_time"),
     /** “Booked after its hold ran out — check the day” (§9.3): set when a paid booking or move lands on a day that
@@ -1254,4 +1256,35 @@ export const orderHistory = pgTable(
     what: text("what").notNull(),
   },
   (t) => [index("order_history_order").on(t.orderId, t.at)],
+);
+
+/**
+ * Money by hand (§9.5, §9.6, §10.6): cash or bank transfer — “Paid so far” on Add an order, Record a payment, and a
+ * refund given back by hand (a negative line). Counted in net paid and money taken; never touches Stripe. Remove keeps
+ * the row (`removedAt`) so HISTORY still shows it.
+ */
+export const handPayments = pgTable(
+  "hand_payments",
+  {
+    id: serial("id").primaryKey(),
+    orderId: integer("order_id")
+      .notNull()
+      .references(() => orders.id, { onDelete: "cascade" }),
+    /** payment: money in · refund: money given back by hand. */
+    kind: text("kind").notNull().default("payment"),
+    method: text("method").notNull(),
+    amountPence: integer("amount_pence").notNull(),
+    paidOn: date("paid_on").notNull(),
+    byName: text("by_name").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    removedAt: timestamp("removed_at", { withTimezone: true }),
+  },
+  (t) => [
+    index("hand_payments_order").on(t.orderId),
+    check("hand_payment_kind", sql`${t.kind} in ('payment', 'refund')`),
+    check("hand_payment_method", sql`${t.method} in ('cash', 'bank')`),
+    check("hand_payment_amount", sql`${t.amountPence} > 0`),
+  ],
 );

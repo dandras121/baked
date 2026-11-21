@@ -7,7 +7,7 @@ import type { connect } from "./client";
 import { legalPdfFor } from "./legal-pdf-repo";
 import { readMailSettings } from "./mail-settings-repo";
 import { TEMPLATES } from "./mail-templates";
-import { mailSends } from "./schema";
+import { mailSends, orders } from "./schema";
 import { readSettings } from "./settings-repo";
 
 type Db = ReturnType<typeof connect>["db"];
@@ -22,12 +22,33 @@ export type QueueInput = {
   deadline?: Date;
 };
 
-/** Queues an e-mail once per key; “already” when that e-mail for that event exists (never twice). */
+/**
+ * Which order e-mails a manual order gets (§8.2): with customer e-mails Off, no 2, 3 / 3b, 12, 13 or 18; e-mail 5 never
+ * goes to a manual order. E-mails 1, 8, 15 and 16 always go. Read from the key `order:{id}:{e-mail}…`.
+ */
+export const OFF_WHEN_EMAILS_OFF = new Set(["2", "3", "3b", "12", "13", "18"]);
+
+async function skippedForOrder(db: Db, key: string) {
+  const m = /^order:(\d+):([0-9a-z]+)(?::|$)/.exec(key);
+  if (!m) return false;
+  const [, id, email] = m;
+  if (email !== "5" && !OFF_WHEN_EMAILS_OFF.has(email)) return false;
+  const [o] = await db
+    .select({ kind: orders.kind, on: orders.customerEmails })
+    .from(orders)
+    .where(eq(orders.id, Number(id)));
+  if (!o || o.kind !== "manual") return false;
+  return email === "5" || !o.on;
+}
+
+/** Queues an e-mail once per key; “already” when that e-mail for that event exists (never twice); “skipped” when the
+ *  order does not get it (§8.2). */
 export async function queueMail(
   db: Db,
   m: QueueInput,
   now = new Date(),
-): Promise<"queued" | "already"> {
+): Promise<"queued" | "already" | "skipped"> {
+  if (await skippedForOrder(db, m.key)) return "skipped";
   const added = await db
     .insert(mailSends)
     .values({

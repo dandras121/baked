@@ -1,10 +1,16 @@
 // Refunds (§10.6): money back to the card, recorded per Stripe refund. A failed call keeps its row as `failed`,
 // raises “Refund failed — try again” for Linda (§8.3), and changes nothing else: the change or cancellation stays.
-import { and, eq, gt, inArray, ne, sum } from "drizzle-orm";
+import { and, eq, gt, inArray, isNull, ne, sum } from "drizzle-orm";
 import type { Gateway } from "@/lib/payments";
 import type { connect } from "./client";
 import { queueMail } from "./mail-repo";
-import { orderChanges, orders, paymentLinks, refunds } from "./schema";
+import {
+  handPayments,
+  orderChanges,
+  orders,
+  paymentLinks,
+  refunds,
+} from "./schema";
 import { readSettings } from "./settings-repo";
 
 type Db = ReturnType<typeof connect>["db"];
@@ -110,7 +116,23 @@ export async function netPaid(db: Db, o: typeof orders.$inferSelect) {
     o.amountReceivedPence +
     Number(c?.n ?? 0) +
     Number(l?.n ?? 0) -
-    Number(r?.n ?? 0)
+    Number(r?.n ?? 0) +
+    (await handNet(db, o.id))
+  );
+}
+
+/** Money by hand (§10.6): payments in less refunds given back by hand; removed lines do not count. */
+export async function handNet(db: Db, orderId: number) {
+  const rows = await db
+    .select({ kind: handPayments.kind, n: sum(handPayments.amountPence) })
+    .from(handPayments)
+    .where(
+      and(eq(handPayments.orderId, orderId), isNull(handPayments.removedAt)),
+    )
+    .groupBy(handPayments.kind);
+  return rows.reduce(
+    (t, r) => t + (r.kind === "refund" ? -1 : 1) * Number(r.n ?? 0),
+    0,
   );
 }
 
