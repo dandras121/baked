@@ -60,3 +60,10 @@ export async function signIn(
   await expect(page).toHaveURL(/\/admin\/today$/);
   return email;
 }
+
+/** Waits for every running animation (a dialog opening) to end, so axe reads the final colours. */
+export async function settled(page: Page) {
+  await page.evaluate(() =>
+    Promise.all(document.getAnimations().map((a) => a.finished)),
+  );
+}

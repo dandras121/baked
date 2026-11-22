@@ -150,3 +150,7 @@ Anything built differently from the docs or Figma, and why. Bohoka’s decision 
 | 8.5b | 1607:10612 Send a payment link in MONEY | Not shown until payment links (8.7), where it reads “Save and send a payment link” before the first save |
 | 8.5b | 1607:10612 “FROM ENQUIRY BBL-…” | Comes with Turn into an order (9.8) |
 | 8.5b | 1607:10612 Add a sketch or photo | Slice 8.5c |
+| 8.6 | CLAUDE.md §4.4 one slice | 8.6 split into 8.6a (order fields), 8.6b (cakes, money, waiting change), 8.6c (Add a cake / Remove), 8.6d (Edit the order) |
+| 8.6a | Appendix A.3 note for 1250:9295 and the §9.7 footnote (“she gets a link … until she pays”) | “the customer gets a link … until it is paid” — the customer's pronoun is not known and is not guessed |
+| 8.6a | 1250:9221 “Cancel” | “Discard changes”, as §9.7 names it |
+| 8.6a | §9.7 a rise on a fully paid order | Until 8.6b: refused with “This raises a fully paid order by £… — a change like this waits for a payment link, which comes with the next step. Nothing was saved.” (only a handover switch with a delivery charge can raise it in 8.6a; the charge is £0 today) |

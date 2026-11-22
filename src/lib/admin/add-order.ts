@@ -191,19 +191,20 @@ export const dayLine = (d: DayInfo) =>
   `That day: ${d.day} of ${d.dailyCap} booked · that week: ${d.week} of ${d.weeklyCap} booked`;
 
 /** The calm warnings (§9.6, Decided D4): saving is allowed. One manual order counts one cake. */
-export function dayWarnings(d: DayInfo) {
+export function dayWarnings(d: DayInfo, cakes = 1) {
   const out: string[] = [];
   if (d.closed !== null)
     out.push(
       `That day is closed${d.closed ? ` — ${d.closed}` : ""} — saving books it anyway.`,
     );
-  if (d.day >= d.dailyCap)
+  // Saving adds this order's cakes (one for a manual order); the warning shows when that goes over the cap.
+  if (d.day + cakes > d.dailyCap)
     out.push(
-      `That day is full (${d.day} of ${d.dailyCap}) — saving puts it at ${d.day + 1} of ${d.dailyCap}.`,
+      `That day is full (${d.day} of ${d.dailyCap}) — saving puts it at ${d.day + cakes} of ${d.dailyCap}.`,
     );
-  if (d.week >= d.weeklyCap)
+  if (d.week + cakes > d.weeklyCap)
     out.push(
-      `That week is full (${d.week} of ${d.weeklyCap}) — saving puts it at ${d.week + 1} of ${d.weeklyCap}.`,
+      `That week is full (${d.week} of ${d.weeklyCap}) — saving puts it at ${d.week + cakes} of ${d.weeklyCap}.`,
     );
   return out;
 }

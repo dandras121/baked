@@ -10,7 +10,7 @@ import {
   teamMembers,
 } from "../src/db/schema";
 import { addDays, londonDate } from "../src/lib/london-time";
-import { codeFor, signIn } from "./admin-helpers";
+import { codeFor, settled, signIn } from "./admin-helpers";
 
 // Slice 8.4c: Cancel the order from the admin (§9.5), the version check and a save after the session ended (§9.2).
 const today = londonDate(new Date());
@@ -103,6 +103,7 @@ test("Cancel the order: the terms' refund, an amount over what was paid is refus
   );
   await expect(dialog.getByLabel("Refund")).toHaveValue("280.00");
   await expect(dialog).toContainText("£280.00 back to the card");
+  await settled(page);
   expect(
     (await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa"]).analyze())
       .violations,
@@ -120,7 +121,9 @@ test("Cancel the order: the terms' refund, an amount over what was paid is refus
     .click();
   await expect(dialog).toBeHidden();
   await expect(page.getByText(/^(Cancelled|Refunded)$/).first()).toBeVisible();
-  await expect(page.getByRole("region", { name: "Money" })).toContainText(/Cancelled\d+ \w{3} · £200\.00 back to the card/);
+  await expect(page.getByRole("region", { name: "Money" })).toContainText(
+    /Cancelled\d+ \w{3} · £200\.00 back to the card/,
+  );
   await expect(page.getByRole("region", { name: "History" })).toContainText(
     "Linda · Cancelled the order · £200.00 back to the card",
   );

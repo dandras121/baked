@@ -118,7 +118,9 @@ export const dayCounts = (
   from: CalendarDate,
   to: CalendarDate,
   now = new Date(),
-) => otherHoldCounts(db, from, to, null, now);
+  /** Moving an order: its own cakes do not count against the new day (§6.4, §9.7). */
+  exceptOrder: number | null = null,
+) => otherHoldCounts(db, from, to, null, now, exceptOrder);
 
 /** Everything the calendar needs for one draft (§5.2, §10.4). */
 export async function capacityFor(

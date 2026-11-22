@@ -38,12 +38,13 @@ export async function dayInfo(
   db: Db,
   date: CalendarDate,
   now = new Date(),
+  exceptOrder: number | null = null,
 ): Promise<DayInfo> {
   // That day's Monday–Sunday week only, however far ahead the day is.
   const monday = weekStart(date);
   const [s, counts, [closed]] = await Promise.all([
     readSettings(db),
-    dayCounts(db, monday, addDays(monday, 6), now),
+    dayCounts(db, monday, addDays(monday, 6), now, exceptOrder),
     db.select().from(closedDays).where(eq(closedDays.day, date)),
   ]);
   return {

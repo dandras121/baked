@@ -9,7 +9,7 @@ import {
   orders,
 } from "../src/db/schema";
 import { londonDate } from "../src/lib/london-time";
-import { signIn } from "./admin-helpers";
+import { settled, signIn } from "./admin-helpers";
 
 // Slice 8.4d: after Nobody was in (§9.5) — Delivered after all, Record their choice; the delivery link afterwards.
 const today = londonDate(new Date());
@@ -96,6 +96,7 @@ test("Record their choice (Owner): collect today — the order page, HISTORY and
   await dialog.getByLabel("Redeliver").check();
   await expect(dialog.getByLabel("Window")).toBeVisible();
   await expect(dialog).toContainText("No fee is asked for this redelivery.");
+  await settled(page);
   expect(
     (await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa"]).analyze())
       .violations,

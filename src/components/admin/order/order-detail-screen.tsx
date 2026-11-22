@@ -532,6 +532,15 @@ export function OrderDetailScreen({
                 }
               />
             )}
+            {o.status === "confirmed" && o.kind === "catalogue" && (
+              <ButtonLink
+                href={`/admin/orders/${o.number}/change`}
+                variant="outline"
+                className={styles.button}
+              >
+                Change the order
+              </ButtonLink>
+            )}
             <ButtonLink
               href={`mailto:${o.email}?subject=${encodeURIComponent(`Your order ${o.number}`)}`}
               variant="outline"
