@@ -17,7 +17,7 @@ export const orderNumber = (year: number, seq: number) =>
   `BBL-${year}-${String(seq).padStart(4, "0")}`;
 
 /** The next number of the year, without gaps: one counter row per year, raised inside the confirming transaction. */
-async function nextNumber(tx: Tx, year: number): Promise<string> {
+export async function nextNumber(tx: Tx, year: number): Promise<string> {
   const [row] = await tx
     .insert(orderCounters)
     .values({ year, last: 1 })

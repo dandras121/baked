@@ -248,7 +248,7 @@ export function orderConfirmedEmail(
         ? [
             {
               kind: "small",
-              text: `Attached: ${files.join(" · ")} — the versions you accepted.`,
+              text: `Attached: ${files.join(" · ")} — ${v.manual ? "the terms that apply to your order" : "the versions you accepted"}.`,
             } as Block,
           ]
         : []),

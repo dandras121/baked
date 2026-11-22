@@ -44,7 +44,10 @@ export function OrderDetailScreen({
   stripeLive,
   kitchen,
   cancelQuote,
+  saved = false,
 }: {
+  /** Just added by hand (§9.6): “Order saved”. */
+  saved?: boolean;
   d: OrderDetail;
   kitchen: string;
   /** Owner, confirmed orders: what Cancel the order proposes (§9.5). */
@@ -195,6 +198,11 @@ export function OrderDetailScreen({
           {tag}
         </span>
       </div>
+      {saved && (
+        <p className={styles.saved} role="status">
+          Order saved. The confirmation e-mail is on its way to {o.email}.
+        </p>
+      )}
       <p className={styles.subtitle}>
         {detailSubtitle({
           name: o.customerName,
@@ -397,14 +405,15 @@ export function OrderDetailScreen({
               History
             </h2>
             <ul className={styles.list}>
-              <li>
-                <span className={styles.when}>
-                  {historyWhen(o.confirmedAt, formatAdminTime(o.confirmedAt))}
-                </span>{" "}
-                {o.kind === "manual"
-                  ? "Added by hand"
-                  : "Booked on the website"}
-              </li>
+              {/* A manual order's own line (“Added the order by hand”, with who) is in HISTORY already. */}
+              {o.kind !== "manual" && (
+                <li>
+                  <span className={styles.when}>
+                    {historyWhen(o.confirmedAt, formatAdminTime(o.confirmedAt))}
+                  </span>{" "}
+                  Booked on the website
+                </li>
+              )}
               {d.history.map((h) => (
                 <li key={h.id}>
                   <span className={styles.when}>

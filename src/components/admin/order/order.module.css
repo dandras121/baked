@@ -491,3 +491,14 @@
 select.input {
   max-width: 240px;
 }
+
+/* “Order saved” after Add an order (§9.6). */
+.saved {
+  margin: 10px 0 0;
+  padding: 10px 14px;
+  border: 1px solid var(--colour-calm-border);
+  border-radius: 10px;
+  background: var(--colour-calm-wash);
+  color: var(--colour-ink);
+  font: var(--type-small);
+}

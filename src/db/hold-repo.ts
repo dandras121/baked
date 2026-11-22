@@ -112,6 +112,14 @@ async function otherHoldCounts(
   return counts;
 }
 
+/** Cakes counted on each day from `from` to `to` (§10.4 What counts): orders, live holds, a move being paid. */
+export const dayCounts = (
+  db: Db | Tx,
+  from: CalendarDate,
+  to: CalendarDate,
+  now = new Date(),
+) => otherHoldCounts(db, from, to, null, now);
+
 /** Everything the calendar needs for one draft (§5.2, §10.4). */
 export async function capacityFor(
   db: Db | Tx,

@@ -147,3 +147,6 @@ Anything built differently from the docs or Figma, and why. Bohoka’s decision 
 | 8.4c | CLAUDE.md §4.4 one slice | 8.4c split into 8.4c (Cancel the order, version check, sign in again) and 8.4d (Delivered after all, Record their choice) |
 | 8.4d | §9.5 Record their choice “send a £15 payment link or waive it” | Only “waive” for now: payment links are built in 8.7, where the link option is added |
 | 8.5 | CLAUDE.md §4.4 one slice | 8.5 split into 8.5a (groundwork), 8.5b (the form and Save), 8.5c (sketches); the enquiry prefill comes with 9.8 Turn into an order |
+| 8.5b | 1607:10612 Send a payment link in MONEY | Not shown until payment links (8.7), where it reads “Save and send a payment link” before the first save |
+| 8.5b | 1607:10612 “FROM ENQUIRY BBL-…” | Comes with Turn into an order (9.8) |
+| 8.5b | 1607:10612 Add a sketch or photo | Slice 8.5c |

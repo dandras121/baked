@@ -26,12 +26,12 @@ export default async function Page({
   searchParams,
 }: {
   params: Promise<{ number: string }>;
-  searchParams: Promise<{ from?: string }>;
+  searchParams: Promise<{ from?: string; saved?: string }>;
 }) {
   await connection();
   const { member } = await requireMember();
   const number = decodeURIComponent((await params).number);
-  const { from } = await searchParams;
+  const { from, saved } = await searchParams;
   if (!databaseUrl()) return null;
   const today = londonDate(new Date());
   const { db, close } = connect();
@@ -52,6 +52,7 @@ export default async function Page({
         d={d}
         owner={owner}
         cancelQuote={cancelQuote}
+        saved={saved === "1"}
         today={today}
         back={
           from === "today"

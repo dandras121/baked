@@ -1,0 +1,274 @@
+/*
+ * Add an order (§9.6). Desktop 1607:10612: the title with Save the order (180 × 42), the intro; the left card 600 wide
+ * (THE CUSTOMER · THE DAY), the right column 350 wide (THE CAKE · MONEY); fields 46 high with an ink edge, radius 10;
+ * pills as the Orders filters. Phone 1607:10782: one column, Save at the top.
+ */
+.page {
+  display: grid;
+  gap: 0;
+}
+
+.head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.title {
+  margin: 0;
+  color: var(--colour-display);
+  font: var(--type-admin-title-sm);
+  font-variation-settings: var(--font-display-axes);
+}
+
+.intro {
+  margin: 8px 0 18px;
+  color: var(--colour-body);
+  font: var(--type-contact-note);
+}
+
+.save {
+  min-width: 92px;
+  height: 44px;
+  min-height: 44px;
+}
+
+.wide {
+  display: none;
+}
+
+.alert {
+  margin: 0 0 16px;
+  padding: 10px 12px;
+  border: 1px solid var(--colour-error-border);
+  border-radius: 10px;
+  background: var(--colour-error-wash);
+  color: var(--colour-error);
+  font: var(--type-small);
+}
+
+.columns {
+  display: grid;
+  gap: 18px;
+}
+
+.side {
+  display: grid;
+  gap: 18px;
+  align-content: start;
+}
+
+.card {
+  display: grid;
+  gap: 14px;
+  align-content: start;
+}
+
+.section {
+  margin: 8px 0 0;
+  color: var(--colour-accent);
+  font: var(--type-admin-head);
+  letter-spacing: 1.8px;
+  text-transform: uppercase;
+}
+
+.field {
+  display: grid;
+  align-content: start;
+  gap: 6px;
+  min-width: 0;
+}
+
+.pair {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 14px 16px;
+}
+
+.label {
+  padding: 0;
+  color: var(--colour-body);
+  font: var(--type-admin-cell);
+}
+
+.input {
+  width: 100%;
+  height: 46px;
+  padding: 0 15px;
+  border: 1px solid var(--colour-ink);
+  border-radius: 10px;
+  background: var(--colour-white);
+  color: var(--colour-ink);
+  font: var(--type-body-sm);
+}
+
+.input:focus-visible {
+  outline: 2px solid var(--colour-focus-ring);
+  outline-offset: 2px;
+}
+
+.input[aria-invalid="true"] {
+  border-color: var(--colour-error);
+}
+
+.input::placeholder {
+  color: var(--colour-meta);
+  opacity: 1;
+}
+
+.short {
+  max-width: 268px;
+}
+
+.area {
+  height: auto;
+  min-height: 70px;
+  padding: 12px 15px;
+  resize: vertical;
+}
+
+.hint {
+  display: grid;
+  gap: 4px;
+  margin: 0;
+  color: var(--colour-meta);
+  font: var(--type-small);
+  line-height: 17px;
+}
+
+.warning {
+  color: var(--colour-error);
+  font-weight: 600;
+}
+
+.pillSet {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.pill {
+  position: relative;
+  display: inline-flex;
+  cursor: pointer;
+}
+
+.pill input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.pill span {
+  display: inline-flex;
+  align-items: center;
+  min-height: 30px;
+  padding: 0 16px;
+  border: 1px solid var(--colour-admin-line);
+  border-radius: 100px;
+  color: var(--colour-ink);
+  font: var(--type-admin-pill);
+}
+
+/* Hit area 44 high without moving the pills. */
+.pill::after {
+  content: "";
+  position: absolute;
+  inset: -7px 0;
+}
+
+.pill input:checked + span {
+  border-color: var(--colour-ink);
+  background: var(--colour-ink);
+  color: var(--colour-paper);
+}
+
+.pill input:focus-visible + span {
+  outline: 2px solid var(--colour-focus-ring);
+  outline-offset: 2px;
+}
+
+.ticks {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0 12px;
+}
+
+.tick {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 36px;
+  color: var(--colour-ink);
+  font: var(--type-admin-cell);
+  cursor: pointer;
+}
+
+.tick input {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--colour-ink);
+}
+
+.end {
+  display: flex;
+  justify-content: flex-end;
+  margin: 22px 0 0;
+}
+
+.dialogBody {
+  display: grid;
+  gap: 12px;
+}
+
+@media (min-width: 1024px) {
+  .title {
+    font: var(--type-admin-title);
+  }
+
+  .wide {
+    display: inline;
+  }
+
+  .narrow {
+    display: none;
+  }
+
+  .save {
+    min-width: 180px;
+    height: 42px;
+    min-height: 42px;
+  }
+
+  .intro {
+    margin: 6px 0 24px;
+  }
+
+  .card {
+    padding: 21px 23px 24px;
+    border: 1px solid var(--colour-line-rule);
+    border-radius: 10px;
+    background: var(--colour-white);
+  }
+
+  .section:first-child {
+    margin-top: 0;
+  }
+}
+
+@media (min-width: 1200px) {
+  .columns {
+    grid-template-columns: minmax(0, 600px) minmax(0, 350px);
+    gap: 30px;
+    align-items: start;
+  }
+}
