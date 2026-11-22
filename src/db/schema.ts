@@ -1104,6 +1104,10 @@ export const uploads = pgTable(
     enquiryId: integer("enquiry_id").references(() => enquiries.id, {
       onDelete: "cascade",
     }),
+    /** Add an order's sketch or photo (§9.6): never shown to the customer. */
+    orderId: integer("order_id").references(() => orders.id, {
+      onDelete: "cascade",
+    }),
     complaintId: integer("complaint_id").references(() => complaints.id, {
       onDelete: "cascade",
     }),
@@ -1113,7 +1117,7 @@ export const uploads = pgTable(
       .defaultNow(),
   },
   (t) => [
-    check("upload_purpose", sql`${t.purpose} in ('enquiry', 'complaint')`),
+    check("upload_purpose", sql`${t.purpose} in ('enquiry', 'complaint', 'order')`),
     index("uploads_form").on(t.formKey),
     index("uploads_enquiry").on(t.enquiryId),
     index("uploads_complaint").on(t.complaintId),

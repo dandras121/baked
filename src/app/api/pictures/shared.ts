@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { connectionKey, takeFormSend } from "@/db/contact-repo";
 import type { connect } from "@/db/client";
 import { formPictureCount, type UploadPurpose } from "@/db/upload-repo";
+import { memberForSave } from "@/lib/admin/session";
 import { PICTURES } from "@/lib/uploads/rules";
 
 type Db = ReturnType<typeof connect>["db"];
@@ -29,8 +30,17 @@ export function formOf(
   purpose: unknown,
 ): { formKey: string; purpose: UploadPurpose } | null {
   if (typeof formKey !== "string" || !UUID.test(formKey)) return null;
-  if (purpose !== "enquiry" && purpose !== "complaint") return null;
+  if (purpose !== "enquiry" && purpose !== "complaint" && purpose !== "order")
+    return null;
   return { formKey, purpose };
+}
+
+/** formOf, and a sketch for Add an order (§9.6) only from a signed-in Owner. */
+export async function allowedForm(formKey: unknown, purpose: unknown) {
+  const which = formOf(formKey, purpose);
+  if (which?.purpose === "order" && !(await memberForSave("owner")))
+    return null;
+  return which;
 }
 
 function address(req: Request) {

@@ -502,3 +502,32 @@ select.input {
   color: var(--colour-ink);
   font: var(--type-small);
 }
+
+/* Sketches and photos of a manual order (§9.6): 96 px tiles; open the full picture in a new tab. */
+.sketches {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.sketch {
+  display: block;
+  overflow: hidden;
+  border-radius: 10px;
+  border: 1px solid var(--colour-line-rule);
+}
+
+.sketch img {
+  display: block;
+  width: 96px;
+  height: 96px;
+  object-fit: cover;
+}
+
+.sketch:focus-visible {
+  outline: 2px solid var(--colour-focus-ring);
+  outline-offset: 2px;
+}

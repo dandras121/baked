@@ -29,6 +29,7 @@ import {
   orders,
 } from "./schema";
 import { readSettings } from "./settings-repo";
+import { attachPictures } from "./upload-repo";
 
 type Db = ReturnType<typeof connect>["db"];
 
@@ -59,6 +60,8 @@ export async function addOrder(
   v: AddOrderValue,
   by: string,
   now = new Date(),
+  /** Add a sketch or photo (§9.6): this form's own uploads, up to three. */
+  pictures: { formKey: string; ids: string[] } | null = null,
 ) {
   const s = await readSettings(db);
   const [terms, cancellations] = await Promise.all([
@@ -132,6 +135,14 @@ export async function addOrder(
         byName: by,
         createdAt: now,
       });
+    if (pictures?.ids.length)
+      await attachPictures(
+        tx,
+        pictures.ids,
+        pictures.formKey,
+        { orderId: o.id },
+        now,
+      );
     await tx.insert(orderHistory).values({
       orderId: o.id,
       at: now,

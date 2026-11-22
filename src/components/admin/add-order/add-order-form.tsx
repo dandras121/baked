@@ -1,7 +1,13 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useEffect, useState, useTransition, type ReactNode } from "react";
+import {
+  useEffect,
+  useRef,
+  useState,
+  useTransition,
+  type ReactNode,
+} from "react";
 import {
   addOrderAction,
   dayInfoAction,
@@ -11,6 +17,8 @@ import { SignInAgain } from "@/components/admin/order/sign-in-again";
 import { Button } from "@/components/ui/button";
 import { FieldError } from "@/components/ui/field-error";
 import { Overlay } from "@/components/ui/overlay";
+import { PictureTiles } from "@/components/uploads/picture-tiles";
+import type { BlobMode } from "@/lib/storage";
 import {
   dayLine,
   dayWarnings,
@@ -33,9 +41,12 @@ type Errors = Partial<Record<keyof Form, string>>;
 export function AddOrderForm({
   today,
   districts,
+  direct,
 }: {
   today: string;
   districts: string;
+  /** A Blob store is connected: pictures upload straight to it (§7.1). */
+  direct: BlobMode;
 }) {
   const router = useRouter();
   const [f, setF] = useState<Form>(EMPTY_FORM);
@@ -44,6 +55,10 @@ export function AddOrderForm({
   const [line, setLine] = useState<string | null>(null);
   const [signIn, setSignIn] = useState<"no" | "asking" | "back">("no");
   const [saved, setSaved] = useState(false);
+  // Add a sketch or photo (§9.6): bound to this form's key, attached on Save.
+  const formKey = useRef("");
+  const keyOf = () => (formKey.current ||= crypto.randomUUID());
+  const [pictures, setPictures] = useState({ ids: [] as string[], pending: 0 });
   const [busy, start] = useTransition();
   const dirty = !saved && JSON.stringify(f) !== JSON.stringify(EMPTY_FORM);
   const set = <K extends keyof Form>(k: K, v: Form[K]) => {
@@ -69,9 +84,16 @@ export function AddOrderForm({
   const save = () =>
     start(async () => {
       setLine(null);
-      const r = await addOrderAction(f).catch(
-        () => ({ kind: "failed" }) as const,
-      );
+      if (pictures.pending) {
+        setLine(
+          "A picture is still uploading — nothing was saved. Save again once it shows.",
+        );
+        return;
+      }
+      const r = await addOrderAction(
+        f,
+        pictures.ids.length ? { formKey: keyOf(), ids: pictures.ids } : null,
+      ).catch(() => ({ kind: "failed" }) as const);
       if (r.kind === "saved") {
         setSaved(true);
         router.push(`/admin/orders/${r.number}?saved=1`);
@@ -371,6 +393,18 @@ export function AddOrderForm({
                 onChange={(e) => set("allergyNote", e.target.value)}
               />,
             )}
+            <fieldset className={styles.pillSet}>
+              <legend className={styles.label}>A sketch or photo</legend>
+              <PictureTiles
+                purpose="order"
+                formKey={keyOf}
+                direct={direct}
+                onChange={setPictures}
+              />
+              <p className={styles.hint}>
+                Up to three. Only you see them — never the customer.
+              </p>
+            </fieldset>
           </section>
 
           <section className={styles.card} aria-labelledby="money-h">

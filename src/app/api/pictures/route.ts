@@ -3,7 +3,7 @@ import { connect, databaseUrl } from "@/db/client";
 import { savePicture } from "@/db/upload-repo";
 import { PictureError } from "@/lib/uploads/process";
 import { PICTURES } from "@/lib/uploads/rules";
-import { failure, formOf, mayAdd, NO_STORE } from "./shared";
+import { failure, allowedForm, mayAdd, NO_STORE } from "./shared";
 
 /**
  * POST /api/pictures (§7.1): one picture sent through the site (when no Blob store is connected; on Vercel this way
@@ -18,7 +18,7 @@ export async function POST(req: Request) {
     return failure("failed");
   }
   const file = form.get("file");
-  const which = formOf(form.get("formKey"), form.get("purpose"));
+  const which = await allowedForm(form.get("formKey"), form.get("purpose"));
   if (!which || !(file instanceof File)) return failure("failed");
   if (file.size > PICTURES.maxBytes) return failure("size", 413);
   const { db, close } = connect();

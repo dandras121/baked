@@ -7,6 +7,8 @@ import { adminCancelQuote } from "@/db/admin-cancel-repo";
 import { isClosed } from "@/db/delivery-repo";
 import { orderDetail } from "@/db/order-detail-repo";
 import { readSettings } from "@/db/settings-repo";
+import { orderPictures } from "@/db/upload-repo";
+import { pictureLink } from "@/lib/uploads/sign";
 import { requireMember } from "@/lib/admin/session";
 import { addDays, londonDate } from "@/lib/london-time";
 
@@ -42,6 +44,13 @@ export default async function Page({
       isClosed(db, addDays(today, 1)),
     ]);
     if (!d) notFound();
+    // Sketches and photos (§9.6): signed links for an hour, admin only (§10.10).
+    const sketches = (await orderPictures(db, d.order.id)).map((p) => ({
+      id: p.id,
+      name: p.name,
+      thumb: pictureLink(p.id, "thumb", Date.now(), 60 * 60 * 1000),
+      file: pictureLink(p.id, "file", Date.now(), 60 * 60 * 1000),
+    }));
     const owner = member.role === "owner";
     const cancelQuote =
       owner && d.order.status === "confirmed"
@@ -53,6 +62,7 @@ export default async function Page({
         owner={owner}
         cancelQuote={cancelQuote}
         saved={saved === "1"}
+        sketches={sketches}
         today={today}
         back={
           from === "today"

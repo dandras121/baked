@@ -45,7 +45,10 @@ export function OrderDetailScreen({
   kitchen,
   cancelQuote,
   saved = false,
+  sketches = [],
 }: {
+  /** Add a sketch or photo (§9.6): signed links; never shown to the customer. */
+  sketches?: { id: string; name: string; thumb: string; file: string }[];
   /** Just added by hand (§9.6): “Order saved”. */
   saved?: boolean;
   d: OrderDetail;
@@ -294,6 +297,37 @@ export function OrderDetailScreen({
             </dl>
           </section>
 
+          {sketches.length > 0 && (
+            <section
+              className={`${styles.section} ${styles.cakes}`}
+              aria-labelledby="sketches-h"
+            >
+              <h2 id="sketches-h" className={styles.label}>
+                Sketches and photos
+              </h2>
+              <ul className={styles.sketches}>
+                {sketches.map((p) => (
+                  <li key={p.id}>
+                    <a
+                      href={p.file}
+                      target="_blank"
+                      rel="noopener"
+                      className={styles.sketch}
+                    >
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={p.thumb}
+                        alt={`Sketch: ${p.name}`}
+                        width={96}
+                        height={96}
+                      />
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
+
           {o.allergyNote && (
             <section
               className={`${styles.allergy}`}
@@ -320,7 +354,7 @@ export function OrderDetailScreen({
               <dl className={styles.pairs}>
                 {d.lines.map((l) =>
                   row(
-                    l.name,
+                    o.kind === "manual" ? "The cake" : l.name,
                     formatAdminMoney(l.pricePence, "breakdown"),
                     l.id,
                   ),

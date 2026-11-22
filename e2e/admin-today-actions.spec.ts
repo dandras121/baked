@@ -160,6 +160,10 @@ test("Nobody was in: the confirm, Not yet changes nothing, Send the email sends 
   await expect(dialog).toContainText(`Isla ${tag} · 9am – 12pm`);
   await expect(dialog).toContainText("collect it today for free");
   await expect(dialog).toContainText("The order page shows the same");
+  // The dialog has finished opening (its colours are final) before axe looks.
+  await page.evaluate(() =>
+    Promise.all(document.getAnimations().map((a) => a.finished)),
+  );
   expect(
     (await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa"]).analyze())
       .violations,

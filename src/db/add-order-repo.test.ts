@@ -157,3 +157,63 @@ describe.skipIf(!url)("database: Add an order (§9.6)", () => {
     ).toHaveLength(1);
   });
 });
+
+describe.skipIf(!url)("database: Add an order's sketches (§9.6)", () => {
+  const conn = url ? connect(url) : null;
+  const db = () => conn!.db;
+  afterAll(async () => {
+    await db().delete(orders).where(eq(orders.date, day));
+    await conn?.close();
+  });
+  it("attaches this form's own uploads to the order, up to three, and nothing else", async () => {
+    const { uploads } = await import("./schema");
+    const { orderPictures } = await import("./upload-repo");
+    const formKey = crypto.randomUUID();
+    const other = crypto.randomUUID();
+    const row = (key: string, n: number) => ({
+      purpose: "order",
+      formKey: key,
+      name: `s${n}.jpg`,
+      fileKey: `f${n}-${key}`,
+      thumbKey: `t${n}-${key}`,
+      bytes: 1,
+      width: 1,
+      height: 1,
+    });
+    const mine = await db()
+      .insert(uploads)
+      .values([1, 2, 3, 4].map((n) => row(formKey, n)))
+      .returning({ id: uploads.id });
+    const [theirs] = await db()
+      .insert(uploads)
+      .values(row(other, 9))
+      .returning({ id: uploads.id });
+    const v = checkAddOrder(
+      {
+        ...EMPTY_FORM,
+        name: "Shona Baird",
+        email: "shona@example.co.uk",
+        phone: "07700 900 127",
+        date: day,
+        handover: "collection",
+        what: "A cake",
+        serves: "10",
+        total: "50",
+      },
+      "2026-11-22",
+    ).value!;
+    const number = await addOrder(db(), v, "Linda", now, {
+      formKey,
+      ids: [...mine.map((m) => m.id), theirs.id],
+    });
+    const [o] = await db()
+      .select()
+      .from(orders)
+      .where(eq(orders.number, number));
+    const pics = await orderPictures(db(), o.id);
+    expect(pics).toHaveLength(3);
+    expect(pics.every((p) => p.formKey === formKey)).toBe(true);
+    await db().delete(uploads).where(eq(uploads.formKey, other));
+    await db().delete(uploads).where(eq(uploads.formKey, formKey));
+  });
+});

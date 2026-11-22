@@ -5,6 +5,7 @@ import { connect, databaseUrl } from "@/db/client";
 import { readSettings } from "@/db/settings-repo";
 import { requireMember } from "@/lib/admin/session";
 import { londonDate } from "@/lib/london-time";
+import { blobMode } from "@/lib/storage";
 
 export const metadata: Metadata = { title: "Add an order" };
 export const instant = false;
@@ -21,6 +22,7 @@ export default async function Page() {
       <AddOrderForm
         today={londonDate(new Date())}
         districts={s.postcodeDistricts}
+        direct={blobMode()}
       />
     );
   } finally {

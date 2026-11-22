@@ -34,14 +34,23 @@ export type AddOutcome =
   | { kind: "failed" };
 
 /** Save the order (§9.6): checked again on the server, saved, e-mail 1 on its way. */
-export async function addOrderAction(form: AddOrderForm): Promise<AddOutcome> {
+export async function addOrderAction(
+  form: AddOrderForm,
+  pictures: { formKey: string; ids: string[] } | null = null,
+): Promise<AddOutcome> {
   const member = await memberForSave("owner");
   if (!member) return { kind: "signed-out" };
   const checked = checkAddOrder(form, londonDate(new Date()));
   if (!checked.value) return { kind: "invalid", errors: checked.errors };
   const { db, close } = connect();
   try {
-    const number = await addOrder(db, checked.value, member.name);
+    const number = await addOrder(
+      db,
+      checked.value,
+      member.name,
+      new Date(),
+      pictures,
+    );
     after(async () => {
       const c = connect();
       try {

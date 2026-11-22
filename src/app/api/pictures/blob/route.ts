@@ -11,7 +11,7 @@ import { savePicture } from "@/db/upload-repo";
 import { blobConnected } from "@/lib/storage";
 import { PictureError } from "@/lib/uploads/process";
 import { PICTURES } from "@/lib/uploads/rules";
-import { failure, formOf, mayAdd, NO_STORE } from "../shared";
+import { failure, allowedForm, mayAdd, NO_STORE } from "../shared";
 
 const INCOMING = "incoming/";
 const TYPES = ["image/jpeg", "image/png", "image/heic", "image/heif"];
@@ -30,7 +30,7 @@ export async function POST(req: Request) {
   const { db, close } = connect();
   try {
     if (typeof body.finish === "string") {
-      const which = formOf(body.formKey, body.purpose);
+      const which = await allowedForm(body.formKey, body.purpose);
       const pathname = body.finish;
       if (!which || !pathname.startsWith(`${INCOMING}${which.formKey}/`))
         return failure("failed");
@@ -51,7 +51,7 @@ export async function POST(req: Request) {
     // Only this form's own incoming/ folder, within its three pictures and the hourly limit.
     const allowed = async (pathname: string, payload: string | null) => {
       const p = JSON.parse(payload ?? "{}");
-      const which = formOf(p.formKey, p.purpose);
+      const which = await allowedForm(p.formKey, p.purpose);
       if (
         !which ||
         !pathname.startsWith(`${INCOMING}${which.formKey}/`) ||

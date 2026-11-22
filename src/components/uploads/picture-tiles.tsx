@@ -103,7 +103,7 @@ export function PictureTiles({
   direct,
   onChange,
 }: {
-  purpose: "enquiry" | "complaint";
+  purpose: "enquiry" | "complaint" | "order";
   /** The form's key (made on first use): the server binds each picture to it. */
   formKey: () => string;
   /** A Blob store is connected (and how): upload straight to it. */

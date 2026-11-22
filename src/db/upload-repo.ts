@@ -10,7 +10,7 @@ import { uploads } from "./schema";
 
 type Db = ReturnType<typeof connect>["db"];
 type Tx = Parameters<Parameters<Db["transaction"]>[0]>[0];
-export type UploadPurpose = "enquiry" | "complaint";
+export type UploadPurpose = "enquiry" | "complaint" | "order";
 
 export type SavedPicture = { id: string; name: string; thumb: string };
 
@@ -81,7 +81,7 @@ export async function attachPictures(
   tx: Tx,
   ids: string[],
   formKey: string,
-  to: { enquiryId: number } | { complaintId: number },
+  to: { enquiryId: number } | { complaintId: number } | { orderId: number },
   now: Date,
 ) {
   const wanted = ids.filter((id) => /^[0-9a-f-]{36}$/i.test(id));
@@ -112,6 +112,15 @@ export async function complaintPictures(db: Db, complaintId: number) {
     .select()
     .from(uploads)
     .where(eq(uploads.complaintId, complaintId))
+    .orderBy(asc(uploads.createdAt));
+}
+
+/** An order's sketches and photos (§9.6), in upload order — the admin only. */
+export async function orderPictures(db: Db, orderId: number) {
+  return db
+    .select()
+    .from(uploads)
+    .where(eq(uploads.orderId, orderId))
     .orderBy(asc(uploads.createdAt));
 }
 
