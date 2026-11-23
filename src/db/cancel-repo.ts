@@ -1,7 +1,7 @@
 // Cancel your order (§6.6, §10.1, §10.6): the refund the terms give today, and the cancellation itself. The order is
 // cancelled first; its Stripe refund follows at once (newest charge first). A refund that fails leaves the order
 // cancelled and tells Linda (refund-repo); e-mail 8 still says it is on its way (§9.5).
-import { and, eq, gt, inArray, ne } from "drizzle-orm";
+import { and, eq, gt, inArray, isNull, ne, sum } from "drizzle-orm";
 import type { CancelQuote } from "@/lib/cancel-copy";
 import type { CancelledView } from "@/lib/mail/after-emails";
 import { isChangeWindowOpen, refundAmount, refundTier } from "@/lib/deadlines";
@@ -14,6 +14,7 @@ import { paymentInProgress } from "./change-repo";
 import { queueMail } from "./mail-repo";
 import { netPaid, refundOrder } from "./refund-repo";
 import {
+  handPayments,
   orderChanges,
   orderLines,
   orders,
@@ -199,13 +200,37 @@ export async function cancelOrder(
   return { kind: "cancelled", refundOk };
 }
 
-/** `refunded` once every refund decided at cancellation has gone through (§10.6); a £0 one stays `cancelled`. */
+/**
+ * `refunded` once every refund decided at cancellation has gone through (§10.6) — the card part confirmed by Stripe and
+ * the by-hand part recorded as given back (§9.5); a £0 one stays `cancelled`.
+ */
 export async function settleCancellation(db: Db, orderId: number) {
   const rows = await db
     .select({ status: refunds.status })
     .from(refunds)
     .where(and(eq(refunds.orderId, orderId), eq(refunds.kind, "cancel")));
-  if (rows.length && rows.every((r) => r.status === "succeeded"))
+  const [o] = await db
+    .select({ cancellation: orders.cancellation })
+    .from(orders)
+    .where(eq(orders.id, orderId));
+  const handPart =
+    (o?.cancellation as { handPence?: number } | null)?.handPence ?? 0;
+  const [g] = await db
+    .select({ n: sum(handPayments.amountPence) })
+    .from(handPayments)
+    .where(
+      and(
+        eq(handPayments.orderId, orderId),
+        eq(handPayments.kind, "refund"),
+        isNull(handPayments.removedAt),
+      ),
+    );
+  const handOpen = handPart - Number(g?.n ?? 0);
+  if (
+    (rows.length || handPart > 0) &&
+    rows.every((r) => r.status === "succeeded") &&
+    handOpen <= 0
+  )
     await db
       .update(orders)
       .set({ status: "refunded" })

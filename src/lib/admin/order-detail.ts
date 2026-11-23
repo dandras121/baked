@@ -53,6 +53,8 @@ export type PaymentLine = {
   label: string;
   value: string;
   reference?: string;
+  /** A by-hand payment line: Remove (§9.5). */
+  remove?: { id: number; pence: number; method: string; on: string };
   /** An open payment link: Copy the link · Cancel this link (§9.5). */
   link?: { id: number; token: string; waiting: boolean };
 };
@@ -62,6 +64,8 @@ type Pay = {
   on: CalendarDate;
   how: "Stripe" | "Cash" | "Bank transfer";
   pi?: string | null;
+  /** A by-hand line's own row (Remove). */
+  hand?: { id: number; method: string };
 };
 
 /**
@@ -91,6 +95,12 @@ export function moneyLines(v: {
       out.push({
         label: only ? "Paid in full" : p.how,
         value: `${money(p.pence)} · ${only ? `${p.how} · ` : ""}${dayMonth(p.on)}`,
+        remove: p.hand && {
+          id: p.hand.id,
+          pence: p.pence,
+          method: p.hand.method,
+          on: dayMonth(p.on),
+        },
       });
       continue;
     }

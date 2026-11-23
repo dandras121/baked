@@ -156,8 +156,15 @@ test("Show 20 more loads the next 20", async ({ page }) => {
   test.skip(total <= 20, "needs more than 20 orders");
   await page.getByRole("link", { name: "Show 20 more" }).click();
   await expect(page).toHaveURL(/shown=40/);
-  // Other tests add and remove orders meanwhile: only the 40 is checked.
-  await expect(showing).toHaveText(/^Showing 40 of \d+$/);
+  // Other tests add and remove orders meanwhile: 40 are shown, or all of them when fewer are left.
+  await expect(async () => {
+    const [shown, all] = (await showing.innerText())
+      .match(/^Showing (\d+) of (\d+)$/)!
+      .slice(1)
+      .map(Number);
+    expect(shown).toBe(Math.min(40, all));
+    expect(shown).toBeGreaterThan(20);
+  }).toPass();
 });
 
 test("a Helper's Orders: no PAID column, no To pay, no Add an order, no money subtitle", async ({

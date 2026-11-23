@@ -586,3 +586,7 @@ select.input {
 .linkAmount {
   max-width: 180px;
 }
+
+.handDate {
+  max-width: 240px;
+}

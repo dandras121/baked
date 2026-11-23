@@ -22,6 +22,7 @@ import { formatAdminTime, formatLongDate, londonDate } from "@/lib/london-time";
 import { formatAdminMoney } from "@/lib/money";
 import { phoneForPeople } from "@/lib/phone";
 import { splitLine } from "@/lib/admin/cancel";
+import { handBackNote } from "@/lib/admin/hand-money";
 import type { AdminCancelQuote } from "@/db/admin-cancel-repo";
 import { CancelOrder } from "./cancel-order";
 import { CollectionTime } from "./collection-time";
@@ -31,6 +32,7 @@ import {
   RecordTheirChoice,
 } from "./missed-actions";
 import { CopyOrderLink } from "./copy-link";
+import { HandMoney, RemoveHandLine } from "./hand-money";
 import { LinkActions } from "./link-actions";
 import { SendPayLink } from "./send-pay-link";
 import styles from "./order.module.css";
@@ -52,6 +54,7 @@ export function OrderDetailScreen({
   cancelQuote,
   saved = false,
   payAtStart = false,
+  handBackPence = 0,
   sketches = [],
   waiting = null,
 }: {
@@ -63,6 +66,8 @@ export function OrderDetailScreen({
   saved?: boolean;
   /** Save and send a payment link (§9.6): the dialog opens on arrival. */
   payAtStart?: boolean;
+  /** The by-hand part still to give back (§9.5): Record a refund given back while > 0. */
+  handBackPence?: number;
   d: OrderDetail;
   kitchen: string;
   /** Owner, confirmed orders: what Cancel the order proposes (§9.5). */
@@ -140,6 +145,7 @@ export function OrderDetailScreen({
         how:
           h.method === "cash" ? ("Cash" as const) : ("Bank transfer" as const),
         pi: null,
+        hand: { id: h.id, method: h.method },
       })),
   ].sort((a, b) => a.on.localeCompare(b.on));
   const last = payments.at(-1) ?? null;
@@ -405,6 +411,16 @@ export function OrderDetailScreen({
                           </a>
                         </>
                       )}
+                      {l.remove &&
+                        o.status !== "cancelled" &&
+                        o.status !== "refunded" && (
+                          <RemoveHandLine
+                            lineId={l.remove.id}
+                            pence={l.remove.pence}
+                            method={l.remove.method}
+                            on={l.remove.on}
+                          />
+                        )}
                       {l.link && (
                         <LinkActions
                           linkId={l.link.id}
@@ -596,6 +612,32 @@ export function OrderDetailScreen({
                   openAtStart={payAtStart}
                 />
               )}
+            {owner &&
+              (o.status === "confirmed" || o.status === "completed") &&
+              d.money.stillToPayPence > 0 && (
+                <HandMoney
+                  kind="payment"
+                  orderId={o.id}
+                  eyebrow={`${o.number} · ${o.customerName}`}
+                  maxPence={d.money.stillToPayPence}
+                  today={today}
+                  className={styles.button}
+                />
+              )}
+            {owner && handBackPence > 0 && (
+              <HandMoney
+                kind="refund"
+                orderId={o.id}
+                eyebrow={`${o.number} · ${o.customerName}${o.status === "cancelled" ? " · Cancelled" : o.status === "refunded" ? " · Refunded" : ""}`}
+                maxPence={handBackPence}
+                today={today}
+                refundNote={handBackNote(
+                  o.status === "cancelled" || o.status === "refunded",
+                  handBackPence,
+                )}
+                className={styles.button}
+              />
+            )}
             <ButtonLink
               href={`mailto:${o.email}?subject=${encodeURIComponent(`Your order ${o.number}`)}`}
               variant="outline"
