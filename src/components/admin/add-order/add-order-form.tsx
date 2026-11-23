@@ -38,6 +38,7 @@ import {
 } from "@/lib/admin/add-order";
 import own from "@/components/admin/change-order/change-order.module.css";
 import { formatAdminMoney } from "@/lib/money";
+import { readPounds } from "@/lib/admin/cancel";
 import { UK_ALLERGENS } from "@/lib/constants";
 import { inDistricts, outwardCode, WINDOWS } from "@/lib/handover";
 import styles from "./add-order.module.css";
@@ -166,10 +167,16 @@ export function AddOrderForm({
       setLine("Nothing was saved — please try again.");
     });
 
-  const save = () =>
+  // Save and send a payment link (§9.6): saves, then Order detail opens with Send a payment link (§9.8).
+  const [thenPay, setThenPay] = useState(false);
+  const leftToPay =
+    (readPounds(f.total) ?? 0) -
+    (f.paid.trim() ? (readPounds(f.paid) ?? 0) : 0);
+  const save = (pay = false) =>
     edit
       ? saveEdit(edit, false)
       : start(async () => {
+          setThenPay(pay);
           setLine(null);
           if (pictures.pending) {
             setLine(
@@ -185,7 +192,9 @@ export function AddOrderForm({
           ).catch(() => ({ kind: "failed" }) as const);
           if (r.kind === "saved") {
             setSaved(true);
-            router.push(`/admin/orders/${r.number}?saved=1`);
+            router.push(
+              `/admin/orders/${r.number}?saved=1${pay ? "&pay=1" : ""}`,
+            );
             return;
           }
           if (r.kind === "signed-out") return setSignIn("asking");
@@ -261,9 +270,9 @@ export function AddOrderForm({
   const saveButton = (
     <Button
       className={styles.save}
-      busy={busy}
+      busy={busy && !thenPay}
       busyLabel="Saving"
-      onClick={save}
+      onClick={() => save()}
     >
       {signIn === "back" ? (
         "Save again"
@@ -573,7 +582,7 @@ export function AddOrderForm({
             busy={busy && !refund}
             busyLabel="Saving"
             disabled={!changed}
-            onClick={save}
+            onClick={() => save()}
             className={own.button}
           >
             {signIn === "back" ? "Save again" : "Save changes"}
@@ -583,7 +592,20 @@ export function AddOrderForm({
           </Link>
         </div>
       ) : (
-        <div className={styles.end}>{saveButton}</div>
+        <div className={styles.end}>
+          {leftToPay > 0 && (
+            <Button
+              variant="outline"
+              className={styles.save}
+              busy={busy && thenPay}
+              busyLabel="Saving"
+              onClick={() => save(true)}
+            >
+              Save and send a payment link
+            </Button>
+          )}
+          {saveButton}
+        </div>
       )}
 
       {edit && (

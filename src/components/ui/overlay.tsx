@@ -27,6 +27,8 @@ type OverlayProps = {
   onClose: () => void;
   title: string;
   description?: ReactNode;
+  /** A small line over the title (e.g. “BBL-2026-0203 · Mairi Sinclair”, 1607:10918). */
+  eyebrow?: ReactNode;
   /** The buttons; the first one gets the focus. */
   children: ReactNode;
   /** Where the focus goes on close; by default back to the opener. */
@@ -68,6 +70,7 @@ export function Overlay({
   onClose,
   title,
   description,
+  eyebrow,
   children,
   kind: forced,
   classNames = {},
@@ -290,6 +293,7 @@ export function Overlay({
         onPointerCancel={onPointerUp}
       >
         {kind === "sheet" && <span className={styles.grabber} aria-hidden />}
+        {eyebrow && <p className={styles.eyebrow}>{eyebrow}</p>}
         <h2 id={titleId} className={classNames.title ?? styles.title}>
           {title}
         </h2>

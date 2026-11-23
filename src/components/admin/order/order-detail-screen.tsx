@@ -31,6 +31,8 @@ import {
   RecordTheirChoice,
 } from "./missed-actions";
 import { CopyOrderLink } from "./copy-link";
+import { LinkActions } from "./link-actions";
+import { SendPayLink } from "./send-pay-link";
 import styles from "./order.module.css";
 
 /**
@@ -49,6 +51,7 @@ export function OrderDetailScreen({
   kitchen,
   cancelQuote,
   saved = false,
+  payAtStart = false,
   sketches = [],
   waiting = null,
 }: {
@@ -58,6 +61,8 @@ export function OrderDetailScreen({
   sketches?: { id: string; name: string; thumb: string; file: string }[];
   /** Just added by hand (§9.6): “Order saved”. */
   saved?: boolean;
+  /** Save and send a payment link (§9.6): the dialog opens on arrival. */
+  payAtStart?: boolean;
   d: OrderDetail;
   kitchen: string;
   /** Owner, confirmed orders: what Cancel the order proposes (§9.5). */
@@ -160,6 +165,7 @@ export function OrderDetailScreen({
         purpose: l.purpose,
         pence: l.amountPence,
         sentOn: String(l.sentOn),
+        link: { id: l.id, token: l.token, waiting: !!l.changeId },
       })),
     stillToPayPence: d.money.stillToPayPence,
   });
@@ -399,6 +405,14 @@ export function OrderDetailScreen({
                           </a>
                         </>
                       )}
+                      {l.link && (
+                        <LinkActions
+                          linkId={l.link.id}
+                          token={l.link.token}
+                          first={first}
+                          waiting={l.link.waiting}
+                        />
+                      )}
                     </>,
                     `p${i}`,
                   ),
@@ -566,6 +580,22 @@ export function OrderDetailScreen({
                 {o.kind === "manual" ? "Edit the order" : "Change the order"}
               </ButtonLink>
             )}
+            {owner &&
+              (o.status === "confirmed" || o.status === "completed") &&
+              d.money.stillToPayPence > 0 && (
+                <SendPayLink
+                  orderId={o.id}
+                  number={o.number}
+                  name={o.customerName}
+                  money={{
+                    totalPence: o.totalPence,
+                    paidPence: d.money.netPaidPence,
+                    stillToPayPence: d.money.stillToPayPence,
+                  }}
+                  className={styles.button}
+                  openAtStart={payAtStart}
+                />
+              )}
             <ButtonLink
               href={`mailto:${o.email}?subject=${encodeURIComponent(`Your order ${o.number}`)}`}
               variant="outline"

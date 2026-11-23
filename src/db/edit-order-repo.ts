@@ -17,6 +17,7 @@ import { formatLongDate, londonDate } from "@/lib/london-time";
 import type { Gateway } from "@/lib/payments";
 import { WINDOWS } from "@/lib/handover";
 import { dayInfo } from "./add-order-repo";
+import { withdrawLinksAbove } from "./admin-pay-link-repo";
 import type { connect } from "./client";
 import { queueMail } from "./mail-repo";
 import { cardRefundable, netPaid, refundOrder } from "./refund-repo";
@@ -53,7 +54,7 @@ const where = (v: {
 
 export async function editManualOrder(
   db: Db,
-  gw: Pick<Gateway, "refund">,
+  gw: Pick<Gateway, "refund"> & Partial<Pick<Gateway, "cancel">>,
   input: {
     orderId: number;
     seenVersion: number;
@@ -263,6 +264,14 @@ export async function editManualOrder(
         now,
       )
     ).ok;
+
+  // A lowered total: open links worth more than what is still to pay are withdrawn (§9.8).
+  if (v.totalPence < o.totalPence)
+    await withdrawLinksAbove(
+      db,
+      gw.cancel ? { cancel: gw.cancel } : null,
+      o.id,
+    );
 
   // E-mail 12 when the customer's e-mails are on (the queue applies the switch, §8.2).
   let emailed = false;

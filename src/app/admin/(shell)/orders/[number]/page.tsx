@@ -29,12 +29,12 @@ export default async function Page({
   searchParams,
 }: {
   params: Promise<{ number: string }>;
-  searchParams: Promise<{ from?: string; saved?: string }>;
+  searchParams: Promise<{ from?: string; saved?: string; pay?: string }>;
 }) {
   await connection();
   const { member } = await requireMember();
   const number = decodeURIComponent((await params).number);
-  const { from, saved } = await searchParams;
+  const { from, saved, pay } = await searchParams;
   if (!databaseUrl()) return null;
   const today = londonDate(new Date());
   const { db, close } = connect();
@@ -64,6 +64,7 @@ export default async function Page({
         owner={owner}
         cancelQuote={cancelQuote}
         saved={saved === "1"}
+        payAtStart={pay === "1"}
         sketches={sketches}
         waiting={
           waiting && {

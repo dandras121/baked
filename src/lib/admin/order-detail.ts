@@ -49,7 +49,13 @@ const dayMonthLong = (d: CalendarDate) => {
   return `${day} ${LONG[m - 1]}`;
 };
 
-export type PaymentLine = { label: string; value: string; reference?: string };
+export type PaymentLine = {
+  label: string;
+  value: string;
+  reference?: string;
+  /** An open payment link: Copy the link · Cancel this link (§9.5). */
+  link?: { id: number; token: string; waiting: boolean };
+};
 
 type Pay = {
   pence: number;
@@ -70,7 +76,12 @@ export function moneyLines(v: {
   /** Money given back by hand (cash or bank, §10.6). */
   handRefunds?: { pence: number; on: CalendarDate; how: string }[];
   refunds: { pence: number; on: CalendarDate; status: string; kind: string }[];
-  openLinks: { purpose: string; pence: number; sentOn: CalendarDate }[];
+  openLinks: {
+    purpose: string;
+    pence: number;
+    sentOn: CalendarDate;
+    link?: { id: number; token: string; waiting: boolean };
+  }[];
   stillToPayPence: number;
 }) {
   const out: PaymentLine[] = [];
@@ -119,6 +130,7 @@ export function moneyLines(v: {
     out.push({
       label: "Link",
       value: `${LINK_PURPOSE[l.purpose] ?? "Payment"} · ${money(l.pence)} · sent ${dayMonth(l.sentOn)}`,
+      link: l.link,
     });
   out.push({ label: "Still to pay", value: money(v.stillToPayPence) });
   return out;

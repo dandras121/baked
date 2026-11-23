@@ -4,6 +4,11 @@ import { revalidatePath } from "next/cache";
 import { after } from "next/server";
 import { SITE_URL } from "@/app/layout";
 import { adminCancelOrder } from "@/db/admin-cancel-repo";
+import {
+  cancelPayLink,
+  sendPayLink,
+  type SendResult,
+} from "@/db/admin-pay-link-repo";
 import { connect } from "@/db/client";
 import { processMail } from "@/db/mail-repo";
 import {
@@ -12,6 +17,7 @@ import {
   type MissedResult,
   type TheirChoice,
 } from "@/db/missed-admin-repo";
+import { LINK_PURPOSES, type LinkPurpose } from "@/lib/admin/pay-link";
 import { memberForSave } from "@/lib/admin/session";
 import { mailTransport } from "@/lib/mail/transport";
 import { gateway } from "@/lib/payments";
@@ -127,4 +133,69 @@ export async function recordChoiceAction(
       choice,
     }),
   );
+}
+
+export type SendLinkOutcome =
+  SendResult | { kind: "signed-out" } | { kind: "failed" };
+
+/** Send the link (§9.8, Owner): e-mail 15 with /pay/[token], also with customer e-mails off. */
+export async function sendPayLinkAction(
+  orderId: number,
+  purpose: LinkPurpose,
+  amount: string,
+): Promise<SendLinkOutcome> {
+  const member = await memberForSave("owner");
+  if (!member) return { kind: "signed-out" };
+  if (!LINK_PURPOSES.some((p) => p.value === purpose))
+    return { kind: "failed" };
+  const { db, close } = connect();
+  try {
+    const r = await sendPayLink(db, {
+      orderId,
+      purpose,
+      amount,
+      by: member.name,
+    });
+    if (r.kind === "sent") {
+      after(async () => {
+        const c = connect();
+        try {
+          await processMail(c.db, mailTransport(), SITE_URL);
+        } catch (e) {
+          console.error("pay link mail", e);
+        } finally {
+          await c.close();
+        }
+      });
+      revalidatePath("/admin", "layout");
+    }
+    return r;
+  } catch (e) {
+    console.error("send pay link", e);
+    return { kind: "failed" };
+  } finally {
+    await close();
+  }
+}
+
+/** Cancel this link (§9.5, Owner): the link stops working; no e-mail. */
+export async function cancelPayLinkAction(
+  linkId: number,
+): Promise<{ kind: "saved" | "signed-out" | "failed" }> {
+  const member = await memberForSave("owner");
+  if (!member) return { kind: "signed-out" };
+  const { db, close } = connect();
+  try {
+    const ok = await cancelPayLink(db, gateway() ?? PAYMENTS_OFF, {
+      linkId,
+      by: member.name,
+    });
+    revalidatePath("/admin", "layout");
+    return { kind: ok ? "saved" : "failed" };
+  } catch (e) {
+    console.error("cancel pay link", e);
+    return { kind: "failed" };
+  } finally {
+    await close();
+  }
 }

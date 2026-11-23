@@ -548,3 +548,41 @@ select.input {
   font: var(--type-small);
   font-weight: 600;
 }
+
+/* An open link's Copy the link · Cancel this link (§9.5): text links, colour only, 44 px tall hit areas. */
+.linkActions {
+  display: flex;
+  flex-wrap: wrap;
+  column-gap: 16px;
+  margin: -12px 0 -12px;
+}
+
+.textButton {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--colour-accent);
+  font: var(--type-small);
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
+.textButton:focus-visible {
+  outline: 2px solid var(--colour-focus-ring);
+  outline-offset: 2px;
+}
+
+/* Send a payment link (1607:10918): more air between the rows; the amount field 180 wide. */
+.linkBody {
+  display: grid;
+  gap: 14px;
+}
+
+.linkAmount {
+  max-width: 180px;
+}

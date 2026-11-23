@@ -155,3 +155,5 @@ Anything built differently from the docs or Figma, and why. Bohoka’s decision 
 | 8.6a | 1250:9221 “Cancel” | “Discard changes”, as §9.7 names it |
 | 8.6a | §9.7 a rise on a fully paid order | Until 8.6b: refused with “This raises a fully paid order by £… — a change like this waits for a payment link, which comes with the next step. Nothing was saved.” (only a handover switch with a delivery charge can raise it in 8.6a; the charge is £0 today) |
 | 8.6d | §9.7 “£x goes back to her card now” | “£x goes back to the card now” — the customer's pronoun is not known and is not guessed |
+| 8.7a | 1607:10918 “When she pays, …” | “Once it is paid, …” — the customer's pronoun is not known and is not guessed |
+| 8.7 | CLAUDE.md §4.4 one slice | 8.7 split into 8.7a (Send a payment link), 8.7b (Record a payment · Remove · Record a refund given back), 8.7c (the £15 Redelivery link) |
