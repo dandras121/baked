@@ -8,6 +8,7 @@ import {
   changeOrderAction,
 } from "@/app/admin/(shell)/orders/[number]/change/actions";
 import styles from "@/components/admin/add-order/add-order.module.css";
+import { carryLine, takeCarriedLine } from "@/components/admin/carry-line";
 import { LeaveGuard } from "@/components/admin/leave-guard";
 import { SignInAgain } from "@/components/admin/order/sign-in-again";
 import { Button } from "@/components/ui/button";
@@ -91,7 +92,7 @@ export function ChangeOrderForm({
   const [f, setF] = useState<ChangeForm>(initial);
   const [errors, setErrors] = useState<Errors>({});
   const [day, setDay] = useState<DayInfo | null>(null);
-  const [line, setLine] = useState<string | null>(null);
+  const [line, setLine] = useState<string | null>(takeCarriedLine);
   const [signIn, setSignIn] = useState<"no" | "asking" | "back">("no");
   const [done, setDone] = useState(false);
   const [busy, start] = useTransition();
@@ -196,8 +197,11 @@ export function ChangeOrderForm({
         return setLine("Nothing was saved — check the fields marked below.");
       }
       if (r.kind === "conflict") {
+        // The new version comes in a fresh form; the line goes with it.
+        carryLine(r.line);
+        setLine(r.line);
         router.refresh();
-        return setLine(r.line);
+        return;
       }
       if (r.kind === "owner-only")
         return setLine(

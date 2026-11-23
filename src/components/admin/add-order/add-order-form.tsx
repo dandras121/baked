@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
   useEffect,
@@ -12,6 +13,11 @@ import {
   addOrderAction,
   dayInfoAction,
 } from "@/app/admin/(shell)/orders/new/actions";
+import {
+  changeDayInfoAction,
+  editOrderAction,
+} from "@/app/admin/(shell)/orders/[number]/change/actions";
+import { carryLine, takeCarriedLine } from "@/components/admin/carry-line";
 import { LeaveGuard } from "@/components/admin/leave-guard";
 import { SignInAgain } from "@/components/admin/order/sign-in-again";
 import { Button } from "@/components/ui/button";
@@ -26,13 +32,39 @@ import {
   emailHint,
   TIERS,
   type AddOrderForm as Form,
+  refundLine,
   type DayInfo,
+  type Refund,
 } from "@/lib/admin/add-order";
+import own from "@/components/admin/change-order/change-order.module.css";
+import { formatAdminMoney } from "@/lib/money";
 import { UK_ALLERGENS } from "@/lib/constants";
 import { inDistricts, outwardCode, WINDOWS } from "@/lib/handover";
 import styles from "./add-order.module.css";
 
 type Errors = Partial<Record<keyof Form, string>>;
+
+/** Edit the order (§9.7): a manual order's own form, filled in; Paid so far is not editable. */
+export type EditMode = {
+  orderId: number;
+  number: string;
+  version: number;
+  initial: Form;
+  paidPence: number;
+  owner: boolean;
+};
+const money = (p: number) => formatAdminMoney(p, "breakdown");
+// A Helper changes the date, window, address, inscription and collection time only (Decided D9).
+const HELPER_FIELDS: (keyof Form)[] = [
+  "date",
+  "handover",
+  "address",
+  "town",
+  "postcode",
+  "window",
+  "collectionTime",
+  "inscription",
+];
 
 /**
  * Add an order (§9.6; desktop 1607:10612, phone 1607:10782): THE CUSTOMER, THE DAY (with the live count and its calm
@@ -42,17 +74,21 @@ export function AddOrderForm({
   today,
   districts,
   direct,
+  edit,
 }: {
   today: string;
   districts: string;
   /** A Blob store is connected: pictures upload straight to it (§7.1). */
   direct: BlobMode;
+  edit?: EditMode;
 }) {
   const router = useRouter();
-  const [f, setF] = useState<Form>(EMPTY_FORM);
+  const start0 = edit?.initial ?? EMPTY_FORM;
+  const [f, setF] = useState<Form>(start0);
+  const [refund, setRefund] = useState<Refund | null>(null);
   const [errors, setErrors] = useState<Errors>({});
   const [day, setDay] = useState<DayInfo | null>(null);
-  const [line, setLine] = useState<string | null>(null);
+  const [line, setLine] = useState<string | null>(takeCarriedLine);
   const [signIn, setSignIn] = useState<"no" | "asking" | "back">("no");
   const [saved, setSaved] = useState(false);
   // Add a sketch or photo (§9.6): bound to this form's key, attached on Save.
@@ -60,55 +96,108 @@ export function AddOrderForm({
   const keyOf = () => (formKey.current ||= crypto.randomUUID());
   const [pictures, setPictures] = useState({ ids: [] as string[], pending: 0 });
   const [busy, start] = useTransition();
-  const dirty = !saved && JSON.stringify(f) !== JSON.stringify(EMPTY_FORM);
+  const changed = JSON.stringify(f) !== JSON.stringify(start0);
+  const dirty = !saved && changed;
+  const locked = (k: keyof Form) =>
+    !!edit && !edit.owner && !HELPER_FIELDS.includes(k);
   const set = <K extends keyof Form>(k: K, v: Form[K]) => {
     setF((x) => ({ ...x, [k]: v }));
     setErrors((e) => ({ ...e, [k]: undefined }));
   };
 
-  // The live count under the date (§9.6).
+  // The live count under the date (§9.6); an edited order's own cake does not count against its new day.
+  const editId = edit?.orderId;
   useEffect(() => {
     if (!/^\d{4}-\d{2}-\d{2}$/.test(f.date)) return;
     let live = true;
-    dayInfoAction(f.date).then((d) => live && setDay(d));
+    (editId ? changeDayInfoAction(editId, f.date) : dayInfoAction(f.date)).then(
+      (d) => live && setDay(d),
+    );
     return () => {
       live = false;
     };
-  }, [f.date]);
+  }, [f.date, editId]);
 
   const outside =
     f.handover === "delivery" &&
     f.postcode.trim().length >= 5 &&
     !inDistricts(outwardCode(f.postcode), districts);
 
-  const save = () =>
+  const saveEdit = (e: EditMode, confirmRefund: boolean) =>
     start(async () => {
       setLine(null);
-      if (pictures.pending) {
-        setLine(
-          "A picture is still uploading — nothing was saved. Save again once it shows.",
-        );
-        return;
-      }
-      const r = await addOrderAction(
+      const r = await editOrderAction(
+        e.orderId,
+        e.version,
         f,
-        pictures.ids.length ? { formKey: keyOf(), ids: pictures.ids } : null,
+        confirmRefund,
       ).catch(() => ({ kind: "failed" }) as const);
+      if (r.kind !== "confirm-refund") setRefund(null);
       if (r.kind === "saved") {
         setSaved(true);
-        router.push(`/admin/orders/${r.number}?saved=1`);
+        router.push(`/admin/orders/${e.number}`);
+        router.refresh();
         return;
       }
+      if (r.kind === "confirm-refund") return setRefund(r);
       if (r.kind === "signed-out") return setSignIn("asking");
       if (r.kind === "invalid") {
         setErrors(r.errors);
         setLine("Nothing was saved — check the fields marked below.");
-        const first = Object.keys(r.errors)[0];
-        document.getElementById(`f-${first}`)?.focus();
+        document.getElementById(`f-${Object.keys(r.errors)[0]}`)?.focus();
         return;
       }
+      if (r.kind === "conflict") {
+        // The new version comes in a fresh form; the line goes with it.
+        carryLine(r.line);
+        setLine(r.line);
+        router.refresh();
+        return;
+      }
+      if (r.kind === "owner-only")
+        return setLine(
+          `${r.warnings.join(" ")} Only the owner can book a full or closed day — nothing was saved.`,
+        );
+      if (r.kind === "nothing") return setLine("Nothing has changed yet.");
+      if (r.kind === "closed")
+        return setLine(
+          "This order can no longer be changed — nothing was saved.",
+        );
       setLine("Nothing was saved — please try again.");
     });
+
+  const save = () =>
+    edit
+      ? saveEdit(edit, false)
+      : start(async () => {
+          setLine(null);
+          if (pictures.pending) {
+            setLine(
+              "A picture is still uploading — nothing was saved. Save again once it shows.",
+            );
+            return;
+          }
+          const r = await addOrderAction(
+            f,
+            pictures.ids.length
+              ? { formKey: keyOf(), ids: pictures.ids }
+              : null,
+          ).catch(() => ({ kind: "failed" }) as const);
+          if (r.kind === "saved") {
+            setSaved(true);
+            router.push(`/admin/orders/${r.number}?saved=1`);
+            return;
+          }
+          if (r.kind === "signed-out") return setSignIn("asking");
+          if (r.kind === "invalid") {
+            setErrors(r.errors);
+            setLine("Nothing was saved — check the fields marked below.");
+            const first = Object.keys(r.errors)[0];
+            document.getElementById(`f-${first}`)?.focus();
+            return;
+          }
+          setLine("Nothing was saved — please try again.");
+        });
 
   const field = (
     k: keyof Form,
@@ -136,6 +225,7 @@ export function AddOrderForm({
       aria-invalid={!!errors[k] || undefined}
       aria-describedby={errors[k] ? `f-${k}-error` : undefined}
       onChange={(e) => set(k, e.target.value as never)}
+      disabled={locked(k)}
       {...extra}
     />
   );
@@ -147,6 +237,7 @@ export function AddOrderForm({
     <fieldset
       className={styles.pillSet}
       aria-describedby={errors[k] ? `f-${k}-error` : undefined}
+      disabled={locked(k)}
     >
       <legend className={styles.label}>{legend}</legend>
       <div className={styles.pills}>
@@ -195,14 +286,30 @@ export function AddOrderForm({
       }}
     >
       <LeaveGuard dirty={dirty} />
-      <div className={styles.head}>
-        <h1 className={styles.title}>Add an order</h1>
-        {saveButton}
-      </div>
-      <p className={styles.intro}>
-        For a bespoke cake you have agreed by email. It counts against the day’s
-        and the week’s caps, and shows on Today.
-      </p>
+      {edit ? (
+        <>
+          <Link href={`/admin/orders/${edit.number}`} className={own.back}>
+            ‹ Back to order
+          </Link>
+          <h1 className={styles.title}>Edit the order</h1>
+          <p className={styles.intro}>
+            {edit.number} · {edit.initial.name}
+            {!edit.owner &&
+              " · You can change the day, the handover, the address, the inscription and the collection time."}
+          </p>
+        </>
+      ) : (
+        <>
+          <div className={styles.head}>
+            <h1 className={styles.title}>Add an order</h1>
+            {saveButton}
+          </div>
+          <p className={styles.intro}>
+            For a bespoke cake you have agreed by email. It counts against the
+            day’s and the week’s caps, and shows on Today.
+          </p>
+        </>
+      )}
       {line && (
         <p className={styles.alert} role="alert">
           {line}
@@ -317,6 +424,7 @@ export function AddOrderForm({
               "What it is",
               <textarea
                 id="f-what"
+                disabled={locked("what")}
                 className={`${styles.input} ${styles.area}`}
                 value={f.what}
                 maxLength={300}
@@ -336,6 +444,7 @@ export function AddOrderForm({
                 "Tiers",
                 <select
                   id="f-tiers"
+                  disabled={locked("tiers")}
                   className={styles.input}
                   value={f.tiers}
                   onChange={(e) => set("tiers", e.target.value)}
@@ -354,7 +463,7 @@ export function AddOrderForm({
               text("inscription", { maxLength: 24 }),
               "Leave empty for none.",
             )}
-            <fieldset className={styles.pillSet}>
+            <fieldset className={styles.pillSet} disabled={locked("allergens")}>
               <legend className={styles.label}>Allergens in this cake</legend>
               <div className={styles.ticks}>
                 {UK_ALLERGENS.map((a) => (
@@ -387,24 +496,27 @@ export function AddOrderForm({
               "Allergy note",
               <textarea
                 id="f-allergyNote"
+                disabled={locked("allergyNote")}
                 className={`${styles.input} ${styles.area}`}
                 value={f.allergyNote}
                 maxLength={400}
                 onChange={(e) => set("allergyNote", e.target.value)}
               />,
             )}
-            <fieldset className={styles.pillSet}>
-              <legend className={styles.label}>A sketch or photo</legend>
-              <PictureTiles
-                purpose="order"
-                formKey={keyOf}
-                direct={direct}
-                onChange={setPictures}
-              />
-              <p className={styles.hint}>
-                Up to three. Only you see them — never the customer.
-              </p>
-            </fieldset>
+            {!edit && (
+              <fieldset className={styles.pillSet}>
+                <legend className={styles.label}>A sketch or photo</legend>
+                <PictureTiles
+                  purpose="order"
+                  formKey={keyOf}
+                  direct={direct}
+                  onChange={setPictures}
+                />
+                <p className={styles.hint}>
+                  Up to three. Only you see them — never the customer.
+                </p>
+              </fieldset>
+            )}
           </section>
 
           <section className={styles.card} aria-labelledby="money-h">
@@ -417,21 +529,32 @@ export function AddOrderForm({
                 "Total",
                 text("total", { inputMode: "decimal", placeholder: "£" }),
               )}
-              {field(
-                "paid",
-                "Paid so far",
-                text("paid", { inputMode: "decimal" }),
+              {edit ? (
+                <div className={styles.field}>
+                  <p className={styles.label} id="f-paid">
+                    Paid so far
+                  </p>
+                  <p className={styles.paid}>{money(edit.paidPence)}</p>
+                </div>
+              ) : (
+                field(
+                  "paid",
+                  "Paid so far",
+                  text("paid", { inputMode: "decimal" }),
+                )
               )}
             </div>
-            {f.paid.trim() &&
+            {!edit &&
+              f.paid.trim() &&
               f.paid.trim() !== "0" &&
               pills("method", "Paid by", [
                 { value: "cash", label: "Cash" },
                 { value: "bank", label: "Bank transfer" },
               ])}
             <p className={styles.hint}>
-              Cash or bank transfer received before saving: type it into “Paid
-              so far”. Later money goes through Record a payment.
+              {edit
+                ? "A higher total raises what is still to pay. Money in goes through Record a payment."
+                : "Cash or bank transfer received before saving: type it into “Paid so far”. Later money goes through Record a payment."}
             </p>
             {pills("emails", "Customer emails", [
               { value: "on", label: "On" },
@@ -444,7 +567,52 @@ export function AddOrderForm({
           </section>
         </div>
       </div>
-      <div className={styles.end}>{saveButton}</div>
+      {edit ? (
+        <div className={styles.editEnd}>
+          <Button
+            busy={busy && !refund}
+            busyLabel="Saving"
+            disabled={!changed}
+            onClick={save}
+            className={own.button}
+          >
+            {signIn === "back" ? "Save again" : "Save changes"}
+          </Button>
+          <Link href={`/admin/orders/${edit.number}`} className={own.discard}>
+            Discard changes
+          </Link>
+        </div>
+      ) : (
+        <div className={styles.end}>{saveButton}</div>
+      )}
+
+      {edit && (
+        <Overlay
+          open={!!refund}
+          onClose={() => setRefund(null)}
+          title="Save and refund?"
+          classNames={{ body: styles.dialogBody }}
+        >
+          {refund && (
+            <>
+              <p className={styles.hint}>{refundLine(refund, f.name)}</p>
+              <div className={own.buttons}>
+                <Button
+                  busy={busy}
+                  busyLabel="Saving"
+                  onClick={() => saveEdit(edit, true)}
+                  className={own.button}
+                >
+                  Save and refund
+                </Button>
+                <Button variant="secondary" onClick={() => setRefund(null)}>
+                  Keep editing
+                </Button>
+              </div>
+            </>
+          )}
+        </Overlay>
+      )}
 
       <Overlay
         open={signIn === "asking"}

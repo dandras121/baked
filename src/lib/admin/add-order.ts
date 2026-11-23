@@ -92,7 +92,12 @@ const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 const chars = (s: string) => [...s].length;
 
 /** Checks the form (§9.6); every message says what is wrong and what to do. */
-export function checkAddOrder(f: AddOrderForm, today: string) {
+export function checkAddOrder(
+  f: AddOrderForm,
+  today: string,
+  /** Edit the order (§9.7): the order's current date may stay even when it has passed. */
+  keepDate: string | null = null,
+) {
   const e: Partial<Record<keyof AddOrderForm, string>> = {};
   const name = f.name.trim().replace(/\s+/g, " ");
   if (chars(name) < 2 || chars(name) > 80)
@@ -111,7 +116,8 @@ export function checkAddOrder(f: AddOrderForm, today: string) {
     e.phone =
       "With customer e-mails off, add a phone number so you can ring them.";
   if (!/^\d{4}-\d{2}-\d{2}$/.test(f.date)) e.date = "Pick the day.";
-  else if (f.date < today) e.date = "Pick a day from today on.";
+  else if (f.date < today && f.date !== keepDate)
+    e.date = "Pick a day from today on.";
   const postcode = normalisePostcode(f.postcode);
   if (f.handover === "delivery") {
     if (!f.address.trim()) e.address = "Type the address for the delivery.";
@@ -143,7 +149,8 @@ export function checkAddOrder(f: AddOrderForm, today: string) {
     e.paid = `That is more than the ${formatAdminMoney(total, "breakdown")} total.`;
   if (paid && paid > 0 && f.method !== "cash" && f.method !== "bank")
     e.method = "Say how it was paid: cash or bank transfer.";
-  if (Object.keys(e).length) return { errors: e, value: null as AddOrderValue | null };
+  if (Object.keys(e).length)
+    return { errors: e, value: null as AddOrderValue | null };
   const value: AddOrderValue = {
     name,
     email,
@@ -212,3 +219,80 @@ export function dayWarnings(d: DayInfo, cakes = 1) {
 /** The hint under the e-mail field (§9.6). */
 export const emailHint = (name: string) =>
   `Ask ${name.trim().split(/\s+/)[0] || "the customer"} for an e-mail address — payment links and cancellations are sent by e-mail.`;
+
+/** The form of a saved manual order, for Edit the order (§9.7). */
+export function formFromManual(
+  o: {
+    customerName: string;
+    email: string;
+    phone: string;
+    date: string;
+    handover: string;
+    address: string | null;
+    town: string | null;
+    postcode: string | null;
+    deliveryWindow: string | null;
+    collectionTime: string | null;
+    allergyNote: string | null;
+    totalPence: number;
+    customerEmails: boolean;
+  },
+  line: {
+    name: string;
+    sizeLine: string;
+    message: string | null;
+    allergenKeys: unknown;
+  },
+  alsoContains: string,
+): AddOrderForm {
+  const tiers = Math.max(
+    1,
+    TIERS.findIndex((t) => line.sizeLine.startsWith(t)) + 1,
+  );
+  const serves = /serves\s+(\d+)/.exec(line.sizeLine)?.[1] ?? "";
+  const pounds = (p: number) =>
+    p % 100 ? (p / 100).toFixed(2) : String(p / 100);
+  return {
+    name: o.customerName,
+    email: o.email,
+    phone: o.phone,
+    date: o.date,
+    handover: o.handover === "collection" ? "collection" : "delivery",
+    address: o.address ?? "",
+    town: o.town ?? "",
+    postcode: o.postcode ?? "",
+    window: o.deliveryWindow ?? "",
+    collectionTime: o.collectionTime ?? "",
+    what: line.name,
+    serves,
+    tiers: String(tiers),
+    inscription: line.message ?? "",
+    allergens: (line.allergenKeys as string[]) ?? [],
+    alsoContains,
+    allergyNote: o.allergyNote ?? "",
+    total: pounds(o.totalPence),
+    paid: "0",
+    method: "",
+    emails: o.customerEmails ? "on" : "off",
+  };
+}
+
+/** §9.7: “The new total is £40.00 less than Mairi has paid: £x goes back to the card now, £y you give back by hand.” */
+export type Refund = {
+  lessPence: number;
+  cardPence: number;
+  handPence: number;
+};
+
+export function refundLine(r: Refund, name: string): string {
+  const who = name.trim().split(/\s+/)[0] || "the customer";
+  const parts = [
+    r.cardPence
+      ? `${formatAdminMoney(r.cardPence, "breakdown")} goes back to the card now`
+      : null,
+    r.handPence
+      ? `${formatAdminMoney(r.handPence, "breakdown")} you give back by hand`
+      : null,
+  ].filter(Boolean);
+  return `The new total is ${formatAdminMoney(r.lessPence, "breakdown")} less than ${who} has paid: ${parts.join(", ")}.`;
+}

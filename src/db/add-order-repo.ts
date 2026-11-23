@@ -107,7 +107,11 @@ export async function addOrder(
         },
         totalPence: v.totalPence,
         amountReceivedPence: 0,
-        snapshot: { takenAt: now.toISOString(), manual: true },
+        snapshot: {
+          takenAt: now.toISOString(),
+          manual: true,
+          alsoContains: v.alsoContains,
+        },
         facts: placeholderValues(s),
         confirmedAt: now,
         collectionTime: v.collectionTime,

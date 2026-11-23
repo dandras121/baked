@@ -557,13 +557,13 @@ export function OrderDetailScreen({
                 )}
               </div>
             )}
-            {o.status === "confirmed" && o.kind === "catalogue" && !waiting && (
+            {o.status === "confirmed" && !waiting && (
               <ButtonLink
                 href={`/admin/orders/${o.number}/change`}
                 variant="outline"
                 className={styles.button}
               >
-                Change the order
+                {o.kind === "manual" ? "Edit the order" : "Change the order"}
               </ButtonLink>
             )}
             <ButtonLink

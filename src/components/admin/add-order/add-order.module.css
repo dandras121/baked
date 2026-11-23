@@ -225,12 +225,40 @@
   margin: 22px 0 0;
 }
 
+/* Edit the order (§9.7): Save changes · Discard changes, and Paid so far as a fixed amount. */
+.editEnd {
+  display: grid;
+  gap: 12px;
+  margin: 22px 0 0;
+}
+
+.paid {
+  display: flex;
+  align-items: center;
+  height: 46px;
+  margin: 0;
+  color: var(--colour-ink);
+  font: var(--type-body-sm);
+  font-weight: 600;
+}
+
+.input:disabled {
+  border-color: var(--colour-line-rule);
+  background: transparent;
+  color: var(--colour-meta);
+}
+
 .dialogBody {
   display: grid;
   gap: 12px;
 }
 
 @media (min-width: 1024px) {
+  .editEnd {
+    grid-template-columns: repeat(2, 220px);
+    justify-content: end;
+  }
+
   .title {
     font: var(--type-admin-title);
   }

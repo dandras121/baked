@@ -11,7 +11,9 @@ import {
 } from "@/db/admin-change-repo";
 import { connect } from "@/db/client";
 import { processMail } from "@/db/mail-repo";
+import { editManualOrder, type EditResult } from "@/db/edit-order-repo";
 import { orders } from "@/db/schema";
+import { checkAddOrder, type AddOrderForm } from "@/lib/admin/add-order";
 import type { DayInfo } from "@/lib/admin/add-order";
 import { checkChange, type ChangeForm } from "@/lib/admin/change-order";
 import { memberForSave } from "@/lib/admin/session";
@@ -94,7 +96,9 @@ export async function changeOrderAction(
           await c.close();
         }
       });
-    revalidatePath("/admin", "layout");
+    // Only a save refreshes the screens: a refusal keeps the form as typed, with its line.
+    if (r.kind === "saved" || r.kind === "waiting")
+      revalidatePath("/admin", "layout");
     return r.kind === "invalid"
       ? { kind: "invalid-cakes", errors: r.errors }
       : r;
@@ -124,6 +128,62 @@ export async function cancelWaitingChangeAction(
     return { kind: "done" };
   } catch (e) {
     console.error("cancel waiting change", e);
+    return { kind: "failed" };
+  } finally {
+    await close();
+  }
+}
+
+export type EditOutcome =
+  | Exclude<EditResult, { kind: "saved" }>
+  | { kind: "saved"; emailed: boolean; refundOk: boolean; handPence: number }
+  | { kind: "invalid"; errors: Partial<Record<keyof AddOrderForm, string>> }
+  | { kind: "signed-out" }
+  | { kind: "failed" };
+
+/** Edit the order (§9.7, manual orders): both roles; a total below what was paid asks first (confirmRefund). */
+export async function editOrderAction(
+  orderId: number,
+  version: number,
+  form: AddOrderForm,
+  confirmRefund = false,
+): Promise<EditOutcome> {
+  const member = await memberForSave();
+  if (!member) return { kind: "signed-out" };
+  const { db, close } = connect();
+  try {
+    const [o] = await db.select().from(orders).where(eq(orders.id, orderId));
+    if (!o) return { kind: "closed" };
+    const checked = checkAddOrder(
+      { ...form, paid: "0" },
+      londonDate(new Date()),
+      String(o.date),
+    );
+    if (!checked.value) return { kind: "invalid", errors: checked.errors };
+    const r = await editManualOrder(db, gateway() ?? PAYMENTS_OFF, {
+      orderId,
+      seenVersion: version,
+      by: member.name,
+      owner: member.role === "owner",
+      value: checked.value,
+      confirmRefund,
+    });
+    if (r.kind === "saved")
+      after(async () => {
+        const c = connect();
+        try {
+          await processMail(c.db, mailTransport(), SITE_URL);
+        } catch (e) {
+          console.error("edit mail", e);
+        } finally {
+          await c.close();
+        }
+      });
+    // Only a save refreshes the screens: the refund question keeps the form as typed.
+    if (r.kind === "saved") revalidatePath("/admin", "layout");
+    return r;
+  } catch (e) {
+    console.error("edit order", e);
     return { kind: "failed" };
   } finally {
     await close();

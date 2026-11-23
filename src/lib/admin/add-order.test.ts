@@ -5,6 +5,8 @@ import {
   dayWarnings,
   EMPTY_FORM,
   emailHint,
+  formFromManual,
+  refundLine,
   sizeLine,
 } from "./add-order";
 
@@ -108,5 +110,84 @@ describe("Add an order (§9.6)", () => {
       "Ask the customer for an e-mail address — payment links and cancellations are sent by e-mail.",
     );
     expect(emailHint("Mairi Sinclair")).toMatch(/^Ask Mairi for/);
+  });
+});
+
+describe("Edit the order (§9.7, manual orders)", () => {
+  it("keeps the order's own date even when it is now in the past; any other past day is refused", () => {
+    const f = {
+      ...EMPTY_FORM,
+      name: "Mairi Sinclair",
+      email: "mairi@example.co.uk",
+      date: "2026-11-20",
+      address: "Hopetoun House",
+      postcode: "EH30 9SL",
+      window: "afternoon",
+      what: "A cake",
+      serves: "20",
+      total: "80",
+    };
+    expect(checkAddOrder(f, "2026-11-23").errors.date).toBe(
+      "Pick a day from today on.",
+    );
+    expect(checkAddOrder(f, "2026-11-23", "2026-11-20").value).toBeTruthy();
+    expect(
+      checkAddOrder({ ...f, date: "2026-11-19" }, "2026-11-23", "2026-11-20")
+        .errors.date,
+    ).toBeTruthy();
+  });
+
+  it("fills the form from the saved order and its one cake line", () => {
+    const form = formFromManual(
+      {
+        customerName: "Mairi Sinclair",
+        email: "mairi@example.co.uk",
+        phone: "",
+        date: "2027-06-20",
+        handover: "collection",
+        address: null,
+        town: null,
+        postcode: null,
+        deliveryWindow: null,
+        collectionTime: "11:30",
+        allergyNote: null,
+        totalPence: 38050,
+        customerEmails: false,
+      },
+      {
+        name: "Three tiers",
+        sizeLine: sizeLine(3, 100),
+        message: null,
+        allergenKeys: ["milk"],
+      },
+      "rosewater",
+    );
+    expect(form).toMatchObject({
+      handover: "collection",
+      collectionTime: "11:30",
+      tiers: "3",
+      serves: "100",
+      inscription: "",
+      allergens: ["milk"],
+      alsoContains: "rosewater",
+      total: "380.50",
+      emails: "off",
+    });
+  });
+
+  it("asks before a total below what was paid, with the card part and the part by hand", () => {
+    expect(
+      refundLine(
+        { lessPence: 4000, cardPence: 2500, handPence: 1500 },
+        "Mairi Sinclair",
+      ),
+    ).toBe(
+      "The new total is £40.00 less than Mairi has paid: £25.00 goes back to the card now, £15.00 you give back by hand.",
+    );
+    expect(
+      refundLine({ lessPence: 4000, cardPence: 0, handPence: 4000 }, " "),
+    ).toBe(
+      "The new total is £40.00 less than the customer has paid: £40.00 you give back by hand.",
+    );
   });
 });
