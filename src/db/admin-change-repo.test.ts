@@ -488,5 +488,108 @@ describe.skipIf(!url)(
       ).toBe(1);
       expect(await waitingChange(db(), b.o.id)).toBeNull();
     });
+
+    it("Add a cake: on a fully paid order it waits for the difference; paid, the new line is there", async () => {
+      const { o } = await lothian();
+      const { cakes } = await import("./schema");
+      const [b] = await db()
+        .select()
+        .from(cakes)
+        .where(eq(cakes.slug, "bramble-and-cream"));
+      const { readCakePage } = await import("./cake-page-repo");
+      const page = await readCakePage(db(), b.slug);
+      const size = page!.sizes[0];
+      const answers = {
+        picks: Object.fromEntries(
+          page!.options
+            .filter((x) => x.type === "choice")
+            .map((x) => [x.id, [x.choices[0].id]]),
+        ),
+        texts: {},
+      };
+      const { r } = await save(o, {
+        add: [
+          {
+            slug: b.slug,
+            sizeId: size.id,
+            inscription: "Well done, Ewan",
+            answers,
+          },
+        ],
+      });
+      expect(r).toMatchObject({ kind: "waiting" });
+      const w = await waitingChange(db(), o.id);
+      expect(
+        (w!.change.changes as string[][]).some((row) => row[0] === "Added"),
+      ).toBe(true);
+      const { applyWaitingChange } = await import("./admin-change-repo");
+      expect(
+        await applyWaitingChange(
+          db(),
+          { ...countingGateway().gw, cancel: async () => {} },
+          w!.change.id,
+          now,
+        ),
+      ).toBe("applied");
+      const lines = await db()
+        .select()
+        .from(orderLines)
+        .where(eq(orderLines.orderId, o.id))
+        .orderBy(orderLines.position);
+      expect(lines.map((l) => [l.position, l.name])).toEqual([
+        [1, "The Lothian"],
+        [2, page!.name],
+      ]);
+      expect(lines[1].allergenText).toMatch(/^Contains/);
+      expect((await read(o.id)).totalPence).toBe(18500 + lines[1].pricePence);
+    });
+
+    it("Remove: a cake comes off and its price goes back; never the last; never more than five", async () => {
+      const { o, l } = await lothian({
+        totalPence: 37000,
+        amountReceivedPence: 37000,
+      });
+      const [second] = await db()
+        .insert(orderLines)
+        .values({
+          orderId: o.id,
+          position: 2,
+          slug: "the-lothian",
+          name: "The Lothian",
+          sizeLine: "Two tiers · serves 24",
+          message: null,
+          pricePence: 18500,
+          sizePricePence: 18500,
+          allergenText: "Contains eggs.",
+          allergenKeys: [],
+        })
+        .returning();
+      expect((await save(o, { remove: [l.id, second.id] })).r).toMatchObject({
+        kind: "invalid",
+        errors: { 0: expect.stringMatching(/at least one cake/) },
+      });
+      const { r, t } = await save(o, { remove: [second.id] });
+      expect(r).toMatchObject({ kind: "saved", refundOk: true });
+      expect(t.refunds.map((x) => x.amountPence)).toEqual([18500]);
+      expect(
+        (
+          await db()
+            .select()
+            .from(orderLines)
+            .where(eq(orderLines.orderId, o.id))
+        ).map((x) => x.id),
+      ).toEqual([l.id]);
+      const sz = await sizeId(24);
+      const five = Array.from({ length: 5 }, () => ({
+        slug: "the-lothian",
+        sizeId: sz,
+        inscription: "",
+        answers: { picks: {}, texts: {} },
+      }));
+      expect((await save(await read(o.id), { add: five })).r).toMatchObject({
+        kind: "invalid",
+        errors: { 0: "An order holds up to 5 cakes." },
+      });
+    });
   },
 );

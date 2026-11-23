@@ -4,7 +4,7 @@ import { eq, like } from "drizzle-orm";
 import { connect } from "../src/db/client";
 import { mailSends, orderLines, orders } from "../src/db/schema";
 import { addDays, londonDate } from "../src/lib/london-time";
-import { signIn } from "./admin-helpers";
+import { settled, signIn } from "./admin-helpers";
 
 // Slice 8.6a: Change the order (§9.7) — the order's own fields; Owner and Helper.
 const today = londonDate(new Date());
@@ -12,7 +12,7 @@ const tag = `${Date.now().toString(36)}${Math.floor(Math.random() * 1e4)}`;
 const num = (first: string) => `BBL-E2G-${tag}-${first}`;
 const day = addDays(today, 50);
 
-async function addOrder(first: string) {
+async function addOrder(first: string, received = 18500) {
   const { db, close } = connect();
   try {
     const [o] = await db
@@ -32,7 +32,7 @@ async function addOrder(first: string) {
         phone: "07700 900 000",
         consents: {},
         totalPence: 18500,
-        amountReceivedPence: 18500,
+        amountReceivedPence: received,
         paymentIntentId: `pi_e2g_${tag}_${first}`,
         snapshot: {},
         confirmedAt: new Date(),
@@ -65,6 +65,7 @@ test.afterAll(async () => {
 });
 test.beforeAll(async () => {
   for (const f of ["Mairi", "Ewan", "Shona"]) await addOrder(f);
+  await addOrder("Kirsty", 8000);
 });
 
 test("an Owner moves the date and window: the tick box appears, Save → Order detail, HISTORY, e-mail 12", async ({
@@ -256,4 +257,56 @@ test("reopening Change the order after leaving without saving starts from the or
   await expect(
     page.getByRole("button", { name: "Save changes" }),
   ).toBeDisabled();
+});
+
+test("Add a cake from its dialog, Remove with Undo; saved at once on an order not fully paid", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1280, height: 1000 });
+  await signIn(page, "Linda");
+  await page.goto(`/admin/orders/${num("Kirsty")}/change`);
+  // The only cake has no Remove.
+  await expect(
+    page.getByRole("button", { name: "Remove The Lothian" }),
+  ).toHaveCount(0);
+  await page.getByRole("button", { name: "Add a cake" }).click();
+  const dialog = page.getByRole("dialog", { name: "Add a cake to this order" });
+  await expect(dialog).toContainText(`Change the order · ${num("Kirsty")}`);
+  await dialog.getByLabel("Design").selectOption({ label: "The Lothian" });
+  await dialog
+    .locator("label")
+    .filter({ hasText: /^Serves 24 · £185$/ })
+    .click();
+  const msg = dialog.getByLabel("Message on the cake");
+  if (await msg.count()) await msg.fill("Well done, Ewan");
+  await settled(page);
+  expect(
+    (await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa"]).analyze())
+      .violations,
+  ).toEqual([]);
+  await page.screenshot({ path: ".shots/8.6c/add-cake-1280.png" });
+  await dialog.getByRole("button", { name: "Add it" }).click();
+  await expect(dialog).toBeHidden();
+  await expect(page.getByText(/^New · serves 24/)).toBeVisible();
+  const impact = page.getByRole("region", { name: "Price impact" });
+  await expect(impact).toContainText("New total£370.00");
+  // Now there are two: the first can be removed, and put back.
+  await page.getByRole("button", { name: "Remove The Lothian" }).click();
+  await expect(page.getByText("Removed when you save")).toBeVisible();
+  await page.getByRole("button", { name: "Undo" }).click();
+  await expect(impact).toContainText("New total£370.00");
+  await page.screenshot({
+    path: ".shots/8.6c/change-1280.png",
+    fullPage: true,
+  });
+  await page.getByRole("button", { name: "Save changes" }).click();
+  await expect(page).toHaveURL(new RegExp(`/admin/orders/${num("Kirsty")}$`));
+  const cakes = page.getByRole("region", { name: "The cakes" });
+  await expect(cakes.getByRole("heading", { level: 3 })).toHaveCount(2);
+  await expect(page.getByRole("region", { name: "Money" })).toContainText(
+    "Still to pay£290.00",
+  );
+  await expect(page.getByRole("region", { name: "History" })).toContainText(
+    "Added: — → The Lothian · serves 24",
+  );
 });

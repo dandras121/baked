@@ -14,6 +14,8 @@ import { Button } from "@/components/ui/button";
 import { FieldError } from "@/components/ui/field-error";
 import { Overlay } from "@/components/ui/overlay";
 import { OptionBlock } from "@/components/cake-page/option-block";
+import type { AddableCake } from "@/db/admin-change-repo";
+import { AddCake, type NewCake } from "./add-cake";
 import type { SizeChoice } from "@/db/change-repo";
 import { dayLine, dayWarnings, type DayInfo } from "@/lib/admin/add-order";
 import { chosen, type Answers, type OptionView } from "@/lib/cake-config";
@@ -44,6 +46,7 @@ export type ChangeCake = {
   /** null: options kept from before they could be changed — shown, not editable. */
   answers: Answers | null;
   optionsPaidPence: number;
+  pricePence: number;
 };
 
 const optionPrice = (views: OptionView[], a: Answers) =>
@@ -64,9 +67,11 @@ export function ChangeOrderForm({
   today,
   districts,
   cakes,
+  designs = [],
   money: m,
 }: {
   cakes: ChangeCake[];
+  designs?: AddableCake[];
   orderId: number;
   number: string;
   version: number;
@@ -95,22 +100,30 @@ export function ChangeOrderForm({
   const [opts, setOpts] = useState<Record<number, Answers>>({});
   const [messages, setMessages] = useState<Record<number, string>>({});
   const [cakeErrors, setCakeErrors] = useState<Record<number, string>>({});
+  // Add a cake · Remove (§9.7, Owner): kept here until Save changes.
+  const [adds, setAdds] = useState<NewCake[]>([]);
+  const [removes, setRemoves] = useState<number[]>([]);
+  const cakesLeft = cakes.length - removes.length + adds.length;
   const cakesChanged =
     Object.keys(sizes).length +
       Object.keys(opts).length +
-      Object.keys(messages).length >
+      Object.keys(messages).length +
+      adds.length +
+      removes.length >
     0;
   const changed =
     cakesChanged ||
     JSON.stringify({ ...f, customerAsked: false }) !==
       JSON.stringify({ ...initial, customerAsked: false });
-  const cakeNet = cakes.reduce((n, c) => {
-    const size = c.sizes.find((x) => x.id === sizes[c.id]);
-    const opt = opts[c.id]
-      ? optionPrice(c.optionViews, opts[c.id]) - c.optionsPaidPence
-      : 0;
-    return n + (size ? size.diffPence : 0) + opt;
-  }, 0);
+  const cakeNet =
+    cakes.reduce((n, c) => {
+      const size = c.sizes.find((x) => x.id === sizes[c.id]);
+      const opt = opts[c.id]
+        ? optionPrice(c.optionViews, opts[c.id]) - c.optionsPaidPence
+        : 0;
+      if (removes.includes(c.id)) return n - c.pricePence;
+      return n + (size ? size.diffPence : 0) + opt;
+    }, 0) + adds.reduce((n, a) => n + a.pricePence, 0);
   const first = initial.name.trim().split(/\s+/)[0] || "the customer";
   const set = <K extends keyof ChangeForm>(k: K, v: ChangeForm[K]) => {
     setF((x) => ({ ...x, [k]: v }));
@@ -162,6 +175,13 @@ export function ChangeOrderForm({
         sizes,
         options: opts,
         messages,
+        add: adds.map((a) => ({
+          slug: a.slug,
+          sizeId: a.sizeId,
+          inscription: a.inscription,
+          answers: a.answers,
+        })),
+        remove: removes,
       }).catch(() => ({ kind: "failed" }) as const);
       if (r.kind === "saved" || r.kind === "waiting") {
         setDone(true);
@@ -371,6 +391,32 @@ export function ChangeOrderForm({
             return (
               <fieldset key={c.id} className={own.cake}>
                 <legend className={own.cakeName}>{c.name}</legend>
+                {owner &&
+                  (removes.includes(c.id) ? (
+                    <p className={own.removed}>
+                      Removed when you save ·{" "}
+                      <button
+                        type="button"
+                        className={own.remove}
+                        onClick={() =>
+                          setRemoves((x) => x.filter((id) => id !== c.id))
+                        }
+                      >
+                        Undo
+                      </button>
+                    </p>
+                  ) : (
+                    cakesLeft > 1 && (
+                      <button
+                        type="button"
+                        className={own.remove}
+                        aria-label={`Remove ${c.name}`}
+                        onClick={() => setRemoves((x) => [...x, c.id])}
+                      >
+                        Remove
+                      </button>
+                    )
+                  ))}
                 {owner && c.sizes.length > 0 && (
                   <div className={styles.field}>
                     <label htmlFor={`size-${c.id}`} className={styles.label}>
@@ -447,6 +493,39 @@ export function ChangeOrderForm({
               </fieldset>
             );
           })}
+          {adds.map((a, i) => (
+            <fieldset key={`new-${i}`} className={own.cake}>
+              <legend className={own.cakeName}>{a.name}</legend>
+              <p className={own.added}>
+                New · serves {a.serves}
+                {a.inscription ? ` · “${a.inscription.trim()}”` : ""} ·{" "}
+                {formatDifference(a.pricePence)}
+              </p>
+              <button
+                type="button"
+                className={own.remove}
+                aria-label={`Remove the new ${a.name}`}
+                onClick={() => setAdds((x) => x.filter((_, j) => j !== i))}
+              >
+                Remove
+              </button>
+              <FieldError
+                id={`new-${i}-error`}
+                message={cakeErrors[-(i + 1)] ?? null}
+              />
+            </fieldset>
+          ))}
+          {cakeErrors[0] && (
+            <FieldError id="cakes-error" message={cakeErrors[0]} />
+          )}
+          {owner && designs.length > 0 && cakesLeft < 5 && (
+            <AddCake
+              number={number}
+              designs={designs}
+              onAdd={(c) => setAdds((x) => [...x, c])}
+              className={own.addButton}
+            />
+          )}
           <h2 className={styles.section}>The customer</h2>
           <div className={styles.pair}>
             {field("name", "Name", text("name", { maxLength: 80 }))}

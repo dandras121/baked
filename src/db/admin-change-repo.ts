@@ -2,7 +2,7 @@
 // customer's rules, `planCakes`). Saved with the version check (§9.1); a full or closed day is the Owner's to book.
 // Money: a fall or a not fully paid order saves at once (any excess goes back to the card); a rise on a fully paid
 // order becomes a waiting change with a payment link (e-mail 15) that applies it when paid (e-mail 12 follows).
-import { and, count, eq, lt } from "drizzle-orm";
+import { and, eq, inArray, lt, max } from "drizzle-orm";
 import { dayWarnings } from "@/lib/admin/add-order";
 import {
   changeRows,
@@ -12,6 +12,22 @@ import {
 } from "@/lib/admin/change-order";
 import { memberChange } from "@/lib/admin/versions";
 import { changeMoney } from "@/lib/change-money";
+import {
+  allergenLine,
+  lineAllergens,
+  linePricePence,
+  tierWords,
+  type Answers,
+} from "@/lib/cake-config";
+import {
+  inscriptionError,
+  MAX_CAKES,
+  normaliseText,
+  optionErrors,
+  optionsLine,
+} from "@/lib/order-line";
+import type { Allergen } from "@/lib/constants";
+import { readCakePage } from "./cake-page-repo";
 import { lastChangeDay } from "@/lib/deadlines";
 import type { ChangeView } from "@/lib/mail/after-emails";
 import { londonDate, type CalendarDate } from "@/lib/london-time";
@@ -41,7 +57,21 @@ type Db = ReturnType<typeof connect>["db"];
 type Tx = Parameters<Parameters<Db["transaction"]>[0]>[0];
 type Order = typeof orders.$inferSelect;
 type Gw = Pick<Gateway, "refund" | "cancel">;
-export type CakeEdits = Pick<ChangeInput, "messages" | "sizes" | "options">;
+type NewLine = Omit<typeof orderLines.$inferInsert, "orderId" | "position">;
+export type CakeEdits = Pick<ChangeInput, "messages" | "sizes" | "options"> & {
+  /** Add a cake (§9.7, Owner; 1801:13154): a visible design, its size, options and inscription. */
+  add?: {
+    slug: string;
+    sizeId: number;
+    inscription: string;
+    answers: Answers;
+  }[];
+  /** Remove (Owner): any cake but the last. */
+  remove?: number[];
+};
+
+/** Up to five cakes on an order (§9.7, as the basket, §5). */
+export const MAX_ORDER_CAKES = MAX_CAKES;
 
 export type ChangeResult =
   | { kind: "saved"; emailed: boolean; refundOk: boolean }
@@ -87,12 +117,80 @@ async function assess(
   // A Helper changes the message only (Decided D9).
   const edits: CakeEdits = owner ? cakes : { messages: cakes.messages };
   const p = await planCakes(db, o, edits, today);
+  const lines = await db
+    .select()
+    .from(orderLines)
+    .where(eq(orderLines.orderId, o.id))
+    .orderBy(orderLines.position);
+  // Remove: any cake but the last; Add: up to five in all (§9.7).
+  const removing = owner
+    ? lines.filter((l) => (cakes.remove ?? []).includes(l.id))
+    : [];
+  const adding: NewLine[] = [];
+  let shift = 0;
+  for (const [i, a] of (owner ? (cakes.add ?? []) : []).entries()) {
+    const cake = await readCakePage(db as Db, a.slug);
+    const size = cake?.sizes.find((x) => x.id === a.sizeId);
+    if (!cake || !size) {
+      p.errors[-(i + 1)] =
+        "That design or size is no longer offered — pick another.";
+      continue;
+    }
+    const inscription = cake.offerInscription ? a.inscription : "";
+    const err = cake.offerInscription ? inscriptionError(inscription) : null;
+    const optErr = Object.values(optionErrors(cake.options, a.answers))[0];
+    if (err || optErr) {
+      p.errors[-(i + 1)] = err ?? optErr!;
+      continue;
+    }
+    const price = linePricePence(size, cake.options, a.answers);
+    const sizeLine = `${tierWords(size.tiers)} · serves ${size.serves}`;
+    const message = cake.offerInscription ? normaliseText(inscription) : null;
+    adding.push({
+      slug: cake.slug,
+      name: cake.name,
+      sizeLine,
+      flavour: cake.flavour,
+      options: optionsLine(cake.options, a.answers),
+      message,
+      pricePence: price,
+      allergenText: allergenLine(cake.allergens, cake.options, a.answers, []),
+      allergenKeys: lineAllergens(cake.allergens, cake.options, a.answers)
+        .allergens as Allergen[],
+      sizeId: size.id,
+      sizePricePence: size.pricePence,
+      answers: a.answers,
+    });
+    shift += price;
+    p.changes.push([
+      "Added",
+      "—",
+      `${cake.name} · serves ${size.serves}${message ? ` · “${message}”` : ""}`,
+    ]);
+  }
+  for (const l of removing) {
+    shift -= l.pricePence;
+    p.changes.push([
+      "Removed",
+      `${l.name} · ${l.sizeLine.replace(/^.* · /, "")}`,
+      "—",
+    ]);
+  }
+  const left = lines.length - removing.length + adding.length;
+  if (left < 1)
+    p.errors[0] =
+      "An order keeps at least one cake — to remove the last one, cancel the order.";
+  if (left > MAX_ORDER_CAKES)
+    p.errors[0] = `An order holds up to ${MAX_ORDER_CAKES} cakes.`;
   const { rows, contact } = changeRows(fieldsOf(o), value, today);
   const s = await readSettings(db as Db);
   const charge = newCharge(o, value.handover, s.deliveryChargePence);
-  const net = p.net + (charge - o.deliveryChargePence);
+  const net = p.net + shift + (charge - o.deliveryChargePence);
   return {
     p,
+    adding,
+    removing: removing.map((l) => l.id),
+    cakesAfter: left,
     rows: [...p.changes, ...rows],
     contact,
     charge,
@@ -113,6 +211,25 @@ async function write(
 ) {
   const waived = a.money.kind === "waived";
   await writeLines(tx, o.id, a.p as Plan, waived);
+  if (a.removing.length)
+    await tx
+      .delete(orderLines)
+      .where(
+        and(eq(orderLines.orderId, o.id), inArray(orderLines.id, a.removing)),
+      );
+  if (a.adding.length) {
+    const [{ top }] = await tx
+      .select({ top: max(orderLines.position) })
+      .from(orderLines)
+      .where(eq(orderLines.orderId, o.id));
+    await tx.insert(orderLines).values(
+      a.adding.map((l, i) => ({
+        ...l,
+        orderId: o.id,
+        position: (top ?? 0) + i + 1,
+      })),
+    );
+  }
   const newTotal = waived ? o.totalPence : o.totalPence + a.net;
   const r = await saveOrderVersioned(
     tx,
@@ -220,12 +337,12 @@ export async function changeOrder(
     return { kind: "invalid", errors: a.p.errors };
   if (!a.rows.length && !a.contact.length) return { kind: "nothing" };
 
-  if (v.date !== String(o.date)) {
-    const [{ n: cakes }] = await db
-      .select({ n: count() })
-      .from(orderLines)
-      .where(eq(orderLines.orderId, o.id));
-    const warnings = dayWarnings(await dayInfo(db, v.date, now, o.id), cakes);
+  // A new day, or more cakes on the same one: the §9.6 warning (§9.7).
+  if (v.date !== String(o.date) || a.adding.length) {
+    const warnings = dayWarnings(
+      await dayInfo(db, v.date, now, o.id),
+      a.cakesAfter,
+    );
     if (warnings.length && !input.owner)
       return { kind: "owner-only", warnings };
   }
@@ -308,14 +425,12 @@ export async function changeOrder(
         createdAt: now,
       })
       .returning({ id: orderChanges.id });
-    await tx
-      .insert(orderHistory)
-      .values({
-        orderId: o.id,
-        at: now,
-        byName: input.by,
-        what: `Changed the order · ${historyLine(all, a.money)}`,
-      });
+    await tx.insert(orderHistory).values({
+      orderId: o.id,
+      at: now,
+      byName: input.by,
+      what: `Changed the order · ${historyLine(all, a.money)}`,
+    });
     return { ok: true as const, changeId: c.id, newTotal };
   });
   if (!saved.ok) return { kind: "conflict", line: saved.line };
@@ -409,14 +524,12 @@ export async function applyWaitingChange(
       .update(orderChanges)
       .set({ status: "saved", newTotalPence: newTotal })
       .where(eq(orderChanges.id, c.id));
-    await tx
-      .insert(orderHistory)
-      .values({
-        orderId: o.id,
-        at: now,
-        byName: payload.by,
-        what: `The difference was paid — the waiting change is applied`,
-      });
+    await tx.insert(orderHistory).values({
+      orderId: o.id,
+      at: now,
+      byName: payload.by,
+      what: `The difference was paid — the waiting change is applied`,
+    });
     return newTotal;
   });
   if (done === null) return "dropped" as const;
@@ -449,14 +562,12 @@ export async function cancelWaitingChange(
     .update(orderChanges)
     .set({ status: "dropped" })
     .where(eq(orderChanges.id, w.change.id));
-  await db
-    .insert(orderHistory)
-    .values({
-      orderId,
-      at: now,
-      byName: by,
-      what: "Cancelled the waiting change — its link is withdrawn",
-    });
+  await db.insert(orderHistory).values({
+    orderId,
+    at: now,
+    byName: by,
+    what: "Cancelled the waiting change — its link is withdrawn",
+  });
   return true;
 }
 
@@ -496,3 +607,28 @@ export const changeOrderFields = (
   },
   now = new Date(),
 ) => changeOrder(db, gw, { ...input, cakes: {} }, now);
+
+/** The designs Add a cake offers (§9.7): the visible catalogue in Linda's order, with sizes, options and message. */
+export async function addableCakes(db: Db) {
+  const { cakes } = await import("./schema");
+  const { isNull, asc } = await import("drizzle-orm");
+  const rows = await db
+    .select({ slug: cakes.slug })
+    .from(cakes)
+    .where(and(eq(cakes.visible, true), isNull(cakes.deletedAt)))
+    .orderBy(asc(cakes.position));
+  const out = [];
+  for (const r of rows) {
+    const c = await readCakePage(db, r.slug);
+    if (c && c.sizes.length)
+      out.push({
+        slug: c.slug,
+        name: c.name,
+        sizes: c.sizes,
+        options: c.options,
+        offerInscription: c.offerInscription,
+      });
+  }
+  return out;
+}
+export type AddableCake = Awaited<ReturnType<typeof addableCakes>>[number];

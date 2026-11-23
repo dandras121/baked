@@ -5,7 +5,7 @@ import { eq } from "drizzle-orm";
 import { ChangeOrderForm } from "@/components/admin/change-order/change-order-form";
 import { connect, databaseUrl } from "@/db/client";
 import { editableOptions, lineCakes, sizeChoices } from "@/db/change-repo";
-import { waitingChange } from "@/db/admin-change-repo";
+import { addableCakes, waitingChange } from "@/db/admin-change-repo";
 import { netPaid } from "@/db/refund-repo";
 import { orderLines, orders } from "@/db/schema";
 import type { Answers } from "@/lib/cake-config";
@@ -40,11 +40,13 @@ export default async function Page({
       .from(orderLines)
       .where(eq(orderLines.orderId, o.id))
       .orderBy(orderLines.position);
-    const [s, paid, sizes, cakesNow] = await Promise.all([
+    const owner = member.role === "owner";
+    const [s, paid, sizes, cakesNow, designs] = await Promise.all([
       readSettings(db),
       netPaid(db, o),
       sizeChoices(db, lines),
       lineCakes(db, lines),
+      owner ? addableCakes(db) : Promise.resolve([]),
     ]);
     const cakes = lines.map((l) => ({
       id: l.id,
@@ -57,6 +59,7 @@ export default async function Page({
         ? ((l.answers as Answers | null) ?? { picks: {}, texts: {} })
         : null,
       optionsPaidPence: l.pricePence - (l.sizePricePence ?? l.pricePence),
+      pricePence: l.pricePence,
     }));
     return (
       // A fresh form on every visit: the site keeps an earlier visit's screen, and its unsaved edits must not return.
@@ -74,6 +77,7 @@ export default async function Page({
         today={londonDate(new Date())}
         districts={s.postcodeDistricts}
         cakes={cakes}
+        designs={designs}
         money={{
           totalPence: o.totalPence,
           chargePence: o.deliveryChargePence,

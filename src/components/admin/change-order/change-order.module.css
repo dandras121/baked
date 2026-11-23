@@ -120,3 +120,58 @@
   display: grid;
   gap: 10px;
 }
+
+/* Add a cake (1801:13154) and Remove (§9.7). */
+/* The overline sits above the title, as drawn (1801:13154). */
+.words {
+  display: contents;
+}
+
+.overline {
+  order: -1;
+  color: var(--colour-accent);
+  font: var(--type-admin-head);
+  letter-spacing: 1.8px;
+  text-transform: uppercase;
+}
+
+.dialogButtons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.cakeHead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.remove {
+  justify-self: start;
+  min-height: 44px;
+  padding: 0 4px;
+  border: 0;
+  background: none;
+  color: var(--colour-accent);
+  font: var(--type-small);
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.removed {
+  color: var(--colour-meta);
+  font: var(--type-small);
+}
+
+.added {
+  color: var(--colour-ink);
+  font: var(--type-admin-cell);
+}
+
+.addButton {
+  justify-self: start;
+  min-height: 44px;
+  margin-top: 4px;
+}
