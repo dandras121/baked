@@ -25,7 +25,11 @@ import { splitLine } from "@/lib/admin/cancel";
 import type { AdminCancelQuote } from "@/db/admin-cancel-repo";
 import { CancelOrder } from "./cancel-order";
 import { CollectionTime } from "./collection-time";
-import { DeliveredAfterAll, RecordTheirChoice } from "./missed-actions";
+import {
+  CancelWaiting,
+  DeliveredAfterAll,
+  RecordTheirChoice,
+} from "./missed-actions";
 import { CopyOrderLink } from "./copy-link";
 import styles from "./order.module.css";
 
@@ -46,7 +50,10 @@ export function OrderDetailScreen({
   cancelQuote,
   saved = false,
   sketches = [],
+  waiting = null,
 }: {
+  /** A change waiting for its difference (§9.7). */
+  waiting?: { pence: number; sentOn: string | null } | null;
   /** Add a sketch or photo (§9.6): signed links; never shown to the customer. */
   sketches?: { id: string; name: string; thumb: string; file: string }[];
   /** Just added by hand (§9.6): “Order saved”. */
@@ -532,7 +539,25 @@ export function OrderDetailScreen({
                 }
               />
             )}
-            {o.status === "confirmed" && o.kind === "catalogue" && (
+            {waiting && (
+              <div className={styles.waiting}>
+                <p>
+                  Change waiting for{" "}
+                  {formatAdminMoney(waiting.pence, "breakdown")}
+                  {waiting.sentOn
+                    ? ` — link sent ${dayMonth(waiting.sentOn)}`
+                    : ""}
+                </p>
+                {owner && (
+                  <CancelWaiting
+                    orderId={o.id}
+                    first={first}
+                    className={styles.button}
+                  />
+                )}
+              </div>
+            )}
+            {o.status === "confirmed" && o.kind === "catalogue" && !waiting && (
               <ButtonLink
                 href={`/admin/orders/${o.number}/change`}
                 variant="outline"

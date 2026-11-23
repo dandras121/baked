@@ -273,7 +273,32 @@ function plan(
   }
   return { errors, changes, messages, moves, opts, net, date, window };
 }
-type Plan = ReturnType<typeof plan>;
+export type Plan = ReturnType<typeof plan>;
+
+/**
+ * The admin's Change the order (§9.7) plans the cakes with the customer's rules: the size, options and message
+ * edits of `input` (its date and window are left to the admin's own fields), on the order's current lines.
+ */
+export async function planCakes(
+  db: Db | Tx,
+  o: Order,
+  input: Pick<ChangeInput, "messages" | "sizes" | "options">,
+  today: CalendarDate,
+) {
+  const lines = await db
+    .select()
+    .from(orderLines)
+    .where(eq(orderLines.orderId, o.id))
+    .orderBy(orderLines.position);
+  const ctx = await context(db as Db, o.id);
+  return plan(
+    lines,
+    ctx,
+    { orderId: o.id, version: o.version, ...input },
+    o,
+    today,
+  );
+}
 
 /** The order's own fields a plan changes: the date (and the earliest date the order has had, §10.1) and window. */
 const orderMove = (p: Plan, o: Order) => ({
@@ -300,7 +325,12 @@ async function dateTaken(tx: Tx, o: Order, p: Plan, now: Date) {
 export const editableOptions = (l: Line) => l.answers !== null || !l.options;
 
 /** Writes a plan's line updates; the lines take the new prices unless the difference was waived. */
-async function writeLines(tx: Tx, orderId: number, p: Plan, waived: boolean) {
+export async function writeLines(
+  tx: Tx,
+  orderId: number,
+  p: Plan,
+  waived: boolean,
+) {
   const updates = new Map<number, Partial<Line>>();
   const priceDiff = new Map<number, number>();
   const base = new Map<number, Line>();

@@ -4,7 +4,11 @@ import { revalidatePath } from "next/cache";
 import { after } from "next/server";
 import { SITE_URL } from "@/app/layout";
 import { dayInfo } from "@/db/add-order-repo";
-import { changeOrderFields } from "@/db/admin-change-repo";
+import {
+  cancelWaitingChange,
+  changeOrder,
+  type CakeEdits,
+} from "@/db/admin-change-repo";
 import { connect } from "@/db/client";
 import { processMail } from "@/db/mail-repo";
 import { orders } from "@/db/schema";
@@ -21,6 +25,7 @@ const PAYMENTS_OFF = {
     ok: false as const,
     error: "Payments are not switched on",
   }),
+  cancel: async () => {},
 };
 
 /** The day's count for a move (§9.7): the order's own cakes do not count against the new day. Both roles. */
@@ -43,7 +48,9 @@ export type ChangeOutcome =
   | { kind: "invalid"; errors: Partial<Record<keyof ChangeForm, string>> }
   | { kind: "conflict"; line: string }
   | { kind: "owner-only"; warnings: string[] }
-  | { kind: "needs-link"; pence: number }
+  | { kind: "waiting"; pence: number }
+  | { kind: "busy" }
+  | { kind: "invalid-cakes"; errors: Record<number, string> }
   | { kind: "nothing" }
   | { kind: "closed" }
   | { kind: "signed-out" }
@@ -54,6 +61,7 @@ export async function changeOrderAction(
   orderId: number,
   version: number,
   form: ChangeForm,
+  cakes: CakeEdits = {},
 ): Promise<ChangeOutcome> {
   const member = await memberForSave();
   if (!member) return { kind: "signed-out" };
@@ -67,14 +75,15 @@ export async function changeOrderAction(
       londonDate(new Date()),
     );
     if (!checked.value) return { kind: "invalid", errors: checked.errors };
-    const r = await changeOrderFields(db, gateway() ?? PAYMENTS_OFF, {
+    const r = await changeOrder(db, gateway() ?? PAYMENTS_OFF, {
+      cakes,
       orderId,
       seenVersion: version,
       by: member.name,
       owner: member.role === "owner",
       value: checked.value,
     });
-    if (r.kind === "saved")
+    if (r.kind === "saved" || r.kind === "waiting")
       after(async () => {
         const c = connect();
         try {
@@ -86,9 +95,35 @@ export async function changeOrderAction(
         }
       });
     revalidatePath("/admin", "layout");
-    return r;
+    return r.kind === "invalid"
+      ? { kind: "invalid-cakes", errors: r.errors }
+      : r;
   } catch (e) {
     console.error("change order", e);
+    return { kind: "failed" };
+  } finally {
+    await close();
+  }
+}
+
+/** Cancel this change (§9.7, Owner): withdraws its payment link; no e-mail. */
+export async function cancelWaitingChangeAction(
+  orderId: number,
+): Promise<{ kind: "done" | "signed-out" | "failed" }> {
+  const member = await memberForSave("owner");
+  if (!member) return { kind: "signed-out" };
+  const { db, close } = connect();
+  try {
+    await cancelWaitingChange(
+      db,
+      gateway() ?? PAYMENTS_OFF,
+      orderId,
+      member.name,
+    );
+    revalidatePath("/admin", "layout");
+    return { kind: "done" };
+  } catch (e) {
+    console.error("cancel waiting change", e);
     return { kind: "failed" };
   } finally {
     await close();

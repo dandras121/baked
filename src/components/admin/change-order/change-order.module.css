@@ -98,3 +98,25 @@
     min-height: 42px;
   }
 }
+
+/* One block per cake (§9.7): size and options (Owner), the inscription. */
+.cake {
+  display: grid;
+  gap: 12px;
+  margin: 4px 0 0;
+  padding: 14px 0 0;
+  border: 0;
+  border-top: 1px solid var(--colour-line-rule);
+}
+
+.cakeName {
+  padding: 0;
+  color: var(--colour-ink);
+  font: var(--type-admin-cake);
+  font-variation-settings: var(--font-display-axes);
+}
+
+.options {
+  display: grid;
+  gap: 10px;
+}

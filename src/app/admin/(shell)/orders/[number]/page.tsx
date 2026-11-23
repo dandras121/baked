@@ -4,6 +4,7 @@ import { connection } from "next/server";
 import { OrderDetailScreen } from "@/components/admin/order/order-detail-screen";
 import { connect, databaseUrl } from "@/db/client";
 import { adminCancelQuote } from "@/db/admin-cancel-repo";
+import { waitingChange } from "@/db/admin-change-repo";
 import { isClosed } from "@/db/delivery-repo";
 import { orderDetail } from "@/db/order-detail-repo";
 import { readSettings } from "@/db/settings-repo";
@@ -45,6 +46,7 @@ export default async function Page({
     ]);
     if (!d) notFound();
     // Sketches and photos (§9.6): signed links for an hour, admin only (§10.10).
+    const waiting = await waitingChange(db, d.order.id);
     const sketches = (await orderPictures(db, d.order.id)).map((p) => ({
       id: p.id,
       name: p.name,
@@ -63,6 +65,12 @@ export default async function Page({
         cancelQuote={cancelQuote}
         saved={saved === "1"}
         sketches={sketches}
+        waiting={
+          waiting && {
+            pence: waiting.change.moneyPence,
+            sentOn: waiting.link ? String(waiting.link.sentOn) : null,
+          }
+        }
         today={today}
         back={
           from === "today"

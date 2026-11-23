@@ -4,8 +4,11 @@ import { connection } from "next/server";
 import { eq } from "drizzle-orm";
 import { ChangeOrderForm } from "@/components/admin/change-order/change-order-form";
 import { connect, databaseUrl } from "@/db/client";
+import { editableOptions, lineCakes, sizeChoices } from "@/db/change-repo";
+import { waitingChange } from "@/db/admin-change-repo";
 import { netPaid } from "@/db/refund-repo";
-import { orders } from "@/db/schema";
+import { orderLines, orders } from "@/db/schema";
+import type { Answers } from "@/lib/cake-config";
 import { readSettings } from "@/db/settings-repo";
 import { formFromOrder } from "@/lib/admin/change-order";
 import { requireMember } from "@/lib/admin/session";
@@ -30,9 +33,35 @@ export default async function Page({
     if (!o) notFound();
     if (o.status !== "confirmed" || o.kind === "manual")
       redirect(`/admin/orders/${o.number}`);
-    const [s, paid] = await Promise.all([readSettings(db), netPaid(db, o)]);
+    // One waiting change at a time (§9.7): Change the order waits until it is paid or cancelled.
+    if (await waitingChange(db, o.id)) redirect(`/admin/orders/${o.number}`);
+    const lines = await db
+      .select()
+      .from(orderLines)
+      .where(eq(orderLines.orderId, o.id))
+      .orderBy(orderLines.position);
+    const [s, paid, sizes, cakesNow] = await Promise.all([
+      readSettings(db),
+      netPaid(db, o),
+      sizeChoices(db, lines),
+      lineCakes(db, lines),
+    ]);
+    const cakes = lines.map((l) => ({
+      id: l.id,
+      name: l.name,
+      sizeLine: l.sizeLine,
+      message: l.message,
+      sizes: sizes[l.id] ?? [],
+      optionViews: cakesNow[l.id]?.options ?? [],
+      answers: editableOptions(l)
+        ? ((l.answers as Answers | null) ?? { picks: {}, texts: {} })
+        : null,
+      optionsPaidPence: l.pricePence - (l.sizePricePence ?? l.pricePence),
+    }));
     return (
+      // A fresh form on every visit: the site keeps an earlier visit's screen, and its unsaved edits must not return.
       <ChangeOrderForm
+        key={`${o.version}-${Date.now()}`}
         orderId={o.id}
         number={o.number}
         version={o.version}
@@ -44,6 +73,7 @@ export default async function Page({
         owner={member.role === "owner"}
         today={londonDate(new Date())}
         districts={s.postcodeDistricts}
+        cakes={cakes}
         money={{
           totalPence: o.totalPence,
           chargePence: o.deliveryChargePence,

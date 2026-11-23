@@ -44,7 +44,9 @@ async function addOrder(first: string) {
       slug: "the-lothian",
       name: "The Lothian",
       sizeLine: "Two tiers · serves 24",
+      message: "Happy 30th",
       pricePence: 18500,
+      sizePricePence: 18500,
       allergenText: "Contains: wheat, egg, milk",
       allergenKeys: [],
     });
@@ -62,7 +64,7 @@ test.afterAll(async () => {
   }
 });
 test.beforeAll(async () => {
-  for (const f of ["Mairi", "Ewan"]) await addOrder(f);
+  for (const f of ["Mairi", "Ewan", "Shona"]) await addOrder(f);
 });
 
 test("an Owner moves the date and window: the tick box appears, Save → Order detail, HISTORY, e-mail 12", async ({
@@ -153,4 +155,105 @@ test("phone: back to the order, one column", async ({ page }) => {
       .violations,
   ).toEqual([]);
   await page.screenshot({ path: ".shots/8.6a/change-402.png", fullPage: true });
+});
+
+test("the cakes: a bigger size on a paid order waits for its link; Cancel this change; a new message saves at once", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1280, height: 1000 });
+  await signIn(page, "Linda");
+  await page.goto(`/admin/orders/${num("Shona")}/change`);
+  const block = page.getByRole("group", { name: "The Lothian" });
+  await expect(block.getByLabel("Size")).toBeVisible();
+  const big = await block
+    .getByLabel("Size")
+    .locator("option", { hasText: "32" })
+    .getAttribute("value");
+  await block.getByLabel("Size").selectOption(big!);
+  const impact = page.getByRole("region", { name: "Price impact" });
+  await expect(impact).toContainText("New total£240.00");
+  await expect(impact).toContainText("+£55");
+  await page.screenshot({ path: ".shots/8.6b/size-1280.png", fullPage: true });
+  await page.getByRole("button", { name: "Save changes" }).click();
+  await expect(page).toHaveURL(new RegExp(`/admin/orders/${num("Shona")}$`));
+  await expect(
+    page.getByText(/^Change waiting for £55\.00 — link sent \d+ \w{3}$/),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("link", { name: "Change the order" }),
+  ).toHaveCount(0);
+  await expect(page.getByRole("region", { name: "Money" })).toContainText(
+    "£185.00",
+  );
+  await page.screenshot({
+    path: ".shots/8.6b/waiting-1280.png",
+    fullPage: true,
+  });
+  const { db, close } = connect();
+  try {
+    const [o] = await db
+      .select()
+      .from(orders)
+      .where(eq(orders.number, num("Shona")));
+    expect(
+      (await db.select().from(mailSends)).filter(
+        (m) =>
+          m.template === "pay-link" &&
+          (m.data as { view: { number: string } }).view.number === num("Shona"),
+      ),
+    ).toHaveLength(1);
+    void o;
+  } finally {
+    await close();
+  }
+  await page.getByRole("button", { name: "Cancel this change" }).click();
+  const dialog = page.getByRole("dialog", { name: "Cancel this change?" });
+  await dialog.getByRole("button", { name: "Cancel the change" }).click();
+  await expect(dialog).toBeHidden();
+  await expect(page.getByText(/^Change waiting for/)).toHaveCount(0);
+  await page.getByRole("link", { name: "Change the order" }).click();
+  await page
+    .getByRole("group", { name: "The Lothian" })
+    .getByLabel("Inscription")
+    .fill("Happy 31st, Shona");
+  await page.getByRole("button", { name: "Save changes" }).click();
+  await expect(page).toHaveURL(new RegExp(`/admin/orders/${num("Shona")}$`));
+  await expect(page.getByRole("region", { name: "The cakes" })).toContainText(
+    "“Happy 31st, Shona”",
+  );
+});
+
+test("a Helper sees the message, not the size", async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await signIn(page, "Fiona", "helper");
+  await page.goto(`/admin/orders/${num("Ewan")}/change`);
+  const block = page.getByRole("group", { name: "The Lothian" });
+  await expect(block.getByLabel("Inscription")).toBeVisible();
+  await expect(block.getByLabel("Size")).toHaveCount(0);
+});
+
+test("reopening Change the order after leaving without saving starts from the order again", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await signIn(page, "Linda");
+  await page.goto(`/admin/orders/${num("Ewan")}`);
+  await page.getByRole("link", { name: "Change the order" }).click();
+  const msg = page
+    .getByRole("group", { name: "The Lothian" })
+    .getByLabel("Inscription");
+  await msg.fill("Not saved");
+  await page.getByRole("link", { name: "Discard changes" }).click();
+  await page
+    .getByRole("dialog", { name: "Leave without saving?" })
+    .getByRole("button", { name: "Leave" })
+    .click();
+  await expect(page).toHaveURL(new RegExp(`/admin/orders/${num("Ewan")}$`));
+  await page.getByRole("link", { name: "Change the order" }).click();
+  await expect(
+    page.getByRole("group", { name: "The Lothian" }).getByLabel("Inscription"),
+  ).toHaveValue("Happy 30th");
+  await expect(
+    page.getByRole("button", { name: "Save changes" }),
+  ).toBeDisabled();
 });

@@ -5,6 +5,7 @@ import {
   deliveredAfterAllAction,
   recordChoiceAction,
 } from "@/app/admin/(shell)/orders/[number]/actions";
+import { cancelWaitingChangeAction } from "@/app/admin/(shell)/orders/[number]/change/actions";
 import { Button } from "@/components/ui/button";
 import { FieldError } from "@/components/ui/field-error";
 import { WINDOWS } from "@/lib/handover";
@@ -153,5 +154,35 @@ export function RecordTheirChoice({
         <p className={styles.note}>{feeLine}</p>
       )}
     </SaveDialog>
+  );
+}
+
+/** Cancel this change (§9.7, Owner): the waiting change's link is withdrawn; no e-mail. */
+export function CancelWaiting({
+  orderId,
+  first,
+  className,
+}: {
+  orderId: number;
+  first: string;
+  className?: string;
+}) {
+  return (
+    <SaveDialog
+      trigger={(open) => (
+        <Button variant="outline" className={className} onClick={open}>
+          Cancel this change
+        </Button>
+      )}
+      title="Cancel this change?"
+      description={`Its payment link is withdrawn and the order stays as it is. No e-mail goes to ${first}.`}
+      saveLabel="Cancel the change"
+      busyLabel="Cancelling"
+      keepLabel="Keep it"
+      save={async () => {
+        const r = await cancelWaitingChangeAction(orderId);
+        return r.kind === "done" ? { kind: "saved" } : r;
+      }}
+    />
   );
 }

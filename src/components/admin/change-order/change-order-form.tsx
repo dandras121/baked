@@ -13,7 +13,15 @@ import { SignInAgain } from "@/components/admin/order/sign-in-again";
 import { Button } from "@/components/ui/button";
 import { FieldError } from "@/components/ui/field-error";
 import { Overlay } from "@/components/ui/overlay";
+import { OptionBlock } from "@/components/cake-page/option-block";
+import type { SizeChoice } from "@/db/change-repo";
 import { dayLine, dayWarnings, type DayInfo } from "@/lib/admin/add-order";
+import { chosen, type Answers, type OptionView } from "@/lib/cake-config";
+import {
+  INSCRIPTION_MAX,
+  inscriptionError,
+  optionErrors,
+} from "@/lib/order-line";
 import {
   newCharge,
   PRICE_NOTE,
@@ -24,6 +32,22 @@ import { formatAdminMoney, formatDifference } from "@/lib/money";
 import own from "./change-order.module.css";
 
 type Errors = Partial<Record<keyof ChangeForm, string>>;
+
+export type ChangeCake = {
+  id: number;
+  name: string;
+  sizeLine: string;
+  /** null: the cake offers no message. */
+  message: string | null;
+  sizes: SizeChoice[];
+  optionViews: OptionView[];
+  /** null: options kept from before they could be changed — shown, not editable. */
+  answers: Answers | null;
+  optionsPaidPence: number;
+};
+
+const optionPrice = (views: OptionView[], a: Answers) =>
+  chosen(views, a).reduce((n, { choice }) => n + choice.pricePence, 0);
 const money = (p: number) => formatAdminMoney(p, "breakdown");
 
 /**
@@ -39,8 +63,10 @@ export function ChangeOrderForm({
   owner,
   today,
   districts,
+  cakes,
   money: m,
 }: {
+  cakes: ChangeCake[];
   orderId: number;
   number: string;
   version: number;
@@ -64,9 +90,27 @@ export function ChangeOrderForm({
   const [signIn, setSignIn] = useState<"no" | "asking" | "back">("no");
   const [done, setDone] = useState(false);
   const [busy, start] = useTransition();
+  // The cakes (§9.7): size and options for the Owner, the message for both.
+  const [sizes, setSizes] = useState<Record<number, number>>({});
+  const [opts, setOpts] = useState<Record<number, Answers>>({});
+  const [messages, setMessages] = useState<Record<number, string>>({});
+  const [cakeErrors, setCakeErrors] = useState<Record<number, string>>({});
+  const cakesChanged =
+    Object.keys(sizes).length +
+      Object.keys(opts).length +
+      Object.keys(messages).length >
+    0;
   const changed =
+    cakesChanged ||
     JSON.stringify({ ...f, customerAsked: false }) !==
-    JSON.stringify({ ...initial, customerAsked: false });
+      JSON.stringify({ ...initial, customerAsked: false });
+  const cakeNet = cakes.reduce((n, c) => {
+    const size = c.sizes.find((x) => x.id === sizes[c.id]);
+    const opt = opts[c.id]
+      ? optionPrice(c.optionViews, opts[c.id]) - c.optionsPaidPence
+      : 0;
+    return n + (size ? size.diffPence : 0) + opt;
+  }, 0);
   const first = initial.name.trim().split(/\s+/)[0] || "the customer";
   const set = <K extends keyof ChangeForm>(k: K, v: ChangeForm[K]) => {
     setF((x) => ({ ...x, [k]: v }));
@@ -85,6 +129,7 @@ export function ChangeOrderForm({
   const later = moved && f.date > initial.date;
   const warnings = moved && day ? dayWarnings(day) : [];
   const newTotal =
+    cakeNet +
     m.totalPence -
     m.chargePence +
     newCharge(
@@ -100,12 +145,29 @@ export function ChangeOrderForm({
   const save = () =>
     start(async () => {
       setLine(null);
-      const r = await changeOrderAction(orderId, version, f).catch(
-        () => ({ kind: "failed" }) as const,
-      );
-      if (r.kind === "saved") {
+      const local: Record<number, string> = {};
+      for (const c of cakes) {
+        const msg = messages[c.id];
+        if (msg !== undefined) {
+          const err = inscriptionError(msg);
+          if (err) local[c.id] = err;
+        }
+        const oe = opts[c.id] ? optionErrors(c.optionViews, opts[c.id]) : {};
+        if (Object.keys(oe).length) local[c.id] = Object.values(oe)[0];
+      }
+      setCakeErrors(local);
+      if (Object.keys(local).length)
+        return setLine("Nothing was saved — check the cakes marked below.");
+      const r = await changeOrderAction(orderId, version, f, {
+        sizes,
+        options: opts,
+        messages,
+      }).catch(() => ({ kind: "failed" }) as const);
+      if (r.kind === "saved" || r.kind === "waiting") {
         setDone(true);
+        // The order page as it is now, not a copy kept from before the save.
         router.push(`/admin/orders/${number}`);
+        router.refresh();
         return;
       }
       if (r.kind === "signed-out") return setSignIn("asking");
@@ -121,9 +183,13 @@ export function ChangeOrderForm({
         return setLine(
           `${r.warnings.join(" ")} Only the owner can book a full or closed day — nothing was saved.`,
         );
-      if (r.kind === "needs-link")
+      if (r.kind === "invalid-cakes") {
+        setCakeErrors(r.errors);
+        return setLine("Nothing was saved — check the cakes marked below.");
+      }
+      if (r.kind === "busy")
         return setLine(
-          `This raises a fully paid order by ${money(r.pence)} — a change like this waits for a payment link, which comes with the next step. Nothing was saved.`,
+          "A change is already waiting for its payment — cancel it on the order first. Nothing was saved.",
         );
       if (r.kind === "nothing") return setLine("Nothing has changed yet.");
       if (r.kind === "closed")
@@ -300,6 +366,87 @@ export function ChangeOrderForm({
               </div>
             </>
           )}
+          {cakes.map((c) => {
+            const msg = messages[c.id] ?? c.message ?? "";
+            return (
+              <fieldset key={c.id} className={own.cake}>
+                <legend className={own.cakeName}>{c.name}</legend>
+                {owner && c.sizes.length > 0 && (
+                  <div className={styles.field}>
+                    <label htmlFor={`size-${c.id}`} className={styles.label}>
+                      Size
+                    </label>
+                    <select
+                      id={`size-${c.id}`}
+                      className={styles.input}
+                      value={
+                        sizes[c.id] ?? c.sizes.find((x) => x.current)?.id ?? ""
+                      }
+                      onChange={(e) => {
+                        const id = Number(e.target.value);
+                        const choice = c.sizes.find((x) => x.id === id);
+                        setSizes((x) => {
+                          const next = { ...x };
+                          if (choice?.current) delete next[c.id];
+                          else next[c.id] = id;
+                          return next;
+                        });
+                      }}
+                    >
+                      {c.sizes.map((x) => (
+                        <option key={x.id} value={x.id} disabled={x.removed}>
+                          {x.label}
+                          {x.current
+                            ? " — now"
+                            : x.diffPence
+                              ? ` · ${formatDifference(x.diffPence)}`
+                              : " · same price"}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+                {owner && c.answers && c.optionViews.length > 0 && (
+                  <div className={own.options}>
+                    {c.optionViews.map((o) => (
+                      <OptionBlock
+                        key={o.id}
+                        option={o}
+                        answers={opts[c.id] ?? c.answers!}
+                        onChange={(a) => setOpts((x) => ({ ...x, [c.id]: a }))}
+                      />
+                    ))}
+                  </div>
+                )}
+                {c.message !== null && (
+                  <div className={styles.field}>
+                    <label htmlFor={`msg-${c.id}`} className={styles.label}>
+                      Inscription
+                    </label>
+                    <input
+                      id={`msg-${c.id}`}
+                      className={styles.input}
+                      value={msg}
+                      maxLength={INSCRIPTION_MAX + 10}
+                      onChange={(e) =>
+                        setMessages((x) => {
+                          const next = { ...x };
+                          if (e.target.value === (c.message ?? ""))
+                            delete next[c.id];
+                          else next[c.id] = e.target.value;
+                          return next;
+                        })
+                      }
+                    />
+                  </div>
+                )}
+                <FieldError
+                  id={`cake-${c.id}-error`}
+                  message={cakeErrors[c.id] ?? null}
+                />
+              </fieldset>
+            );
+          })}
           <h2 className={styles.section}>The customer</h2>
           <div className={styles.pair}>
             {field("name", "Name", text("name", { maxLength: 80 }))}

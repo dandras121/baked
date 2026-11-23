@@ -981,6 +981,10 @@ export const paymentLinks = pgTable(
     purpose: text("purpose").notNull(),
     amountPence: integer("amount_pence").notNull(),
     status: text("status").notNull().default("open"),
+    /** A waiting change (§9.7): paying the difference applies it. */
+    changeId: integer("change_id").references(() => orderChanges.id, {
+      onDelete: "set null",
+    }),
     paymentIntentId: text("payment_intent_id").unique(),
     /** What Stripe took (net paid counts it, §10.6). */
     paidPence: integer("paid_pence").notNull().default(0),
@@ -1117,7 +1121,10 @@ export const uploads = pgTable(
       .defaultNow(),
   },
   (t) => [
-    check("upload_purpose", sql`${t.purpose} in ('enquiry', 'complaint', 'order')`),
+    check(
+      "upload_purpose",
+      sql`${t.purpose} in ('enquiry', 'complaint', 'order')`,
+    ),
     index("uploads_form").on(t.formKey),
     index("uploads_enquiry").on(t.enquiryId),
     index("uploads_complaint").on(t.complaintId),

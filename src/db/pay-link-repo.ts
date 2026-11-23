@@ -11,6 +11,7 @@ import { queueMail } from "./mail-repo";
 import { netPaid, refundOrder } from "./refund-repo";
 import { orderLines, orders, paymentLinks, refunds } from "./schema";
 import { readSettings } from "./settings-repo";
+import { applyWaitingChange } from "./admin-change-repo";
 
 type Db = ReturnType<typeof connect>["db"];
 type Order = typeof orders.$inferSelect;
@@ -64,7 +65,13 @@ const cakesOf = async (db: Db, orderId: number) =>
 /** Send a payment link (§9.8; played from /dev/orders until the admin): the link and e-mail 15. */
 export async function createPayLink(
   db: Db,
-  input: { orderId: number; purpose: PayPurpose; amountPence: number },
+  input: {
+    orderId: number;
+    purpose: PayPurpose;
+    amountPence: number;
+    /** A waiting change (§9.7): paying the link applies it. */
+    changeId?: number | null;
+  },
   now = new Date(),
 ): Promise<{ kind: "sent"; token: string } | { kind: "invalid" }> {
   const [o] = await db
@@ -90,6 +97,7 @@ export async function createPayLink(
       purpose: input.purpose,
       amountPence: input.amountPence,
       sentOn: today,
+      changeId: input.changeId ?? null,
       createdAt: now,
     })
     .returning();
@@ -250,15 +258,19 @@ export async function applyPayLink(
     .where(and(eq(paymentLinks.id, l.id), eq(paymentLinks.status, "open")))
     .returning({ id: paymentLinks.id });
   if (!marked) return "already";
-  const net = await netPaid(db, o);
-  if (net > o.totalPence)
+  // A difference for a waiting change (§9.7): the change applies now, then e-mail 12.
+  if (l.changeId) await applyWaitingChange(db, gw, l.changeId, now);
+  // The order as it is now (a waiting change has just raised its total).
+  const [cur] = await db.select().from(orders).where(eq(orders.id, o.id));
+  const net = await netPaid(db, cur);
+  if (net > cur.totalPence)
     await refundOrder(
       db,
       gw,
-      { orderId: o.id, amountPence: net - o.totalPence, kind: "excess" },
+      { orderId: o.id, amountPence: net - cur.totalPence, kind: "excess" },
       now,
     );
-  const due = Math.max(0, o.totalPence - (await netPaid(db, o)));
+  const due = Math.max(0, cur.totalPence - (await netPaid(db, cur)));
   const others = await db
     .select()
     .from(paymentLinks)

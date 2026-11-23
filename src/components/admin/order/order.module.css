@@ -531,3 +531,20 @@ select.input {
   outline: 2px solid var(--colour-focus-ring);
   outline-offset: 2px;
 }
+
+/* “Change waiting for £… — link sent …” (§9.7). */
+.waiting {
+  display: grid;
+  gap: 10px;
+  padding: 12px 14px;
+  border: 1px solid var(--colour-calm-border);
+  border-radius: 10px;
+  background: var(--colour-calm-wash);
+}
+
+.waiting p {
+  margin: 0;
+  color: var(--colour-ink);
+  font: var(--type-small);
+  font-weight: 600;
+}

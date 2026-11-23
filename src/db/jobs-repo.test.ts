@@ -107,6 +107,7 @@ describe.skipIf(!url)("database: the morning jobs (§12, §8.1 rows 2–4)", () 
     await order({ date: "2026-09-12" });
     expect(await runDueJobs(db(), londonInstant(day, 5, 59))).toEqual({
       "stale-uploads": 0,
+      "stale-waiting-changes": 0,
     });
     await runDueJobs(db(), londonInstant(day, 7, 30));
     expect(await keys()).toEqual([
@@ -128,6 +129,7 @@ describe.skipIf(!url)("database: the morning jobs (§12, §8.1 rows 2–4)", () 
     await order({ date: "2026-09-12" });
     expect(await runDueJobs(db(), londonInstant(day, 10))).toEqual({
       "stale-uploads": 0,
+      "stale-waiting-changes": 0,
       "daily-list": 1,
       "on-the-day": 1,
       "two-days-before": 1,

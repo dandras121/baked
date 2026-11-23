@@ -2,6 +2,8 @@
 // (job + date), is marked done only when it has completed, and a later tick runs a missed one, still within the
 // e-mails' deadlines (§8.4 Late jobs). The never-twice keys make a re-run or a second worker harmless.
 import { and, desc, eq, gte, inArray, isNull, lt, or, sql } from "drizzle-orm";
+import { dropStaleWaitingChanges } from "./admin-change-repo";
+import { gateway } from "@/lib/payments";
 import { deleteStaleUploads } from "./upload-repo";
 import {
   addDays,
@@ -271,6 +273,20 @@ export const JOBS: Job[] = [
     name: "stale-uploads",
     hour: 3,
     run: (db, _day, now) => deleteStaleUploads(db, now),
+  },
+  // §9.7: a waiting change unpaid after 23:59 on the order's date is dropped and its link withdrawn.
+  {
+    name: "stale-waiting-changes",
+    hour: 3,
+    run: (db, _day, now) =>
+      dropStaleWaitingChanges(
+        db,
+        gateway() ?? {
+          refund: async () => ({ ok: false as const, error: "off" }),
+          cancel: async () => {},
+        },
+        now,
+      ),
   },
   { name: "daily-list", hour: 6, run: dailyList },
   { name: "on-the-day", hour: 7, run: onTheDay },

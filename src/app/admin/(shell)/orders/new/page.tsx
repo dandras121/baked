@@ -19,7 +19,9 @@ export default async function Page() {
   try {
     const s = await readSettings(db);
     return (
+      // A fresh form on every visit (an earlier visit's typing must not come back).
       <AddOrderForm
+        key={Date.now()}
         today={londonDate(new Date())}
         districts={s.postcodeDistricts}
         direct={blobMode()}
