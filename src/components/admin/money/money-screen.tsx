@@ -1,7 +1,23 @@
 import Link from "next/link";
 import { SendPayLink } from "@/components/admin/order/send-pay-link";
 import type { MoneyScreen as Data } from "@/db/money-screen-repo";
-import { linkSent, moneySubtitle, paidInFullLine } from "@/lib/admin/money";
+import type { MoneyFlags } from "@/db/money-flags-repo";
+import { ButtonLink } from "@/components/ui/button";
+import {
+  FLAG,
+  linkSent,
+  moneySubtitle,
+  paidInFullLine,
+} from "@/lib/admin/money";
+import { stripeHref } from "@/lib/admin/order-detail";
+import { formatLongDate } from "@/lib/london-time";
+import {
+  Checked,
+  DismissNoOrder,
+  KeepFee,
+  RefundFee,
+  TryAgain,
+} from "./flag-actions";
 import { formatAdminMoney } from "@/lib/money";
 import styles from "./money.module.css";
 
@@ -12,7 +28,18 @@ const breakdown = (p: number) => formatAdminMoney(p, "breakdown");
  * Money (§9.9; desktop 934:8321, phone 1251:9519), Owner only: the subtitle, the four tiles (§13), STILL TO PAY (by
  * date, each with Send a payment link), the note (934:8410) and PAID IN FULL, NOTHING TO DO.
  */
-export function MoneyScreen({ d }: { d: Data }) {
+export function MoneyScreen({
+  d,
+  flags,
+  today,
+  stripeLive,
+}: {
+  d: Data;
+  flags: MoneyFlags;
+  today: string;
+  stripeLive: boolean;
+}) {
+  const open = (number: string) => `/admin/orders/${number}?from=money`;
   const tiles: [string, string][] = [
     [label(d.tiles.stillToPay), "still to pay"],
     [label(d.tiles.paidThisWeek), "paid this week"],
@@ -25,6 +52,116 @@ export function MoneyScreen({ d }: { d: Data }) {
       <p className={styles.subtitle}>
         {moneySubtitle(d.tiles.stillToPay, d.rows.length)}
       </p>
+
+      {flags.noOrder.length +
+        flags.refundFailed.length +
+        flags.checkDay.length +
+        flags.feeToRefund.length +
+        flags.handBack.length >
+        0 && (
+        <section className={styles.flags} aria-label="Needs you">
+          {flags.noOrder.length > 0 && (
+            <Flag title={FLAG.noOrderTitle(flags.noOrder.length)}>
+              {flags.noOrder.map((a) => (
+                <div key={a.id} className={styles.flagItem}>
+                  <p className={styles.flagText}>
+                    {FLAG.noOrder(a.pence, a.on, a.paymentIntentId)}
+                  </p>
+                  <div className={styles.flagActions}>
+                    <ButtonLink
+                      href={stripeHref({
+                        number: "",
+                        cardPayments: [a.paymentIntentId],
+                        live: stripeLive,
+                      })}
+                      variant="outline"
+                      className={styles.flagButton}
+                      external
+                    >
+                      Open in Stripe
+                    </ButtonLink>
+                    <DismissNoOrder alertId={a.id} />
+                  </div>
+                </div>
+              ))}
+            </Flag>
+          )}
+          {flags.refundFailed.map((f) => (
+            <Flag
+              key={`r${f.id}`}
+              title={FLAG.refundFailedTitle}
+              href={open(f.number)}
+              number={f.number}
+            >
+              <div className={styles.flagItem}>
+                <p className={styles.flagText}>
+                  {FLAG.refundFailed(f.pence, f.number, f.name, f.on, f.error)}
+                </p>
+                <div className={styles.flagActions}>
+                  <TryAgain refundId={f.id} />
+                </div>
+              </div>
+            </Flag>
+          ))}
+          {flags.checkDay.map((f) => (
+            <Flag
+              key={`c${f.orderId}`}
+              title={FLAG.checkDayTitle(f.number)}
+              href={open(f.number)}
+              number={f.number}
+            >
+              <div className={styles.flagItem}>
+                <p className={styles.flagText}>
+                  {FLAG.checkDay(f.name, formatLongDate(f.date, today))}
+                </p>
+                <div className={styles.flagActions}>
+                  <Checked orderId={f.orderId} />
+                </div>
+              </div>
+            </Flag>
+          ))}
+          {flags.feeToRefund.map((f) => (
+            <Flag
+              key={`f${f.attemptId}`}
+              title={FLAG.feeTitle(f.pence, f.number)}
+              href={open(f.number)}
+              number={f.number}
+            >
+              <div className={styles.flagItem}>
+                <p className={styles.flagText}>{FLAG.fee(f.pence, f.name)}</p>
+                <div className={styles.flagActions}>
+                  <RefundFee
+                    attemptId={f.attemptId}
+                    label={`Refund ${label(f.pence)}`}
+                  />
+                  <KeepFee attemptId={f.attemptId} fee={label(f.pence)} />
+                </div>
+              </div>
+            </Flag>
+          ))}
+          {flags.handBack.map((f) => (
+            <Flag
+              key={`h${f.orderId}`}
+              title={FLAG.handTitle(f.pence, f.number)}
+              href={open(f.number)}
+              number={f.number}
+            >
+              <div className={styles.flagItem}>
+                <p className={styles.flagText}>{FLAG.hand}</p>
+                <div className={styles.flagActions}>
+                  <ButtonLink
+                    href={open(f.number)}
+                    variant="outline"
+                    className={styles.flagButton}
+                  >
+                    Record a refund given back
+                  </ButtonLink>
+                </div>
+              </div>
+            </Flag>
+          ))}
+        </section>
+      )}
 
       <ul className={styles.tiles} aria-label="Money in numbers">
         {tiles.map(([n, what]) => (
@@ -118,5 +255,30 @@ export function MoneyScreen({ d }: { d: Data }) {
         <p className={styles.line}>{paidInFullLine(d.paidInFull)}</p>
       </section>
     </>
+  );
+}
+
+/** One flag (934:8321's box): the title in caps, then its lines and buttons; the order it belongs to, when it has one. */
+function Flag({
+  title,
+  href,
+  number,
+  children,
+}: {
+  title: string;
+  href?: string;
+  number?: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className={styles.flag}>
+      <h2 className={styles.flagTitle}>{title}</h2>
+      {children}
+      {href && (
+        <Link href={href} className={styles.flagLink}>
+          Open {number}
+        </Link>
+      )}
+    </div>
   );
 }

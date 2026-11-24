@@ -8,6 +8,7 @@ import { WINDOWS } from "@/lib/handover";
 import type { Gateway, Intent } from "@/lib/payments";
 import type { connect } from "./client";
 import { queueMail } from "./mail-repo";
+import { refundKey } from "./refund-repo";
 import {
   closedDays,
   deliveryAttempts,
@@ -406,7 +407,11 @@ export async function refundFee(
       createdAt: now,
     })
     .returning({ id: refunds.id });
-  const r = await gw.refund(paymentIntentId, amountPence, `fee-${row.id}`);
+  const r = await gw.refund(
+    paymentIntentId,
+    amountPence,
+    await refundKey(db, row.id, `fee-${row.id}`),
+  );
   await db
     .update(refunds)
     .set(

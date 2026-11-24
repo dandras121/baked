@@ -590,6 +590,11 @@ export const paymentAlerts = pgTable(
     paymentIntentId: text("payment_intent_id").notNull(),
     draftId: uuid("draft_id"),
     detail: text("detail").notNull(),
+    /** What Stripe took (the Money flag “Stripe payment has no order”, §9.9). */
+    amountPence: integer("amount_pence"),
+    /** Linda's Dismiss on Money (§9.9): the flag no longer shows. */
+    dismissedAt: timestamp("dismissed_at", { withTimezone: true }),
+    dismissedBy: text("dismissed_by"),
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
       .defaultNow(),
@@ -1178,6 +1183,8 @@ export const refunds = pgTable(
     amountPence: integer("amount_pence").notNull(),
     paymentIntentId: text("payment_intent_id").notNull(),
     stripeRefundId: text("stripe_refund_id"),
+    /** The key the refund was asked for with: Money's Try again reuses it (§9.9). */
+    idempotencyKey: text("idempotency_key"),
     status: text("status").notNull().default("pending"),
     error: text("error"),
     createdAt: timestamp("created_at", { withTimezone: true })

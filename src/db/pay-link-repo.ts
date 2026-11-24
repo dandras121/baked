@@ -8,7 +8,7 @@ import type { PayView } from "@/lib/mail/after-emails";
 import type { Gateway, Intent } from "@/lib/payments";
 import type { connect } from "./client";
 import { queueMail } from "./mail-repo";
-import { netPaid, refundOrder } from "./refund-repo";
+import { netPaid, refundKey, refundOrder } from "./refund-repo";
 import { applyRedeliveryLink } from "./delivery-repo";
 import {
   deliveryAttempts,
@@ -268,7 +268,7 @@ export async function applyPayLink(
     const r = await gw.refund(
       intent.id,
       intent.amountReceivedPence,
-      `link-${row.id}`,
+      await refundKey(db, row.id, `link-${row.id}`),
     );
     await db
       .update(refunds)

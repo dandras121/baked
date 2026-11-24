@@ -288,6 +288,13 @@
       "when": 1795478061296,
       "tag": "0040_link_redelivery",
       "breakpoints": true
+    },
+    {
+      "idx": 41,
+      "version": "7",
+      "when": 1795503238342,
+      "tag": "0041_money_flags",
+      "breakpoints": true
     }
   ]
 }

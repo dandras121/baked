@@ -131,6 +131,15 @@ export async function netPaid(db: Db, o: typeof orders.$inferSelect) {
   );
 }
 
+/** Keeps the idempotency key on the refund row before Stripe is asked, so Money's Try again reuses it (§9.9). */
+export async function refundKey(db: Db, refundId: number, key: string) {
+  await db
+    .update(refunds)
+    .set({ idempotencyKey: key })
+    .where(eq(refunds.id, refundId));
+  return key;
+}
+
 /** Money by hand (§10.6): payments in less refunds given back by hand; removed lines do not count. */
 export async function handNet(db: Db, orderId: number) {
   const rows = await db
@@ -184,7 +193,11 @@ export async function refundOrder(
         createdAt: now,
       })
       .returning({ id: refunds.id });
-    const r = await gw.refund(p.paymentIntentId, take, `${o.id}-${row.id}`);
+    const r = await gw.refund(
+      p.paymentIntentId,
+      take,
+      await refundKey(db, row.id, `${o.id}-${row.id}`),
+    );
     if (r.ok) {
       await db
         .update(refunds)

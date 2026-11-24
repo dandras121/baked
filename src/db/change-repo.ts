@@ -37,7 +37,7 @@ import { readOptions } from "./cake-page-repo";
 import { capacityForOrder } from "./hold-repo";
 import type { connect } from "./client";
 import { queueMail } from "./mail-repo";
-import { refundOrder } from "./refund-repo";
+import { refundKey, refundOrder } from "./refund-repo";
 import { LOCK_MS } from "./payment-repo";
 import {
   cakeSizes,
@@ -812,7 +812,7 @@ async function refundPayment(
   const r = await gw.refund(
     intent.id,
     intent.amountReceivedPence,
-    `${o.id}-${row.id}`,
+    await refundKey(db, row.id, `${o.id}-${row.id}`),
   );
   await db
     .update(refunds)

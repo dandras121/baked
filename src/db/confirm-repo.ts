@@ -40,7 +40,13 @@ async function alert(
 ) {
   const added = await db
     .insert(paymentAlerts)
-    .values({ kind, paymentIntentId: intent.id, draftId, detail })
+    .values({
+      kind,
+      paymentIntentId: intent.id,
+      draftId,
+      detail,
+      amountPence: intent.amountReceivedPence,
+    })
     .onConflictDoNothing()
     .returning({ id: paymentAlerts.id });
   if (!added.length) return;
