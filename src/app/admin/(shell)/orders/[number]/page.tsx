@@ -88,7 +88,9 @@ export default async function Page({
         back={
           from === "today"
             ? { href: "/admin/today", label: "Back to today" }
-            : { href: "/admin/orders", label: "Back to orders" }
+            : from === "money"
+              ? { href: "/admin/money", label: "Back to money" }
+              : { href: "/admin/orders", label: "Back to orders" }
         }
         feePence={settings.secondAttemptFeePence}
         closedTomorrow={closedTomorrow}

@@ -1,0 +1,243 @@
+/*
+ * Money (§9.9). Desktop 934:8321: title (Fraunces Light 40), subtitle, four tiles 231 × 85, STILL TO PAY with column
+ * heads (10 px caps) over white rows 60 high, the note, PAID IN FULL. Phone 1251:9519: tiles 2 × 2, rows as cards with
+ * a full-width Send a payment link.
+ */
+.title {
+  margin: 0;
+  color: var(--colour-display);
+  font: var(--type-admin-title-sm);
+  font-variation-settings: var(--font-display-axes);
+}
+
+.subtitle {
+  margin: 6px 0 24px;
+  color: var(--colour-body);
+  font: var(--type-contact-note);
+}
+
+.tiles {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin: 0 0 32px;
+  padding: 0;
+  list-style: none;
+}
+
+.tile {
+  display: grid;
+  gap: 4px;
+  align-content: start;
+  padding: 14px 19px 15px;
+  border: 1px solid var(--colour-line-rule);
+  border-radius: 10px;
+  background: var(--colour-white);
+}
+
+.tileNumber {
+  color: var(--colour-ink);
+  font: var(--type-admin-stat);
+}
+
+.tileLabel {
+  color: var(--colour-body);
+  font: var(--type-small);
+}
+
+.section {
+  margin: 0 0 12px;
+  color: var(--colour-accent);
+  font: var(--type-admin-head);
+  letter-spacing: 1.8px;
+  text-transform: uppercase;
+}
+
+.heads {
+  display: none;
+}
+
+.rows {
+  display: grid;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* Phone: a card — number, name, the sums on one line, the button. */
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  padding: 18px 16px 16px;
+  border: 1px solid var(--colour-line-rule);
+  border-radius: 10px;
+  background: var(--colour-white);
+}
+
+.number {
+  flex: 0 0 100%;
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
+  color: var(--colour-ink);
+  font: var(--type-body-sm);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.name {
+  flex: 0 0 100%;
+  margin: 0 0 4px;
+  color: var(--colour-body);
+  font: var(--type-admin-cell);
+  text-decoration: none;
+}
+
+.number:focus-visible,
+.name:focus-visible {
+  outline: 2px solid var(--colour-focus-ring);
+  outline-offset: 2px;
+}
+
+.cell {
+  color: var(--colour-body);
+  font: var(--type-small);
+  white-space: pre;
+}
+
+.narrow {
+  display: inline;
+}
+
+.wideOnly {
+  display: none;
+}
+
+.action {
+  flex: 0 0 100%;
+  display: grid;
+  margin: 16px 0 0;
+}
+
+.send {
+  width: 100%;
+  height: 44px;
+  min-height: 44px;
+}
+
+.note {
+  max-width: 690px;
+  margin: 14px 0 32px;
+  color: var(--colour-meta);
+  font: var(--type-small);
+}
+
+.line {
+  margin: 0;
+  color: var(--colour-body);
+  font: var(--type-admin-cell);
+}
+
+@media (min-width: 1024px) {
+  .title {
+    font: var(--type-admin-title);
+  }
+
+  .subtitle {
+    margin-bottom: 30px;
+  }
+
+  .tiles {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 18px;
+    margin-bottom: 40px;
+  }
+
+  .heads,
+  .row {
+    display: grid;
+    grid-template-columns:
+      110px minmax(0, 190px) 100px 110px 120px minmax(130px, 1fr)
+      190px;
+    align-items: center;
+  }
+
+  .heads {
+    padding: 0 19px 10px;
+    color: var(--colour-accent);
+    font: var(--type-admin-head);
+    letter-spacing: 1.8px;
+    text-transform: uppercase;
+  }
+
+  .row {
+    min-height: 60px;
+    padding: 0 19px;
+  }
+
+  .number,
+  .name {
+    flex: none;
+    margin: 0;
+    font: var(--type-admin-cell);
+  }
+
+  .number {
+    color: var(--colour-body);
+    font-weight: 400;
+  }
+
+  .name {
+    color: var(--colour-ink);
+    font-weight: 600;
+  }
+
+  .cell {
+    font: var(--type-admin-cell);
+    white-space: normal;
+  }
+
+  .due {
+    color: var(--colour-ink);
+    font-weight: 600;
+  }
+
+  .narrow {
+    display: none;
+  }
+
+  .wideOnly {
+    display: inline;
+  }
+
+  .action {
+    margin: 0;
+  }
+
+  /* 190 wide as drawn; 44 tall for the hit area (§10.13). */
+  .send {
+    width: 190px;
+    height: 44px;
+    min-height: 44px;
+    padding: 0;
+    font: var(--type-button);
+    letter-spacing: var(--type-button-ls);
+  }
+}
+
+/* Tablet (RESPONSIVE: desktop × 0.8): the columns tighten. */
+@media (min-width: 1024px) and (max-width: 1199px) {
+  .heads,
+  .row {
+    grid-template-columns:
+      96px minmax(0, 1.4fr) 56px 76px 84px minmax(0, 1fr)
+      160px;
+    column-gap: 6px;
+  }
+
+  .send {
+    width: 160px;
+  }
+}

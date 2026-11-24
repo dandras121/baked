@@ -158,3 +158,5 @@ Anything built differently from the docs or Figma, and why. Bohoka’s decision 
 | 8.7a | 1607:10918 “When she pays, …” | “Once it is paid, …” — the customer's pronoun is not known and is not guessed |
 | 8.7 | CLAUDE.md §4.4 one slice | 8.7 split into 8.7a (Send a payment link), 8.7b (Record a payment · Remove · Record a refund given back), 8.7c (the £15 Redelivery link) |
 | 8.7b | 1801:12967 / 1801:13035 Date “Saturday 12 September” | The browser's own date field (as in Add an order): it shows the date in the browser's format and opens its calendar |
+| 8.8 | CLAUDE.md §4.4 one slice | 8.8 split into 8.8a (the Money screen) and 8.8b (the flags) |
+| 8.8a | 934:8321 Send a payment link 190 × 38 | 190 × 44, so the hit area is at least 44 tall (§10.13) |

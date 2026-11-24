@@ -111,7 +111,8 @@ describe.skipIf(!url)("database: money by hand on Order detail (§9.5)", () => {
     const h = await db()
       .select()
       .from(orderHistory)
-      .where(eq(orderHistory.orderId, o.id));
+      .where(eq(orderHistory.orderId, o.id))
+      .orderBy(orderHistory.id);
     expect(h.map((x) => x.what)).toContain(
       "Recorded a payment · Cash £120.00 · 20 Nov",
     );
@@ -163,7 +164,8 @@ describe.skipIf(!url)("database: money by hand on Order detail (§9.5)", () => {
     const h = await db()
       .select()
       .from(orderHistory)
-      .where(eq(orderHistory.orderId, o.id));
+      .where(eq(orderHistory.orderId, o.id))
+      .orderBy(orderHistory.id);
     expect(h.at(-1)?.what).toBe("Removed the £100.00 cash payment of 23 Nov");
   });
 

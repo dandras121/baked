@@ -157,7 +157,8 @@ describe.skipIf(!url)("database: Edit the order (§9.7, manual orders)", () => {
     const h = await db()
       .select()
       .from(orderHistory)
-      .where(eq(orderHistory.orderId, o.id));
+      .where(eq(orderHistory.orderId, o.id))
+      .orderBy(orderHistory.id);
     expect(h.map((x) => x.what).join("|")).toMatch(
       /Edited the order · What it is: Three tiers, ivory buttercream → Two tiers, lemon/,
     );
@@ -219,7 +220,8 @@ describe.skipIf(!url)("database: Edit the order (§9.7, manual orders)", () => {
     const h = await db()
       .select()
       .from(orderHistory)
-      .where(eq(orderHistory.orderId, o.id));
+      .where(eq(orderHistory.orderId, o.id))
+      .orderBy(orderHistory.id);
     expect(h.at(-1)?.what).toMatch(/£40\.00 to give back by hand/);
   });
 

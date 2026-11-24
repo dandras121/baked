@@ -107,7 +107,8 @@ test("Owner: Edit the order opens filled in; a total below what was paid asks fi
     const h = await db
       .select()
       .from(orderHistory)
-      .where(eq(orderHistory.orderId, o.id));
+      .where(eq(orderHistory.orderId, o.id))
+      .orderBy(orderHistory.id);
     expect(h.at(-1)?.what).toMatch(/£40\.00 to give back by hand/);
   } finally {
     await close();

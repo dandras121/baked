@@ -282,7 +282,8 @@ test("Mark handed over, Undo and Nobody was in work here as on Today", async ({
     const h = await db
       .select()
       .from(orderHistory)
-      .where(eq(orderHistory.orderId, o.id));
+      .where(eq(orderHistory.orderId, o.id))
+      .orderBy(orderHistory.id);
     expect(h.map((x) => x.what)).toEqual([
       "Marked handed over",
       "Undid handed over",
