@@ -50,11 +50,15 @@ export type Gateway = {
     orderNumber: string,
     amountPence: number,
   ): Promise<Intent>;
-  /** A payment link's PaymentIntent (§6.9, metadata kind `payment_link`): one per link (idempotency key). */
+  /**
+   * A payment link's PaymentIntent (§6.9, metadata kind `payment_link`; a Redelivery link `redelivery`, §9.8): one per
+   * link (idempotency key).
+   */
   createForPayLink(
     linkId: number,
     orderNumber: string,
     amountPence: number,
+    kind?: "payment_link" | "redelivery",
   ): Promise<Intent>;
   /** Stops a payment still in progress (Collect chosen meanwhile, §6.8). A finished one is left as it is. */
   cancel(id: string): Promise<void>;
@@ -146,7 +150,12 @@ function stripeGateway(secret: string): Gateway {
         ),
       );
     },
-    async createForPayLink(linkId, orderNumber, amountPence) {
+    async createForPayLink(
+      linkId,
+      orderNumber,
+      amountPence,
+      kind = "payment_link",
+    ) {
       return fromStripe(
         await stripe.paymentIntents.create(
           {
@@ -154,11 +163,11 @@ function stripeGateway(secret: string): Gateway {
             currency: "gbp",
             allowed_payment_method_types: ["card"],
             metadata: {
-              kind: "payment_link",
+              kind,
               link_id: String(linkId),
               order: orderNumber,
             },
-            description: `Baked by Linda order ${orderNumber} — payment link`,
+            description: `Baked by Linda order ${orderNumber} — ${kind === "redelivery" ? "redelivery" : "payment link"}`,
           },
           { idempotencyKey: `pay-link-${linkId}` },
         ),
@@ -270,7 +279,12 @@ const fakeGateway: Gateway = {
       });
     return fakes.get(id)!;
   },
-  async createForPayLink(linkId, _orderNumber, amountPence) {
+  async createForPayLink(
+    linkId,
+    _orderNumber,
+    amountPence,
+    kind = "payment_link",
+  ) {
     const id = `pi_fake_link_${linkId}`;
     if (!fakes.has(id))
       fakes.set(id, {
@@ -279,7 +293,7 @@ const fakeGateway: Gateway = {
         amountPence,
         status: "requires_payment_method",
         amountReceivedPence: 0,
-        kind: "payment_link",
+        kind,
         draftId: null,
         linkId,
       });

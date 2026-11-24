@@ -9,7 +9,14 @@ import type { Gateway, Intent } from "@/lib/payments";
 import type { connect } from "./client";
 import { queueMail } from "./mail-repo";
 import { netPaid, refundOrder } from "./refund-repo";
-import { orderLines, orders, paymentLinks, refunds } from "./schema";
+import { applyRedeliveryLink } from "./delivery-repo";
+import {
+  deliveryAttempts,
+  orderLines,
+  orders,
+  paymentLinks,
+  refunds,
+} from "./schema";
 import { readSettings } from "./settings-repo";
 import { applyWaitingChange } from "./admin-change-repo";
 
@@ -17,7 +24,12 @@ type Db = ReturnType<typeof connect>["db"];
 type Order = typeof orders.$inferSelect;
 type Link = typeof paymentLinks.$inferSelect;
 
-export const PAY_PURPOSES = ["deposit", "rest", "difference"] as const;
+export const PAY_PURPOSES = [
+  "deposit",
+  "rest",
+  "difference",
+  "redelivery",
+] as const;
 export type PayPurpose = (typeof PAY_PURPOSES)[number];
 
 /** Valid until 23:59 on the 30th day after the order's date or after the day it was sent, whichever is later. */
@@ -62,6 +74,31 @@ const cakesOf = async (db: Db, orderId: number) =>
     .map((l) => l.name)
     .join(", ");
 
+/** A Redelivery link's day and window: the attempt booked after the missed one (§9.8). */
+export async function redeliveryOf(db: Db, attemptId: number | null) {
+  if (!attemptId) return {};
+  const [t] = await db
+    .select()
+    .from(deliveryAttempts)
+    .where(eq(deliveryAttempts.id, attemptId));
+  if (!t) return {};
+  const [next] = await db
+    .select()
+    .from(deliveryAttempts)
+    .where(
+      and(
+        eq(deliveryAttempts.orderId, t.orderId),
+        eq(deliveryAttempts.attempt, t.attempt + 1),
+      ),
+    );
+  return next
+    ? {
+        redeliveryDate: String(next.day),
+        redeliveryWindow: next.deliveryWindow,
+      }
+    : {};
+}
+
 /** Send a payment link (§9.8; played from /dev/orders until the admin): the link and e-mail 15. */
 export async function createPayLink(
   db: Db,
@@ -71,6 +108,8 @@ export async function createPayLink(
     amountPence: number;
     /** A waiting change (§9.7): paying the link applies it. */
     changeId?: number | null;
+    /** A Redelivery link (§9.8): the missed attempt whose fee it collects. */
+    attemptId?: number | null;
   },
   now = new Date(),
 ): Promise<{ kind: "sent"; token: string } | { kind: "invalid" }> {
@@ -98,6 +137,7 @@ export async function createPayLink(
       amountPence: input.amountPence,
       sentOn: today,
       changeId: input.changeId ?? null,
+      attemptId: input.attemptId ?? null,
       createdAt: now,
     })
     .returning();
@@ -112,6 +152,9 @@ export async function createPayLink(
     paidPence: await netPaid(db, o),
     toPayPence: input.amountPence,
     confirmationFollows: true,
+    ...(input.purpose === "redelivery"
+      ? await redeliveryOf(db, input.attemptId ?? null)
+      : {}),
   };
   // E-mail 15 goes also with customer e-mails off (§8.2).
   await queueMail(
@@ -146,6 +189,7 @@ export async function preparePayLink(
     found.link.id,
     found.order.number,
     found.link.amountPence,
+    found.link.purpose === "redelivery" ? "redelivery" : "payment_link",
   );
   if (found.link.paymentIntentId !== intent.id)
     await db
@@ -277,8 +321,10 @@ export async function applyPayLink(
     .where(
       and(eq(paymentLinks.orderId, o.id), eq(paymentLinks.status, "open")),
     );
+  // Redelivery links are the fee's own and stay (§10.6).
   for (const other of others)
-    if (other.amountPence > due) await withdrawPayLink(db, gw, other.id);
+    if (other.amountPence > due && other.purpose !== "redelivery")
+      await withdrawPayLink(db, gw, other.id);
   await queueMail(
     db,
     {
@@ -310,7 +356,10 @@ export async function finishPayLink(
   const intent = await gw.retrieve(found.link.paymentIntentId);
   if (intent.status === "processing") return "processing";
   if (intent.status !== "succeeded") return "failed";
-  const r = await applyPayLink(db, gw, intent, now);
+  const r =
+    found.link.purpose === "redelivery"
+      ? await applyRedeliveryLink(db, gw, intent, now)
+      : await applyPayLink(db, gw, intent, now);
   return r === "paid" || r === "already" ? "paid" : "failed";
 }
 

@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { connection } from "next/server";
 import { OrderDetailScreen } from "@/components/admin/order/order-detail-screen";
 import { connect, databaseUrl } from "@/db/client";
+import { redeliveryLinkDue } from "@/db/admin-pay-link-repo";
 import { handToGiveBack } from "@/db/hand-money-repo";
 import { adminCancelQuote } from "@/db/admin-cancel-repo";
 import { waitingChange } from "@/db/admin-change-repo";
@@ -55,7 +56,12 @@ export default async function Page({
       file: pictureLink(p.id, "file", Date.now(), 60 * 60 * 1000),
     }));
     const owner = member.role === "owner";
-    const handBackPence = owner ? await handToGiveBack(db, d.order) : 0;
+    const [handBackPence, redeliveryDue] = owner
+      ? await Promise.all([
+          handToGiveBack(db, d.order),
+          pay === "redelivery" ? redeliveryLinkDue(db, d.order) : null,
+        ])
+      : [0, null];
     const cancelQuote =
       owner && d.order.status === "confirmed"
         ? await adminCancelQuote(db, d.order, today)
@@ -66,7 +72,10 @@ export default async function Page({
         owner={owner}
         cancelQuote={cancelQuote}
         saved={saved === "1"}
-        payAtStart={pay === "1"}
+        payAtStart={
+          pay === "1" ? "link" : pay === "redelivery" ? "redelivery" : null
+        }
+        redeliveryDue={redeliveryDue && { feePence: redeliveryDue.feePence }}
         handBackPence={handBackPence}
         sketches={sketches}
         waiting={

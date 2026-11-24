@@ -9,7 +9,9 @@ import { londonDate, type CalendarDate } from "@/lib/london-time";
 import type { Gateway } from "@/lib/payments";
 import type { connect } from "./client";
 import { refundFee } from "./delivery-repo";
-import { deliveryAttempts, orderHistory, orders } from "./schema";
+import { withdrawPayLink } from "./pay-link-repo";
+import { deliveryAttempts, orderHistory, orders, paymentLinks } from "./schema";
+import { readSettings } from "./settings-repo";
 import { saveOrderVersioned } from "./versioned";
 
 type Db = ReturnType<typeof connect>["db"];
@@ -82,6 +84,7 @@ export async function deliveredAfterAll(
     return r;
   });
   if (!saved.ok) return { kind: "conflict", line: saved.line };
+  await withdrawRedeliveryLinks(db, gw, o.id);
   // A fee payment still going through is stopped; one already taken goes back (Owner).
   if (t.paymentIntentId && t.feePaidPence === 0)
     await gw.cancel(t.paymentIntentId).catch(() => {});
@@ -102,7 +105,28 @@ export async function deliveredAfterAll(
 
 export type TheirChoice =
   | { kind: "collect"; day: CalendarDate }
-  | { kind: "redeliver"; day: CalendarDate; window: string };
+  | {
+      kind: "redeliver";
+      day: CalendarDate;
+      window: string;
+      /** An unpaid redelivery: send a £15 payment link (§9.8) or waive the fee. */
+      fee?: "link" | "waive";
+    };
+
+/** A Redelivery link still open goes when the choice it was for is replaced or settled (§9.5). */
+async function withdrawRedeliveryLinks(db: Db, gw: Gw, orderId: number) {
+  const open = await db
+    .select({ id: paymentLinks.id })
+    .from(paymentLinks)
+    .where(
+      and(
+        eq(paymentLinks.orderId, orderId),
+        eq(paymentLinks.purpose, "redelivery"),
+        eq(paymentLinks.status, "open"),
+      ),
+    );
+  for (const l of open) await withdrawPayLink(db, gw, l.id);
+}
 
 /**
  * Record their choice (§9.5, Owner), e.g. agreed by phone: Collect (day) or Redeliver (date, window; the fee waived —
@@ -133,6 +157,7 @@ export async function recordTheirChoice(
     .where(eq(orders.id, input.orderId));
   if (!m || !o || o.status !== "confirmed") return { kind: "not-now" };
   const t = m.target;
+  const fee = (await readSettings(db)).secondAttemptFeePence;
   const saved = await db.transaction(async (tx) => {
     const r = await saveOrderVersioned(
       tx,
@@ -190,11 +215,12 @@ export async function recordTheirChoice(
       what:
         c.kind === "collect"
           ? `Recorded their choice: collect ${c.day}${refundsFee ? ` · ${money(t.feePaidPence)} redelivery fee refunded` : ""}`
-          : `Recorded their choice: redeliver ${c.day}, ${c.window}${t.feePaidPence > 0 ? "" : " · fee waived"}`,
+          : `Recorded their choice: redeliver ${c.day}, ${c.window}${t.feePaidPence > 0 ? "" : c.fee === "link" ? ` · ${money(fee)} payment link to send` : " · fee waived"}`,
     });
     return r;
   });
   if (!saved.ok) return { kind: "conflict", line: saved.line };
+  await withdrawRedeliveryLinks(db, gw, o.id);
   if (t.paymentIntentId && t.feePaidPence === 0)
     await gw.cancel(t.paymentIntentId).catch(() => {});
   if (c.kind === "collect" && t.feePaidPence > 0 && t.paymentIntentId)

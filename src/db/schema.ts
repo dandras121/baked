@@ -985,6 +985,10 @@ export const paymentLinks = pgTable(
     changeId: integer("change_id").references(() => orderChanges.id, {
       onDelete: "set null",
     }),
+    /** A Redelivery link (§9.8): the missed delivery attempt whose £15 it collects. */
+    attemptId: integer("attempt_id").references(() => deliveryAttempts.id, {
+      onDelete: "set null",
+    }),
     paymentIntentId: text("payment_intent_id").unique(),
     /** What Stripe took (net paid counts it, §10.6). */
     paidPence: integer("paid_pence").notNull().default(0),
@@ -998,7 +1002,7 @@ export const paymentLinks = pgTable(
     index("payment_links_order").on(t.orderId),
     check(
       "payment_link_purpose",
-      sql`${t.purpose} in ('deposit', 'rest', 'difference')`,
+      sql`${t.purpose} in ('deposit', 'rest', 'difference', 'redelivery')`,
     ),
     check(
       "payment_link_status",

@@ -8,7 +8,13 @@ import { WINDOWS } from "@/lib/handover";
 import type { Gateway, Intent } from "@/lib/payments";
 import type { connect } from "./client";
 import { queueMail } from "./mail-repo";
-import { closedDays, deliveryAttempts, orders, refunds } from "./schema";
+import {
+  closedDays,
+  deliveryAttempts,
+  orders,
+  paymentLinks,
+  refunds,
+} from "./schema";
 import { readSettings } from "./settings-repo";
 
 type Db = ReturnType<typeof connect>["db"];
@@ -341,6 +347,11 @@ export async function applyRedelivery(
 ): Promise<"booked" | "already" | "refunded" | "nothing"> {
   if (intent.kind !== "redelivery" || intent.status !== "succeeded")
     return "nothing";
+  // Linda's Redelivery link (§9.8): the fee for a redelivery she already booked.
+  if (intent.linkId) {
+    const r = await applyRedeliveryLink(db, gw, intent, now);
+    return r === "paid" ? "booked" : r;
+  }
   const [a] = await db
     .select()
     .from(deliveryAttempts)
@@ -423,4 +434,92 @@ export async function finishRedelivery(
   if (intent.status !== "succeeded") return "failed";
   const r = await applyRedelivery(db, gw, intent, now);
   return r === "booked" || r === "already" ? "booked" : "failed";
+}
+
+/**
+ * A Redelivery link Stripe says succeeded (§9.8): the £15 is the missed attempt's fee, as if the customer had paid it on
+ * the delivery link, so Collect, Delivered after all and a cancellation refund it as before (§10.6). Paid after the
+ * link was withdrawn, the order ended or the redelivery no longer stands: it goes back in full as a `fee` refund.
+ */
+export async function applyRedeliveryLink(
+  db: Db,
+  gw: Pick<Gateway, "refund">,
+  intent: Intent,
+  now = new Date(),
+): Promise<"paid" | "already" | "refunded" | "nothing"> {
+  if (intent.status !== "succeeded") return "nothing";
+  const [l] = await db
+    .select()
+    .from(paymentLinks)
+    .where(eq(paymentLinks.paymentIntentId, intent.id));
+  if (!l || l.purpose !== "redelivery") return "nothing";
+  if (l.status === "paid") return "already";
+  const [o] = await db.select().from(orders).where(eq(orders.id, l.orderId));
+  const [a] = l.attemptId
+    ? await db
+        .select()
+        .from(deliveryAttempts)
+        .where(eq(deliveryAttempts.id, l.attemptId))
+    : [];
+  const [next] = a
+    ? await db
+        .select()
+        .from(deliveryAttempts)
+        .where(
+          and(
+            eq(deliveryAttempts.orderId, a.orderId),
+            eq(deliveryAttempts.attempt, a.attempt + 1),
+          ),
+        )
+    : [];
+  const stands =
+    l.status === "open" &&
+    o?.status === "confirmed" &&
+    a?.choice === "redeliver" &&
+    a.feePaidPence === 0 &&
+    next?.outcome === "none";
+  if (!stands) {
+    await db
+      .update(paymentLinks)
+      .set({ paidPence: intent.amountReceivedPence, paidAt: now })
+      .where(eq(paymentLinks.id, l.id));
+    const r = await refundFee(
+      db,
+      gw,
+      l.orderId,
+      intent.id,
+      intent.amountReceivedPence,
+      now,
+    );
+    return r === "none" ? "already" : "refunded";
+  }
+  const [marked] = await db
+    .update(paymentLinks)
+    .set({ status: "paid", paidPence: intent.amountReceivedPence, paidAt: now })
+    .where(and(eq(paymentLinks.id, l.id), eq(paymentLinks.status, "open")))
+    .returning({ id: paymentLinks.id });
+  if (!marked) return "already";
+  await db
+    .update(deliveryAttempts)
+    .set({
+      feePaidPence: intent.amountReceivedPence,
+      paymentIntentId: intent.id,
+    })
+    .where(eq(deliveryAttempts.id, a.id));
+  const s = await readSettings(db);
+  await queueMail(
+    db,
+    {
+      key: `alert:paid:${l.id}`,
+      template: "alert",
+      data: {
+        kind: "paid",
+        view: { number: o.number, pence: intent.amountReceivedPence },
+      },
+      to: s.email,
+      replyTo: o.email || null,
+    },
+    now,
+  );
+  return "paid";
 }

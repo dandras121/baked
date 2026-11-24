@@ -75,7 +75,12 @@ export function countingGateway() {
         });
       return intents.get(id)!;
     },
-    async createForPayLink(linkId, _number, amountPence) {
+    async createForPayLink(
+      linkId,
+      _number,
+      amountPence,
+      kind = "payment_link",
+    ) {
       calls.create++;
       const id = `pi_link_${linkId}`;
       if (!intents.has(id))
@@ -85,7 +90,7 @@ export function countingGateway() {
           amountPence,
           status: "requires_payment_method",
           amountReceivedPence: 0,
-          kind: "payment_link",
+          kind,
           draftId: null,
           linkId,
         });

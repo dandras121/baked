@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import {
   deliveredAfterAllAction,
@@ -60,6 +61,8 @@ export function RecordTheirChoice({
   today,
   current,
   feeLine,
+  feeToAsk = null,
+  number = "",
   className,
 }: {
   orderId: number;
@@ -69,13 +72,22 @@ export function RecordTheirChoice({
   current: string | null;
   /** “Their £15 redelivery fee goes back to the card.” when collecting replaces a paid redelivery. */
   feeLine: string | null;
+  /** “£15”: an unpaid redelivery asks for its fee by link, or waives it (§9.5, §9.8). */
+  feeToAsk?: string | null;
+  number?: string;
   className?: string;
 }) {
+  const router = useRouter();
   const [kind, setKind] = useState<"collect" | "redeliver">("collect");
+  const [fee, setFee] = useState<"" | "link" | "waive">("");
   const [day, setDay] = useState(today);
   const [window, setWindow] = useState("morning");
   const [shown, setShown] = useState(false);
   const error = !day || day < today ? "Pick a day from today on." : null;
+  const feeError =
+    kind === "redeliver" && feeToAsk && !fee
+      ? `Choose whether to send a ${feeToAsk} payment link or waive it.`
+      : null;
   return (
     <SaveDialog
       trigger={(open) => (
@@ -90,12 +102,25 @@ export function RecordTheirChoice({
       keepLabel="Not now"
       save={() => {
         setShown(true);
-        if (error) return null;
+        if (error || feeError) return null;
+        const link = kind === "redeliver" && !!feeToAsk && fee === "link";
         return recordChoiceAction(
           orderId,
           version,
-          kind === "collect" ? { kind, day } : { kind, day, window },
-        );
+          kind === "collect"
+            ? { kind, day }
+            : {
+                kind,
+                day,
+                window,
+                fee: feeToAsk ? (fee as "link" | "waive") : undefined,
+              },
+        ).then((r) => {
+          // Then Send a payment link opens with Redelivery and the fee (§9.8).
+          if (r.kind === "saved" && link)
+            router.replace(`/admin/orders/${number}?pay=redelivery`);
+          return r;
+        });
       }}
       refused={REFUSED}
     >
@@ -147,7 +172,38 @@ export function RecordTheirChoice({
               </option>
             ))}
           </select>
-          <p className={styles.note}>No fee is asked for this redelivery.</p>
+          {feeToAsk ? (
+            <fieldset
+              className={styles.choices}
+              aria-describedby={
+                shown && feeError ? "choice-fee-error" : undefined
+              }
+            >
+              <legend className={styles.amountLabel}>The {feeToAsk} fee</legend>
+              {(
+                [
+                  ["link", `Send a ${feeToAsk} payment link`],
+                  ["waive", "Waive it"],
+                ] as const
+              ).map(([v, label]) => (
+                <label key={v} className={styles.choice}>
+                  <input
+                    type="radio"
+                    name="choice-fee"
+                    checked={fee === v}
+                    onChange={() => setFee(v)}
+                  />
+                  {label}
+                </label>
+              ))}
+              <FieldError
+                id="choice-fee-error"
+                message={shown ? feeError : null}
+              />
+            </fieldset>
+          ) : (
+            <p className={styles.note}>The redelivery fee is paid already.</p>
+          )}
         </>
       )}
       {kind === "collect" && feeLine && (

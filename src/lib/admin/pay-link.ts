@@ -49,7 +49,9 @@ export const linkSums = (m: {
   `Total ${money(m.totalPence)} · paid so far ${money(m.paidPence)} · still to pay ${money(m.stillToPayPence)}`;
 
 export const purposeLabel = (p: string) =>
-  LINK_PURPOSES.find((x) => x.value === p)?.label ?? "Payment";
+  p === "redelivery"
+    ? "Redelivery"
+    : (LINK_PURPOSES.find((x) => x.value === p)?.label ?? "Payment");
 
 /** “Link sent · £120.00 · Deposit” (§9.8). */
 export const sentLine = (pence: number, purpose: string) =>

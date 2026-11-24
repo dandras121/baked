@@ -28,6 +28,7 @@ export function SendPayLink({
   money,
   className,
   openAtStart = false,
+  redelivery = null,
 }: {
   orderId: number;
   number: string;
@@ -36,22 +37,39 @@ export function SendPayLink({
   className?: string;
   /** Add an order's Save and send a payment link lands here with the dialog open (§9.6). */
   openAtStart?: boolean;
+  /** From Record their choice (§9.8): the Redelivery kind, a fixed fee, not limited by still to pay. */
+  redelivery?: { feePence: number } | null;
 }) {
   const router = useRouter();
   const [open, setOpen] = useState(openAtStart);
-  const [purpose, setPurpose] = useState<LinkPurpose>("rest");
-  const [amount, setAmount] = useState(prefill("rest", money.stillToPayPence));
+  type Kind = LinkPurpose | "redelivery";
+  const startKind: Kind = redelivery ? "redelivery" : "rest";
+  const fixed = (k: Kind) =>
+    k === "redelivery" && redelivery
+      ? (redelivery.feePence / 100).toFixed(2)
+      : prefill(k as LinkPurpose, money.stillToPayPence);
+  const [purpose, setPurpose] = useState<Kind>(startKind);
+  const [amount, setAmount] = useState(fixed(startKind));
   const [touched, setTouched] = useState(false);
   const [line, setLine] = useState<string | null>(null);
   const [sent, setSent] = useState<string | null>(null);
   const [signIn, setSignIn] = useState<"no" | "asking" | "back">("no");
   const [busy, start] = useTransition();
-  const check = checkLinkAmount(amount, money.stillToPayPence);
+  const check =
+    purpose === "redelivery"
+      ? { pence: redelivery?.feePence ?? 0, error: null }
+      : checkLinkAmount(amount, money.stillToPayPence);
+  const kinds: { value: Kind; label: string }[] = [
+    ...(money.stillToPayPence > 0 ? LINK_PURPOSES : []),
+    ...(redelivery
+      ? [{ value: "redelivery" as const, label: "Redelivery" }]
+      : []),
+  ];
   const first = name.trim().split(/\s+/)[0] || "The customer";
 
   const show = () => {
-    setPurpose("rest");
-    setAmount(prefill("rest", money.stillToPayPence));
+    setPurpose(startKind);
+    setAmount(fixed(startKind));
     setTouched(false);
     setLine(null);
     setSignIn("no");
@@ -83,9 +101,11 @@ export function SendPayLink({
 
   return (
     <>
-      <Button variant="outline" className={className} onClick={show}>
-        Send a payment link
-      </Button>
+      {money.stillToPayPence > 0 && (
+        <Button variant="outline" className={className} onClick={show}>
+          Send a payment link
+        </Button>
+      )}
       {sent && (
         <p className={styles.saveLine} role="status">
           {sent}
@@ -105,7 +125,7 @@ export function SendPayLink({
             <fieldset className={form.pillSet}>
               <legend className={form.label}>What it is for</legend>
               <div className={form.pills}>
-                {LINK_PURPOSES.map((p) => (
+                {kinds.map((p) => (
                   <label key={p.value} className={form.pill}>
                     <input
                       type="radio"
@@ -113,7 +133,7 @@ export function SendPayLink({
                       checked={purpose === p.value}
                       onChange={() => {
                         setPurpose(p.value);
-                        setAmount(prefill(p.value, money.stillToPayPence));
+                        setAmount(fixed(p.value));
                         setTouched(false);
                         setLine(null);
                       }}
@@ -132,6 +152,7 @@ export function SendPayLink({
                 className={`${form.input} ${styles.linkAmount}`}
                 inputMode="decimal"
                 placeholder="£"
+                readOnly={purpose === "redelivery"}
                 value={amount}
                 aria-invalid={(touched && !!check.error) || undefined}
                 aria-describedby="link-sums link-amount-error"
@@ -142,7 +163,9 @@ export function SendPayLink({
                 }}
               />
               <p id="link-sums" className={form.hint}>
-                {linkSums(money)}
+                {purpose === "redelivery"
+                  ? "The redelivery fee — it does not count towards the cake."
+                  : linkSums(money)}
               </p>
               <FieldError
                 id="link-amount-error"
@@ -150,9 +173,9 @@ export function SendPayLink({
               />
             </div>
             <p className={form.hint}>
-              {first} gets e-mail 15 “Pay for your cake” with a Stripe link for
-              this amount. Once it is paid, “Paid so far” updates by itself and
-              the Money screen shows the rest.
+              {purpose === "redelivery"
+                ? `${first} gets e-mail 15 “Your redelivery” with a Stripe link for the fee. Once it is paid, the redelivery shows as paid on the order.`
+                : `${first} gets e-mail 15 “Pay for your cake” with a Stripe link for this amount. Once it is paid, “Paid so far” updates by itself and the Money screen shows the rest.`}
             </p>
             {signIn === "back" && (
               <p className={styles.saveLine}>

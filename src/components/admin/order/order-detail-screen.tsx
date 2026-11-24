@@ -53,8 +53,9 @@ export function OrderDetailScreen({
   kitchen,
   cancelQuote,
   saved = false,
-  payAtStart = false,
+  payAtStart = null,
   handBackPence = 0,
+  redeliveryDue = null,
   sketches = [],
   waiting = null,
 }: {
@@ -64,8 +65,10 @@ export function OrderDetailScreen({
   sketches?: { id: string; name: string; thumb: string; file: string }[];
   /** Just added by hand (§9.6): “Order saved”. */
   saved?: boolean;
-  /** Save and send a payment link (§9.6): the dialog opens on arrival. */
-  payAtStart?: boolean;
+  /** Save and send a payment link (§9.6), or Record their choice's Redelivery link (§9.8): the dialog opens on arrival. */
+  payAtStart?: "link" | "redelivery" | null;
+  /** The Redelivery link Record their choice can send now (§9.8). */
+  redeliveryDue?: { feePence: number } | null;
   /** The by-hand part still to give back (§9.5): Record a refund given back while > 0. */
   handBackPence?: number;
   d: OrderDetail;
@@ -127,8 +130,9 @@ export function OrderDetailScreen({
         how: "Stripe" as const,
         pi: c.paymentIntentId,
       })),
+    // A paid Redelivery link is the attempt's fee (shown with Nobody was in), never the cake's money (§10.6).
     ...d.links
-      .filter((l) => l.paidPence > 0)
+      .filter((l) => l.paidPence > 0 && l.purpose !== "redelivery")
       .map((l) => ({
         kind: "link" as const,
         pence: l.paidPence,
@@ -551,6 +555,8 @@ export function OrderDetailScreen({
             {missed && owner && (
               <RecordTheirChoice
                 orderId={o.id}
+                number={o.number}
+                feeToAsk={missed.t.feePaidPence > 0 ? null : fee(feePence)}
                 version={o.version}
                 first={first}
                 today={today}
@@ -598,8 +604,13 @@ export function OrderDetailScreen({
             )}
             {owner &&
               (o.status === "confirmed" || o.status === "completed") &&
-              d.money.stillToPayPence > 0 && (
+              (d.money.stillToPayPence > 0 ||
+                (payAtStart === "redelivery" && redeliveryDue)) && (
                 <SendPayLink
+                  key={payAtStart ?? "none"}
+                  redelivery={
+                    payAtStart === "redelivery" ? redeliveryDue : null
+                  }
                   orderId={o.id}
                   number={o.number}
                   name={o.customerName}
@@ -609,7 +620,10 @@ export function OrderDetailScreen({
                     stillToPayPence: d.money.stillToPayPence,
                   }}
                   className={styles.button}
-                  openAtStart={payAtStart}
+                  openAtStart={
+                    payAtStart === "link" ||
+                    (payAtStart === "redelivery" && !!redeliveryDue)
+                  }
                 />
               )}
             {owner &&

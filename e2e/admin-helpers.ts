@@ -63,7 +63,10 @@ export async function signIn(
 
 /** Waits for every running animation (a dialog opening) to end, so axe reads the final colours. */
 export async function settled(page: Page) {
+  // A cancelled animation (one dialog closing as the next opens) counts as ended.
   await page.evaluate(() =>
-    Promise.all(document.getAnimations().map((a) => a.finished)),
+    Promise.all(
+      document.getAnimations().map((a) => a.finished.catch(() => undefined)),
+    ),
   );
 }

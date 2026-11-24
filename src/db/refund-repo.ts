@@ -48,7 +48,12 @@ async function refundable(db: Db, o: typeof orders.$inferSelect) {
     .from(paymentLinks)
     .where(
       // Whatever Stripe took through a link counts, also through a withdrawn one (its refund nets it out).
-      and(eq(paymentLinks.orderId, o.id), gt(paymentLinks.paidPence, 0)),
+      and(
+        eq(paymentLinks.orderId, o.id),
+        gt(paymentLinks.paidPence, 0),
+        // A Redelivery link's £15 is a fee: it never counts (§10.6).
+        ne(paymentLinks.purpose, "redelivery"),
+      ),
     );
   for (const l of links)
     if (l.pi && l.paid > 0)
@@ -110,7 +115,12 @@ export async function netPaid(db: Db, o: typeof orders.$inferSelect) {
     .from(paymentLinks)
     .where(
       // Whatever Stripe took through a link counts, also through a withdrawn one (its refund nets it out).
-      and(eq(paymentLinks.orderId, o.id), gt(paymentLinks.paidPence, 0)),
+      and(
+        eq(paymentLinks.orderId, o.id),
+        gt(paymentLinks.paidPence, 0),
+        // A Redelivery link's £15 is a fee: it never counts (§10.6).
+        ne(paymentLinks.purpose, "redelivery"),
+      ),
     );
   return (
     o.amountReceivedPence +

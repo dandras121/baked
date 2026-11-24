@@ -1,5 +1,5 @@
 // Send a payment link and Cancel this link from Order detail (§9.5, §9.8; Owner): HISTORY lines on top of the link itself.
-import { and, eq, isNull } from "drizzle-orm";
+import { and, eq, isNull, ne } from "drizzle-orm";
 import {
   checkLinkAmount,
   sentLine,
@@ -8,20 +8,59 @@ import {
 import { formatAdminMoney } from "@/lib/money";
 import type { Gateway } from "@/lib/payments";
 import type { connect } from "./client";
+import { missedAttempt } from "./missed-admin-repo";
 import { moneyByOrder } from "./money-repo";
+import { readSettings } from "./settings-repo";
 import { createPayLink, withdrawPayLink } from "./pay-link-repo";
 import { orderHistory, orders, paymentLinks } from "./schema";
 
 type Db = ReturnType<typeof connect>["db"];
+type Order = typeof orders.$inferSelect;
 
 export type SendResult =
   | { kind: "sent"; line: string }
   | { kind: "invalid"; error: string }
   | { kind: "closed" };
 
+/**
+ * The Redelivery link Record their choice offers (§9.5, §9.8): the latest missed delivery has a redelivery booked by
+ * Linda, its fee is not paid and no Redelivery link is open yet. The fee is `ops/second-attempt-fee`.
+ */
+export async function redeliveryLinkDue(db: Db, o: Order) {
+  if (o.status !== "confirmed") return null;
+  const m = await missedAttempt(db, o.id);
+  if (
+    !m ||
+    m.target.choice !== "redeliver" ||
+    m.target.feePaidPence > 0 ||
+    !m.next
+  )
+    return null;
+  const [open] = await db
+    .select({ id: paymentLinks.id })
+    .from(paymentLinks)
+    .where(
+      and(
+        eq(paymentLinks.orderId, o.id),
+        eq(paymentLinks.purpose, "redelivery"),
+        eq(paymentLinks.status, "open"),
+      ),
+    );
+  if (open) return null;
+  return {
+    attemptId: m.target.id,
+    feePence: (await readSettings(db)).secondAttemptFeePence,
+  };
+}
+
 export async function sendPayLink(
   db: Db,
-  input: { orderId: number; purpose: LinkPurpose; amount: string; by: string },
+  input: {
+    orderId: number;
+    purpose: LinkPurpose | "redelivery";
+    amount: string;
+    by: string;
+  },
   now = new Date(),
 ): Promise<SendResult> {
   const [o] = await db
@@ -30,6 +69,27 @@ export async function sendPayLink(
     .where(eq(orders.id, input.orderId));
   if (!o || (o.status !== "confirmed" && o.status !== "completed"))
     return { kind: "closed" };
+  // Redelivery: a fixed fee, not limited by still to pay (§9.8).
+  if (input.purpose === "redelivery") {
+    const r = await redeliveryLinkDue(db, o);
+    if (!r) return { kind: "closed" };
+    const sent = await createPayLink(
+      db,
+      {
+        orderId: o.id,
+        purpose: "redelivery",
+        amountPence: r.feePence,
+        attemptId: r.attemptId,
+      },
+      now,
+    );
+    if (sent.kind !== "sent") return { kind: "closed" };
+    const line = sentLine(r.feePence, "redelivery");
+    await db
+      .insert(orderHistory)
+      .values({ orderId: o.id, at: now, byName: input.by, what: line });
+    return { kind: "sent", line };
+  }
   const m = (await moneyByOrder(db, [o.id])).get(o.id);
   const due = m?.stillToPayPence ?? 0;
   if (due <= 0) return { kind: "closed" };
@@ -90,6 +150,8 @@ export async function withdrawLinksAbove(
         eq(paymentLinks.orderId, orderId),
         eq(paymentLinks.status, "open"),
         isNull(paymentLinks.changeId),
+        // A Redelivery link is the fee's own and stays (§10.6).
+        ne(paymentLinks.purpose, "redelivery"),
       ),
     );
   let n = 0;

@@ -152,12 +152,15 @@ export type SendLinkOutcome =
 /** Send the link (§9.8, Owner): e-mail 15 with /pay/[token], also with customer e-mails off. */
 export async function sendPayLinkAction(
   orderId: number,
-  purpose: LinkPurpose,
+  purpose: LinkPurpose | "redelivery",
   amount: string,
 ): Promise<SendLinkOutcome> {
   const member = await memberForSave("owner");
   if (!member) return { kind: "signed-out" };
-  if (!LINK_PURPOSES.some((p) => p.value === purpose))
+  if (
+    purpose !== "redelivery" &&
+    !LINK_PURPOSES.some((p) => p.value === purpose)
+  )
     return { kind: "failed" };
   const { db, close } = connect();
   try {

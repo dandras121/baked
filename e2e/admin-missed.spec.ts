@@ -7,6 +7,7 @@ import {
   orderHistory,
   orderLines,
   orders,
+  paymentLinks,
 } from "../src/db/schema";
 import { londonDate } from "../src/lib/london-time";
 import { settled, signIn } from "./admin-helpers";
@@ -77,7 +78,7 @@ test.afterAll(async () => {
 });
 
 test.beforeAll(async () => {
-  for (const f of ["Mairi", "Ewan", "Shona"]) await missedOrder(f);
+  for (const f of ["Mairi", "Ewan", "Shona", "Rhona"]) await missedOrder(f);
 });
 
 test("Record their choice (Owner): collect today — the order page, HISTORY and the delivery link follow", async ({
@@ -95,7 +96,8 @@ test("Record their choice (Owner): collect today — the order page, HISTORY and
   await expect(dialog.getByLabel("Collecting on")).toHaveValue(today);
   await dialog.getByLabel("Redeliver").check();
   await expect(dialog.getByLabel("Window")).toBeVisible();
-  await expect(dialog).toContainText("No fee is asked for this redelivery.");
+  await expect(dialog.getByLabel("Send a £15 payment link")).toBeVisible();
+  await expect(dialog.getByLabel("Waive it")).toBeVisible();
   await settled(page);
   expect(
     (await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa"]).analyze())
@@ -179,4 +181,68 @@ test("phone: both buttons in the actions; the choice dialog fits", async ({
   await page.waitForTimeout(500);
   await page.screenshot({ path: ".shots/8.4d/record-choice-402.png" });
   await page.getByRole("button", { name: "Not now" }).click();
+});
+
+// Slice 8.7c: Redeliver with “Send a £15 payment link” → Send a payment link opens with Redelivery and £15 (§9.8).
+test("Record their choice: Redeliver with a £15 payment link — the link is sent, the pay page names the redelivery", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await signIn(page, "Linda");
+  await page.goto(`/admin/orders/${num("Rhona")}`);
+  // Fully paid: no Send a payment link of its own.
+  await expect(
+    page.getByRole("button", { name: "Send a payment link" }),
+  ).toHaveCount(0);
+  await page.getByRole("button", { name: "Record their choice" }).click();
+  const dialog = page.getByRole("dialog", { name: "What did Rhona choose?" });
+  await dialog.getByLabel("Redeliver").check();
+  await dialog.getByLabel("Window").selectOption("afternoon");
+  await dialog.getByRole("button", { name: "Save their choice" }).click();
+  await expect(
+    dialog.getByText("Choose whether to send a £15 payment link or waive it."),
+  ).toBeVisible();
+  await dialog.getByLabel("Send a £15 payment link").check();
+  await dialog.getByRole("button", { name: "Save their choice" }).click();
+  await expect(page).toHaveURL(/\?pay=redelivery$/);
+  const send = page.getByRole("dialog", { name: "Send a payment link" });
+  await expect(send.getByLabel("Redelivery")).toBeChecked();
+  await expect(send.getByLabel("Amount")).toHaveValue("15.00");
+  await expect(send.getByLabel("Amount")).toHaveAttribute("readonly", "");
+  await expect(send).toContainText(
+    "The redelivery fee — it does not count towards the cake.",
+  );
+  await settled(page);
+  expect(
+    (await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa"]).analyze())
+      .violations,
+  ).toEqual([]);
+  await page.screenshot({ path: ".shots/8.7c/send-redelivery-1280.png" });
+  await send.getByRole("button", { name: "Send the link" }).click();
+  await expect(send).toBeHidden();
+  const money = page.getByRole("region", { name: "Money" });
+  await expect(money).toContainText(/Redelivery · £15\.00 · sent \d+ \w+/);
+  await expect(
+    page.getByText(/Link sent · £15\.00 · Redelivery/).first(),
+  ).toBeVisible();
+
+  const { db, close } = connect();
+  let link = "";
+  try {
+    const [o] = await db
+      .select()
+      .from(orders)
+      .where(eq(orders.number, num("Rhona")));
+    const [l] = await db
+      .select()
+      .from(paymentLinks)
+      .where(eq(paymentLinks.orderId, o.id));
+    link = l.token;
+  } finally {
+    await close();
+  }
+  await page.goto(`/pay/${link}`);
+  await expect(page.getByText("Redelivery", { exact: true })).toBeVisible();
+  await expect(page.getByText(/, 12 – 4pm · £15$/)).toBeVisible();
+  await expect(page.getByRole("button", { name: "Pay £15" })).toBeVisible();
 });

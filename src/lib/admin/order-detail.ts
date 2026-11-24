@@ -150,6 +150,7 @@ const LINK_PURPOSE: Record<string, string> = {
   deposit: "Deposit",
   rest: "The rest",
   difference: "The difference",
+  redelivery: "Redelivery",
 };
 
 /** “pi_3Qx…8KdA”: the PaymentIntent id shown as its first 6 and last 4 characters (§9.5 MONEY extras). */

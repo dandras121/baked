@@ -7,12 +7,14 @@ import {
   finishPayLink,
   payLinkByToken,
   payLinkState,
+  redeliveryOf,
 } from "@/db/pay-link-repo";
 import { netPaid } from "@/db/refund-repo";
 import { orderLines } from "@/db/schema";
 import { getSiteSettings } from "@/db/site-settings";
 import { eq } from "drizzle-orm";
 import { formatLongDate, londonDate } from "@/lib/london-time";
+import { WINDOWS } from "@/lib/handover";
 import { formatPrice } from "@/lib/money";
 import { gateway, PUBLISHABLE_KEY } from "@/lib/payments";
 import { finishPayLinkAction, payLinkAction } from "./actions";
@@ -71,8 +73,24 @@ export default async function Page({
     const paid = await netPaid(db, o);
     const date = formatLongDate(String(o.date), today);
     const pay = formatPrice(link.amountPence);
-    const rows: [string, string][] =
-      link.purpose === "deposit"
+    const windowTimes = (k: string | null) => {
+      const w = WINDOWS.find((x) => x.key === k);
+      return w ? `, ${w.times}` : "";
+    };
+    // Redelivery (§6.9): “Redelivery {date}, {window} · £15”.
+    const again =
+      link.purpose === "redelivery"
+        ? await redeliveryOf(db, link.attemptId)
+        : null;
+    const rows: [string, string][] = again
+      ? [
+          ["Order", o.number],
+          [
+            "Redelivery",
+            `${formatLongDate(again.redeliveryDate ?? String(o.date), today)}${windowTimes(again.redeliveryWindow ?? null)} · ${pay}`,
+          ],
+        ]
+      : link.purpose === "deposit"
         ? [
             ["What it is for", "Deposit"],
             ["Your cake", `${names}, ${date}`],
