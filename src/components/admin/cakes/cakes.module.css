@@ -1,0 +1,295 @@
+/*
+ * Cakes (§9.13). Desktop 940:8399: title (Fraunces Light 40) with Add a cake 160 × 42, the count line, the pills
+ * (desktop only), search 600 × 44, rows 76 high: ⠿, photo slot 48 × 60, name and size, the tag, Edit 90 × 40.
+ * Phone 948:8933: Add, search, rows 72 high without Edit (the row opens the cake).
+ */
+.head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin: 0 0 16px;
+}
+
+.title {
+  margin: 0;
+  color: var(--colour-display);
+  font: var(--type-admin-title-sm);
+  font-variation-settings: var(--font-display-axes);
+}
+
+.subtitle {
+  margin: 6px 0 0;
+  color: var(--colour-body);
+  font: var(--type-contact-note);
+}
+
+.wide {
+  display: none;
+}
+
+.add {
+  min-width: 92px;
+  height: 44px;
+  min-height: 44px;
+}
+
+.filters {
+  display: none;
+}
+
+.pill {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  min-height: 30px;
+  padding: 0 16px;
+  border: 1px solid var(--colour-admin-line);
+  border-radius: 100px;
+  background: none;
+  color: var(--colour-ink);
+  font: var(--type-admin-pill);
+  cursor: pointer;
+}
+
+.pill::after {
+  content: "";
+  position: absolute;
+  inset: -7px 0;
+}
+
+.pill[aria-pressed="true"] {
+  border-color: var(--colour-ink);
+  background: var(--colour-ink);
+  color: var(--colour-paper);
+}
+
+.pill:hover:not([aria-pressed="true"]) {
+  border-color: var(--colour-ink);
+}
+
+.pill:focus-visible,
+.search:focus-visible,
+.handle:focus-visible,
+.edit:focus-visible {
+  outline: 2px solid var(--colour-focus-ring);
+  outline-offset: 2px;
+}
+
+.searchRow {
+  margin: 0 0 14px;
+}
+
+.search {
+  width: 100%;
+  height: 44px;
+  padding: 0 15px;
+  border: 1px solid var(--colour-admin-line);
+  border-radius: 10px;
+  background: var(--colour-white);
+  color: var(--colour-ink);
+  font: var(--type-contact-note);
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.search::placeholder {
+  color: var(--colour-meta);
+  opacity: 1;
+}
+
+.alert {
+  margin: 0 0 12px;
+  padding: 10px 12px;
+  border: 1px solid var(--colour-error-border);
+  border-radius: 10px;
+  background: var(--colour-error-wash);
+  color: var(--colour-error);
+  font: var(--type-small);
+}
+
+.empty {
+  margin: 0;
+  color: var(--colour-body);
+  font: var(--type-admin-cell);
+}
+
+.rows {
+  display: grid;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* Phone: ⠿ · photo · name over size · tag; the Edit link covers the row. */
+.row {
+  position: relative;
+  display: grid;
+  grid-template-columns: auto 44px minmax(0, 1fr) auto;
+  grid-template-areas:
+    "handle thumb name tag"
+    "handle thumb size tag";
+  align-items: center;
+  column-gap: 12px;
+  min-height: 72px;
+  padding: 8px 16px 8px 4px;
+  border: 1px solid var(--colour-line-rule);
+  border-radius: 10px;
+  background: var(--colour-white);
+}
+
+.dragging {
+  border-color: var(--colour-ink);
+}
+
+.handle {
+  position: relative;
+  z-index: 1;
+  grid-area: handle;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 44px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--colour-meta);
+  cursor: grab;
+  touch-action: none;
+}
+
+.handle svg {
+  fill: currentColor;
+}
+
+.thumb {
+  grid-area: thumb;
+  width: 44px;
+  height: 56px;
+  border-radius: 6px;
+  background: var(--colour-placeholder);
+}
+
+.name {
+  grid-area: name;
+  align-self: end;
+  color: var(--colour-ink);
+  font: var(--type-body-sm);
+  font-weight: 600;
+}
+
+.size {
+  grid-area: size;
+  align-self: start;
+  color: var(--colour-body);
+  font: var(--type-small);
+}
+
+/* The Showing tag as the Orders lilac tag (940:8399), Hidden as the grey one. */
+.tag {
+  grid-area: tag;
+  padding: 4px 12px;
+  border-radius: 100px;
+  font: var(--type-admin-tab);
+  font-weight: 500;
+  line-height: 15px;
+}
+
+.showing {
+  background: var(--colour-admin-tag-cancelled);
+  color: var(--colour-display);
+}
+
+.hidden {
+  background: var(--colour-admin-tag);
+  color: var(--colour-body);
+}
+
+.edit {
+  position: absolute;
+  inset: 0;
+  min-height: 0;
+  border: 0;
+  border-radius: 10px;
+  background: none;
+  color: transparent;
+}
+
+.visuallyHidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+@media (min-width: 1024px) {
+  .title {
+    font: var(--type-admin-title);
+  }
+
+  .head {
+    margin: 0 0 22px;
+  }
+
+  .wide {
+    display: inline;
+  }
+
+  .narrow {
+    display: none;
+  }
+
+  .add {
+    min-width: 160px;
+    height: 42px;
+    min-height: 42px;
+  }
+
+  .filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 0 0 16px;
+  }
+
+  .searchRow {
+    max-width: 600px;
+    margin: 0 0 26px;
+  }
+
+  .row {
+    grid-template-columns: auto 48px minmax(0, 1fr) minmax(0, 260px) auto;
+    grid-template-areas:
+      "handle thumb name tag edit"
+      "handle thumb size tag edit";
+    column-gap: 18px;
+    min-height: 76px;
+    padding: 8px 19px 8px 8px;
+  }
+
+  .thumb {
+    width: 48px;
+    height: 60px;
+  }
+
+  .tag {
+    justify-self: start;
+  }
+
+  .edit {
+    position: static;
+    grid-area: edit;
+    width: 90px;
+    height: 40px;
+    min-height: 44px;
+    border: 1px solid var(--colour-ink);
+    border-radius: 100px;
+    color: var(--colour-ink);
+    font: var(--type-button);
+    letter-spacing: var(--type-button-ls);
+  }
+}

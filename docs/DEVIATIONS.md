@@ -162,3 +162,5 @@ Anything built differently from the docs or Figma, and why. Bohoka’s decision 
 | 8.8a | 934:8321 Send a payment link 190 × 38 | 190 × 44, so the hit area is at least 44 tall (§10.13) |
 | 8.8b | CLAUDE.md §4.4 one slice | The Stripe refund and dispute events (and the Disputed flag) moved to 8.8c |
 | Phase 8 gate | ANIMATIONS ANIM-12 / ANIM-13 / ANIM-19 (dialogs grow, sheets slide, field errors slide) | Inside the admin they appear and go at once | SITE-FLOWS §9.1, Decided D10 (“No motion beyond focus and hover states”) wins over the motion catalogue (precedence 1); the public site keeps every motion |
+| 9.1 | CLAUDE.md §4.4 one slice | 9.1 split into 9.1a (the list), 9.1b (Add or edit a cake), 9.1c (Options) |
+| 9.1a | 948:8933 phone search “Search by name” | “Search by name or flavour”, as §9.13 names it (it searches the flavour too) |

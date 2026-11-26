@@ -56,7 +56,11 @@ describe.skipIf(!url)(
       return (await db().select().from(orders).where(eq(orders.number, n)))[0];
     }
     const links = (id: number) =>
-      db().select().from(paymentLinks).where(eq(paymentLinks.orderId, id));
+      db()
+        .select()
+        .from(paymentLinks)
+        .where(eq(paymentLinks.orderId, id))
+        .orderBy(paymentLinks.id);
 
     beforeAll(async () => {
       await migrate(db(), { migrationsFolder: "drizzle" });
