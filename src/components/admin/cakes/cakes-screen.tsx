@@ -19,7 +19,14 @@ import styles from "./cakes.module.css";
  * Cakes (§9.13; desktop 940:8399, phone 948:8933), Owner only: the count, Add a cake, the filters (desktop), the
  * search, the rows in Linda's order with ⠿ (only with All and no search; pointer or arrow keys; saved at once).
  */
-export function CakesScreen({ initial }: { initial: AdminCake[] }) {
+export function CakesScreen({
+  initial,
+  notice = null,
+}: {
+  initial: AdminCake[];
+  /** After Save, Delete or Hide on Add or edit a cake (§9.13). */
+  notice?: string | null;
+}) {
   const router = useRouter();
   const [list, setList] = useState(initial);
   const [filter, setFilter] = useState<CakeFilter>("all");
@@ -157,6 +164,11 @@ export function CakesScreen({ initial }: { initial: AdminCake[] }) {
           onChange={(e) => setQuery(e.target.value)}
         />
       </div>
+      {notice && !line && (
+        <p className={styles.saved} role="status">
+          {notice}
+        </p>
+      )}
       {line && (
         <p className={styles.alert} role="alert">
           {line}

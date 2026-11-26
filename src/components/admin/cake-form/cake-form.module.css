@@ -1,0 +1,179 @@
+/*
+ * Add or edit a cake (§9.13). Desktop 940:8507: THE PHOTOS (330 wide, the 4 : 5 slot) beside THE DETAILS; the size rows
+ * serves 100 · tiers 150 · price 140 with the note or Remove; Delete this design 240 × 42. Phone 950:8886: one column.
+ */
+.back {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  margin: -10px 0 0;
+  color: var(--colour-accent);
+  font: var(--type-small);
+  text-decoration: none;
+}
+
+.columns {
+  display: grid;
+  gap: 20px;
+  margin-top: 12px;
+}
+
+.photoSlot {
+  display: block;
+  width: 100%;
+  aspect-ratio: 4 / 5;
+  border-radius: 8px;
+  background: var(--colour-placeholder);
+}
+
+.hintRow {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.sizes {
+  display: grid;
+  grid-template-columns: 66px minmax(110px, 1fr) 84px 56px;
+  align-items: center;
+  gap: 8px 10px;
+}
+
+.sizeHead {
+  color: var(--colour-body);
+  font: var(--type-small);
+}
+
+.sizeRow {
+  display: contents;
+}
+
+/* The note beside the first size: desktop only (the phone frame 950:8886 leaves that cell empty). */
+.smallest {
+  display: none;
+  color: var(--colour-meta);
+  font: var(--type-small);
+  max-width: 150px;
+}
+
+.rowError {
+  grid-column: 1 / -1;
+  margin: -2px 0 4px;
+  color: var(--colour-error);
+  font: var(--type-small);
+}
+
+.textButton {
+  justify-self: start;
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--colour-accent);
+  font: var(--type-small);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
+.textButton:focus-visible,
+.allergenField:focus-visible {
+  outline: 2px solid var(--colour-focus-ring);
+  outline-offset: 2px;
+}
+
+.allergenField {
+  display: flex;
+  align-items: center;
+  text-align: left;
+  cursor: pointer;
+}
+
+/* The long and short pill words: plain text inside the pill (not styled as pills themselves). */
+.wide,
+.narrow {
+  font-style: normal;
+}
+
+.wide {
+  display: none;
+}
+
+.delete {
+  justify-self: start;
+  width: 100%;
+  height: 44px;
+  min-height: 44px;
+  margin-top: 8px;
+}
+
+.pickerBody {
+  display: grid;
+  gap: 12px;
+}
+
+/* Two columns read top to bottom, as drawn (1801:13494): Celery … Milk, then Molluscs … Sulphites. */
+.pickerGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-rows: repeat(7, auto);
+  grid-auto-flow: column;
+  gap: 0 16px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.pickerEnd {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.removeBody {
+  display: grid;
+  gap: 10px;
+}
+
+.visuallyHidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+@media (min-width: 1024px) {
+  .back {
+    display: none;
+  }
+
+  .columns {
+    grid-template-columns: minmax(0, 330px) minmax(0, 620px);
+    gap: 30px;
+    align-items: start;
+  }
+
+  .sizes {
+    grid-template-columns: 100px 150px 140px minmax(0, 1fr);
+  }
+
+  .smallest {
+    display: block;
+  }
+
+  .wide {
+    display: inline;
+  }
+
+  .narrow {
+    display: none;
+  }
+
+  .delete {
+    width: 240px;
+  }
+}

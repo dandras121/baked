@@ -164,3 +164,5 @@ Anything built differently from the docs or Figma, and why. Bohoka’s decision 
 | Phase 8 gate | ANIMATIONS ANIM-12 / ANIM-13 / ANIM-19 (dialogs grow, sheets slide, field errors slide) | Inside the admin they appear and go at once | SITE-FLOWS §9.1, Decided D10 (“No motion beyond focus and hover states”) wins over the motion catalogue (precedence 1); the public site keeps every motion |
 | 9.1 | CLAUDE.md §4.4 one slice | 9.1 split into 9.1a (the list), 9.1b (Add or edit a cake), 9.1c (Options) |
 | 9.1a | 948:8933 phone search “Search by name” | “Search by name or flavour”, as §9.13 names it (it searches the flavour too) |
+| 9.1b | 940:8507 “Allergens it always contains” as a free-text field | A field that opens the 14-box picker (1801:13494), as Decided D17 and Appendix A (Add a cake) decide |
+| 9.1b | 940:8507 photo controls (Replace the main photo, alt text, more photos and videos) | Only the photo slot until 9.2, where the media pipeline is built |

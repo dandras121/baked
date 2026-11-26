@@ -108,6 +108,13 @@
   font: var(--type-small);
 }
 
+.saved {
+  margin: 0 0 12px;
+  color: var(--colour-ink);
+  font: var(--type-small);
+  font-weight: 600;
+}
+
 .empty {
   margin: 0;
   color: var(--colour-body);
