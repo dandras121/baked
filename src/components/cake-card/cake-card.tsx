@@ -70,6 +70,19 @@ export function CakeCard({
     >
       <div className={styles.picture}>
         <div className={styles.media} data-media>
+          {/* Without a card video: the main photo in the closed crop at Linda's focal point (§9.13, ANIM-11). */}
+          {!cake.cardVideo && cake.photo && (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              className={styles.photo}
+              src={cake.photo.src}
+              alt={cake.photo.alt}
+              loading="lazy"
+              style={{
+                objectPosition: `${Math.round(cake.photo.focalX * 100)}% ${Math.round(cake.photo.focalY * 100)}%`,
+              }}
+            />
+          )}
           {cake.cardVideo && (
             <div className={styles.frame} data-frame>
               {/* eslint-disable-next-line @next/next/no-img-element */}

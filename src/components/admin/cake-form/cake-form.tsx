@@ -12,6 +12,9 @@ import { LeaveGuard } from "@/components/admin/leave-guard";
 import { SignInAgain } from "@/components/admin/order/sign-in-again";
 import { AllergenPicker } from "./allergen-picker";
 import { OptionsCard } from "./options-card";
+import { CakePhotos } from "./cake-photos";
+import type { AdminMedia } from "@/db/cake-media-repo";
+import type { BlobMode } from "@/lib/storage";
 import { Button } from "@/components/ui/button";
 import { FieldError } from "@/components/ui/field-error";
 import { Overlay } from "@/components/ui/overlay";
@@ -38,9 +41,14 @@ const label = (k: Occasion) => OCCASIONS.find((o) => o.key === k)!.label;
 export function CakeFormScreen({
   id,
   initial,
+  media = [],
+  direct = null,
 }: {
   id: number | null;
   initial: Form;
+  /** The cake's photos (and videos, 9.2b), saved at once (§9.13). */
+  media?: AdminMedia[];
+  direct?: BlobMode;
 }) {
   const router = useRouter();
   const [f, setF] = useState<Form>(initial);
@@ -149,279 +157,293 @@ export function CakeFormScreen({
           <h2 id="photos-h" className={form.section}>
             The photos
           </h2>
-          {/* The main photo slot (4 : 5); photos and videos are added in 9.2. */}
-          <span className={styles.photoSlot} aria-hidden />
+          <CakePhotos
+            cakeId={id}
+            cakeName={initial.name || "This cake"}
+            initial={media}
+            direct={direct}
+          />
         </section>
-      </div>
 
-      <div className={styles.side}>
-        <section className={form.card} aria-labelledby="details-h">
-          <h2 id="details-h" className={form.section}>
-            The details
-          </h2>
-          {field(
-            "name",
-            "Name",
-            <input
-              id="c-name"
-              className={form.input}
-              value={f.name}
-              maxLength={60}
-              aria-invalid={!!errors.name || undefined}
-              aria-describedby={errors.name ? "c-name-error" : undefined}
-              onChange={(e) => set("name", e.target.value)}
-            />,
-          )}
-          <div className={form.field}>
-            <label htmlFor="c-whatItIs" className={form.label}>
-              What it is
-            </label>
-            <textarea
-              id="c-whatItIs"
-              className={`${form.input} ${form.area}`}
-              value={f.whatItIs}
-              maxLength={300}
-              aria-invalid={!!errors.whatItIs || undefined}
-              aria-describedby={
-                errors.whatItIs ? "c-whatItIs-error" : undefined
-              }
-              onChange={(e) => set("whatItIs", e.target.value)}
-            />
-            <FieldError
-              id="c-whatItIs-error"
-              message={errors.whatItIs ?? null}
-            />
-          </div>
-          {field(
-            "flavour",
-            "Flavour",
-            <input
-              id="c-flavour"
-              className={form.input}
-              value={f.flavour}
-              maxLength={60}
-              aria-invalid={!!errors.flavour || undefined}
-              aria-describedby={`c-flavour-hint${errors.flavour ? " c-flavour-error" : ""}`}
-              onChange={(e) => set("flavour", e.target.value)}
-            />,
-            <p id="c-flavour-hint" className={`${form.hint} ${styles.hintRow}`}>
-              <span>
-                Shown on the card and the order, e.g. Vanilla sponge, raspberry
+        <div className={styles.side}>
+          <section className={form.card} aria-labelledby="details-h">
+            <h2 id="details-h" className={form.section}>
+              The details
+            </h2>
+            {field(
+              "name",
+              "Name",
+              <input
+                id="c-name"
+                className={form.input}
+                value={f.name}
+                maxLength={60}
+                aria-invalid={!!errors.name || undefined}
+                aria-describedby={errors.name ? "c-name-error" : undefined}
+                onChange={(e) => set("name", e.target.value)}
+              />,
+            )}
+            <div className={form.field}>
+              <label htmlFor="c-whatItIs" className={form.label}>
+                What it is
+              </label>
+              <textarea
+                id="c-whatItIs"
+                className={`${form.input} ${form.area}`}
+                value={f.whatItIs}
+                maxLength={300}
+                aria-invalid={!!errors.whatItIs || undefined}
+                aria-describedby={
+                  errors.whatItIs ? "c-whatItIs-error" : undefined
+                }
+                onChange={(e) => set("whatItIs", e.target.value)}
+              />
+              <FieldError
+                id="c-whatItIs-error"
+                message={errors.whatItIs ?? null}
+              />
+            </div>
+            {field(
+              "flavour",
+              "Flavour",
+              <input
+                id="c-flavour"
+                className={form.input}
+                value={f.flavour}
+                maxLength={60}
+                aria-invalid={!!errors.flavour || undefined}
+                aria-describedby={`c-flavour-hint${errors.flavour ? " c-flavour-error" : ""}`}
+                onChange={(e) => set("flavour", e.target.value)}
+              />,
+              <p
+                id="c-flavour-hint"
+                className={`${form.hint} ${styles.hintRow}`}
+              >
+                <span>
+                  Shown on the card and the order, e.g. Vanilla sponge,
+                  raspberry
+                </span>
+                <span>max 60</span>
+              </p>,
+            )}
+
+            <h3 className={form.section}>Sizes</h3>
+            <div className={styles.sizes} role="group" aria-label="Sizes">
+              <span className={styles.sizeHead} aria-hidden>
+                Serves
               </span>
-              <span>max 60</span>
-            </p>,
-          )}
-
-          <h3 className={form.section}>Sizes</h3>
-          <div className={styles.sizes} role="group" aria-label="Sizes">
-            <span className={styles.sizeHead} aria-hidden>
-              Serves
-            </span>
-            <span className={styles.sizeHead} aria-hidden>
-              Tiers
-            </span>
-            <span className={styles.sizeHead} aria-hidden>
-              Price
-            </span>
-            <span aria-hidden />
-            {f.sizes.map((r, i) => {
-              const re = errors.rows?.[i] ?? {};
-              return (
-                <div key={r.id ?? `new-${i}`} className={styles.sizeRow}>
-                  <input
-                    className={form.input}
-                    inputMode="numeric"
-                    aria-label={`Size ${i + 1}: serves`}
-                    value={r.serves}
-                    maxLength={3}
-                    aria-invalid={!!re.serves || undefined}
-                    onChange={(e) => setRow(i, { serves: e.target.value })}
-                  />
-                  <select
-                    className={form.input}
-                    aria-label={`Size ${i + 1}: tiers`}
-                    value={r.tiers}
-                    onChange={(e) => setRow(i, { tiers: e.target.value })}
-                  >
-                    {TIERS.map((t, n) => (
-                      <option key={t} value={String(n + 1)}>
-                        {t}
-                      </option>
-                    ))}
-                  </select>
-                  <input
-                    className={form.input}
-                    inputMode="decimal"
-                    placeholder="£"
-                    aria-label={`Size ${i + 1}: price`}
-                    value={r.price}
-                    aria-invalid={!!re.price || undefined}
-                    onChange={(e) => setRow(i, { price: e.target.value })}
-                  />
-                  {i === 0 ? (
-                    <span>
-                      <span className={styles.smallest}>{smallestNote(f)}</span>
-                    </span>
-                  ) : (
-                    <button
-                      type="button"
-                      className={styles.textButton}
-                      onClick={() =>
-                        setF((x) => ({
-                          ...x,
-                          sizes: x.sizes.filter((_, j) => j !== i),
-                        }))
-                      }
+              <span className={styles.sizeHead} aria-hidden>
+                Tiers
+              </span>
+              <span className={styles.sizeHead} aria-hidden>
+                Price
+              </span>
+              <span aria-hidden />
+              {f.sizes.map((r, i) => {
+                const re = errors.rows?.[i] ?? {};
+                return (
+                  <div key={r.id ?? `new-${i}`} className={styles.sizeRow}>
+                    <input
+                      className={form.input}
+                      inputMode="numeric"
+                      aria-label={`Size ${i + 1}: serves`}
+                      value={r.serves}
+                      maxLength={3}
+                      aria-invalid={!!re.serves || undefined}
+                      onChange={(e) => setRow(i, { serves: e.target.value })}
+                    />
+                    <select
+                      className={form.input}
+                      aria-label={`Size ${i + 1}: tiers`}
+                      value={r.tiers}
+                      onChange={(e) => setRow(i, { tiers: e.target.value })}
                     >
-                      Remove
-                      <span className={styles.visuallyHidden}>
-                        {" "}
-                        size {i + 1}
+                      {TIERS.map((t, n) => (
+                        <option key={t} value={String(n + 1)}>
+                          {t}
+                        </option>
+                      ))}
+                    </select>
+                    <input
+                      className={form.input}
+                      inputMode="decimal"
+                      placeholder="£"
+                      aria-label={`Size ${i + 1}: price`}
+                      value={r.price}
+                      aria-invalid={!!re.price || undefined}
+                      onChange={(e) => setRow(i, { price: e.target.value })}
+                    />
+                    {i === 0 ? (
+                      <span>
+                        <span className={styles.smallest}>
+                          {smallestNote(f)}
+                        </span>
                       </span>
-                    </button>
-                  )}
-                  {(re.serves || re.price) && (
-                    <p className={styles.rowError} role="alert">
-                      {[re.serves, re.price].filter(Boolean).join(" ")}
-                    </p>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-          <button
-            type="button"
-            className={styles.textButton}
-            onClick={() =>
-              setF((x) => ({
-                ...x,
-                sizes: [
-                  ...x.sizes,
-                  { id: null, serves: "", tiers: "1", price: "" },
-                ],
-              }))
-            }
-          >
-            + Add a size
-          </button>
-          <p className={form.hint}>
-            Customers choose one of these on the cake page. The site shows the
-            smallest price as “From £…” and the others as the difference (+£55,
-            +£120). Changing a price never changes orders already placed.
-          </p>
-        </section>
-
-        <OptionsCard
-          options={f.options}
-          onOptions={(next) => {
-            setF((x) => ({ ...x, options: next }));
-            setErrors((e) => ({ ...e, options: undefined }));
-          }}
-          offerInscription={f.offerInscription}
-          onInscription={(v) => set("offerInscription", v)}
-          errors={errors.options}
-        />
-
-        <section
-          className={form.card}
-          aria-label="Allergens, categories and visibility"
-        >
-          <div className={form.field}>
-            <span id="c-allergens-label" className={form.label}>
-              Allergens it always contains
-            </span>
+                    ) : (
+                      <button
+                        type="button"
+                        className={styles.textButton}
+                        onClick={() =>
+                          setF((x) => ({
+                            ...x,
+                            sizes: x.sizes.filter((_, j) => j !== i),
+                          }))
+                        }
+                      >
+                        Remove
+                        <span className={styles.visuallyHidden}>
+                          {" "}
+                          size {i + 1}
+                        </span>
+                      </button>
+                    )}
+                    {(re.serves || re.price) && (
+                      <p className={styles.rowError} role="alert">
+                        {[re.serves, re.price].filter(Boolean).join(" ")}
+                      </p>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
             <button
               type="button"
-              className={`${form.input} ${styles.allergenField}`}
-              aria-labelledby="c-allergens-label c-allergens-value"
-              aria-describedby="c-allergens-error"
-              onClick={() => setPicker(true)}
-            >
-              <span id="c-allergens-value">{allergenSummary(f)}</span>
-            </button>
-            <FieldError
-              id="c-allergens-error"
-              message={
-                errors.glutenKinds ??
-                errors.nutKinds ??
-                errors.alsoContains ??
-                null
+              className={styles.textButton}
+              onClick={() =>
+                setF((x) => ({
+                  ...x,
+                  sizes: [
+                    ...x.sizes,
+                    { id: null, serves: "", tiers: "1", price: "" },
+                  ],
+                }))
               }
-            />
-          </div>
-
-          <fieldset className={form.pillSet}>
-            <legend className={form.section}>Categories</legend>
-            <div className={form.pills}>
-              {CATEGORIES.map((k) => (
-                <label key={k} className={form.pill}>
-                  <input
-                    type="checkbox"
-                    checked={f.categories.includes(k)}
-                    onChange={(e) =>
-                      set(
-                        "categories",
-                        e.target.checked
-                          ? [...f.categories, k]
-                          : f.categories.filter((c) => c !== k),
-                      )
-                    }
-                  />
-                  <span>{label(k)}</span>
-                </label>
-              ))}
-            </div>
-          </fieldset>
-
-          <fieldset
-            className={form.pillSet}
-            aria-describedby={errors.visible ? "c-visible-error" : undefined}
-          >
-            <legend className={form.section}>Visibility</legend>
-            <div className={form.pills}>
-              {(
-                [
-                  [true, "Showing on the site"],
-                  [false, "Hidden"],
-                ] as const
-              ).map(([v, text]) => (
-                <label key={text} className={form.pill}>
-                  <input
-                    type="radio"
-                    name="visible"
-                    checked={f.visible === v}
-                    onChange={() => set("visible", v)}
-                  />
-                  <span>
-                    {v ? (
-                      <>
-                        <em className={styles.wide}>Showing on the site</em>
-                        <em className={styles.narrow}>Showing</em>
-                      </>
-                    ) : (
-                      text
-                    )}
-                  </span>
-                </label>
-              ))}
-            </div>
-            <FieldError id="c-visible-error" message={errors.visible ?? null} />
-          </fieldset>
-          <p className={form.hint}>
-            Hidden keeps the design and its photo, but takes it off the
-            catalogue. Orders already placed are not affected.
-          </p>
-
-          {id !== null && (
-            <Button
-              variant="outline"
-              className={styles.delete}
-              onClick={() => setRemove(true)}
             >
-              Delete this design
-            </Button>
-          )}
-        </section>
+              + Add a size
+            </button>
+            <p className={form.hint}>
+              Customers choose one of these on the cake page. The site shows the
+              smallest price as “From £…” and the others as the difference
+              (+£55, +£120). Changing a price never changes orders already
+              placed.
+            </p>
+          </section>
+
+          <OptionsCard
+            options={f.options}
+            onOptions={(next) => {
+              setF((x) => ({ ...x, options: next }));
+              setErrors((e) => ({ ...e, options: undefined }));
+            }}
+            offerInscription={f.offerInscription}
+            onInscription={(v) => set("offerInscription", v)}
+            errors={errors.options}
+          />
+
+          <section
+            className={form.card}
+            aria-label="Allergens, categories and visibility"
+          >
+            <div className={form.field}>
+              <span id="c-allergens-label" className={form.label}>
+                Allergens it always contains
+              </span>
+              <button
+                type="button"
+                className={`${form.input} ${styles.allergenField}`}
+                aria-labelledby="c-allergens-label c-allergens-value"
+                aria-describedby="c-allergens-error"
+                onClick={() => setPicker(true)}
+              >
+                <span id="c-allergens-value">{allergenSummary(f)}</span>
+              </button>
+              <FieldError
+                id="c-allergens-error"
+                message={
+                  errors.glutenKinds ??
+                  errors.nutKinds ??
+                  errors.alsoContains ??
+                  null
+                }
+              />
+            </div>
+
+            <fieldset className={form.pillSet}>
+              <legend className={form.section}>Categories</legend>
+              <div className={form.pills}>
+                {CATEGORIES.map((k) => (
+                  <label key={k} className={form.pill}>
+                    <input
+                      type="checkbox"
+                      checked={f.categories.includes(k)}
+                      onChange={(e) =>
+                        set(
+                          "categories",
+                          e.target.checked
+                            ? [...f.categories, k]
+                            : f.categories.filter((c) => c !== k),
+                        )
+                      }
+                    />
+                    <span>{label(k)}</span>
+                  </label>
+                ))}
+              </div>
+            </fieldset>
+
+            <fieldset
+              className={form.pillSet}
+              aria-describedby={errors.visible ? "c-visible-error" : undefined}
+            >
+              <legend className={form.section}>Visibility</legend>
+              <div className={form.pills}>
+                {(
+                  [
+                    [true, "Showing on the site"],
+                    [false, "Hidden"],
+                  ] as const
+                ).map(([v, text]) => (
+                  <label key={text} className={form.pill}>
+                    <input
+                      type="radio"
+                      name="visible"
+                      checked={f.visible === v}
+                      onChange={() => set("visible", v)}
+                    />
+                    <span>
+                      {v ? (
+                        <>
+                          <em className={styles.wide}>Showing on the site</em>
+                          <em className={styles.narrow}>Showing</em>
+                        </>
+                      ) : (
+                        text
+                      )}
+                    </span>
+                  </label>
+                ))}
+              </div>
+              <FieldError
+                id="c-visible-error"
+                message={errors.visible ?? null}
+              />
+            </fieldset>
+            <p className={form.hint}>
+              Hidden keeps the design and its photo, but takes it off the
+              catalogue. Orders already placed are not affected.
+            </p>
+
+            {id !== null && (
+              <Button
+                variant="outline"
+                className={styles.delete}
+                onClick={() => setRemove(true)}
+              >
+                Delete this design
+              </Button>
+            )}
+          </section>
+        </div>
       </div>
       <AllergenPicker
         id="c"

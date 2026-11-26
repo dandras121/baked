@@ -3,6 +3,8 @@ import { notFound } from "next/navigation";
 import { connection } from "next/server";
 import { CakeFormScreen } from "@/components/admin/cake-form/cake-form";
 import { cakeForEdit } from "@/db/admin-cake-form-repo";
+import { cakeMediaList } from "@/db/cake-media-repo";
+import { blobMode } from "@/lib/storage";
 import { connect, databaseUrl } from "@/db/client";
 import { EMPTY_CAKE } from "@/lib/admin/cake-form";
 import { requireMember } from "@/lib/admin/session";
@@ -40,13 +42,18 @@ export default async function Page({
           initial={EMPTY_CAKE}
         />
       );
-    const c = await cakeForEdit(db, id);
+    const [c, media] = await Promise.all([
+      cakeForEdit(db, id),
+      cakeMediaList(db, id),
+    ]);
     if (!c) notFound();
     return (
       <CakeFormScreen
         key={`${c.id}-${Date.now()}`}
         id={c.id}
         initial={c.form}
+        media={media}
+        direct={blobMode()}
       />
     );
   } finally {

@@ -38,6 +38,15 @@
   clip-path: inset(0 0 calc(var(--pic-open) - var(--pic-closed)) 0);
 }
 
+/* The main photo fills the closed picture (no card video, so the card never opens). */
+.photo {
+  position: absolute;
+  inset: 0 0 auto;
+  width: 100%;
+  height: var(--pic-closed);
+  object-fit: cover;
+}
+
 .frame {
   position: absolute;
   top: 0;

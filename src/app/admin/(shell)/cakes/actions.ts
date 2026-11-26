@@ -1,8 +1,15 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { revalidatePath, updateTag } from "next/cache";
 import { removeCake, saveCake } from "@/db/admin-cake-form-repo";
 import { reorderCakes } from "@/db/admin-cakes-repo";
+import { CAKES_TAG } from "@/db/home-repo";
+import {
+  makeMainPhoto,
+  removeCakeMedia,
+  reorderCakeMedia,
+  updateCakePhoto,
+} from "@/db/cake-media-repo";
 import { connect } from "@/db/client";
 import {
   checkCakeForm,
@@ -23,6 +30,7 @@ export async function reorderCakesAction(
   try {
     if (!(await reorderCakes(db, ids))) return { kind: "changed" };
     // The public pages that show the order (Home's row, the catalogue); not the admin, so the list keeps its focus.
+    updateTag(CAKES_TAG);
     revalidatePath("/");
     revalidatePath("/cakes");
     return { kind: "saved" };
@@ -98,8 +106,65 @@ export async function removeCakeAction(
 
 /** The public pages that show cakes (Home's row, the catalogue, the cake pages). */
 function revalidateSite(slug: string | null) {
+  // The Home row and the catalogue read through the "cakes" cache (home-repo).
+  updateTag(CAKES_TAG);
   revalidatePath("/");
   revalidatePath("/cakes");
   if (slug) revalidatePath(`/cakes/${slug}`);
   else revalidatePath("/cakes/[slug]", "page");
+}
+
+type MediaOutcome = {
+  kind: "saved" | "last-photo" | "gone" | "signed-out" | "failed";
+};
+
+/** One photo change (§9.13, Owner), saved at once; the site follows from the next page load. */
+async function mediaChange(
+  cakeId: number,
+  run: (
+    db: ReturnType<typeof connect>["db"],
+  ) => Promise<boolean | "last-photo">,
+): Promise<MediaOutcome> {
+  const member = await memberForSave("owner");
+  if (!member) return { kind: "signed-out" };
+  const { db, close } = connect();
+  try {
+    const r = await run(db);
+    if (r === true) revalidateSite(null);
+    return {
+      kind: r === true ? "saved" : r === "last-photo" ? "last-photo" : "gone",
+    };
+  } catch (e) {
+    console.error("cake media", e);
+    return { kind: "failed" };
+  } finally {
+    await close();
+  }
+}
+
+export async function reorderMediaAction(cakeId: number, ids: number[]) {
+  return mediaChange(cakeId, (db) => reorderCakeMedia(db, cakeId, ids));
+}
+
+export async function makeMainPhotoAction(cakeId: number, id: number) {
+  return mediaChange(cakeId, (db) => makeMainPhoto(db, cakeId, id));
+}
+
+export async function updatePhotoAction(
+  cakeId: number,
+  id: number,
+  patch: { alt?: string; focalX?: number; focalY?: number },
+) {
+  return mediaChange(cakeId, (db) => updateCakePhoto(db, cakeId, id, patch));
+}
+
+export async function removeMediaAction(cakeId: number, id: number) {
+  return mediaChange(cakeId, async (db) => {
+    const r = await removeCakeMedia(db, cakeId, id);
+    return r.kind === "removed"
+      ? true
+      : r.kind === "last-photo"
+        ? "last-photo"
+        : false;
+  });
 }

@@ -9,7 +9,13 @@ import {
 } from "@/lib/home-content";
 import { catalogueCakes, type CatalogueCake } from "@/lib/catalogue";
 import { connect, databaseUrl } from "./client";
-import { cakeCardVideos, cakeSizes, cakes, galleryPhotos } from "./schema";
+import {
+  cakeCardVideos,
+  cakeMedia,
+  cakeSizes,
+  cakes,
+  galleryPhotos,
+} from "./schema";
 
 type Db = ReturnType<typeof connect>["db"];
 
@@ -26,6 +32,11 @@ export async function readCakeRows(db: Db): Promise<CakeRow[]> {
     .orderBy(asc(cakes.position));
   const sizes = await db.select().from(cakeSizes);
   const videos = await db.select().from(cakeCardVideos);
+  const photos = await db
+    .select()
+    .from(cakeMedia)
+    .where(eq(cakeMedia.kind, "photo"))
+    .orderBy(asc(cakeMedia.position), asc(cakeMedia.id));
   return rows.map((c) => ({
     slug: c.slug,
     name: c.name,
@@ -39,6 +50,17 @@ export async function readCakeRows(db: Db): Promise<CakeRow[]> {
       const v = videos.find((x) => x.cakeId === c.id);
       return v
         ? { still: v.stillPath, v1080: v.path1080, v1440: v.path1440 }
+        : null;
+    })(),
+    photo: (() => {
+      const p = photos.find((x) => x.cakeId === c.id);
+      return p
+        ? {
+            src: p.path,
+            alt: p.altText || c.name,
+            focalX: p.focalX,
+            focalY: p.focalY,
+          }
         : null;
     })(),
     sizes: sizes

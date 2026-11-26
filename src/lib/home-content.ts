@@ -20,6 +20,16 @@ export type CakeRow = {
   categories?: string[];
   whatItIs?: string;
   cardVideo?: CardVideo | null;
+  /** The main photo (the first photo, §9.13) with its focal point. */
+  photo?: CardPhoto | null;
+};
+
+/** The card photo: the first photo of the cake with Linda's focal point (§0.6, §9.13). */
+export type CardPhoto = {
+  src: string;
+  alt: string;
+  focalX: number;
+  focalY: number;
 };
 
 export type CakeCardData = {
@@ -34,6 +44,8 @@ export type CakeCardData = {
   from: string;
   /** Without one the card shows its main photo and no corner button (ANIM-11). */
   cardVideo: CardVideo | null;
+  /** The main photo; without one the drawn placeholder (§0.6). */
+  photo?: CardPhoto | null;
 };
 
 /** The Home row holds the first ten visible designs in Linda's order (§4.1 said five; Bohoka 2026-10-31: ten). */
@@ -55,6 +67,7 @@ export function cakeCard(cake: CakeRow): CakeCardData | null {
     serves: `Serves ${smallest.serves}`,
     from: `From ${formatPrice(cheapest)}`,
     cardVideo: cake.cardVideo ?? null,
+    photo: cake.photo ?? null,
   };
 }
 
