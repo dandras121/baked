@@ -10,13 +10,14 @@ import {
 import form from "@/components/admin/add-order/add-order.module.css";
 import { LeaveGuard } from "@/components/admin/leave-guard";
 import { SignInAgain } from "@/components/admin/order/sign-in-again";
+import { AllergenPicker } from "./allergen-picker";
+import { OptionsCard } from "./options-card";
 import { Button } from "@/components/ui/button";
 import { FieldError } from "@/components/ui/field-error";
 import { Overlay } from "@/components/ui/overlay";
 import { TIERS } from "@/lib/admin/add-order";
 import {
   allergenSummary,
-  PICKER,
   smallestNote,
   type CakeErrors,
   type CakeForm as Form,
@@ -101,7 +102,6 @@ export function CakeFormScreen({
       <FieldError id={`c-${k}-error`} message={errors[k] ?? null} />
     </div>
   );
-  const ticked = f.allergens.length;
   const saveButton = (
     <Button className={form.save} busy={busy} busyLabel="Saving" onClick={save}>
       {signIn === "back" ? "Save again" : "Save"}
@@ -152,7 +152,9 @@ export function CakeFormScreen({
           {/* The main photo slot (4 : 5); photos and videos are added in 9.2. */}
           <span className={styles.photoSlot} aria-hidden />
         </section>
+      </div>
 
+      <div className={styles.side}>
         <section className={form.card} aria-labelledby="details-h">
           <h2 id="details-h" className={form.section}>
             The details
@@ -307,7 +309,23 @@ export function CakeFormScreen({
             smallest price as “From £…” and the others as the difference (+£55,
             +£120). Changing a price never changes orders already placed.
           </p>
+        </section>
 
+        <OptionsCard
+          options={f.options}
+          onOptions={(next) => {
+            setF((x) => ({ ...x, options: next }));
+            setErrors((e) => ({ ...e, options: undefined }));
+          }}
+          offerInscription={f.offerInscription}
+          onInscription={(v) => set("offerInscription", v)}
+          errors={errors.options}
+        />
+
+        <section
+          className={form.card}
+          aria-label="Allergens, categories and visibility"
+        >
           <div className={form.field}>
             <span id="c-allergens-label" className={form.label}>
               Allergens it always contains
@@ -405,14 +423,23 @@ export function CakeFormScreen({
           )}
         </section>
       </div>
-
       <AllergenPicker
+        id="c"
         open={picker}
         onClose={() => setPicker(false)}
-        f={f}
-        set={set}
+        title="Allergens in this cake"
+        description="Shown on the cake page, the order, the e-mails, the daily list and print. Option choices can add more."
+        value={f}
+        onChange={(patch) => {
+          setF((x) => ({ ...x, ...patch }));
+          setErrors((e) => ({
+            ...e,
+            glutenKinds: undefined,
+            nutKinds: undefined,
+            alsoContains: undefined,
+          }));
+        }}
         errors={errors}
-        ticked={ticked}
       />
 
       {id !== null && (
@@ -433,113 +460,6 @@ export function CakeFormScreen({
         <SignInAgain onDone={() => setSignIn("back")} />
       </Overlay>
     </form>
-  );
-}
-
-/** Allergens in this cake (1801:13494): the 14 boxes, which cereals / nuts when ticked, Also contains; Done. */
-function AllergenPicker({
-  open,
-  onClose,
-  f,
-  set,
-  errors,
-  ticked,
-}: {
-  open: boolean;
-  onClose: () => void;
-  f: Form;
-  set: <K extends keyof Form>(k: K, v: Form[K]) => void;
-  errors: CakeErrors;
-  ticked: number;
-}) {
-  return (
-    <Overlay
-      open={open}
-      onClose={onClose}
-      title="Allergens in this cake"
-      description="Shown on the cake page, the order, the e-mails, the daily list and print. Option choices can add more."
-      classNames={{ body: styles.pickerBody }}
-    >
-      <fieldset className={styles.pickerGrid}>
-        <legend className={styles.visuallyHidden}>The 14 allergens</legend>
-        {PICKER.map((a) => (
-          <label key={a.key} className={form.tick}>
-            <input
-              type="checkbox"
-              checked={f.allergens.includes(a.key)}
-              onChange={(e) =>
-                set(
-                  "allergens",
-                  e.target.checked
-                    ? [...f.allergens, a.key]
-                    : f.allergens.filter((x) => x !== a.key),
-                )
-              }
-            />
-            {a.label}
-          </label>
-        ))}
-      </fieldset>
-      {f.allergens.includes("cereals containing gluten") && (
-        <div className={form.field}>
-          <label htmlFor="c-glutenKinds" className={form.label}>
-            Which cereals?
-          </label>
-          <input
-            id="c-glutenKinds"
-            className={form.input}
-            value={f.glutenKinds}
-            maxLength={60}
-            placeholder="wheat"
-            aria-invalid={!!errors.glutenKinds || undefined}
-            onChange={(e) => set("glutenKinds", e.target.value)}
-          />
-          <FieldError
-            id="c-glutenKinds-error"
-            message={errors.glutenKinds ?? null}
-          />
-        </div>
-      )}
-      {f.allergens.includes("nuts") && (
-        <div className={form.field}>
-          <label htmlFor="c-nutKinds" className={form.label}>
-            Which nuts?
-          </label>
-          <input
-            id="c-nutKinds"
-            className={form.input}
-            value={f.nutKinds}
-            maxLength={60}
-            placeholder="almonds, hazelnuts"
-            aria-invalid={!!errors.nutKinds || undefined}
-            onChange={(e) => set("nutKinds", e.target.value)}
-          />
-          <FieldError id="c-nutKinds-error" message={errors.nutKinds ?? null} />
-        </div>
-      )}
-      <div className={form.field}>
-        <label htmlFor="c-alsoContains" className={form.label}>
-          Also contains
-        </label>
-        <input
-          id="c-alsoContains"
-          className={form.input}
-          value={f.alsoContains}
-          maxLength={120}
-          aria-invalid={!!errors.alsoContains || undefined}
-          onChange={(e) => set("alsoContains", e.target.value)}
-        />
-        <p className={form.hint}>A free line for anything else.</p>
-        <FieldError
-          id="c-alsoContains-error"
-          message={errors.alsoContains ?? null}
-        />
-      </div>
-      <div className={styles.pickerEnd}>
-        <Button onClick={onClose}>Done</Button>
-        <span className={form.hint}>{ticked} ticked</span>
-      </div>
-    </Overlay>
   );
 }
 

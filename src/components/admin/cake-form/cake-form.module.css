@@ -18,6 +18,12 @@
   margin-top: 12px;
 }
 
+.side {
+  display: grid;
+  gap: 20px;
+  align-content: start;
+}
+
 .photoSlot {
   display: block;
   width: 100%;

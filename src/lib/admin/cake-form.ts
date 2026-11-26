@@ -3,6 +3,12 @@ import { readPounds } from "@/lib/admin/cancel";
 import { UK_ALLERGENS, type Allergen, type Occasion } from "@/lib/constants";
 import { allergenLabel, CAKE_LIMITS, type AllergenSet } from "@/lib/cakes";
 import { formatPrice } from "@/lib/money";
+import {
+  checkOptions,
+  type OptionErrors,
+  type OptionForm,
+  type OptionValue,
+} from "./cake-options";
 
 export type SizeRow = {
   id: number | null;
@@ -22,6 +28,10 @@ export type CakeForm = {
   alsoContains: string;
   categories: Occasion[];
   visible: boolean;
+  /** Offer an inscription (§5.8), on by default. */
+  offerInscription: boolean;
+  /** The Options card (§5.8): up to 6, in Linda's order. */
+  options: OptionForm[];
 };
 
 /** Add: empty, one size row, Hidden until it has a photo (§9.13). */
@@ -36,6 +46,8 @@ export const EMPTY_CAKE: CakeForm = {
   alsoContains: "",
   categories: [],
   visible: false,
+  offerInscription: true,
+  options: [],
 };
 
 export type CakeValue = AllergenSet & {
@@ -51,6 +63,8 @@ export type CakeValue = AllergenSet & {
   allergens: Allergen[];
   categories: Occasion[];
   visible: boolean;
+  offerInscription: boolean;
+  options: OptionValue[];
 };
 
 export type CakeErrors = Partial<
@@ -66,6 +80,7 @@ export type CakeErrors = Partial<
     string
   >
 > & {
+  options?: Record<number, OptionErrors>;
   rows?: Record<number, Partial<Record<"serves" | "price", string>>>;
 };
 
@@ -79,8 +94,10 @@ export function formFromCake(
     flavour: string;
     categories: string[];
     visible: boolean;
+    offerInscription?: boolean;
   },
   sizes: { id: number; serves: number; tiers: number; pricePence: number }[],
+  options: OptionForm[] = [],
 ): CakeForm {
   return {
     name: c.name,
@@ -100,6 +117,8 @@ export function formFromCake(
     alsoContains: c.alsoContains ?? "",
     categories: c.categories as Occasion[],
     visible: c.visible,
+    offerInscription: c.offerInscription ?? true,
+    options,
   };
 }
 
@@ -151,6 +170,8 @@ export function checkCakeForm(
     else seen.set(s, i);
   });
   if (Object.keys(rows).length) e.rows = rows;
+  const opts = checkOptions(f.options);
+  if (Object.keys(opts.errors).length) e.options = opts.errors;
   if (Object.keys(e).length) return { value: null, errors: e };
   return {
     value: {
@@ -166,6 +187,8 @@ export function checkCakeForm(
       alsoContains: f.alsoContains.trim(),
       categories: f.categories,
       visible: f.visible,
+      offerInscription: f.offerInscription,
+      options: opts.values,
     },
     errors: null,
   };

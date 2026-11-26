@@ -166,3 +166,5 @@ Anything built differently from the docs or Figma, and why. Bohoka’s decision 
 | 9.1a | 948:8933 phone search “Search by name” | “Search by name or flavour”, as §9.13 names it (it searches the flavour too) |
 | 9.1b | 940:8507 “Allergens it always contains” as a free-text field | A field that opens the 14-box picker (1801:13494), as Decided D17 and Appendix A (Add a cake) decide |
 | 9.1b | 940:8507 photo controls (Replace the main photo, alt text, more photos and videos) | Only the photo slot until 9.2, where the media pipeline is built |
+| 9.1c | CLAUDE.md §4.4 (about 600 hand-written lines) | About 1,450 lines with CSS in one slice; built and tested whole, reported to Bohoka |
+| 9.1c | 1713:11890 / 1714:11991 build notes (“BUILD NOTE — NOT ON SCREEN”, the side notes) | Not shown (designer notes, SITE-FLOWS §0.3) |

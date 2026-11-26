@@ -6,10 +6,17 @@ import {
   EMPTY_CAKE,
   type CakeForm,
 } from "@/lib/admin/cake-form";
+import { emptyChoice, emptyOption } from "@/lib/admin/cake-options";
 import { INITIAL_SETTINGS } from "@/lib/settings";
 import { cakeForEdit, removeCake, saveCake } from "./admin-cake-form-repo";
 import { connect } from "./client";
-import { cakeMedia, cakeSizes, cakes } from "./schema";
+import {
+  cakeMedia,
+  cakeOptionChoices,
+  cakeOptions,
+  cakeSizes,
+  cakes,
+} from "./schema";
 import { ensureSettings } from "./settings-repo";
 
 const url = process.env.TEST_DATABASE_URL;
@@ -120,5 +127,76 @@ describe.skipIf(!url)("database: Add or edit a cake (§9.13)", () => {
     expect(await removeCake(db(), r.id, "delete")).toBe(true);
     expect(await cakeForEdit(db(), r.id)).toBeNull();
     expect(await removeCake(db(), r.id, "delete")).toBe(false);
+  });
+
+  it("options and choices: saved in order, ids kept on edit, removed ones gone; the inscription switch", async () => {
+    const options = [
+      {
+        ...emptyOption("choice"),
+        label: "Sponge",
+        required: true,
+        choices: [
+          { ...emptyChoice(), label: "Vanilla" },
+          {
+            ...emptyChoice(),
+            label: "Chocolate",
+            allergens: ["soya" as const],
+          },
+        ],
+      },
+      {
+        ...emptyOption("yesno"),
+        label: "Gift box",
+        choices: [{ ...emptyChoice(), price: "8" }],
+      },
+    ];
+    const r = (await saveCake(
+      db(),
+      null,
+      value(form({ options, offerInscription: false })),
+    )) as { id: number };
+    let f = (await cakeForEdit(db(), r.id))!.form;
+    expect(f.offerInscription).toBe(false);
+    expect(
+      f.options.map((o) => [o.type, o.label, o.choices.map((c) => c.label)]),
+    ).toEqual([
+      ["choice", "Sponge", ["Vanilla", "Chocolate"]],
+      ["yesno", "Gift box", ["Gift box"]],
+    ]);
+    const spongeId = f.options[0].id;
+    const vanillaId = f.options[0].choices[0].id;
+    // Swap the options, rename Vanilla, remove Chocolate.
+    const edited = form({
+      offerInscription: true,
+      options: [
+        f.options[1],
+        {
+          ...f.options[0],
+          choices: [
+            { ...f.options[0].choices[0], label: "Madagascan vanilla" },
+          ],
+        },
+      ],
+    });
+    expect(await saveCake(db(), r.id, value(edited))).toMatchObject({
+      kind: "saved",
+    });
+    f = (await cakeForEdit(db(), r.id))!.form;
+    expect(f.offerInscription).toBe(true);
+    expect(f.options.map((o) => o.label)).toEqual(["Gift box", "Sponge"]);
+    expect(f.options[1].id).toBe(spongeId);
+    expect(f.options[1].choices.map((c) => [c.id, c.label])).toEqual([
+      [vanillaId, "Madagascan vanilla"],
+    ]);
+    const opts = await db()
+      .select()
+      .from(cakeOptions)
+      .where(eq(cakeOptions.cakeId, r.id));
+    const ch = await db()
+      .select()
+      .from(cakeOptionChoices)
+      .where(eq(cakeOptionChoices.optionId, spongeId!));
+    expect(opts).toHaveLength(2);
+    expect(ch).toHaveLength(1);
   });
 });

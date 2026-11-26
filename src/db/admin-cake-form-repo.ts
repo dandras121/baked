@@ -15,11 +15,18 @@ import {
   type CakeForm,
   type CakeValue,
 } from "@/lib/admin/cake-form";
+import { optionsFromCake } from "@/lib/admin/cake-options";
 import type { Allergen } from "@/lib/constants";
 import { slugify } from "@/lib/slug";
 import type { connect } from "./client";
 import { deleteCake } from "./cake-repo";
-import { cakeMedia, cakeSizes, cakes } from "./schema";
+import {
+  cakeMedia,
+  cakeOptionChoices,
+  cakeOptions,
+  cakeSizes,
+  cakes,
+} from "./schema";
 
 type Db = ReturnType<typeof connect>["db"];
 
@@ -37,17 +44,36 @@ export async function cakeForEdit(
     .from(cakes)
     .where(and(eq(cakes.id, id), isNull(cakes.deletedAt)));
   if (!c) return null;
-  const [sizes, [{ n }]] = await Promise.all([
+  const [sizes, [{ n }], options] = await Promise.all([
     db.select().from(cakeSizes).where(eq(cakeSizes.cakeId, id)),
     db
       .select({ n: count() })
       .from(cakeMedia)
       .where(and(eq(cakeMedia.cakeId, id), eq(cakeMedia.kind, "photo"))),
+    db.select().from(cakeOptions).where(eq(cakeOptions.cakeId, id)),
   ]);
+  const choices = options.length
+    ? await db
+        .select()
+        .from(cakeOptionChoices)
+        .where(
+          inArray(
+            cakeOptionChoices.optionId,
+            options.map((o) => o.id),
+          ),
+        )
+    : [];
   return {
     id: c.id,
     slug: c.slug,
-    form: formFromCake({ ...c, allergens: c.allergens as Allergen[] }, sizes),
+    form: formFromCake(
+      { ...c, allergens: c.allergens as Allergen[] },
+      sizes,
+      optionsFromCake(
+        options,
+        choices.map((ch) => ({ ...ch, allergens: ch.allergens as Allergen[] })),
+      ),
+    ),
     photos: Number(n),
   };
 }
@@ -98,6 +124,7 @@ export async function saveCake(
       alsoContains: v.alsoContains ?? "",
       categories: v.categories,
       visible: v.visible,
+      offerInscription: v.offerInscription,
     };
     let cakeId: number;
     let slug: string;
@@ -159,8 +186,83 @@ export async function saveCake(
         await tx.update(cakeSizes).set(row).where(eq(cakeSizes.id, s.id));
       else await tx.insert(cakeSizes).values({ ...row, cakeId });
     }
+    await saveOptions(tx as unknown as Db, cakeId, v);
     return { kind: "saved", id: cakeId, slug } as const;
   });
+}
+
+/**
+ * The Options card (§5.8): options and choices keep their ids when edited (drafts store them, §10.2); removed ones go
+ * (a draft that used one is re-priced at its next step, §5.5); new ones are added; the order is Linda's.
+ */
+async function saveOptions(tx: Db, cakeId: number, v: CakeValue) {
+  const existing = await tx
+    .select({ id: cakeOptions.id })
+    .from(cakeOptions)
+    .where(eq(cakeOptions.cakeId, cakeId));
+  const mine = new Set(existing.map((o) => o.id));
+  const keep = v.options
+    .filter((o) => o.id !== null && mine.has(o.id))
+    .map((o) => o.id!);
+  const drop = existing.map((o) => o.id).filter((id) => !keep.includes(id));
+  if (drop.length)
+    await tx.delete(cakeOptions).where(inArray(cakeOptions.id, drop));
+  for (const [i, o] of v.options.entries()) {
+    const row = {
+      position: i + 1,
+      type: o.type,
+      label: o.label,
+      help: o.help,
+      required: o.required,
+      minPicks: o.minPicks,
+      maxPicks: o.maxPicks,
+      maxLength: o.maxLength,
+    };
+    let optionId: number;
+    if (o.id !== null && keep.includes(o.id)) {
+      await tx.update(cakeOptions).set(row).where(eq(cakeOptions.id, o.id));
+      optionId = o.id;
+    } else {
+      const [n] = await tx
+        .insert(cakeOptions)
+        .values({ ...row, cakeId })
+        .returning({ id: cakeOptions.id });
+      optionId = n.id;
+    }
+    const had = new Set(
+      (
+        await tx
+          .select({ id: cakeOptionChoices.id })
+          .from(cakeOptionChoices)
+          .where(eq(cakeOptionChoices.optionId, optionId))
+      ).map((c) => c.id),
+    );
+    const keepChoices = o.choices
+      .filter((c) => c.id !== null && had.has(c.id))
+      .map((c) => c.id!);
+    const dropChoices = [...had].filter((id) => !keepChoices.includes(id));
+    if (dropChoices.length)
+      await tx
+        .delete(cakeOptionChoices)
+        .where(inArray(cakeOptionChoices.id, dropChoices));
+    for (const [j, c] of o.choices.entries()) {
+      const crow = {
+        position: j + 1,
+        label: c.label,
+        pricePence: c.pricePence,
+        allergens: c.allergens,
+        glutenKinds: c.glutenKinds ?? "",
+        nutKinds: c.nutKinds ?? "",
+        alsoContains: c.alsoContains ?? "",
+      };
+      if (c.id !== null && keepChoices.includes(c.id))
+        await tx
+          .update(cakeOptionChoices)
+          .set(crow)
+          .where(eq(cakeOptionChoices.id, c.id));
+      else await tx.insert(cakeOptionChoices).values({ ...crow, optionId });
+    }
+  }
 }
 
 /** Delete this design (soft delete, §9.13) or Hide it instead. */

@@ -1,0 +1,364 @@
+/* OPTIONS (§5.8; 1713:11890, phone 1714:11991): the inscription switch, the option rows and the open editor. */
+.inscription,
+.option {
+  border: 1px solid var(--colour-admin-text-border);
+  border-radius: 10px;
+  background: var(--colour-white);
+}
+
+.inscription {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px 18px;
+  margin: 4px 0 12px;
+}
+
+.strong {
+  margin: 0;
+  color: var(--colour-ink);
+  font: var(--type-body-sm);
+  font-weight: 600;
+}
+
+/* A switch without motion (the admin, Decided D10). */
+.switch {
+  position: relative;
+  flex: none;
+  width: 44px;
+  height: 26px;
+  border: 0;
+  border-radius: 100px;
+  background: var(--colour-admin-line);
+  cursor: pointer;
+}
+
+.switch[aria-checked="true"] {
+  background: var(--colour-accent);
+}
+
+.switch::after {
+  content: "";
+  position: absolute;
+  inset: -9px 0;
+}
+
+.knob {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--colour-white);
+}
+
+.switch[aria-checked="true"] .knob {
+  left: 21px;
+}
+
+.switch:focus-visible,
+.grip:focus-visible,
+.textButton:focus-visible,
+.remove:focus-visible,
+.menuItem:focus-visible {
+  outline: 2px solid var(--colour-focus-ring);
+  outline-offset: 2px;
+}
+
+.list,
+.choices {
+  display: grid;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.option {
+  padding: 8px 16px 8px 8px;
+  border-color: var(--colour-line-rule);
+}
+
+.open {
+  padding: 12px 18px 18px 12px;
+  border: 2px solid var(--colour-accent);
+}
+
+.optionHead {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 44px;
+}
+
+.grip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: 28px;
+  height: 44px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--colour-meta);
+  cursor: grab;
+  touch-action: none;
+}
+
+.grip svg {
+  fill: currentColor;
+}
+
+.tag {
+  flex: none;
+  padding: 3px 10px;
+  border-radius: 100px;
+  background: var(--colour-admin-tag-cancelled);
+  color: var(--colour-display);
+  font: var(--type-admin-tab);
+  font-weight: 500;
+}
+
+.count {
+  margin-left: auto;
+  color: var(--colour-meta);
+  font: var(--type-small);
+}
+
+.summary {
+  flex: 1;
+  min-width: 0;
+  color: var(--colour-body);
+  font: var(--type-small);
+}
+
+.summary strong {
+  color: var(--colour-ink);
+  font: var(--type-body-sm);
+  font-weight: 600;
+}
+
+.textButton {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--colour-accent);
+  font: var(--type-small);
+  text-align: left;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
+.editor {
+  display: grid;
+  gap: 12px;
+  padding: 4px 0 0;
+}
+
+.pair {
+  display: grid;
+  gap: 12px;
+}
+
+.counted {
+  position: relative;
+  display: block;
+}
+
+.counted input {
+  padding-right: 64px;
+}
+
+.counter {
+  position: absolute;
+  top: 50%;
+  right: 14px;
+  transform: translateY(-50%);
+  color: var(--colour-meta);
+  font: var(--type-small);
+}
+
+.required {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.required p {
+  margin: 0;
+}
+
+.small {
+  max-width: 120px;
+}
+
+/* “+£” inside the price box (1713:11890). */
+.price {
+  position: relative;
+  display: block;
+  color: var(--colour-body);
+  font: var(--type-body-sm);
+}
+
+.price > span {
+  position: absolute;
+  top: 50%;
+  left: 14px;
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+
+.price input {
+  min-width: 0;
+  padding-left: 38px;
+}
+
+.yesRow {
+  display: grid;
+  gap: 6px;
+  max-width: 260px;
+}
+
+.choice {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) 82px auto;
+  grid-template-areas:
+    "grip label price remove"
+    ". link link link";
+  align-items: center;
+  gap: 4px 10px;
+}
+
+.choice > .grip {
+  grid-area: grip;
+}
+
+.choice > input {
+  grid-area: label;
+}
+
+.choice > .price {
+  grid-area: price;
+}
+
+.allergenLink {
+  grid-area: link;
+  justify-self: start;
+}
+
+.remove {
+  grid-area: remove;
+  width: 44px;
+  height: 44px;
+  border: 0;
+  background: none;
+  color: var(--colour-body);
+  font: var(--type-body-sm);
+  cursor: pointer;
+}
+
+.rowError {
+  grid-column: 2 / -1;
+  margin: 0;
+  color: var(--colour-error);
+  font: var(--type-small);
+}
+
+.addChoice {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+}
+
+.editorEnd {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding-top: 14px;
+  border-top: 1px solid var(--colour-line-rule);
+}
+
+.add {
+  position: relative;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.addButton {
+  height: 44px;
+  min-height: 44px;
+}
+
+.menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  z-index: 2;
+  display: grid;
+  min-width: 260px;
+  margin: 0;
+  padding: 6px;
+  border: 1px solid var(--colour-line-rule);
+  border-radius: 10px;
+  background: var(--colour-white);
+  box-shadow: var(--shadow-card);
+  list-style: none;
+}
+
+.menuItem {
+  width: 100%;
+  min-height: 44px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 6px;
+  background: none;
+  color: var(--colour-body);
+  font: var(--type-small);
+  text-align: left;
+  cursor: pointer;
+}
+
+.menuItem strong {
+  color: var(--colour-ink);
+  font-weight: 600;
+}
+
+.menuItem:hover {
+  background: var(--colour-admin-text-wash);
+}
+
+.removeBody {
+  display: grid;
+  gap: 10px;
+}
+
+.visuallyHidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+@media (min-width: 1024px) {
+  .pair {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.5fr);
+  }
+
+  .choice {
+    grid-template-columns: auto minmax(0, 1fr) 96px minmax(0, 170px) auto;
+    grid-template-areas: "grip label price link remove";
+  }
+}

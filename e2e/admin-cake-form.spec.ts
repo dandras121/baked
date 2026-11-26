@@ -205,3 +205,97 @@ test("Edit a showing cake: the new flavour is on the site; then Delete this desi
     0,
   );
 });
+
+// Slice 9.1c: the Options card (§5.8).
+test("Options: a Choice with choices and allergens, a Yes/no, reorder, the inscription switch, Remove asks", async ({
+  page,
+}, info) => {
+  test.skip(
+    info.project.name !== "desktop" && info.project.name !== "phone",
+    "desktop and phone",
+  );
+  const mine = `${name} options ${info.project.name}`;
+  await signIn(page, "Linda");
+  await page.goto("/admin/cakes/new");
+  await page.getByLabel("Name", { exact: true }).fill(mine);
+  await page.getByLabel("What it is", { exact: true }).fill("With options.");
+  await page.getByLabel("Flavour", { exact: true }).fill("Vanilla");
+  await page.getByLabel("Size 1: serves").fill("12");
+  await page.getByLabel("Size 1: price").fill("95");
+
+  const card = page.getByRole("region", { name: "Options" });
+  await card.getByRole("button", { name: "+ Add an option" }).click();
+  await card.getByRole("button", { name: "Choice — pick one" }).click();
+  await expect(card.getByText("Option 1 of 1")).toBeVisible();
+  await card.getByLabel("Label", { exact: true }).fill("Sponge");
+  await expect(card.getByText("6 / 40")).toBeVisible();
+  await card.getByRole("switch", { name: /Required/ }).click();
+  await card.getByLabel("Choice 1", { exact: true }).fill("Vanilla");
+  await card.getByRole("button", { name: "+ Add a choice" }).click();
+  await card.getByLabel("Choice 2", { exact: true }).fill("Chocolate");
+  await card
+    .getByRole("button", { name: /Allergens: none — choice 2/ })
+    .click();
+  const picker = page.getByRole("dialog", {
+    name: "Allergens for this choice",
+  });
+  await expect(picker).toContainText(
+    "Chocolate · added to the cake’s own allergens when a customer picks it.",
+  );
+  await picker.getByLabel("Soya").check();
+  await picker.getByRole("button", { name: "Done" }).click();
+  await expect(
+    card.getByRole("button", { name: /Allergens: Soya — choice 2/ }),
+  ).toBeVisible();
+  await card.getByRole("button", { name: "+ Add a choice" }).click();
+  await card.getByLabel("Choice 3", { exact: true }).fill("Lemon");
+  await card.getByLabel("Choice 3: price").fill("5");
+  await settled(page);
+  expect(
+    (await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa"]).analyze())
+      .violations,
+  ).toEqual([]);
+  await card.getByRole("button", { name: "Done" }).click();
+  await expect(
+    card.getByText("required · Vanilla, Chocolate (+£0), Lemon (+£5)"),
+  ).toBeVisible();
+
+  await card.getByRole("button", { name: "+ Add an option" }).click();
+  await card.getByRole("button", { name: "Yes/no — one tick box" }).click();
+  await card.getByLabel("Label", { exact: true }).fill("Gift box");
+  await card
+    .getByLabel("Text beside the tick box (optional)")
+    .fill("Add a gift box");
+  await card.getByLabel("Price", { exact: true }).fill("8");
+  await card.getByRole("button", { name: "Done" }).click();
+  await expect(card.getByText("+£8 · optional")).toBeVisible();
+
+  // Gift box up one with the keyboard.
+  await card.getByRole("button", { name: "Move Gift box" }).focus();
+  await page.keyboard.press("ArrowUp");
+  await expect(card.getByRole("listitem").first()).toContainText("Gift box");
+
+  await card.getByRole("switch", { name: "Offer an inscription" }).click();
+  await expect(
+    card.getByRole("switch", { name: "Offer an inscription" }),
+  ).toHaveAttribute("aria-checked", "false");
+  await page.getByRole("button", { name: "Save", exact: true }).first().click();
+  await expect(page).toHaveURL(/\/admin\/cakes\?saved=1$/);
+
+  await page.getByRole("link", { name: `Edit ${mine}` }).click();
+  const again = page.getByRole("region", { name: "Options" });
+  await expect(again.getByRole("listitem").first()).toContainText("Gift box");
+  await expect(again.getByRole("listitem").nth(1)).toContainText(
+    "required · Vanilla, Chocolate (+£0), Lemon (+£5)",
+  );
+  await expect(
+    again.getByRole("switch", { name: "Offer an inscription" }),
+  ).toHaveAttribute("aria-checked", "false");
+
+  await again.getByRole("button", { name: "Edit Gift box" }).click();
+  await again.getByRole("button", { name: "Remove this option" }).click();
+  const confirm = page.getByRole("dialog", { name: "Remove Gift box?" });
+  await expect(confirm).toContainText("Orders already placed keep it.");
+  await confirm.getByRole("button", { name: "Remove it" }).click();
+  await expect(again.getByRole("listitem")).toHaveCount(1);
+});
