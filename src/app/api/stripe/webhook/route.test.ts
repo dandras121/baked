@@ -39,13 +39,13 @@ describe("the Stripe webhook (§10.6)", () => {
     expect((await post(body.replace("pi_1", "pi_2"), sig)).status).toBe(400);
   });
 
-  it("answers 200 for an event it does not handle yet", async () => {
-    const body = event("charge.refunded");
+  it("answers 200 for an event it does not handle", async () => {
+    const body = event("customer.created");
     const res = await post(body, signed(body));
     expect(res.status).toBe(200);
     expect(await res.json()).toEqual({
       received: true,
-      ignored: "charge.refunded",
+      ignored: "customer.created",
     });
   });
 

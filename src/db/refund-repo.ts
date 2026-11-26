@@ -1,6 +1,6 @@
 // Refunds (§10.6): money back to the card, recorded per Stripe refund. A failed call keeps its row as `failed`,
 // raises “Refund failed — try again” for Linda (§8.3), and changes nothing else: the change or cancellation stays.
-import { and, eq, gt, inArray, isNull, ne, sum } from "drizzle-orm";
+import { and, eq, gt, inArray, isNull, ne, sum, notInArray } from "drizzle-orm";
 import type { Gateway } from "@/lib/payments";
 import type { connect } from "./client";
 import { queueMail } from "./mail-repo";
@@ -107,7 +107,8 @@ export async function netPaid(db: Db, o: typeof orders.$inferSelect) {
         eq(refunds.orderId, o.id),
         inArray(refunds.status, ["pending", "succeeded"]),
         // A redelivery fee and its refund never count (§10.6).
-        ne(refunds.kind, "fee"),
+        // Fee, goodwill and dispute refunds never count (§10.6).
+        notInArray(refunds.kind, ["fee", "goodwill", "dispute"]),
       ),
     );
   const [l] = await db
@@ -138,6 +139,24 @@ export async function refundKey(db: Db, refundId: number, key: string) {
     .set({ idempotencyKey: key })
     .where(eq(refunds.id, refundId));
   return key;
+}
+
+/**
+ * What counts for a cancellation refund (§10.6): net paid less goodwill and dispute refunds (money already returned),
+ * never below £0.
+ */
+export async function refundBasis(db: Db, o: typeof orders.$inferSelect) {
+  const [g] = await db
+    .select({ n: sum(refunds.amountPence) })
+    .from(refunds)
+    .where(
+      and(
+        eq(refunds.orderId, o.id),
+        inArray(refunds.status, ["pending", "succeeded"]),
+        inArray(refunds.kind, ["goodwill", "dispute"]),
+      ),
+    );
+  return Math.max(0, (await netPaid(db, o)) - Number(g?.n ?? 0));
 }
 
 /** Money by hand (§10.6): payments in less refunds given back by hand; removed lines do not count. */

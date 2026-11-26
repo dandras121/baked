@@ -1,5 +1,6 @@
 // Payments behind a small adapter (CLAUDE.md §7): Stripe in test mode when its secret key is set; a fake for tests.
 import Stripe from "stripe";
+import { londonDate, type CalendarDate } from "@/lib/london-time";
 
 export type Intent = {
   id: string;
@@ -62,6 +63,27 @@ export type Gateway = {
   ): Promise<Intent>;
   /** Stops a payment still in progress (Collect chosen meanwhile, §6.8). A finished one is left as it is. */
   cancel(id: string): Promise<void>;
+  /** Every refund Stripe holds for a PaymentIntent (§10.6: `charge.refunded`, `refund.updated`, `refund.failed`). */
+  refundsOf(paymentIntentId: string): Promise<StripeRefund[]>;
+  /** A dispute as Stripe has it now (§10.6: `charge.dispute.created` / `.closed`). */
+  retrieveDispute(id: string): Promise<StripeDispute>;
+};
+
+export type StripeRefund = {
+  id: string;
+  amountPence: number;
+  status: "pending" | "succeeded" | "failed" | "canceled" | "requires_action";
+  failureReason: string | null;
+};
+
+export type StripeDispute = {
+  id: string;
+  paymentIntentId: string;
+  amountPence: number;
+  /** warning_needs_response · needs_response · under_review · won · lost · warning_closed … */
+  status: string;
+  /** The last day to answer, Europe/London. */
+  respondBy: CalendarDate | null;
 };
 
 export type Refunded =
@@ -197,6 +219,34 @@ function stripeGateway(secret: string): Gateway {
         return { ok: false, error: e instanceof Error ? e.message : String(e) };
       }
     },
+    async refundsOf(paymentIntentId) {
+      const out: StripeRefund[] = [];
+      for await (const x of stripe.refunds.list({
+        payment_intent: paymentIntentId,
+        limit: 100,
+      }))
+        out.push({
+          id: x.id,
+          amountPence: x.amount,
+          status: (x.status ?? "pending") as StripeRefund["status"],
+          failureReason: x.failure_reason ?? null,
+        });
+      return out;
+    },
+    async retrieveDispute(id) {
+      const d = await stripe.disputes.retrieve(id);
+      const due = d.evidence_details?.due_by;
+      return {
+        id: d.id,
+        paymentIntentId:
+          typeof d.payment_intent === "string"
+            ? d.payment_intent
+            : (d.payment_intent?.id ?? ""),
+        amountPence: d.amount,
+        status: d.status,
+        respondBy: due ? londonDate(new Date(due * 1000)) : null,
+      };
+    },
     async listSince(since) {
       const out: Intent[] = [];
       for await (const pi of stripe.paymentIntents.list({
@@ -211,6 +261,8 @@ function stripeGateway(secret: string): Gateway {
 
 /** In memory, for tests (BBL_PAYMENTS=fake): the same idempotency as Stripe's. */
 const fakes = new Map<string, Intent>();
+const fakeRefunds = new Map<string, StripeRefund[]>();
+const fakeDisputes = new Map<string, StripeDispute>();
 const fakeGateway: Gateway = {
   async create(draftId, amountPence) {
     const id = `pi_fake_${draftId.replace(/-/g, "").slice(0, 16)}`;
@@ -304,13 +356,36 @@ const fakeGateway: Gateway = {
     if (i && i.status !== "succeeded")
       fakes.set(id, { ...i, status: "canceled" });
   },
-  async refund(_paymentIntentId, _amountPence, key) {
+  async refund(paymentIntentId, amountPence, key) {
     // A refund on the fake Stripe always goes through (the database tests try failures with their own gateway).
-    return { ok: true, id: `re_fake_${key}`, status: "succeeded" };
+    const id = `re_fake_${key}`;
+    const list = fakeRefunds.get(paymentIntentId) ?? [];
+    if (!list.some((x) => x.id === id))
+      fakeRefunds.set(paymentIntentId, [
+        ...list,
+        { id, amountPence, status: "succeeded", failureReason: null },
+      ]);
+    return { ok: true, id, status: "succeeded" };
+  },
+  async refundsOf(paymentIntentId) {
+    return fakeRefunds.get(paymentIntentId) ?? [];
+  },
+  async retrieveDispute(id) {
+    const d = fakeDisputes.get(id);
+    if (!d) throw new Error(`No such dispute: ${id}`);
+    return d;
   },
 };
 
 /** Tests only: what the fake Stripe says about a PaymentIntent (e.g. that it succeeded). */
+/** Tests only: what the fake Stripe holds as refunds of a PaymentIntent, and its disputes. */
+export function setFakeRefunds(paymentIntentId: string, list: StripeRefund[]) {
+  fakeRefunds.set(paymentIntentId, list);
+}
+export function setFakeDispute(d: StripeDispute) {
+  fakeDisputes.set(d.id, d);
+}
+
 export function setFakeIntent(id: string, patch: Partial<Intent>) {
   const i = fakes.get(id);
   if (i) fakes.set(id, { ...i, ...patch });

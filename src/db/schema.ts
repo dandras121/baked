@@ -1194,7 +1194,7 @@ export const refunds = pgTable(
   (t) => [
     check(
       "refund_kind",
-      sql`${t.kind} in ('change', 'cancel', 'excess', 'goodwill', 'fee')`,
+      sql`${t.kind} in ('change', 'cancel', 'excess', 'goodwill', 'fee', 'dispute')`,
     ),
     check(
       "refund_status",
@@ -1309,4 +1309,28 @@ export const handPayments = pgTable(
     check("hand_payment_method", sql`${t.method} in ('cash', 'bank')`),
     check("hand_payment_amount", sql`${t.amountPence} > 0`),
   ],
+);
+
+/**
+ * Disputes (chargebacks, §10.6): from `charge.dispute.created` / `.closed`. Money flags “Disputed — respond in Stripe by
+ * {date}” until closed; a lost one adds a `dispute` refund line. The order's status never changes.
+ */
+export const disputes = pgTable(
+  "disputes",
+  {
+    id: serial("id").primaryKey(),
+    stripeDisputeId: text("stripe_dispute_id").notNull().unique(),
+    paymentIntentId: text("payment_intent_id").notNull(),
+    orderId: integer("order_id").references(() => orders.id, {
+      onDelete: "set null",
+    }),
+    amountPence: integer("amount_pence").notNull(),
+    status: text("status").notNull(),
+    respondBy: date("respond_by"),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    closedAt: timestamp("closed_at", { withTimezone: true }),
+  },
+  (t) => [index("disputes_order").on(t.orderId)],
 );

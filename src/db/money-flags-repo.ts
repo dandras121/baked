@@ -12,6 +12,7 @@ import { handToGiveBack } from "./hand-money-repo";
 import { moneyByOrder } from "./money-repo";
 import {
   deliveryAttempts,
+  disputes,
   orderHistory,
   orders,
   paymentAlerts,
@@ -49,6 +50,14 @@ export type MoneyFlags = {
     pence: number;
   }[];
   handBack: { orderId: number; number: string; name: string; pence: number }[];
+  /** Open disputes (§10.6): until Stripe closes them. */
+  disputed: {
+    id: string;
+    number: string | null;
+    name: string | null;
+    pence: number;
+    respondBy: CalendarDate | null;
+  }[];
 };
 
 /** Older alerts kept the amount only in their words (“Stripe payment of 6400p has no order”). */
@@ -60,7 +69,7 @@ export async function moneyFlags(
   now = new Date(),
 ): Promise<MoneyFlags> {
   const today = londonDate(now);
-  const [alerts, failed, check, fees, ended, live] = await Promise.all([
+  const [alerts, failed, check, fees, ended, live, open] = await Promise.all([
     db
       .select()
       .from(paymentAlerts)
@@ -118,6 +127,12 @@ export async function moneyFlags(
         ),
       ),
     moneyByOrder(db),
+    db
+      .select({ d: disputes, number: orders.number, name: orders.customerName })
+      .from(disputes)
+      .leftJoin(orders, eq(orders.id, disputes.orderId))
+      .where(isNull(disputes.closedAt))
+      .orderBy(disputes.respondBy),
   ]);
 
   // A live order paid above its total (a lowered manual total, §9.7).
@@ -167,6 +182,13 @@ export async function moneyFlags(
       pence: a.feePaidPence,
     })),
     handBack: handBack.sort((a, b) => a.number.localeCompare(b.number)),
+    disputed: open.map(({ d, number, name }) => ({
+      id: d.stripeDisputeId,
+      number,
+      name,
+      pence: d.amountPence,
+      respondBy: d.respondBy === null ? null : String(d.respondBy),
+    })),
   };
 }
 

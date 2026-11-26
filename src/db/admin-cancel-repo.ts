@@ -12,7 +12,7 @@ import { settleCancellation } from "./cancel-repo";
 import { paymentInProgress } from "./change-repo";
 import type { connect } from "./client";
 import { queueMail } from "./mail-repo";
-import { cardRefundable, netPaid, refundOrder } from "./refund-repo";
+import { cardRefundable, refundBasis, refundOrder } from "./refund-repo";
 import {
   orderChanges,
   orderHistory,
@@ -40,11 +40,10 @@ export async function adminCancelQuote(
   today: CalendarDate,
 ): Promise<AdminCancelQuote> {
   const tier = refundTier(String(o.earliestDate), String(o.date), today);
-  const [net, card] = await Promise.all([
-    netPaid(db, o),
+  const [paid, card] = await Promise.all([
+    refundBasis(db, o),
     cardRefundable(db, o),
   ]);
-  const paid = Math.max(0, net);
   return {
     tier,
     proposedPence: refundAmount(paid, tier),

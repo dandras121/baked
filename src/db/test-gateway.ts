@@ -1,5 +1,10 @@
 // Tests only: a fake Stripe that counts what it is asked and lets a test say what happened to a PaymentIntent.
-import type { Gateway, Intent } from "@/lib/payments";
+import type {
+  Gateway,
+  Intent,
+  StripeDispute,
+  StripeRefund,
+} from "@/lib/payments";
 
 export function countingGateway() {
   const intents = new Map<string, Intent>();
@@ -12,7 +17,18 @@ export function countingGateway() {
   }[] = [];
   const refundControl = { fail: false };
   const orderNumbers = new Map<string, string>();
+  /** What Stripe holds as refunds per PaymentIntent, and its disputes (tests set them). */
+  const stripeRefunds = new Map<string, StripeRefund[]>();
+  const stripeDisputes = new Map<string, StripeDispute>();
   const gw: Gateway = {
+    async refundsOf(paymentIntentId) {
+      return stripeRefunds.get(paymentIntentId) ?? [];
+    },
+    async retrieveDispute(id) {
+      const d = stripeDisputes.get(id);
+      if (!d) throw new Error(`No such dispute: ${id}`);
+      return d;
+    },
     async create(draftId, amountPence) {
       calls.create++;
       const id = `pi_${draftId.slice(0, 8)}`;
@@ -116,5 +132,15 @@ export function countingGateway() {
       amountReceivedPence: received ?? i.amountPence,
     });
   };
-  return { gw, calls, intents, succeed, orderNumbers, refunds, refundControl };
+  return {
+    gw,
+    calls,
+    intents,
+    succeed,
+    orderNumbers,
+    refunds,
+    refundControl,
+    stripeRefunds,
+    stripeDisputes,
+  };
 }

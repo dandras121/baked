@@ -8,6 +8,7 @@ import {
   linkSent,
   moneySubtitle,
   paidInFullLine,
+  disputeHref,
 } from "@/lib/admin/money";
 import { stripeHref } from "@/lib/admin/order-detail";
 import { formatLongDate } from "@/lib/london-time";
@@ -57,9 +58,34 @@ export function MoneyScreen({
         flags.refundFailed.length +
         flags.checkDay.length +
         flags.feeToRefund.length +
-        flags.handBack.length >
+        flags.handBack.length +
+        flags.disputed.length >
         0 && (
         <section className={styles.flags} aria-label="Needs you">
+          {flags.disputed.map((f) => (
+            <Flag
+              key={`d${f.id}`}
+              title={FLAG.disputedTitle(f.respondBy)}
+              href={f.number ? open(f.number) : undefined}
+              number={f.number ?? undefined}
+            >
+              <div className={styles.flagItem}>
+                <p className={styles.flagText}>
+                  {FLAG.disputed(f.pence, f.number, f.name)}
+                </p>
+                <div className={styles.flagActions}>
+                  <ButtonLink
+                    href={disputeHref(f.id, stripeLive)}
+                    variant="outline"
+                    className={styles.flagButton}
+                    external
+                  >
+                    Open in Stripe
+                  </ButtonLink>
+                </div>
+              </div>
+            </Flag>
+          ))}
           {flags.noOrder.length > 0 && (
             <Flag title={FLAG.noOrderTitle(flags.noOrder.length)}>
               {flags.noOrder.map((a) => (

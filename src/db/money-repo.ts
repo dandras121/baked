@@ -1,5 +1,16 @@
 // Money taken and still to pay (§10.6, §13): shared by Today's tiles (8.3) and the Money screen (8.8).
-import { and, gt, gte, inArray, isNull, lt, ne, sql, sum } from "drizzle-orm";
+import {
+  and,
+  gt,
+  gte,
+  inArray,
+  isNull,
+  lt,
+  ne,
+  sql,
+  sum,
+  notInArray,
+} from "drizzle-orm";
 import { londonInstant, type CalendarDate } from "@/lib/london-time";
 import type { connect } from "./client";
 import { netPaid } from "./refund-repo";
@@ -150,7 +161,8 @@ export async function moneyByOrder(
         and(
           inArray(refunds.orderId, ids),
           inArray(refunds.status, ["pending", "succeeded"]),
-          ne(refunds.kind, "fee"),
+          // Fee, goodwill and dispute refunds never count (§10.6).
+          notInArray(refunds.kind, ["fee", "goodwill", "dispute"]),
         ),
       )
       .groupBy(refunds.orderId, refunds.status),

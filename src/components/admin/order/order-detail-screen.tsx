@@ -184,7 +184,18 @@ export function OrderDetailScreen({
     earliest: String(o.earliestDate),
     date,
     today,
-    basisPence: d.money.netPaidPence,
+    // Net paid less goodwill and dispute refunds (§10.6).
+    basisPence: Math.max(
+      0,
+      d.money.netPaidPence -
+        d.refunds
+          .filter(
+            (r) =>
+              (r.kind === "goodwill" || r.kind === "dispute") &&
+              r.status !== "failed",
+          )
+          .reduce((n, r) => n + r.amountPence, 0),
+    ),
   });
   const cancelled = o.cancellation as {
     cancelledOn: string;

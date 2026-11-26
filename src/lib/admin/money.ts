@@ -75,4 +75,14 @@ export const FLAG = {
   handTitle: (pence: number, number: string) =>
     `${breakdown(pence)} to give back by hand — ${number}`,
   hand: "Give it back in cash or by bank transfer, then record it on the order.",
+  disputedTitle: (respondBy: CalendarDate | null) =>
+    respondBy
+      ? `Disputed — respond in Stripe by ${longDay(respondBy)}`
+      : "Disputed — respond in Stripe",
+  disputed: (pence: number, number: string | null, name: string | null) =>
+    `The customer’s bank has questioned ${breakdown(pence)}${number ? ` for ${number}${name ? ` (${name})` : ""}` : ""}. Answer it in Stripe before the date — nothing changes on the order meanwhile.`,
 };
+
+/** A dispute in the Stripe dashboard (test mode before launch). */
+export const disputeHref = (id: string, live: boolean) =>
+  `https://dashboard.stripe.com${live ? "" : "/test"}/disputes/${id}`;

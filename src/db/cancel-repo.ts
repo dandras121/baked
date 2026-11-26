@@ -12,7 +12,7 @@ import type { Gateway } from "@/lib/payments";
 import type { connect } from "./client";
 import { paymentInProgress } from "./change-repo";
 import { queueMail } from "./mail-repo";
-import { netPaid, refundOrder } from "./refund-repo";
+import { refundBasis, refundOrder } from "./refund-repo";
 import {
   handPayments,
   orderChanges,
@@ -55,7 +55,7 @@ export async function cancelQuote(
         ),
       )
       .orderBy(refunds.id),
-    netPaid(db as Db, o),
+    refundBasis(db as Db, o),
     db
       .select({ paid: paymentLinks.paidPence, at: paymentLinks.paidAt })
       .from(paymentLinks)

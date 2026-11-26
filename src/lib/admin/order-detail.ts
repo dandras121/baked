@@ -127,7 +127,14 @@ export function moneyLines(v: {
           ? " · failed — try again"
           : "";
     out.push({
-      label: r.kind === "fee" ? "Fee refund" : "Refund",
+      label:
+        r.kind === "fee"
+          ? "Fee refund"
+          : r.kind === "goodwill"
+            ? "Goodwill refund"
+            : r.kind === "dispute"
+              ? "Dispute lost"
+              : "Refund",
       value: `${money(-r.pence)} · Stripe · ${dayMonth(r.on)}${state}`,
     });
   }
