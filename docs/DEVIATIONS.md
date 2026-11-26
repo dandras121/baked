@@ -161,3 +161,4 @@ Anything built differently from the docs or Figma, and why. Bohoka’s decision 
 | 8.8 | CLAUDE.md §4.4 one slice | 8.8 split into 8.8a (the Money screen) and 8.8b (the flags) |
 | 8.8a | 934:8321 Send a payment link 190 × 38 | 190 × 44, so the hit area is at least 44 tall (§10.13) |
 | 8.8b | CLAUDE.md §4.4 one slice | The Stripe refund and dispute events (and the Disputed flag) moved to 8.8c |
+| Phase 8 gate | ANIMATIONS ANIM-12 / ANIM-13 / ANIM-19 (dialogs grow, sheets slide, field errors slide) | Inside the admin they appear and go at once | SITE-FLOWS §9.1, Decided D10 (“No motion beyond focus and hover states”) wins over the motion catalogue (precedence 1); the public site keeps every motion |
