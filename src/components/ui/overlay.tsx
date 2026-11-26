@@ -15,6 +15,10 @@ import { isMotionReduced } from "@/motion/reduced-motion";
 import styles from "./overlay.module.css";
 
 const m = data.surfaceMotion;
+
+/** No motion: reduced motion, or the admin (no motion beyond focus and hover states, SITE-FLOWS §9.1, Decided D10). */
+const still = (el: Element | null | undefined) =>
+  isMotionReduced() || !!el?.closest("[data-no-motion]");
 // The JSON appendix names the sheet curve and the sheet timings with the same key; the timings win, so the curve
 // is written here (ANIM-13: cubic-bezier(0.32, 0.72, 0, 1)).
 const EASE_SHEET = "cubic-bezier(0.32, 0.72, 0, 1)";
@@ -114,7 +118,7 @@ export function Overlay({
       : null;
 
   const animateIn = useCallback((p: Part, which: "dialog" | "sheet") => {
-    if (isMotionReduced()) return;
+    if (still(p.panel)) return;
     const panelFrom = current(p.panel);
     const scrimFrom = getComputedStyle(p.scrim).opacity;
     if (which === "dialog") {
@@ -185,7 +189,7 @@ export function Overlay({
       target?.focus?.({ preventScroll: true });
       setMounted(false);
     };
-    if (!p || isMotionReduced()) return finish();
+    if (!p || still(p.panel)) return finish();
     for (const a of [...p.panel.getAnimations(), ...p.scrim.getAnimations()]) {
       a.commitStyles();
       a.cancel();
@@ -253,7 +257,7 @@ export function Overlay({
     const p = { panel: panelRef.current, scrim: scrimRef.current };
     p.panel.style.transform = "";
     p.scrim.style.opacity = "";
-    if (!isMotionReduced()) {
+    if (!still(p.panel)) {
       p.panel.animate(
         [{ transform: `translateY(${d.dy}px)` }, { transform: "none" }],
         {

@@ -84,6 +84,8 @@ test("Send a payment link: The rest by default, the checks, Deposit £120 sent; 
   await page.getByRole("button", { name: "Send a payment link" }).click();
   const dialog = page.getByRole("dialog", { name: "Send a payment link" });
   await expect(dialog).toContainText(`${number} · Mairi ${tag}`);
+  // The admin has no motion beyond focus and hover (SITE-FLOWS §9.1, Decided D10): the dialog is simply there.
+  expect(await page.evaluate(() => document.getAnimations().length)).toBe(0);
   await expect(dialog.getByLabel("The rest")).toBeChecked();
   await expect(dialog.getByLabel("Amount")).toHaveValue("380");
   await expect(dialog).toContainText(

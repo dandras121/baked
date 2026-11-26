@@ -31,3 +31,9 @@
   transition-duration: 160ms;
   transition-timing-function: var(--ease-out);
 }
+
+/* The admin: no motion beyond focus and hover states (SITE-FLOWS §9.1, Decided D10). */
+:global([data-no-motion]) .wrap,
+:global([data-no-motion]) .message {
+  transition: none;
+}
