@@ -137,7 +137,8 @@ Branch per phase (`phase-00-foundations`, …), one commit per accepted slice, t
 | 9.1b | Add or edit a cake | ✅ accepted 2026-11-26 | b8964c7 | |
 | 9.1c | Options card | ✅ accepted 2026-11-26 | 4735edb | |
 | 9.2a | Cake photos | ✅ accepted 2026-11-27 | 2ec1e75 | |
-| 9.2b | Cake videos | 🔍 waiting for Bohoka | | |
+| 9.2b | Cake videos | ✅ accepted 2026-11-27 | 31abd75 | |
+| 9.2c | Card video | 🔨 building | | |
 | 8.6d | Edit the order (manual orders) | ☐ | | |
 | 8.7 | Payment links, Record a payment, Record a refund | ☐ | | |
 | 8.8 | Money | ☐ | | |
