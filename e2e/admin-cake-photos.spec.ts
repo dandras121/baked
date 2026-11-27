@@ -1,6 +1,12 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
+import { execFile } from "node:child_process";
+import { mkdtemp, readFile, rm } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import { promisify } from "node:util";
 import { like } from "drizzle-orm";
+import ffmpegPath from "ffmpeg-static";
 import sharp from "sharp";
 import { saveCake } from "../src/db/admin-cake-form-repo";
 import { connect } from "../src/db/client";
@@ -9,7 +15,7 @@ import { checkCakeForm, EMPTY_CAKE } from "../src/lib/admin/cake-form";
 import { settled, signIn } from "./admin-helpers";
 
 // Slice 9.2a: a cake's photos (§9.13) — Add photos, the main photo's focal point, Describe this photo, Make the main
-// photo, × Remove, and the card on the site.
+// photo, × Remove, and the card on the site. Slice 9.2b: Add a video, “Preparing the video…”, Change the cover.
 const tag = `${Date.now().toString(36)}${Math.floor(Math.random() * 1e4)}`;
 const name = `Zz Photo ${tag}`;
 let id = 0;
@@ -23,6 +29,35 @@ const file = async (colour: string) => ({
     .jpeg()
     .toBuffer(),
 });
+
+/** A synthetic clip (ffmpeg's test pattern), as a phone would send it. */
+async function clip(seconds: number) {
+  const dir = await mkdtemp(join(tmpdir(), "bbl-e2e-clip-"));
+  try {
+    const out = join(dir, "clip.mp4");
+    await promisify(execFile)(ffmpegPath as unknown as string, [
+      "-f",
+      "lavfi",
+      "-i",
+      `testsrc=size=360x640:rate=10:duration=${seconds}`,
+      "-c:v",
+      "libx264",
+      "-preset",
+      "ultrafast",
+      "-pix_fmt",
+      "yuv420p",
+      "-y",
+      out,
+    ]);
+    return {
+      name: "cake.mp4",
+      mimeType: "video/mp4",
+      buffer: await readFile(out),
+    };
+  } finally {
+    await rm(dir, { recursive: true, force: true });
+  }
+}
 
 test.beforeAll(async () => {
   const { db, close } = connect();
@@ -137,4 +172,61 @@ test("photos: add, describe, focal point, make main, remove; the card shows the 
   await expect(
     page.getByRole("button", { name: "Replace the main photo" }),
   ).toBeVisible();
+});
+
+test("videos: preparing, then a tile with its cover; Change the cover; too long is refused; two at most", async ({
+  page,
+}, info) => {
+  test.skip(info.project.name !== "desktop", "one cake: one viewport");
+  test.setTimeout(120_000);
+  await signIn(page, "Linda");
+  await page.goto(`/admin/cakes/${id}`);
+  const addVideo = page.getByRole("button", { name: "Add a video" });
+  const pick = async (button: typeof addVideo, f: object) => {
+    const chooser = page.waitForEvent("filechooser");
+    await button.click();
+    await (await chooser).setFiles(f as never);
+  };
+
+  await pick(addVideo, await clip(2));
+  await expect(page.getByText("Preparing the video…")).toBeVisible();
+  const cover = page.getByRole("button", { name: "Change the cover" });
+  await expect(cover).toBeVisible({ timeout: 60_000 });
+  await expect(page.getByText("Preparing the video…")).toHaveCount(0);
+  const tile = page.getByRole("button", { name: /^Select this video/ });
+  const poster = await tile.locator("img").getAttribute("src");
+  expect(poster).toMatch(new RegExp(`^/media/cakes/${id}/.+-cover\\.jpg$`));
+
+  // Change the cover: an uploaded picture replaces the first frame.
+  await pick(cover, await file("#c8e8b4"));
+  await expect(tile.locator("img")).not.toHaveAttribute("src", poster!, {
+    timeout: 20_000,
+  });
+  await settled(page);
+  expect(
+    (await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa"]).analyze())
+      .violations,
+  ).toEqual([]);
+
+  // Longer than a minute: nothing is added, the words say so.
+  await pick(addVideo, await clip(61));
+  await expect(
+    page.getByText("That video is longer than a minute. Nothing was added."),
+  ).toBeVisible({ timeout: 60_000 });
+  await expect(
+    page.getByRole("button", { name: /^Select this video/ }),
+  ).toHaveCount(1);
+
+  // A second video fills the two places: Add a video is disabled.
+  await pick(addVideo, await clip(1));
+  await expect(
+    page.getByRole("button", { name: "Change the cover" }),
+  ).toHaveCount(2, {
+    timeout: 60_000,
+  });
+  await expect(addVideo).toBeDisabled();
+  await page.reload();
+  await expect(
+    page.getByRole("button", { name: /^Select this video/ }),
+  ).toHaveCount(2);
 });

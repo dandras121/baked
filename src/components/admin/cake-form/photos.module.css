@@ -154,3 +154,47 @@
   display: grid;
   gap: 10px;
 }
+
+/* A video tile (1274:9608): the cover with the play indicator, 26 px, centred; while converting, the words instead. */
+.thumb {
+  position: relative;
+}
+
+.play {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 26px;
+  height: 26px;
+  margin: -13px 0 0 -13px;
+  border-radius: 50%;
+  background: var(--colour-white);
+}
+
+.play::after {
+  content: "";
+  position: absolute;
+  top: 8px;
+  left: 10px;
+  border-top: 5px solid transparent;
+  border-bottom: 5px solid transparent;
+  border-left: 8px solid var(--colour-ink);
+}
+
+.preparing {
+  padding-top: 6px;
+  color: var(--colour-ink);
+  font: var(--type-small);
+}
+
+/* Add photos · Add a video side by side, as drawn (137 + 12 + 137). */
+.addRow > * {
+  flex: 1 1 0;
+  min-width: 0;
+  padding-inline: 8px;
+}
+
+.textButton:disabled {
+  opacity: 0.5;
+  cursor: default;
+}

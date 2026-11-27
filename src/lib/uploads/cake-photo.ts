@@ -63,3 +63,20 @@ export async function processCakePhoto(
     throw new CakePhotoError(PHOTO_WORDS.type);
   }
 }
+
+/** A video's cover (Change the cover): any JPG, PNG or HEIC, upright, without metadata, at most 1080 × 1640. */
+export async function coverPicture(input: Buffer): Promise<Buffer> {
+  const kind = sniff(input);
+  if (!kind) throw new CakePhotoError(PHOTO_WORDS.type);
+  const source =
+    kind === "heic"
+      ? Buffer.from(
+          await heicConvert({ buffer: input, format: "JPEG", quality: 0.92 }),
+        )
+      : input;
+  return sharp(source, { failOn: "error" })
+    .rotate()
+    .resize(1080, 1640, { fit: "inside", withoutEnlargement: true })
+    .jpeg({ quality: 84, mozjpeg: true })
+    .toBuffer();
+}

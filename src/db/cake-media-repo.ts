@@ -1,10 +1,20 @@
 // A cake's photos in the admin (§9.13): up to 8, the first is the card photo; each keeps its focal point and alt text.
 // Changes save at once. The files are public media (putPublic); the rows hold their addresses.
 import { randomUUID } from "node:crypto";
-import { and, asc, count, eq, isNull } from "drizzle-orm";
+import { and, asc, count, eq, inArray, isNull } from "drizzle-orm";
 import { CAKE_LIMITS } from "@/lib/cakes";
 import { putPublic } from "@/lib/storage";
-import { CakePhotoError, processCakePhoto } from "@/lib/uploads/cake-photo";
+import {
+  CakePhotoError,
+  coverPicture,
+  processCakePhoto,
+} from "@/lib/uploads/cake-photo";
+import {
+  CAKE_VIDEO,
+  CakeVideoError,
+  processCakeVideo,
+  VIDEO_WORDS,
+} from "@/lib/uploads/cake-video";
 import type { connect } from "./client";
 import { cakeMedia, cakes } from "./schema";
 
@@ -18,6 +28,9 @@ export type AdminMedia = {
   alt: string;
   focalX: number;
   focalY: number;
+  /** Videos (§9.13): preparing while the server converts it; failed with the words. */
+  status: "ready" | "preparing" | "failed";
+  problem: string | null;
 };
 
 export async function cakeMediaList(
@@ -37,6 +50,8 @@ export async function cakeMediaList(
     alt: m.altText,
     focalX: m.focalX,
     focalY: m.focalY,
+    status: m.status as AdminMedia["status"],
+    problem: m.problem,
   }));
 }
 
@@ -91,6 +106,8 @@ export async function addCakePhoto(
       alt: "",
       focalX: 0.5,
       focalY: 0.5,
+      status: "ready",
+      problem: null,
     },
   };
 }
@@ -184,4 +201,181 @@ export async function removeCakeMedia(
   const rest = all.filter((m) => m.id !== id).map((m) => m.id);
   if (rest.length) await reorderCakeMedia(db, cakeId, rest);
   return { kind: "removed" };
+}
+
+/** Add a video: its tile shows “Preparing the video…” at once; finishCakeVideo makes the site's copy (§9.13). */
+export async function startCakeVideo(
+  db: Db,
+  cakeId: number,
+): Promise<{ ok: true; media: AdminMedia } | { ok: false; words: string }> {
+  const [c] = await db
+    .select({ id: cakes.id })
+    .from(cakes)
+    .where(and(eq(cakes.id, cakeId), isNull(cakes.deletedAt)));
+  if (!c)
+    return {
+      ok: false,
+      words: "This cake was deleted meanwhile. Nothing was added.",
+    };
+  const all = await cakeMediaList(db, cakeId);
+  if (
+    all.filter((m) => m.kind === "video" && m.status !== "failed").length >=
+    CAKE_VIDEO.max
+  )
+    return { ok: false, words: VIDEO_WORDS.full };
+  const [row] = await db
+    .insert(cakeMedia)
+    .values({
+      cakeId,
+      kind: "video",
+      position: all.length + 1,
+      path: "",
+      status: "preparing",
+      startedAt: new Date(),
+    })
+    .returning();
+  return {
+    ok: true,
+    media: {
+      id: row.id,
+      kind: "video",
+      src: "",
+      poster: null,
+      alt: "",
+      focalX: 0.5,
+      focalY: 0.5,
+      status: "preparing",
+      problem: null,
+    },
+  };
+}
+
+/** The conversion (after the answer): ready with the site's copy and its cover, or failed with the words. */
+export async function finishCakeVideo(
+  db: Db,
+  cakeId: number,
+  id: number,
+  data: Buffer,
+): Promise<void> {
+  try {
+    const v = await processCakeVideo(data);
+    const key = `cakes/${cakeId}/${randomUUID()}`;
+    const [src, poster] = await Promise.all([
+      putPublic(db, `${key}.mp4`, v.video, "video/mp4"),
+      putPublic(db, `${key}-cover.jpg`, v.cover, "image/jpeg"),
+    ]);
+    await db
+      .update(cakeMedia)
+      .set({ path: src, posterPath: poster, status: "ready", problem: null })
+      .where(eq(cakeMedia.id, id));
+  } catch (e) {
+    const words = e instanceof CakeVideoError ? e.words : VIDEO_WORDS.failed;
+    if (!(e instanceof CakeVideoError)) console.error("cake video", e);
+    await db
+      .update(cakeMedia)
+      .set({ status: "failed", problem: words })
+      .where(eq(cakeMedia.id, id));
+  }
+}
+
+/** Change the cover: an uploaded picture replaces the first frame (JPG, PNG or HEIC; upright, no metadata). */
+export async function setVideoCover(
+  db: Db,
+  cakeId: number,
+  id: number,
+  data: Buffer,
+): Promise<{ ok: true; poster: string } | { ok: false; words: string }> {
+  const [m] = await db
+    .select()
+    .from(cakeMedia)
+    .where(
+      and(
+        eq(cakeMedia.id, id),
+        eq(cakeMedia.cakeId, cakeId),
+        eq(cakeMedia.kind, "video"),
+      ),
+    );
+  if (!m)
+    return {
+      ok: false,
+      words: "That video was removed meanwhile. Nothing was changed.",
+    };
+  let cover: Buffer;
+  try {
+    cover = await coverPicture(data);
+  } catch {
+    return {
+      ok: false,
+      words:
+        "That file is not a JPG, PNG or HEIC picture. Nothing was changed.",
+    };
+  }
+  const poster = await putPublic(
+    db,
+    `cakes/${cakeId}/${randomUUID()}-cover.jpg`,
+    cover,
+    "image/jpeg",
+  );
+  await db
+    .update(cakeMedia)
+    .set({ posterPath: poster })
+    .where(eq(cakeMedia.id, id));
+  return { ok: true, poster };
+}
+
+/** How long a conversion may take before its tile counts it as failed (the function stops after 5 minutes). */
+export const PREPARING_LIMIT_MS = 15 * 60 * 1000;
+
+export type VideoStatus =
+  | { id: number; state: "preparing" }
+  | { id: number; state: "ready"; media: AdminMedia }
+  | { id: number; state: "failed"; words: string };
+
+/**
+ * The tiles ask about the videos still preparing (§9.13). A ready one comes back whole; a failed one — or one still
+ * preparing after 15 minutes — is taken off the tiles (nothing was added) and comes back with its words.
+ */
+export async function cakeVideoStatus(
+  db: Db,
+  cakeId: number,
+  ids: number[],
+  now = new Date(),
+): Promise<VideoStatus[]> {
+  if (!ids.length) return [];
+  const rows = await db
+    .select()
+    .from(cakeMedia)
+    .where(
+      and(
+        eq(cakeMedia.cakeId, cakeId),
+        eq(cakeMedia.kind, "video"),
+        inArray(cakeMedia.id, ids),
+      ),
+    );
+  const list = await cakeMediaList(db, cakeId);
+  const out: VideoStatus[] = [];
+  const gone: number[] = [];
+  for (const id of ids) {
+    const row = rows.find((r) => r.id === id);
+    const stuck =
+      row?.status === "preparing" &&
+      (!row.startedAt ||
+        now.getTime() - row.startedAt.getTime() > PREPARING_LIMIT_MS);
+    if (!row || row.status === "failed" || stuck) {
+      out.push({
+        id,
+        state: "failed",
+        words: row?.problem ?? VIDEO_WORDS.failed,
+      });
+      if (row) gone.push(id);
+    } else if (row.status === "ready")
+      out.push({ id, state: "ready", media: list.find((m) => m.id === id)! });
+    else out.push({ id, state: "preparing" });
+  }
+  if (gone.length) {
+    await db.delete(cakeMedia).where(inArray(cakeMedia.id, gone));
+    const rest = list.filter((m) => !gone.includes(m.id)).map((m) => m.id);
+    if (rest.length) await reorderCakeMedia(db, cakeId, rest);
+  }
+  return out;
 }

@@ -1,8 +1,10 @@
 import { NextResponse } from "next/server";
-import { addCakePhoto } from "@/db/cake-media-repo";
 import { connect, databaseUrl } from "@/db/client";
 import { memberForSave } from "@/lib/admin/session";
-import { CAKE_PHOTO, PHOTO_WORDS } from "@/lib/uploads/cake-photo";
+import { handleMedia, kindOf, maxBytes, tooBig } from "./handle";
+
+/** A video is converted after the answer, within this function's time (§9.13). */
+export const maxDuration = 300;
 
 const NO_STORE = {
   "Cache-Control": "private, no-store",
@@ -11,7 +13,8 @@ const NO_STORE = {
 
 /**
  * POST /api/cake-media (§9.13, Owner): one photo sent through the site, when no Blob store is connected (on Vercel this
- * way is limited to 4.5 MB a request). multipart: file, cakeId. → { media } or { words }.
+ * way is limited to 4.5 MB a request). multipart: file, cakeId, kind (photo · video · cover), mediaId (for a cover).
+ * → { media } · { poster } · { words }.
  */
 export async function POST(req: Request) {
   if (!databaseUrl())
@@ -40,24 +43,26 @@ export async function POST(req: Request) {
       { words: "Nothing was added — please try again." },
       { status: 400, headers: NO_STORE },
     );
-  if (file.size > CAKE_PHOTO.maxBytes)
+  const kind = kindOf(form.get("kind"));
+  if (file.size > maxBytes(kind))
     return NextResponse.json(
-      { words: PHOTO_WORDS.size(file.size) },
+      { words: tooBig(kind, file.size) },
       { status: 413, headers: NO_STORE },
     );
   const { db, close } = connect();
   try {
-    const r = await addCakePhoto(
-      db,
+    const r = await handleMedia(db, {
       cakeId,
-      Buffer.from(await file.arrayBuffer()),
-    );
-    return NextResponse.json(r.ok ? { media: r.media } : { words: r.words }, {
-      status: r.ok ? 200 : 400,
+      kind,
+      mediaId: Number(form.get("mediaId")),
+      data: Buffer.from(await file.arrayBuffer()),
+    });
+    return NextResponse.json(r, {
+      status: r.words ? 400 : 200,
       headers: NO_STORE,
     });
   } catch (e) {
-    console.error("cake photo", e);
+    console.error("cake media", e);
     return NextResponse.json(
       { words: "Nothing was added — please try again." },
       { status: 500, headers: NO_STORE },

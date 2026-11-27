@@ -5,10 +5,12 @@ import { removeCake, saveCake } from "@/db/admin-cake-form-repo";
 import { reorderCakes } from "@/db/admin-cakes-repo";
 import { CAKES_TAG } from "@/db/home-repo";
 import {
+  cakeVideoStatus,
   makeMainPhoto,
   removeCakeMedia,
   reorderCakeMedia,
   updateCakePhoto,
+  type VideoStatus,
 } from "@/db/cake-media-repo";
 import { connect } from "@/db/client";
 import {
@@ -167,4 +169,24 @@ export async function removeMediaAction(cakeId: number, id: number) {
         ? "last-photo"
         : false;
   });
+}
+
+/** The tiles' question every few seconds while a video is preparing (§9.13); a ready one shows on the site from now. */
+export async function videoStatusAction(
+  cakeId: number,
+  ids: number[],
+): Promise<VideoStatus[] | null> {
+  if (!(await memberForSave("owner"))) return null;
+  if (!Array.isArray(ids) || ids.some((x) => !Number.isInteger(x))) return null;
+  const { db, close } = connect();
+  try {
+    const r = await cakeVideoStatus(db, cakeId, ids.slice(0, 10));
+    if (r.some((v) => v.state === "ready")) revalidateSite(null);
+    return r;
+  } catch (e) {
+    console.error("cake video status", e);
+    return null;
+  } finally {
+    await close();
+  }
 }

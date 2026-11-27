@@ -7,6 +7,13 @@ const nextConfig: NextConfig = {
   // instead of mixing old and new parts (pages that stop reacting; Bohoka 2026-11-04).
   deploymentId: process.env.VERCEL_DEPLOYMENT_ID,
   partialPrefetching: true,
+  // The cake videos are converted with ffmpeg on the server (§9.13; Bohoka 2026-11-26, decision 1A): the binary
+  // ships with the functions that use it.
+  serverExternalPackages: ["ffmpeg-static"],
+  outputFileTracingIncludes: {
+    "/api/cake-media/**": ["./node_modules/.pnpm/ffmpeg-static@*/node_modules/ffmpeg-static/ffmpeg"],
+    "/admin/cakes/**": ["./node_modules/.pnpm/ffmpeg-static@*/node_modules/ffmpeg-static/ffmpeg"],
+  },
   // §2 Index = no → noindex; token pages also send no referrer (§10.5, CLAUDE.md rule 10).
   async headers() {
     return [

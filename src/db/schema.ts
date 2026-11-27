@@ -442,11 +442,17 @@ export const cakeMedia = pgTable(
     /** Videos: the cover picture. */
     posterPath: text("poster_path"),
     altText: text("alt_text").notNull().default(""),
+    /** A video is converted on the server (§9.13): preparing → ready, or failed with the words for Linda. */
+    status: text("status").notNull().default("ready"),
+    problem: text("problem"),
+    /** When the conversion began; one still preparing after 15 minutes counts as failed. */
+    startedAt: timestamp("started_at", { withTimezone: true }),
     focalX: real("focal_x").notNull().default(0.5),
     focalY: real("focal_y").notNull().default(0.5),
   },
   (t) => [
     check("media_kind", sql`${t.kind} in ('photo', 'video')`),
+    check("media_status", sql`${t.status} in ('ready', 'preparing', 'failed')`),
     check(
       "media_focal",
       sql`${t.focalX} between 0 and 1 and ${t.focalY} between 0 and 1`,

@@ -6,14 +6,14 @@ import {
   type HandleUploadPresignedBody,
 } from "@vercel/blob/client";
 import { NextResponse } from "next/server";
-import { addCakePhoto } from "@/db/cake-media-repo";
 import { connect, databaseUrl } from "@/db/client";
 import { memberForSave } from "@/lib/admin/session";
 import { blobConnected } from "@/lib/storage";
-import { CAKE_PHOTO, PHOTO_WORDS } from "@/lib/uploads/cake-photo";
+import { handleMedia, kindOf, maxBytes, tooBig, TYPES } from "../handle";
 
 const INCOMING = "incoming/cakes/";
-const TYPES = ["image/jpeg", "image/png", "image/heic", "image/heif"];
+/** A video is converted after the answer, within this function's time (§9.13). */
+export const maxDuration = 300;
 const NO_STORE = {
   "Cache-Control": "private, no-store",
   "X-Robots-Tag": "noindex",
@@ -23,8 +23,8 @@ const answer = (body: object, status = 200) =>
 
 /**
  * POST /api/cake-media/blob (§9.13, Owner, with a Vercel Blob store): the browser asks for a short-lived token and
- * uploads the photo straight to the private store under incoming/cakes/{cakeId}/ (15 MB, photo types). Then it posts
- * { finish: pathname, cakeId }: the server reads it, makes the site's copy (public media) and deletes the original.
+ * uploads the file straight to the private store under incoming/cakes/{cakeId}/ (a photo 15 MB, a video 500 MB). Then
+ * it posts { finish: pathname, cakeId, kind, mediaId? }: the server reads it, makes the site's copy (public media) and deletes the original.
  */
 export async function POST(req: Request) {
   if (!databaseUrl() || !blobConnected())
@@ -55,30 +55,31 @@ export async function POST(req: Request) {
       await del(pathname).catch(() => undefined);
       if (original?.statusCode !== 200)
         return answer({ words: "Nothing was added — please try again." }, 400);
-      if (original.blob.size > CAKE_PHOTO.maxBytes)
-        return answer({ words: PHOTO_WORDS.size(original.blob.size) }, 413);
-      const r = await addCakePhoto(
-        db,
+      const kind = kindOf(body.kind);
+      if (original.blob.size > maxBytes(kind))
+        return answer({ words: tooBig(kind, original.blob.size) }, 413);
+      const r = await handleMedia(db, {
         cakeId,
-        Buffer.from(await new Response(original.stream).arrayBuffer()),
-      );
-      return answer(
-        r.ok ? { media: r.media } : { words: r.words },
-        r.ok ? 200 : 400,
-      );
+        kind,
+        mediaId: Number(body.mediaId),
+        data: Buffer.from(await new Response(original.stream).arrayBuffer()),
+      });
+      return answer(r, r.words ? 400 : 200);
     }
     const allowed = (pathname: string, payload: string | null) => {
-      const cakeId = Number(JSON.parse(payload ?? "{}").cakeId);
+      const p = JSON.parse(payload ?? "{}");
+      const cakeId = Number(p.cakeId);
       if (
         !Number.isInteger(cakeId) ||
         !pathname.startsWith(`${INCOMING}${cakeId}/`)
       )
         throw new Error("not allowed");
-    };
-    const limits = {
-      allowedContentTypes: TYPES,
-      maximumSizeInBytes: CAKE_PHOTO.maxBytes,
-      validUntil: Date.now() + 10 * 60 * 1000,
+      const kind = kindOf(p.kind);
+      return {
+        allowedContentTypes: kind === "video" ? TYPES.video : TYPES.photo,
+        maximumSizeInBytes: maxBytes(kind),
+        validUntil: Date.now() + 30 * 60 * 1000,
+      };
     };
     const result =
       (body.type as string) === "blob.generate-presigned-url"
@@ -86,7 +87,7 @@ export async function POST(req: Request) {
             body: body as unknown as HandleUploadPresignedBody,
             request: req,
             getSignedToken: async (pathname, payload) => {
-              allowed(pathname, payload);
+              const limits = allowed(pathname, payload);
               const token = await issueSignedToken({
                 ...limits,
                 pathname,
@@ -99,13 +100,12 @@ export async function POST(req: Request) {
             body,
             request: req,
             onBeforeGenerateToken: async (pathname, payload) => {
-              allowed(pathname, payload);
-              return { ...limits, addRandomSuffix: true };
+              return { ...allowed(pathname, payload), addRandomSuffix: true };
             },
           });
     return answer(result as object);
   } catch (e) {
-    console.error("cake photo blob", e);
+    console.error("cake media blob", e);
     return answer({ words: "Nothing was added — please try again." }, 400);
   } finally {
     await close();

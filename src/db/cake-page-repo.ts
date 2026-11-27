@@ -41,8 +41,11 @@ export async function readCakePage(
     .from(cakeMedia)
     .where(eq(cakeMedia.cakeId, cake.id))
     .orderBy(asc(cakeMedia.position));
+  // A video shows once the server has prepared it (§9.13).
   const photos = media.filter((m) => m.kind === "photo").slice(0, 8);
-  const videos = media.filter((m) => m.kind === "video").slice(0, 2);
+  const videos = media
+    .filter((m) => m.kind === "video" && m.status === "ready")
+    .slice(0, 2);
   const kept = new Set([...photos, ...videos].map((m) => m.id));
   const items: MediaItem[] = media
     .filter((m) => kept.has(m.id))

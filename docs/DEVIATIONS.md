@@ -170,3 +170,5 @@ Anything built differently from the docs or Figma, and why. Bohoka’s decision 
 | 9.1c | 1713:11890 / 1714:11991 build notes (“BUILD NOTE — NOT ON SCREEN”, the side notes) | Not shown (designer notes, SITE-FLOWS §0.3) |
 | 9.2 | CLAUDE.md §4.4 one slice | 9.2 split into 9.2a (photos), 9.2b (cake videos), 9.2c (the card video) |
 | 9.2a | 940:8507 “Add a video”, “Change the cover” | Come with the videos (9.2b) |
+| 9.2b | 940:8507 video tile | “Preparing the video…” is the line under the tile (where Change the cover comes once it is ready), not inside the 89 × 69 tile: inside, the ≡ and × covered it |
+| 9.2b | CLAUDE.md §4.4 size | About 700 hand-written lines, over the 600 guide: the conversion and its tiles are one behaviour |

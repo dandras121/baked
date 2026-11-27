@@ -1,11 +1,12 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   makeMainPhotoAction,
   removeMediaAction,
   reorderMediaAction,
   updatePhotoAction,
+  videoStatusAction,
 } from "@/app/admin/(shell)/cakes/actions";
 import form from "@/components/admin/add-order/add-order.module.css";
 import { Button } from "@/components/ui/button";
@@ -13,16 +14,42 @@ import { Overlay } from "@/components/ui/overlay";
 import type { AdminMedia } from "@/db/cake-media-repo";
 import { CAKE_LIMITS } from "@/lib/cakes";
 import type { BlobMode } from "@/lib/storage";
+import { CAKE_VIDEO, VIDEO_WORDS, videoType } from "@/lib/uploads/video-rules";
 import styles from "./photos.module.css";
 
-type Answer = { media?: AdminMedia; words?: string };
+type Answer = { media?: AdminMedia; poster?: string; words?: string };
+type Kind = "photo" | "video" | "cover";
 
-/** One photo to the store: straight to the Blob store when one is connected (15 MB), else through the site. */
+/** A video's length from the browser's own reading of it; null when the browser cannot read it (the server checks). */
+function videoLength(file: File): Promise<number | null> {
+  return new Promise((done) => {
+    const v = document.createElement("video");
+    const url = URL.createObjectURL(file);
+    const end = (n: number | null) => {
+      URL.revokeObjectURL(url);
+      done(n);
+    };
+    v.preload = "metadata";
+    v.onloadedmetadata = () =>
+      end(Number.isFinite(v.duration) ? v.duration : null);
+    v.onerror = () => end(null);
+    setTimeout(() => end(null), 10_000);
+    v.src = url;
+  });
+}
+
+/**
+ * One file to the store: straight to the Blob store when one is connected (a photo 15 MB, a video 500 MB), else
+ * through the site. kind: a photo, a video, or a new cover for the video mediaId.
+ */
 async function upload(
   file: File,
   cakeId: number,
   direct: BlobMode,
+  kind: Kind = "photo",
+  mediaId?: number,
 ): Promise<Answer> {
+  const what = kind === "video" ? "video" : "photo";
   try {
     if (direct) {
       const { upload: up, uploadPresigned } =
@@ -30,42 +57,49 @@ async function upload(
       const safe = file.name.replace(/[^\w.-]+/g, "-").slice(-80) || "photo";
       const ext = file.name.toLowerCase().split(".").pop() ?? "";
       const type =
-        file.type ||
-        (ext === "heic" || ext === "heif"
-          ? "image/heic"
-          : ext === "png"
-            ? "image/png"
-            : "image/jpeg");
+        kind === "video"
+          ? videoType(file.name, file.type)
+          : file.type ||
+            (ext === "heic" || ext === "heif"
+              ? "image/heic"
+              : ext === "png"
+                ? "image/png"
+                : "image/jpeg");
       const stored = await (direct === "token" ? up : uploadPresigned)(
         `incoming/cakes/${cakeId}/${crypto.randomUUID()}-${safe}`,
         file,
         {
           access: "private",
           handleUploadUrl: "/api/cake-media/blob",
-          clientPayload: JSON.stringify({ cakeId }),
+          clientPayload: JSON.stringify({ cakeId, kind }),
           contentType: type,
-          multipart: false,
+          multipart: kind === "video" && file.size > 50 * 1024 * 1024,
         },
       );
       const r = await fetch("/api/cake-media/blob", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ finish: stored.pathname, cakeId }),
+        body: JSON.stringify({
+          finish: stored.pathname,
+          cakeId,
+          kind,
+          mediaId,
+        }),
       });
       return await r.json();
     }
     const body = new FormData();
     body.set("file", file);
     body.set("cakeId", String(cakeId));
+    body.set("kind", kind);
+    if (mediaId) body.set("mediaId", String(mediaId));
     const r = await fetch("/api/cake-media", { method: "POST", body });
     return await r.json().catch(() => ({
-      words:
-        "That photo did not go through — nothing was added. Try a smaller one.",
+      words: `That ${what} did not go through — nothing was added. Try a smaller one.`,
     }));
   } catch {
     return {
-      words:
-        "That photo did not go through — nothing was added. Please try again.",
+      words: `That ${what} did not go through — nothing was added. Please try again.`,
     };
   }
 }
@@ -98,11 +132,56 @@ export function CakePhotos({
   const [removing, setRemoving] = useState<AdminMedia | null>(null);
   const picker = useRef<HTMLInputElement>(null);
   const replacer = useRef<HTMLInputElement>(null);
+  const videoPicker = useRef<HTMLInputElement>(null);
+  const coverPicker = useRef<HTMLInputElement>(null);
+  const coverFor = useRef<number | null>(null);
   const photos = media.filter((m) => m.kind === "photo");
   const main = photos[0] ?? null;
   const rest = media.filter((m) => m.id !== main?.id);
   const chosen = media.find((m) => m.id === selected) ?? main;
   const full = photos.length >= CAKE_LIMITS.photos;
+  const videos = media.filter((m) => m.kind === "video");
+  const videosFull = videos.length >= CAKE_VIDEO.max;
+  const waiting = media
+    .filter((m) => m.kind === "video" && m.status !== "ready")
+    .map((m) => m.id)
+    .join(",");
+
+  // While a video is preparing, ask every 4 seconds; a ready one gets its cover, a failed one leaves with its words.
+  useEffect(() => {
+    if (!waiting || cakeId === null) return;
+    const ids = waiting.split(",").map(Number);
+    let stop = false;
+    const ask = async () => {
+      const r = await videoStatusAction(cakeId, ids);
+      if (stop || !r) return;
+      const failed = r.filter((v) => v.state === "failed");
+      setMedia((all) =>
+        all
+          .filter((m) => !failed.some((v) => v.id === m.id))
+          .map((m) => {
+            const v = r.find((x) => x.id === m.id);
+            return v?.state === "ready" ? v.media : m;
+          }),
+      );
+      if (failed.length)
+        setLine(
+          failed.map((v) => (v.state === "failed" ? v.words : "")).join(" "),
+        );
+    };
+    const first = setTimeout(
+      ask,
+      media.some((m) => m.status === "failed") ? 0 : 4000,
+    );
+    const every = setInterval(ask, 4000);
+    return () => {
+      stop = true;
+      clearTimeout(first);
+      clearInterval(every);
+    };
+    // Only the list of waiting videos restarts the question.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [waiting, cakeId]);
 
   const said = (r: { kind: string }) => {
     if (r.kind === "saved") return true;
@@ -165,6 +244,37 @@ export function CakePhotos({
     setBusy(null);
     // No refresh here: it would draw the form again and lose these words; the tiles are already up to date.
     if (words.length) setLine(words.join(" "));
+  };
+
+  const addVideo = async (file: File) => {
+    setLine(null);
+    if (file.size > CAKE_VIDEO.maxBytes)
+      return setLine(VIDEO_WORDS.size(file.size));
+    const ext = file.name.toLowerCase().split(".").pop() ?? "";
+    if (!["mp4", "mov", "m4v"].includes(ext) && !file.type.startsWith("video/"))
+      return setLine(VIDEO_WORDS.type);
+    setBusy("Uploading the video…");
+    const seconds = await videoLength(file);
+    if (seconds !== null && seconds > CAKE_VIDEO.maxSeconds + 0.5) {
+      setBusy(null);
+      return setLine(VIDEO_WORDS.long);
+    }
+    const r = await upload(file, cakeId, direct, "video");
+    setBusy(null);
+    if (r.media) setMedia((all) => [...all, r.media!]);
+    else setLine(r.words ?? VIDEO_WORDS.failed);
+  };
+
+  const changeCover = async (file: File, id: number) => {
+    setLine(null);
+    setBusy("Uploading the cover…");
+    const r = await upload(file, cakeId, direct, "cover", id);
+    setBusy(null);
+    if (r.poster)
+      setMedia((all) =>
+        all.map((m) => (m.id === id ? { ...m, poster: r.poster! } : m)),
+      );
+    else setLine(r.words ?? "Nothing was changed — please try again.");
   };
 
   const saveOrder = async (next: AdminMedia[]) => {
@@ -365,12 +475,19 @@ export function CakePhotos({
                   aria-label={`Select ${m.alt || (m.kind === "photo" ? "this photo" : "this video")} to describe it`}
                   onClick={() => setSelected(m.id)}
                 >
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={m.kind === "photo" ? m.src : (m.poster ?? "")}
-                    alt=""
-                    style={{ objectPosition: position(m) }}
-                  />
+                  {!(m.kind === "video" && m.status !== "ready") && (
+                    <>
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={m.kind === "photo" ? m.src : (m.poster ?? "")}
+                        alt=""
+                        style={{ objectPosition: position(m) }}
+                      />
+                      {m.kind === "video" && (
+                        <span className={styles.play} aria-hidden />
+                      )}
+                    </>
+                  )}
                 </button>
                 <button
                   id={`tile-move-${m.id}`}
@@ -396,7 +513,7 @@ export function CakePhotos({
                 <button
                   type="button"
                   className={styles.tileRemove}
-                  aria-label={`Remove ${m.alt || "this photo"}`}
+                  aria-label={`Remove ${m.alt || (m.kind === "photo" ? "this photo" : "this video")}`}
                   onClick={() => setRemoving(m)}
                 >
                   ×
@@ -415,6 +532,24 @@ export function CakePhotos({
                   Make the main photo
                 </button>
               )}
+              {m.kind === "video" && m.status !== "ready" && (
+                <span className={styles.preparing} role="status">
+                  Preparing the video…
+                </span>
+              )}
+              {m.kind === "video" && m.status === "ready" && (
+                <button
+                  type="button"
+                  className={styles.textButton}
+                  disabled={!!busy}
+                  onClick={() => {
+                    coverFor.current = m.id;
+                    coverPicker.current?.click();
+                  }}
+                >
+                  Change the cover
+                </button>
+              )}
             </li>
           ))}
         </ul>
@@ -431,6 +566,28 @@ export function CakePhotos({
           if (files.length) void addFiles(files);
         }}
       />
+      <input
+        ref={videoPicker}
+        type="file"
+        accept="video/mp4,video/quicktime,.mp4,.mov"
+        hidden
+        onChange={(e) => {
+          const f = e.target.files?.[0];
+          e.target.value = "";
+          if (f) void addVideo(f);
+        }}
+      />
+      <input
+        ref={coverPicker}
+        type="file"
+        accept="image/jpeg,image/png,image/heic,image/heif,.heic,.heif"
+        hidden
+        onChange={(e) => {
+          const f = e.target.files?.[0];
+          e.target.value = "";
+          if (f && coverFor.current) void changeCover(f, coverFor.current);
+        }}
+      />
       <div className={styles.addRow}>
         <Button
           variant="outline"
@@ -438,6 +595,13 @@ export function CakePhotos({
           onClick={() => picker.current?.click()}
         >
           Add photos
+        </Button>
+        <Button
+          variant="outline"
+          disabled={videosFull || !!busy}
+          onClick={() => videoPicker.current?.click()}
+        >
+          Add a video
         </Button>
       </div>
       {busy && (
@@ -451,9 +615,13 @@ export function CakePhotos({
         </p>
       )}
       <p className={form.hint}>
-        {full
+        {full && videosFull
           ? "Up to 8 photos and 2 videos"
-          : "Up to 8 photos and 2 videos. The first photo is the card photo — shown in the catalogue. JPG, PNG or HEIC, up to 15 MB, at least 1600 pixels on the long side."}
+          : "Up to 8 photos and 2 videos. The first photo is the card photo — shown in the catalogue. Videos autoplay muted when visible; tapping unmutes. Each video gets a cover from its first frame; Change the cover replaces it."}
+      </p>
+      <p className={form.hint}>
+        Photos: JPG, PNG or HEIC, up to 15 MB, at least 1600 pixels on the long
+        side. Videos: MP4 or MOV, up to 500 MB and a minute.
       </p>
 
       <Overlay
