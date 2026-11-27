@@ -1,6 +1,5 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
 import {
   makeMainPhotoAction,
@@ -90,7 +89,6 @@ export function CakePhotos({
   initial: AdminMedia[];
   direct: BlobMode;
 }) {
-  const router = useRouter();
   const [media, setMedia] = useState(initial);
   const [selected, setSelected] = useState<number | null>(
     initial.find((m) => m.kind === "photo")?.id ?? null,
@@ -165,8 +163,8 @@ export function CakePhotos({
     } else if (!main && added[0]) setSelected(added[0].id);
     setMedia(next);
     setBusy(null);
+    // No refresh here: it would draw the form again and lose these words; the tiles are already up to date.
     if (words.length) setLine(words.join(" "));
-    router.refresh();
   };
 
   const saveOrder = async (next: AdminMedia[]) => {

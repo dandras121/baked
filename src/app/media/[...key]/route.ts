@@ -1,10 +1,9 @@
-import { eq } from "drizzle-orm";
 import { connect, databaseUrl } from "@/db/client";
-import { storedFiles } from "@/db/schema";
+import { fileStore } from "@/lib/storage";
 
 /**
- * GET /media/{key} (§0.8): public cake media kept in the database when no Blob store is connected (development and
- * previews). Only the public folder (cakes/); a key is never reused, so the copy may be cached for a year.
+ * GET /media/{key} (§0.8): the cake photos and videos the site shows, read from the file store (Blob or the database).
+ * Only the public folder (cakes/); a key is never reused, so the copy may be cached for a year (also by the CDN).
  */
 export async function GET(
   _req: Request,
@@ -15,14 +14,16 @@ export async function GET(
     return new Response("Not found", { status: 404 });
   const { db, close } = connect();
   try {
-    const [row] = await db
-      .select({ data: storedFiles.data, type: storedFiles.contentType })
-      .from(storedFiles)
-      .where(eq(storedFiles.key, key));
-    if (!row) return new Response("Not found", { status: 404 });
-    return new Response(new Uint8Array(row.data), {
+    const data = await fileStore(db).get(key);
+    if (!data) return new Response("Not found", { status: 404 });
+    const type = key.endsWith(".mp4")
+      ? "video/mp4"
+      : key.endsWith(".png")
+        ? "image/png"
+        : "image/jpeg";
+    return new Response(new Uint8Array(data), {
       headers: {
-        "Content-Type": row.type,
+        "Content-Type": type,
         "Cache-Control": "public, max-age=31536000, immutable",
       },
     });

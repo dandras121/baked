@@ -88,9 +88,9 @@ export function fileStore(db: Db): FileStore {
 }
 
 /**
- * Public media (§0.8: the cake photos and videos the site shows): with a Blob store, a public file on its CDN; without
- * one, the database keeps it and /media/{key} serves it with a long cache. The key is never reused (a new upload gets
- * a new key), so a cached copy never goes stale. Returns the address the site uses.
+ * Public media (§0.8: the cake photos and videos the site shows): kept in the file store (the Blob store when one is
+ * connected — private, as the store allows — else the database) and served by the site at /media/{key} with a year's
+ * cache, so the CDN keeps it. The key is never reused, so a cached copy never goes stale. Returns that address.
  */
 export async function putPublic(
   db: Db,
@@ -98,17 +98,7 @@ export async function putPublic(
   data: Buffer,
   contentType: string,
 ): Promise<string> {
-  if (blobConnected()) {
-    const r = await put(key, data, {
-      access: "public",
-      contentType,
-      addRandomSuffix: false,
-      allowOverwrite: true,
-      cacheControlMaxAge: 60 * 60 * 24 * 365,
-    });
-    return r.url;
-  }
-  await databaseStore(db).put(key, data, contentType);
+  await fileStore(db).put(key, data, contentType);
   return `/media/${key}`;
 }
 
