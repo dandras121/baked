@@ -19,7 +19,7 @@ export class CakeVideoError extends Error {
 }
 
 /** The ffmpeg binary: FFMPEG_PATH, else the one shipped with the app (ffmpeg-static), else the system's. */
-async function ffmpeg(): Promise<string> {
+export async function ffmpeg(): Promise<string> {
   if (process.env.FFMPEG_PATH) return process.env.FFMPEG_PATH;
   try {
     const shipped = (await import("ffmpeg-static")).default as unknown as

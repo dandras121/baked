@@ -172,3 +172,4 @@ Anything built differently from the docs or Figma, and why. Bohoka’s decision 
 | 9.2a | 940:8507 “Add a video”, “Change the cover” | Come with the videos (9.2b) |
 | 9.2b | 940:8507 video tile | “Preparing the video…” is the line under the tile (where Change the cover comes once it is ready), not inside the 89 × 69 tile: inside, the ≡ and × covered it |
 | 9.2b | CLAUDE.md §4.4 size | About 700 hand-written lines, over the 600 guide: the conversion and its tiles are one behaviour |
+| 9.2c | 1801:13221 Card video | Built as a card inside Edit a cake (heading “CARD VIDEO” like the other cards), not a separate dialog with the eyebrow “ADD OR EDIT A CAKE · CARD VIDEO” and the big title; the frame's second paragraph is the spec (wrong file, no video yet) — only its first sentence is shown as the hint |

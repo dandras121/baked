@@ -13,6 +13,8 @@ import { SignInAgain } from "@/components/admin/order/sign-in-again";
 import { AllergenPicker } from "./allergen-picker";
 import { OptionsCard } from "./options-card";
 import { CakePhotos } from "./cake-photos";
+import { CardVideoCard } from "./card-video-card";
+import type { CardVideo } from "@/lib/home-content";
 import type { AdminMedia } from "@/db/cake-media-repo";
 import type { BlobMode } from "@/lib/storage";
 import { Button } from "@/components/ui/button";
@@ -42,12 +44,15 @@ export function CakeFormScreen({
   id,
   initial,
   media = [],
+  cardVideo = null,
   direct = null,
 }: {
   id: number | null;
   initial: Form;
   /** The cake's photos (and videos, 9.2b), saved at once (§9.13). */
   media?: AdminMedia[];
+  /** The card video (9.2c), saved at once. */
+  cardVideo?: CardVideo | null;
   direct?: BlobMode;
 }) {
   const router = useRouter();
@@ -339,6 +344,8 @@ export function CakeFormScreen({
             onInscription={(v) => set("offerInscription", v)}
             errors={errors.options}
           />
+
+          <CardVideoCard cakeId={id} initial={cardVideo} direct={direct} />
 
           <section
             className={form.card}

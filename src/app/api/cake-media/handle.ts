@@ -9,17 +9,30 @@ import {
   startCakeVideo,
   type AdminMedia,
 } from "@/db/cake-media-repo";
+import { setCardVideo } from "@/db/card-video-repo";
 import { connect } from "@/db/client";
+import type { CardVideo } from "@/lib/home-content";
 import { CAKE_PHOTO, PHOTO_WORDS } from "@/lib/uploads/cake-photo";
 import { CAKE_VIDEO, VIDEO_WORDS } from "@/lib/uploads/cake-video";
+import { CARD_VIDEO, CARD_VIDEO_WORDS } from "@/lib/uploads/video-rules";
 
-export type MediaKind = "photo" | "video" | "cover";
+/** card: the card video (one per cake, converted before the answer; the old one stays until then). */
+export type MediaKind = "photo" | "video" | "cover" | "card";
 export const kindOf = (v: unknown): MediaKind =>
-  v === "video" || v === "cover" ? v : "photo";
+  v === "video" || v === "cover" || v === "card" ? v : "photo";
+export const isVideo = (k: MediaKind) => k === "video" || k === "card";
 export const maxBytes = (k: MediaKind) =>
-  k === "video" ? CAKE_VIDEO.maxBytes : CAKE_PHOTO.maxBytes;
+  k === "video"
+    ? CAKE_VIDEO.maxBytes
+    : k === "card"
+      ? CARD_VIDEO.maxBytes
+      : CAKE_PHOTO.maxBytes;
 export const tooBig = (k: MediaKind, bytes: number) =>
-  k === "video" ? VIDEO_WORDS.size(bytes) : PHOTO_WORDS.size(bytes);
+  k === "video"
+    ? VIDEO_WORDS.size(bytes)
+    : k === "card"
+      ? CARD_VIDEO_WORDS.size(bytes)
+      : PHOTO_WORDS.size(bytes);
 export const TYPES = {
   photo: ["image/jpeg", "image/png", "image/heic", "image/heif"],
   video: ["video/mp4", "video/quicktime"],
@@ -30,7 +43,16 @@ type Db = ReturnType<typeof connect>["db"];
 export async function handleMedia(
   db: Db,
   input: { cakeId: number; kind: MediaKind; mediaId?: number; data: Buffer },
-): Promise<{ media?: AdminMedia; poster?: string; words?: string }> {
+): Promise<{
+  media?: AdminMedia;
+  poster?: string;
+  card?: CardVideo;
+  words?: string;
+}> {
+  if (input.kind === "card") {
+    const r = await setCardVideo(db, input.cakeId, input.data);
+    return r.ok ? { card: r.video } : { words: r.words };
+  }
   if (input.kind === "cover") {
     const r = await setVideoCover(
       db,

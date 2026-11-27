@@ -138,7 +138,7 @@ Branch per phase (`phase-00-foundations`, …), one commit per accepted slice, t
 | 9.1c | Options card | ✅ accepted 2026-11-26 | 4735edb | |
 | 9.2a | Cake photos | ✅ accepted 2026-11-27 | 2ec1e75 | |
 | 9.2b | Cake videos | ✅ accepted 2026-11-27 | 31abd75 | |
-| 9.2c | Card video | 🔨 building | | |
+| 9.2c | Card video | 🔍 waiting for Bohoka | | |
 | 8.6d | Edit the order (manual orders) | ☐ | | |
 | 8.7 | Payment links, Record a payment, Record a refund | ☐ | | |
 | 8.8 | Money | ☐ | | |
@@ -465,3 +465,4 @@ Branch per phase (`phase-00-foundations`, …), one commit per accepted slice, t
 - (Phase 8 gate) Order detail's Print the order, Export this customer's data, Delete this customer and the Orders list's Export CSV → 9.9; Turn into an order and the “FROM ENQUIRY BBL-…” prefill in Add an order → 9.8.
 - (Phase 8 gate) Bohoka's real-phone test of an 8 MB picture (Add a sketch or photo, the Blob store) — still open → before 11.1.
 - (Phase 8 gate) The unused `today` prop warning in `change-order-form.tsx` (lint warning only) → the next slice that touches Change the order (9.x) or 10.4.
+- **9.2c Card video** — built 2026-11-27. A CARD VIDEO card in Edit a cake (1801:13221), under Options: the text of the frame, the desktop card's closed crop (8 : 5) and open crop (1.2 : 1) side by side from the video itself (bottom-anchored, `card-crop.ts`; the open one plays, a still with reduced motion; grey slots with no video), **Add photo / video**, or **Replace** and **Remove**. Wrong file (not square, under 1440, not 4.9–5.1 s, not a video): “The card video must be a square video of about 5 seconds, at least 1440 × 1440.” — checked in the browser first and again on the server. The server converts before answering (“Preparing the card video…”): no sound, 1080 and 1440 square H.264 (key frame on frame 0, no B-frames, faststart) and a 1440 WebP still of frame 0, kept as public media; the old card video stays on the site until the new one is ready, then its files are removed. Remove: the card shows the main photo and has no corner button. The cards follow at once (cache refreshed). New: `src/lib/uploads/card-video.ts`, `src/db/card-video-repo.ts`, `card-video-card.tsx`; the upload helper moved to `cake-form/upload.ts` (shared with the photos). No migration (the table came with 3.4b). Tests: `src/lib/uploads/card-video.test.ts` (4, real clips: copies, frame 0 key, no B-frames, no audio, still; wrong files), `src/db/card-video-repo.test.ts` (2: replace removes the old files, remove, a wrong file changes nothing), `e2e/admin-card-video.spec.ts` (1, axe, the corner button on /cakes).

@@ -12,6 +12,7 @@ import {
   updateCakePhoto,
   type VideoStatus,
 } from "@/db/cake-media-repo";
+import { removeCardVideo } from "@/db/card-video-repo";
 import { connect } from "@/db/client";
 import {
   checkCakeForm,
@@ -189,4 +190,17 @@ export async function videoStatusAction(
   } finally {
     await close();
   }
+}
+
+/** Card video · Remove (§9.13): the card shows the main photo again and has no corner button. */
+export async function removeCardVideoAction(cakeId: number) {
+  return mediaChange(cakeId, async (db) => {
+    await removeCardVideo(db, cakeId);
+    return true;
+  });
+}
+
+/** After a new card video is in place (the upload route): the cards show it from the next page load. */
+export async function cardVideoChangedAction(cakeId: number) {
+  return mediaChange(cakeId, async () => true);
 }

@@ -23,3 +23,19 @@ export const VIDEO_WORDS = {
 export const videoType = (name: string, type: string) =>
   type ||
   (name.toLowerCase().endsWith(".mov") ? "video/quicktime" : "video/mp4");
+
+/** The card video (§9.13, Decided 2026-10-22; claude/torta-video-szabalyrendszer.md). The size limit is a Proposal. */
+export const CARD_VIDEO = {
+  maxBytes: 500 * 1024 * 1024,
+  minSide: 1440,
+  minSeconds: 4.9,
+  maxSeconds: 5.1,
+} as const;
+
+export const CARD_VIDEO_WORDS = {
+  wrong:
+    "The card video must be a square video of about 5 seconds, at least 1440 × 1440.",
+  size: (bytes: number) =>
+    `That video is ${megabytes(bytes)} — the limit is 500 MB. Nothing was changed.`,
+  failed: "That card video could not be prepared — nothing was changed.",
+};

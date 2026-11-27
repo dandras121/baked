@@ -14,95 +14,9 @@ import { Overlay } from "@/components/ui/overlay";
 import type { AdminMedia } from "@/db/cake-media-repo";
 import { CAKE_LIMITS } from "@/lib/cakes";
 import type { BlobMode } from "@/lib/storage";
-import { CAKE_VIDEO, VIDEO_WORDS, videoType } from "@/lib/uploads/video-rules";
+import { CAKE_VIDEO, VIDEO_WORDS } from "@/lib/uploads/video-rules";
 import styles from "./photos.module.css";
-
-type Answer = { media?: AdminMedia; poster?: string; words?: string };
-type Kind = "photo" | "video" | "cover";
-
-/** A video's length from the browser's own reading of it; null when the browser cannot read it (the server checks). */
-function videoLength(file: File): Promise<number | null> {
-  return new Promise((done) => {
-    const v = document.createElement("video");
-    const url = URL.createObjectURL(file);
-    const end = (n: number | null) => {
-      URL.revokeObjectURL(url);
-      done(n);
-    };
-    v.preload = "metadata";
-    v.onloadedmetadata = () =>
-      end(Number.isFinite(v.duration) ? v.duration : null);
-    v.onerror = () => end(null);
-    setTimeout(() => end(null), 10_000);
-    v.src = url;
-  });
-}
-
-/**
- * One file to the store: straight to the Blob store when one is connected (a photo 15 MB, a video 500 MB), else
- * through the site. kind: a photo, a video, or a new cover for the video mediaId.
- */
-async function upload(
-  file: File,
-  cakeId: number,
-  direct: BlobMode,
-  kind: Kind = "photo",
-  mediaId?: number,
-): Promise<Answer> {
-  const what = kind === "video" ? "video" : "photo";
-  try {
-    if (direct) {
-      const { upload: up, uploadPresigned } =
-        await import("@vercel/blob/client");
-      const safe = file.name.replace(/[^\w.-]+/g, "-").slice(-80) || "photo";
-      const ext = file.name.toLowerCase().split(".").pop() ?? "";
-      const type =
-        kind === "video"
-          ? videoType(file.name, file.type)
-          : file.type ||
-            (ext === "heic" || ext === "heif"
-              ? "image/heic"
-              : ext === "png"
-                ? "image/png"
-                : "image/jpeg");
-      const stored = await (direct === "token" ? up : uploadPresigned)(
-        `incoming/cakes/${cakeId}/${crypto.randomUUID()}-${safe}`,
-        file,
-        {
-          access: "private",
-          handleUploadUrl: "/api/cake-media/blob",
-          clientPayload: JSON.stringify({ cakeId, kind }),
-          contentType: type,
-          multipart: kind === "video" && file.size > 50 * 1024 * 1024,
-        },
-      );
-      const r = await fetch("/api/cake-media/blob", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          finish: stored.pathname,
-          cakeId,
-          kind,
-          mediaId,
-        }),
-      });
-      return await r.json();
-    }
-    const body = new FormData();
-    body.set("file", file);
-    body.set("cakeId", String(cakeId));
-    body.set("kind", kind);
-    if (mediaId) body.set("mediaId", String(mediaId));
-    const r = await fetch("/api/cake-media", { method: "POST", body });
-    return await r.json().catch(() => ({
-      words: `That ${what} did not go through — nothing was added. Try a smaller one.`,
-    }));
-  } catch {
-    return {
-      words: `That ${what} did not go through — nothing was added. Please try again.`,
-    };
-  }
-}
+import { upload, videoLength } from "./upload";
 
 const position = (m: AdminMedia) =>
   `${Math.round(m.focalX * 100)}% ${Math.round(m.focalY * 100)}%`;

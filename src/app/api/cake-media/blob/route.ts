@@ -9,7 +9,14 @@ import { NextResponse } from "next/server";
 import { connect, databaseUrl } from "@/db/client";
 import { memberForSave } from "@/lib/admin/session";
 import { blobConnected } from "@/lib/storage";
-import { handleMedia, kindOf, maxBytes, tooBig, TYPES } from "../handle";
+import {
+  handleMedia,
+  isVideo,
+  kindOf,
+  maxBytes,
+  tooBig,
+  TYPES,
+} from "../handle";
 
 const INCOMING = "incoming/cakes/";
 /** A video is converted after the answer, within this function's time (§9.13). */
@@ -81,7 +88,7 @@ export async function POST(req: Request) {
         throw new Error("not allowed");
       const kind = kindOf(p.kind);
       return {
-        allowedContentTypes: kind === "video" ? TYPES.video : TYPES.photo,
+        allowedContentTypes: isVideo(kind) ? TYPES.video : TYPES.photo,
         maximumSizeInBytes: maxBytes(kind),
         validUntil: Date.now() + 30 * 60 * 1000,
       };
