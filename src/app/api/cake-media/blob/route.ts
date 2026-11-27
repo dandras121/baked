@@ -48,29 +48,26 @@ export async function POST(req: Request) {
         !pathname.startsWith(`${INCOMING}${cakeId}/`)
       )
         return answer({ words: "Nothing was added — please try again." }, 400);
+      // Read the original whole first, then delete it (deleting first can leave its download unreadable).
       const original = await get(pathname, {
         access: "private",
         useCache: false,
-      });
+      }).catch(() => null);
+      const data =
+        original?.statusCode === 200
+          ? Buffer.from(await new Response(original.stream).arrayBuffer())
+          : null;
       await del(pathname).catch(() => undefined);
-      if (original?.statusCode !== 200)
-        return answer(
-          {
-            words: "Nothing was added — please try again.",
-            ...(process.env.VERCEL_ENV === "preview"
-              ? { debug: `read ${original?.statusCode ?? "none"}` }
-              : {}),
-          },
-          400,
-        );
+      if (!data)
+        return answer({ words: "Nothing was added — please try again." }, 400);
       const kind = kindOf(body.kind);
-      if (original.blob.size > maxBytes(kind))
-        return answer({ words: tooBig(kind, original.blob.size) }, 413);
+      if (data.length > maxBytes(kind))
+        return answer({ words: tooBig(kind, data.length) }, 413);
       const r = await handleMedia(db, {
         cakeId,
         kind,
         mediaId: Number(body.mediaId),
-        data: Buffer.from(await new Response(original.stream).arrayBuffer()),
+        data,
       });
       return answer(r, r.words ? 400 : 200);
     }
@@ -114,14 +111,7 @@ export async function POST(req: Request) {
     return answer(result as object);
   } catch (e) {
     console.error("cake media blob", e);
-    return answer(
-      {
-        words: "Nothing was added — please try again.",
-        // Previews only: what went wrong, for the builder's check.
-        ...(process.env.VERCEL_ENV === "preview" ? { debug: String(e) } : {}),
-      },
-      400,
-    );
+    return answer({ words: "Nothing was added — please try again." }, 400);
   } finally {
     await close();
   }
