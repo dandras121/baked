@@ -70,10 +70,9 @@ test.beforeAll(async () => {
       .jpeg()
       .toBuffer();
     await addCakePhoto(db, id, photo);
-    // First in the catalogue, so its card is on the first page.
     await db
       .update(cakes)
-      .set({ visible: true, position: -1 })
+      .set({ visible: true })
       .where(eq(cakes.id, id));
   } finally {
     await close();
@@ -120,6 +119,8 @@ test("card video: wrong file refused, add, crops, replace, remove; the card gets
     new RegExp(`^/media/cakes/${id}/card-.+-still\\.webp$`),
     { timeout: 90_000 },
   );
+  const served = await page.request.get((await still.getAttribute("src"))!);
+  expect(served.headers()["content-type"]).toBe("image/webp");
   const video = card.locator("figure").nth(1).locator("video");
   await expect(video).toHaveAttribute("src", /-1080\.mp4$/);
   // The crops share the video's bottom edge: the square's bottom meets the box's bottom.
@@ -137,6 +138,7 @@ test("card video: wrong file refused, add, crops, replace, remove; the card gets
   // The site's card has its corner button now.
   const site = await page.context().newPage();
   await site.goto("/cakes");
+  await site.getByRole("searchbox").first().fill(tag);
   await expect(
     site.getByRole("button", { name: `Show the ${name} video` }),
   ).toBeVisible();
@@ -156,8 +158,16 @@ test("card video: wrong file refused, add, crops, replace, remove; the card gets
       .getByRole("button", { name: "Add photo / video" }),
   ).toBeVisible();
   await site.goto("/cakes");
+  await site.getByRole("searchbox").first().fill(tag);
   await expect(site.getByRole("link", { name, exact: true })).toBeVisible();
   await expect(
     site.getByRole("button", { name: `Show the ${name} video` }),
   ).toHaveCount(0);
+  // Off the site through the admin, so the cached Home row and catalogue forget it too.
+  await page.getByRole("button", { name: "Delete this design" }).click();
+  await page
+    .getByRole("dialog", { name: `Delete ${name} for good?` })
+    .getByRole("button", { name: "Delete it" })
+    .click();
+  await expect(page).toHaveURL(/\/admin\/cakes\?deleted=1$/);
 });

@@ -20,7 +20,9 @@ export async function GET(
       ? "video/mp4"
       : key.endsWith(".png")
         ? "image/png"
-        : "image/jpeg";
+        : key.endsWith(".webp")
+          ? "image/webp"
+          : "image/jpeg";
     return new Response(new Uint8Array(data), {
       headers: {
         "Content-Type": type,
